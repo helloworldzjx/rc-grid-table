@@ -172,7 +172,7 @@ export default () => {
 
   return (
     <div>
-      <ConfigProvider cssVar>
+      <ConfigProvider>
         <Table 
           columns={columns} 
           dataSource={dataSource} 

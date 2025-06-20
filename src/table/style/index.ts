@@ -116,7 +116,8 @@ const genBorderedStyle = (
     // boxShadow: `0px 0.5px 0.5px ${token.borderColor}, 0px -0.5px 0.5px ${token.borderColor}, inset 0.5px 0px 0.5px ${adjustColor(token.borderColor, {r: -5, g: -5, b: -5})}, 0.5px 0px 0.5px ${token.borderColor}`,
 
     [`.${headRowCls} .${cellCls}::before`]: {
-      content: "none !important",
+      // content: "none",
+      display: 'none',
     },
 
     [`.${cellCls}`]: {
@@ -138,7 +139,6 @@ const genHeadStyle = (
     gridTemplateColumns: `var(--${componentCls}-cols-width)`,
 
     [`.${headRowCls}`]: {
-      // minHeight: token.bodyCellHeight || 40,
       display: 'contents',
     },
   },
@@ -154,7 +154,6 @@ const genBodyStyle = ({
     gridTemplateColumns: `var(--${componentCls}-cols-width)`,
 
     [`.${bodyRowCls}`]: {
-      // minHeight: token.bodyCellHeight || 40,
       display: 'contents',
     },
   },
@@ -170,7 +169,6 @@ const genSummaryCls = ({
     gridTemplateColumns: `var(--${componentCls}-cols-width)`,
 
     [`.${summaryRowCls}`]: {
-      // minHeight: token.bodyCellHeight || 40,
       display: 'contents',
     },
   },
@@ -199,7 +197,7 @@ const genCellStyle = (
     [`&:first-child .${cellCls}:not(:last-child)::before`]: {
       content: "' '",
       position: 'absolute',
-      right: 0,
+      right: 1,
       top: token.cellPaddingBlock || 8,
       bottom: token.cellPaddingBlock || 8,
       borderRight: `2px solid ${token.borderColor}`,
@@ -208,7 +206,7 @@ const genCellStyle = (
     [`&:not(:first-child) .${cellCls}::before`]: {
       content: "' '",
       position: 'absolute',
-      right: 0,
+      right: 1,
       top: token.cellPaddingBlock || 8,
       bottom: token.cellPaddingBlock || 8,
       borderRight: `2px solid ${token.borderColor}`,
@@ -270,6 +268,9 @@ const genFixedCellStyle = (
     backgroundColor: '#fff',
   },
 
+  [`.${headRowCls} .${cellFixedStartLastCls}::before`]: {
+    right: '0px !important',
+  },
   [`.${cellFixedStartLastCls}::after`]: {
     content: "' '",
     position: 'absolute',
@@ -392,7 +393,7 @@ export const useStyles = ({  }: genStylesProps) => {
 
   const mergedToken: any = {
     ...token,
-    ...cssVarToken
+    ...cssVar?.key ? cssVarToken : tableToken
   };
 
   useStyleRegister(
