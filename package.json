@@ -2,8 +2,9 @@
   "name": "rc-grid-table",
   "version": "0.0.1",
   "description": "A react library developed with dumi",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "lib/index.js",
+  "module": "es/index.js",
+  "types": "es/index.d.ts",
   "scripts": {
     "start": "npm run dev",
     "dev": "dumi dev",
@@ -23,7 +24,8 @@
   ],
   "license": "MIT",
   "files": [
-    "dist"
+    "es",
+    "lib"
   ],
   "commitlint": {
     "extends": [
