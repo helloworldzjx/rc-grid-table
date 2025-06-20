@@ -3,6 +3,8 @@ import path from 'path';
 
 export default defineConfig({
   outputPath: 'docs-dist',
+  base: 'rc-grid-table',
+  publicPath: 'rc-grid-table',
   themeConfig: {
     name: 'rc-grid-table',
   },
