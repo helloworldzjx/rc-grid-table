@@ -19,8 +19,16 @@
     "lint:es": "eslint \"{src,test}/**/*.{js,jsx,ts,tsx}\"",
     "prepublishOnly": "father doctor && npm run build"
   },
+  "repository": "https://github.com/helloworldzjx/rc-grid-table.git",
+  "homepage": "https://github.com/helloworldzjx/rc-grid-table",
   "authors": [
     "1445003564@qq.com"
+  ],
+  "keywords": [
+    "table",
+    "react table",
+    "table component",
+    "grid table"
   ],
   "license": "MIT",
   "files": [
