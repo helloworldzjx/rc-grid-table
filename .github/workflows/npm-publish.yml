@@ -4,7 +4,7 @@ on:
   push:
     branches:
       # 触发ci/cd的代码分支
-      - master
+      - main
 
 jobs:
   build:
