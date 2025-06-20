@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "declaration": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "jsx": "react",
+    "baseUrl": "./",
+    "paths": {
+      "@@/*": [".dumi/tmp/*"],
+      "rc-grid-table": ["src/index.ts"],
+      "rc-grid-table/es/*": ["src/*"],
+      "rc-grid-table/lib/*": ["src/*"]
+    }
+  },
+  "include": [".dumirc.ts", "src/**/*"],
+  "exclude": ["node_modules", "lib", "es"]
+}
