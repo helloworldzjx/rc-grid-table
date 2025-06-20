@@ -79,6 +79,8 @@
     "@ant-design/cssinjs": "^1.23.0",
     "@ctrl/tinycolor": "^4.1.0",
     "@rc-component/resize-observer": "^1.0.0",
-    "antd": "^5.26.1"
+    "@rc-component/util": "^1.2.0",
+    "antd": "^5.26.1",
+    "classnames": "^2.5.1"
   }
 }
