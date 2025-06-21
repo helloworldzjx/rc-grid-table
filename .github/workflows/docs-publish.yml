@@ -2,8 +2,8 @@
 name: Deploy Documentation Site
 
 on:
-  push:
-    branches: ["main"]
+  release:
+    types: [published]  # 只在正式发布时触发
   workflow_dispatch:
 
 permissions:

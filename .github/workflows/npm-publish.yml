@@ -1,10 +1,20 @@
 name: Publish to npm
 
+# 当push v*的时候会运行这个action，如：在本地执行git push origin v1.1.0，会运行这个workflow
 on:
   push:
-    branches:
-      # 触发ci/cd的代码分支
-      - main
+    tags:
+      - 'v*'
+# on:
+#   push:
+#     branches:
+#       # 触发ci/cd的代码分支
+#       - main
+
+# on:
+#   release:
+#     types: [published]  # 只在正式发布时触发
+
 
 jobs:
   build:
@@ -18,7 +28,7 @@ jobs:
       - name: Node环境版本 🗜️
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 20
           registry-url: 'https://registry.npmjs.org'
       # 依赖缓存策略
       - name: Npm缓存 📁
@@ -43,3 +53,12 @@ jobs:
         run: npm publish
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: 打包
+        run: tar -zcvf release.tgz ./es/ ./lib/ LICENSE package.json README.md
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          token: ${{ secrets.GH_NPM_TOKEN }}
+          name: ${{ github.ref }}
+          files: ./release.tgz
+          draft: false
