@@ -200,7 +200,7 @@ const genCellStyle = (
       right: 1,
       top: token.cellPaddingBlock || 8,
       bottom: token.cellPaddingBlock || 8,
-      borderRight: `2px solid ${token.borderColor}`,
+      borderRight: `1px solid ${token.borderColor}`,
     },
 
     [`&:not(:first-child) .${cellCls}::before`]: {
@@ -209,7 +209,7 @@ const genCellStyle = (
       right: 1,
       top: token.cellPaddingBlock || 8,
       bottom: token.cellPaddingBlock || 8,
-      borderRight: `2px solid ${token.borderColor}`,
+      borderRight: `1px solid ${token.borderColor}`,
     },
   },
 
@@ -316,12 +316,8 @@ const genFixedShadowStyle = ({
     opacity: 1,
   },
 
-  [`.${pingStartCls} .${headRowCls} .${cellFixedStartLastCls}&::before`]: {
-    content: 'none',
-  },
-
-  [`.${pingEndCls} .${headRowCls} .${cellFixedEndFirstCls}&::before`]: {
-    content: 'none',
+  [`.${pingStartCls} .${headRowCls} .${cellFixedStartLastCls}::before`]: {
+    display: 'none',
   },
 });
 
