@@ -1,57 +1,59 @@
-import React, { type CSSProperties, forwardRef, type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import React, { type CSSProperties, forwardRef, useEffect, useMemo, useRef, useState } from 'react';
 import classNames from 'classnames';
-import { Spin } from 'antd';
+import { Empty, Spin } from 'antd';
 
 import { useTableContext } from './context';
 import { useSyncScroll } from './hooks/useSyncScroll';
 import type { TableProps } from './interface';
 import ScrollBarContainer from '../scrollContainer';
 import { ScrollBarContainerRef } from '../scrollContainer/interface';
-import { filterCellSpan, filterSpan, getEllipsisTitle, parseHeaderRows } from './utils/handle';
+import { filterSpan, getEllipsisTitle, parseHeaderRows } from './utils/handle';
 import { useStyles } from './style';
-import useStickyOffsets from './hooks/useStickyOffsets';
 import { getCellFixedInfo } from './utils/fixedColumns';
-import useFixedInfo from './hooks/useFixedInfo';
+import Head from './Head/Head';
+import BodyRow from './Body/BodyRow';
+import useHorizontalWheelScroll from './hooks/useHorizontalWheelScroll';
+import { useScrollContext } from './scrollContext';
 
 const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
   const { 
-    prefixCls, initialized, rowKey, className, 
-    dataSource, columns, flattenColumns, flattenColumnsWidths = [], 
-    containerWidth = 0, bordered, scrollY, summary, sticky, 
-    columnMinWidth, leafColumnMinWidth, isStart, isEnd, scroll,
-    ...rest
+    prefixCls, initialized, containerWidth = 0, rowKey, className, rowClassName,
+    dataSource, columns, flattenColumns = [], flattenColumnsWidths = [], fixedOffset,
+    bordered, scrollY, summary, sticky, 
+    // scroll, virtual, itemHeight,
+    style,
   } = useTableContext();
-
+  const { scrollRef: tableBodyRef, isStart, isEnd, onScroll } = useScrollContext()
+  
   const tableRef = useRef<ScrollBarContainerRef>(null);
   const tableHeadRef = useRef<HTMLDivElement>(null);
-  const tableBodyRef = useRef<ScrollBarContainerRef>(null);
-  useSyncScroll(tableRef.current?.nativeScrollElement, tableBodyRef.current?.nativeScrollElement);
+  const tableSummaryRef = useRef<HTMLDivElement>(null);
+  useSyncScroll(tableHeadRef.current!, tableBodyRef.current?.nativeScrollElement, tableSummaryRef.current!);
+  useHorizontalWheelScroll(tableSummaryRef.current!);
+  const [showStickyXScrollBar, setShowStickyXScrollBar] = useState(false);
+  
   const gridTemplateColumns = flattenColumnsWidths?.length ? `${flattenColumnsWidths?.join('px ')}px` : ''
   const columnWidthTotal = flattenColumnsWidths?.reduce((sum, num) => sum + num, 0)
   const hasSummary = typeof summary === 'function'
-  const summaryRows = summary?.(flattenColumns?.length || 0, dataSource)
-  const [showStickyXScrollBar, setShowStickyXScrollBar] = useState(false);
+  const summaryRows = summary?.(dataSource || [], flattenColumns.length)
 
-  const fixedOffset = useStickyOffsets(flattenColumnsWidths, flattenColumns || [])
-  const fixedInfoList = useFixedInfo(flattenColumns || [], fixedOffset)
-
-  const headFlattenColumns = useMemo(() => {
+  const headRows = useMemo(() => {
     return parseHeaderRows(columns)
   }, [columns])
 
   const tableHeight = useMemo(() => {
-    let y: CSSProperties['height'] = 'auto'
-    let yProp: 'height' | 'max-height' = 'height'
+    let y: number | string = 'auto'
+    let prop = 'height'
     
     if(typeof scrollY === 'number') {
       y = scrollY || 'auto'
-      yProp = 'height'
+      prop = 'height'
     } else if(typeof scrollY === 'object') {
       y = scrollY.y || 'auto'
-      yProp = scrollY.fullHeight ? 'height' : 'max-height'
+      prop = scrollY.fullHeight ? 'height' : 'max-height'
     }
 
-    return {[yProp]: y}
+    return {[prop]: y}
   }, [scrollY])
 
   const showStickyHorizontal = useMemo(() => {
@@ -62,31 +64,29 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
     return !!sticky && showStickyXScrollBar
   }, [sticky, showStickyXScrollBar])
 
-  const { hashId, wrapperCls, cssVarKey, wrapperInitializedCls, wrapperborderedCls, 
+  const { 
+    hashId, wrapperCls, cssVarCls, wrapperInitializedCls, wrapperborderedCls, 
     borderCls, topBorderCls, rightBorderCls, bottomBorderCls, leftBorderCls, 
     borderedCls, hasSummaryCls, pingStartCls, pingEndCls,
-    headCls, headRowCls,  bodyCls, bodyInnerCls, bodyRowCls, 
-    cellCls, cellEllipsisCls, cellEllipsisInnerCls, cellEllipsisInnerShowTitleCls, 
+    bodyCls, bodyInnerCls, bodyRowCls, cellCls, 
+    cellEllipsisCls, cellEllipsisInnerCls, cellEllipsisInnerShowTitleCls,
     cellFixedStartCls, cellFixedStartLastCls, cellFixedEndCls, cellFixedEndFirstCls,
     summaryCls, summaryRowCls, contentCls,
-  } = useStyles({});
+  } = useStyles();
 
   useEffect(() => {
-    let observer: IntersectionObserver | null = null
-
-    if (tableRef.current?.nativeHorizontalTrackElement) {
-      observer = new IntersectionObserver(
-        ([entry]) => {
-          setShowStickyXScrollBar(!entry.isIntersecting);
-        },
-        { threshold: 0.01 }
-      );
-      observer.observe(tableRef.current?.nativeHorizontalTrackElement);
-    }
+    if(!tableRef.current?.nativeHorizontalTrackElement) return
+    
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setShowStickyXScrollBar(!entry.isIntersecting);
+      },
+      { threshold: 0.01 }
+    );
+    observer.observe(tableRef.current?.nativeHorizontalTrackElement);
 
     return () => {
-      observer?.disconnect();
-      observer = null
+      observer.disconnect();
     };
   }, []);
   
@@ -95,7 +95,7 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
       className={classNames(
         wrapperCls, 
         hashId, 
-        cssVarKey,
+        cssVarCls,
         {
           [wrapperInitializedCls]: initialized, 
           [wrapperborderedCls]: bordered, 
@@ -118,85 +118,30 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
           )}
           classNames={{inner: contentCls}}
           styles={{ content: { [`--${prefixCls}-cols-width`]: gridTemplateColumns } }}
-          shouldUpdate={[dataSource, columnWidthTotal]}
+          contentController={tableBodyRef.current?.nativeScrollElement}
+          shouldHorizontalUpdate={[columnWidthTotal]}
+          shouldVerticalUpdate={[dataSource, columnWidthTotal]}
           showHorizontal
           showVertical={!scrollY}
           showStickyHorizontal={showStickyHorizontal}
           ref={tableRef}
-          {...rest}
+          style={style}
         >
-          <div className={headCls} ref={tableHeadRef} style={{width: columnWidthTotal}}>
-            {
-              headFlattenColumns.map((columnsRow, columnsRowIndex) => {
-                return (
-                  <div className={headRowCls} key={columnsRowIndex}>
-                    {
-                      columnsRow?.map((col, colIndex) => {
-                        if(!filterSpan(col.colSpan)) return
-                        
-                        const colKey = col.key || col.column?.dataIndex || colIndex;
-
-                        let cellChildren = col.children
-                        const ellipsis = !!col.column?.ellipsis
-                        if(ellipsis) {
-                          const showTitle = typeof col.column?.ellipsis === "boolean" ? col.column?.ellipsis : col.column?.ellipsis?.showTitle
-                          const elTitle = showTitle ? getEllipsisTitle(cellChildren) as string : undefined
-                          cellChildren = <div title={elTitle} className={classNames(cellEllipsisInnerCls, {[cellEllipsisInnerShowTitleCls]: showTitle})}>{cellChildren}</div>
-                        }
-
-                        const style: CSSProperties = {}
-                        if(col.rowSpan && col.rowSpan > 1) {
-                          style.gridRow = `span ${col.rowSpan}`
-                        }
-                        if(col.colSpan && col.colSpan > 1) {
-                          style.gridColumn = `span ${col.colSpan}`
-                          style.textAlign = 'center'
-                        }
-
-                        const fixedInfo = getCellFixedInfo(col.colStart as number, col.colEnd as number, flattenColumns || [], fixedOffset)
-                        if(fixedInfo.fixStart !== null) {
-                          style.left = fixedInfo.fixStart as number
-                        }
-                        if(fixedInfo.fixEnd !== null) {
-                          style.right = fixedInfo.fixEnd as number
-                        }
-
-                        return (
-                          <div 
-                            key={colKey} 
-                            className={classNames(
-                              cellCls, 
-                              {
-                                [cellEllipsisCls]: ellipsis,
-                                [cellFixedStartCls]: fixedInfo.fixStart !== null,
-                                [cellFixedStartLastCls]: fixedInfo.fixedStartShadow,
-                                [cellFixedEndCls]: fixedInfo.fixEnd !== null,
-                                [cellFixedEndFirstCls]: fixedInfo.fixedEndShadow,
-                              }
-                            )} 
-                            style={style}
-                          >
-                            {cellChildren}
-                          </div>
-                        );
-                      })
-                    }
-                  </div>
-                )
-              })
-            }
-          </div>
+          <Head ref={tableHeadRef} rows={headRows} />
           <ScrollBarContainer
             className={bodyCls} 
             classNames={{inner: bodyInnerCls}}
-            style={{...tableHeight, position: 'sticky', left: 0}}
-            shouldUpdate={[dataSource, columnWidthTotal]}
+            style={{...tableHeight}}
+            horizontalThumbController={tableRef.current?.nativeHorizontalThumbElement}
+            stickyHorizontalController={tableRef.current?.nativeStickyHorizontalElement}
+            shouldVerticalUpdate={[dataSource, columnWidthTotal]}
             showHorizontal={false}
             showVertical={!!scrollY ? {
               offsetLeft: containerWidth - columnWidthTotal > 0 ? columnWidthTotal - 12 : containerWidth - 12
             } : undefined}
             footer={<div className={classNames(borderCls, bottomBorderCls)} style={{borderRadius: 0, width: columnWidthTotal}} />}
             ref={tableBodyRef}
+            onScroll={onScroll}
           >
             {
               !dataSource?.length && (
@@ -204,88 +149,37 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
                   <div 
                     className={classNames(cellCls, cellFixedStartCls)} 
                     style={{
-                      gridColumn: `span ${flattenColumns?.length || 1}`,
+                      gridColumn: `span ${flattenColumns.length || 1}`,
                       position: 'absolute',
                       top: 0,
                       left: 0,
                       width: containerWidth - columnWidthTotal > 0 ? columnWidthTotal : containerWidth,
                       height: '100%',
-                      backgroundColor: '#f5f5f5',
+                      backgroundColor: '#fff',
                       textAlign: 'center',
                     }}
                   >
-                    empty
+                    <Empty />
                   </div>
                 </div>
               )
             }
-            {dataSource?.map((rowData, rowIndex) => {
-              return (
-                <div key={rowData[rowKey as string]} className={bodyRowCls}>
-                  {flattenColumns?.map((col, colIndex) => {
-                    if(!filterCellSpan(col.onCell?.(rowData, rowIndex))) return
-
-                    let cellValue: ReactNode = undefined;
-                    if (col.dataIndex && typeof col.dataIndex === 'string') {
-                      cellValue = rowData?.[col.dataIndex];
-                    }
-                    if (col.render && typeof col.render === 'function') {
-                      cellValue = col.render?.(cellValue, rowData, rowIndex);
-                    }
-
-                    let cellChildren = cellValue
-                    const ellipsis = !!col.ellipsis
-                    if(ellipsis) {
-                      const showTitle = typeof col.ellipsis === "boolean" ? col.ellipsis : col.ellipsis?.showTitle
-                      const elTitle = showTitle ? getEllipsisTitle(cellChildren) as string : undefined
-                      cellChildren = <div title={elTitle} className={classNames(cellEllipsisInnerCls, {[cellEllipsisInnerShowTitleCls]: showTitle})}>{cellChildren}</div>
-                    }
-
-                    const { rowSpan, colSpan } = col.onCell?.(rowData, rowIndex) || {}
-                    const style: CSSProperties = {}
-                    if(rowSpan && rowSpan > 1) {
-                      style.gridRow = `span ${rowSpan}`
-                    }
-                    if(colSpan && colSpan > 1) {
-                      style.gridColumn = `span ${colSpan}`
-                    }
-
-                    const fixedInfo = fixedInfoList[colIndex]
-                    if(fixedInfo.fixStart !== null) {
-                      style.left = fixedInfo.fixStart as number
-                    }
-                    if(fixedInfo.fixEnd !== null) {
-                      style.right = fixedInfo.fixEnd as number
-                    }
-
-                    return (
-                      <div 
-                        key={colIndex} 
-                        className={classNames(
-                          cellCls, 
-                          {
-                            [cellEllipsisCls]: ellipsis, 
-                            [cellFixedStartCls]: fixedInfo.fixStart !== null,
-                            [cellFixedStartLastCls]: fixedInfo.fixedStartShadow,
-                            [cellFixedEndCls]: fixedInfo.fixEnd !== null,
-                            [cellFixedEndFirstCls]: fixedInfo.fixedEndShadow,
-                          }
-                        )} 
-                        style={style}
-                      >
-                        {cellChildren}
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })}
+            {dataSource?.map((rowData, rowIndex) => (
+              <BodyRow 
+                flattenColumns={flattenColumns} 
+                fixedOffset={fixedOffset} 
+                key={rowData[rowKey as string]} 
+                rowData={rowData} 
+                rowIndex={rowIndex} 
+                className={rowClassName?.(rowData, rowIndex)}
+              />
+            ))}
           </ScrollBarContainer>
           {
             hasSummary && !!dataSource?.length && (
               <div
                 className={summaryCls}
-                style={{width: columnWidthTotal}}
+                ref={tableSummaryRef}
               >
                 {summaryRows?.map((row, rowIndex) => {
                   let colStart = 0
@@ -295,12 +189,12 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
                       {row?.map((cell, cellIndex) => {
                         if(!filterSpan(cell.colSpan) || !filterSpan(cell.rowSpan)) return
 
-                        let cellChildren = cell.children
+                        let childrenNode = cell.children
                         const ellipsis = !!cell?.ellipsis
                         if(ellipsis) {
                           const showTitle = typeof cell?.ellipsis === "boolean" ? cell?.ellipsis : cell?.ellipsis?.showTitle
-                          const elTitle = showTitle ? getEllipsisTitle(cellChildren) as string : undefined
-                          cellChildren = <div title={elTitle} className={classNames(cellEllipsisInnerCls, {[cellEllipsisInnerShowTitleCls]: showTitle})}>{cellChildren}</div>
+                          const elTitle = showTitle ? getEllipsisTitle(childrenNode) as string : undefined
+                          childrenNode = <div title={elTitle} className={classNames(cellEllipsisInnerCls, {[cellEllipsisInnerShowTitleCls]: showTitle})}>{childrenNode}</div>
                         }
 
                         colEnd = colStart
@@ -313,7 +207,7 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
                           colEnd = colStart + cell.colSpan - 1
                         }
                         
-                        const fixedInfo = getCellFixedInfo(colStart, colEnd, flattenColumns || [], fixedOffset)
+                        const fixedInfo = getCellFixedInfo(colStart, colEnd, flattenColumns, fixedOffset)
                         if(fixedInfo.fixStart !== null) {
                           style.left = fixedInfo.fixStart as number
                         }
@@ -365,7 +259,7 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
         }
         
         {
-          containerWidth > columnWidthTotal && (
+          containerWidth - columnWidthTotal >= 1 && (
             <div 
               style={{
                 position: 'absolute', 

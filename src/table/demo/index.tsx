@@ -1,6 +1,6 @@
 import { ConfigProvider, Table, Theme } from 'rc-grid-table';
-import { ColumnsType } from 'rc-grid-table/es/table/interface';
-import React from 'react';
+import { ColumnState, ColumnsType } from 'rc-grid-table/es/table/interface';
+import React, { useState } from 'react';
 
 interface DataType {
   key: string;
@@ -45,12 +45,15 @@ export default () => {
               title: 'test0-0-0',
               dataIndex: 'test0-0-0',
               fixed: 'start',
-              width: 150
+              width: 150,
+              colSpan: 2,
             },
             {
               title: 'test0-0-1',
               dataIndex: 'test0-0-1',
               fixed: 'start',
+              colSpan: 0,
+              width: 40,
             },
             {
               title: 'test0-0-2',
@@ -63,7 +66,7 @@ export default () => {
           title: 'test0-1',
           dataIndex: 'test0-1',
           fixed: 'start',
-          width: 120,
+          width: '20%',
         },
         {
           title: 'test0-2',
@@ -126,24 +129,26 @@ export default () => {
     {
       title: 'test2',
       dataIndex: 'test2',
+      fixed: 'end',
     },
     {
       title: 'test3',
-      dataIndex: 'test3',
+      key: 'test3',
       fixed: 'end',
+      children: [{dataIndex: 'test3', key: 'test3-0', fixed: 'end', title: 'test3-0'}]
     },
   ];
 
-  const dataSource: DataType[] = Array.from({length: 8}).map((_, i) => ({
+  const dataSource: DataType[] = Array.from({length: 10}).map((_, i) => ({
     key: `${i}`,
     name: 'Jake White',
     age: 18,
     tel: '0575-22098909',
     phone: 18900010002,
     address: 'Dublin No. 2 Lake Park',
-    'test0-0-0': 'test0-0',
-    'test0-0-1': 'test0-2',
-    'test0-0-2': 'test0-2',
+    'test0-0-0': 'test0-0-0',
+    'test0-0-1': 'test0-0-1',
+    'test0-0-2': 'test0-0-2',
     'test0-1': 'test0-1',
     'test0-2': 'test0-2',
     test1: 'test1',
@@ -169,6 +174,9 @@ export default () => {
   }))
 
   const { token } = Theme.useToken()
+  const tableKey = 'testTable'
+  const storageKey = `${tableKey}-columnsState`
+  const [columnsState, setColumnsState] = useState<ColumnState[]>(JSON.parse(localStorage.getItem(storageKey) || '[]'))
 
   return (
     <div>
@@ -178,21 +186,31 @@ export default () => {
           dataSource={dataSource} 
           bordered
           // style={{height: 360}}
+          resizableColumns
+          sortableColumns
           sticky
           scrollY={400}
-          // summary={(columnsLength) => ([
-          //   [
-          //     { children: '123213' },
-          //     { children: 'a?."{&aaa' },
-          //     { colSpan: columnsLength - 3, children: 'a?."{&aaa' },
-          //     { children: '123213' },
-          //   ],
-          //   [
-          //     { children: '123213' },
-          //     { colSpan: columnsLength - 2, children: '123213' },
-          //     { children: 'a?."{&aaa' },
-          //   ],
-          // ])}
+          columnsConfig={{
+            enable: true,
+            // useStorage: true,
+            // columnsState: columnsState,
+            // onChange(columnsState) {
+            //   localStorage.setItem(storageKey, JSON.stringify(columnsState))
+            // },
+          }}
+          summary={(_, columnsLength) => ([
+            [
+              { children: '123213' },
+              { children: 'a?."{&aaa' },
+              { colSpan: columnsLength - 3, children: 'a?."{&aaa' },
+              { children: '123213' },
+            ],
+            [
+              { children: '123213' },
+              { colSpan: columnsLength - 2, children: '123213' },
+              { children: 'a?."{&aaa' },
+            ],
+          ])}
         />
       </ConfigProvider>
     </div>

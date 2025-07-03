@@ -6,11 +6,12 @@ import React, {
   useCallback,
   useEffect,
   useImperativeHandle,
+  useLayoutEffect,
   useRef,
   useState,
 } from 'react';
+
 import { useTableContext } from '../table/context';
-import useHorizontalWheelScroll from './hooks/useHorizontalWheelScroll';
 import { useStyles } from './style';
 import { ScrollBarContainerProps, ScrollBarContainerRef } from './interface';
 
@@ -19,7 +20,11 @@ const ScrollContainer = forwardRef<ScrollBarContainerRef, ScrollBarContainerProp
   className,
   classNames,
   styles,
-  shouldUpdate = [],
+  contentController,
+  horizontalThumbController,
+  stickyHorizontalController,
+  shouldHorizontalUpdate = [],
+  shouldVerticalUpdate = [],
   showHorizontal,
   showVertical,
   showStickyHorizontal,
@@ -28,22 +33,21 @@ const ScrollContainer = forwardRef<ScrollBarContainerRef, ScrollBarContainerProp
   ...rest
 }, ref) => {
   const containerWidth = useTableContext().containerWidth
+  const containerHeight = useTableContext().containerHeight
   const wrapperRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const horizontalTrackRef = useRef<HTMLDivElement>(null);
   const verticalTrackRef = useRef<HTMLDivElement>(null);
   const stickyHorizontalTrackRef = useRef<HTMLDivElement>(null);
+  const stickyHorizontalThumbRef = useRef<HTMLDivElement>(null);
   const horizontalThumbRef = useRef<HTMLDivElement>(null);
   const verticalThumbRef = useRef<HTMLDivElement>(null);
-  const stickyVerticalThumbRef = useRef<HTMLDivElement>(null);
 
   const [hasHorizontal, setHasHorizontal] = useState(false);
   const [hasVertical, setHasVertical] = useState(false);
   const [horizontalThumbWidth, setHorizontalThumbWidth] = useState(0);
   const [verticalThumbHeight, setVerticalThumbHeight] = useState(0);
-  const [draging, setDraging] = useState(false);
-  const maxScrollLeftOffset = -1
-  useHorizontalWheelScroll(contentRef.current!, maxScrollLeftOffset);
+  const [dragging, setDragging] = useState(false);
 
   const {
     hashId,
@@ -55,41 +59,52 @@ const ScrollContainer = forwardRef<ScrollBarContainerRef, ScrollBarContainerProp
     yScrollBarCls,
     yScrollBarThumbCls,
     yScrollBarShowCls,
-  } = useStyles({})
+  } = useStyles()
 
-  const updateScrollbars = useCallback(() => {
-    const wrapper = wrapperRef.current;
-    const content = contentRef.current;
+  // 横向滚动条计算
+  const updateHorizontalScrollbar = useCallback(() => {
+    const content = contentController || contentRef.current
+    if (!wrapperRef.current || !content) return;
 
-    if (!wrapper || !content) return;
-
-    const wrapperWidth = wrapper.clientWidth;
-    const wrapperHeight = wrapper.clientHeight;
-    const contentWidth = content.scrollWidth;
-    const contentHeight = content.scrollHeight;
+    const wrapperWidth = wrapperRef.current.clientWidth;
+    const contentWidth = content.scrollWidth
 
     const hasH = contentWidth > wrapperWidth;
-    const hasV = contentHeight > wrapperHeight;
 
     setHasHorizontal(hasH)
-    setHasVertical(hasV)
 
-    // 计算 thumb 尺寸
+    // 计算横向 thumb 尺寸
     if (hasH && !!showHorizontal) {
       const ratio = wrapperWidth / contentWidth;
       setHorizontalThumbWidth(Math.max(ratio * wrapperWidth, 20));
     }
+  }, [containerWidth, showHorizontal, ...shouldHorizontalUpdate]);
 
+  // 纵向滚动条计算
+  const updateVerticalScrollbar = useCallback(() => {
+    if (!wrapperRef.current || !contentRef.current) return;
+
+    const wrapperHeight = wrapperRef.current.clientHeight;
+    const contentHeight = contentRef.current.scrollHeight;
+
+    const hasV = contentHeight > wrapperHeight;
+
+    setHasVertical(hasV)
+
+    // 计算纵向 thumb 尺寸
     if (hasV && !!showVertical) {
       const ratio = wrapperHeight / contentHeight;
       setVerticalThumbHeight(Math.max(ratio * wrapperHeight, 20));
     }
-  }, [containerWidth, showHorizontal, showVertical, ...shouldUpdate]);
+  }, [containerHeight, showVertical, ...shouldVerticalUpdate]);
 
-  // 初始化时调用一次
   useEffect(() => {
-    updateScrollbars();
-  }, [updateScrollbars]);
+    updateHorizontalScrollbar();
+  }, [updateHorizontalScrollbar]);
+
+  useEffect(() => {
+    updateVerticalScrollbar();
+  }, [updateVerticalScrollbar]);
 
   // 内容滚动事件
   const handleContentScroll: UIEventHandler<HTMLDivElement> = useCallback((e) => {
@@ -105,20 +120,20 @@ const ScrollContainer = forwardRef<ScrollBarContainerRef, ScrollBarContainerProp
     const leftPercent = hMaxScroll > 0 ? contentScrollLeft / hMaxScroll : 0;
     const topPercent = vMaxScroll > 0 ? content.scrollTop / vMaxScroll : 0;
 
-    if (horizontalThumbRef.current && !!showHorizontal) {
-      // @ts-ignore
-      const trackWidth = horizontalThumbRef.current.parentNode!.clientWidth;
-      const maxTranslateX = trackWidth - horizontalThumbWidth;
+    if (horizontalThumbController || (horizontalThumbRef.current && !!showHorizontal)) {
+      const horizontalThumb = horizontalThumbController || horizontalThumbRef.current!
+      const trackWidth = horizontalThumb.parentElement!.clientWidth;
+      const maxTranslateX = trackWidth - (horizontalThumbWidth || horizontalThumb.offsetWidth);
       const translateX = leftPercent * maxTranslateX;
-      horizontalThumbRef.current.style.transform = `translateX(${translateX}px)`;
-      if(!!showStickyHorizontal) {
-        stickyVerticalThumbRef.current!.style.transform = `translateX(${translateX}px)`;
+      horizontalThumb.style.transform = `translateX(${translateX}px)`;
+      if(stickyHorizontalController || !!showStickyHorizontal) {
+        const stickyHorizontalThumb = stickyHorizontalController || stickyHorizontalThumbRef.current
+        stickyHorizontalThumb!.style.transform = `translateX(${translateX}px)`;
       }
     }
 
     if (verticalThumbRef.current && !!showVertical) {
-      // @ts-ignore
-      const trackHeight = verticalThumbRef.current.parentNode.clientHeight;
+      const trackHeight = verticalThumbRef.current.parentElement!.clientHeight;
       const maxTranslateY = trackHeight - verticalThumbHeight;
       const translateY = topPercent * maxTranslateY;
       verticalThumbRef.current.style.transform = `translateY(${translateY}px)`;
@@ -130,10 +145,10 @@ const ScrollContainer = forwardRef<ScrollBarContainerRef, ScrollBarContainerProp
     (e) => {
       const track = e.currentTarget;
       const thumb = horizontalThumbRef.current;
-      const stickyThumb = stickyVerticalThumbRef.current;
+      const stickyThumb = stickyHorizontalThumbRef.current;
       if (!thumb) return;
 
-      setDraging(true);
+      setDragging(true);
 
       const trackRect = track.getBoundingClientRect();
       const thumbRect = thumb.getBoundingClientRect();
@@ -154,19 +169,19 @@ const ScrollContainer = forwardRef<ScrollBarContainerRef, ScrollBarContainerProp
         stickyThumb!.style.transform = `translateX(${newTranslateX}px)`;
 
         const percent = newTranslateX / maxTranslateX;
-        const content = contentRef.current;
-        const hMaxScroll = content!.scrollWidth - content!.clientWidth + maxScrollLeftOffset
+        const content = contentController || contentRef.current;
+        const hMaxScroll = content!.scrollWidth - content!.clientWidth
         content!.scrollLeft = percent * hMaxScroll;
       };
 
       const upHandler = () => {
-        setDraging(false);
-        document.removeEventListener('mousemove', moveHandler);
-        document.removeEventListener('mouseup', upHandler);
+        setDragging(false);
+        document.documentElement.removeEventListener('mousemove', moveHandler);
+        document.documentElement.removeEventListener('mouseup', upHandler);
       };
 
-      document.addEventListener('mousemove', moveHandler);
-      document.addEventListener('mouseup', upHandler);
+      document.documentElement.addEventListener('mousemove', moveHandler);
+      document.documentElement.addEventListener('mouseup', upHandler);
     },
     [horizontalThumbWidth],
   );
@@ -178,7 +193,7 @@ const ScrollContainer = forwardRef<ScrollBarContainerRef, ScrollBarContainerProp
       const thumb = verticalThumbRef.current;
       if (!thumb) return;
 
-      setDraging(true);
+      setDragging(true);
 
       const trackRect = track.getBoundingClientRect();
       const thumbRect = thumb.getBoundingClientRect();
@@ -204,16 +219,20 @@ const ScrollContainer = forwardRef<ScrollBarContainerRef, ScrollBarContainerProp
       };
 
       const upHandler = () => {
-        setDraging(false);
-        document.removeEventListener('mousemove', moveHandler);
-        document.removeEventListener('mouseup', upHandler);
+        setDragging(false);
+        document.documentElement.removeEventListener('mousemove', moveHandler);
+        document.documentElement.removeEventListener('mouseup', upHandler);
       };
 
-      document.addEventListener('mousemove', moveHandler);
-      document.addEventListener('mouseup', upHandler);
+      document.documentElement.addEventListener('mousemove', moveHandler);
+      document.documentElement.addEventListener('mouseup', upHandler);
     },
     [verticalThumbHeight],
   );
+  
+  useLayoutEffect(() => {
+    wrapperRef.current!.style.userSelect = dragging ? 'none' : ''
+  }, [dragging])
 
   const scrollTo = (options?: ScrollToOptions) => {
     if (contentRef.current) {
@@ -249,8 +268,11 @@ const ScrollContainer = forwardRef<ScrollBarContainerRef, ScrollBarContainerProp
   useImperativeHandle(ref, () => ({
     nativeElement: wrapperRef.current!,
     nativeScrollElement: contentRef.current!,
+    nativeHorizontalThumbElement: horizontalThumbRef.current!,
     nativeHorizontalTrackElement: horizontalTrackRef.current!,
-    natiVeverticalTrackElement: verticalTrackRef.current!,
+    nativeVeverticalTrackElement: verticalTrackRef.current!,
+    nativeVeverticalThumbElement: verticalThumbRef.current!,
+    nativeStickyHorizontalElement: stickyHorizontalThumbRef.current!,
     scrollTo,
     scrollToTop,
     scrollToBottom,
@@ -265,7 +287,7 @@ const ScrollContainer = forwardRef<ScrollBarContainerRef, ScrollBarContainerProp
           className={clsx(scrollbarInnerCls, classNames.inner)}
           ref={contentRef}
           onScroll={handleContentScroll}
-          style={{ userSelect: draging ? 'none' : 'auto', ...styles?.content }}
+          style={styles?.content}
         >
           {children}
         </div>
@@ -335,7 +357,7 @@ const ScrollContainer = forwardRef<ScrollBarContainerRef, ScrollBarContainerProp
       >
         <div
           className={xScrollBarThumbCls}
-          ref={stickyVerticalThumbRef}
+          ref={stickyHorizontalThumbRef}
           style={{ width: horizontalThumbWidth }}
         />
       </div>

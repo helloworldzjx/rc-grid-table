@@ -1,10 +1,7 @@
 import { type CSSInterpolation, useStyleRegister } from '@ant-design/cssinjs';
+
 import { useTableContext } from '../../table/context';
 import useToken from '../../theme/hooks/useToken';
-
-type genStylesProps = {
-  
-};
 
 const genToggleShowStyle = (
   initialCls: string,
@@ -113,7 +110,7 @@ const genScrollBarStyle = (
   },
 });
 
-export const useStyles = ({  }: genStylesProps) => {
+export const useStyles = () => {
   const prefixCls = useTableContext().prefixCls as string;
   const [theme, token, hashId] = useToken();
   const scrollbarCls = `${prefixCls}-scrollbar-container`;

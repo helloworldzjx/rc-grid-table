@@ -1,7 +1,8 @@
 import type { Theme } from '@ant-design/cssinjs';
 import { createTheme } from '@ant-design/cssinjs';
 import { TinyColor } from '@ctrl/tinycolor';
-import React, { createContext, FC, PropsWithChildren, useId } from 'react';
+import React, { createContext, FC, PropsWithChildren } from 'react';
+
 import useInternalToken from "./hooks/useToken"
 import { DerivativeToken, DesignToken, DesignTokenContextPorps } from './interface';
 
@@ -25,6 +26,9 @@ export const defaultDesignToken: DesignToken = {
 export function lightDerivative(designToken: DesignToken): DerivativeToken {
   return {
     ...designToken,
+    primaryColorHover: new TinyColor(designToken.primaryColor)
+      .lighten(40)
+      .toString(),
     primaryColorDisabled: new TinyColor(designToken.primaryColor)
       .desaturate(100)
       .setAlpha(0.7)
@@ -36,6 +40,9 @@ export function lightDerivative(designToken: DesignToken): DerivativeToken {
 export function darkDerivative(designToken: DesignToken): DerivativeToken {
   return {
     ...designToken,
+    primaryColorHover: new TinyColor(designToken.primaryColor)
+      .setAlpha(0.7)
+      .toString(),
     primaryColorDisabled: new TinyColor(designToken.primaryColor)
       .desaturate(100)
       .setAlpha(0.7)

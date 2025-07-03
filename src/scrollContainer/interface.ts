@@ -9,7 +9,11 @@ export interface ScrollBarContainerProps
   styles?: {
     content?: CSSProperties;
   };
-  shouldUpdate?: any[];
+  contentController?: HTMLDivElement
+  horizontalThumbController?: HTMLDivElement
+  stickyHorizontalController?: HTMLDivElement
+  shouldHorizontalUpdate?: any[];
+  shouldVerticalUpdate?: any[];
   showHorizontal?: boolean | { offsetTop?: number, offsetBottom?: number };
   showVertical?: boolean | { offsetLeft?: number, offsetRight?: number };
   showStickyHorizontal?: boolean | { offsetTop?: number, offsetBottom?: number };
@@ -20,8 +24,11 @@ export interface ScrollBarContainerRef {
   nativeElement: HTMLDivElement
   nativeScrollElement: HTMLDivElement
   nativeHorizontalTrackElement: HTMLDivElement
-  natiVeverticalTrackElement: HTMLDivElement
-  scrollTo: () => void
+  nativeHorizontalThumbElement: HTMLDivElement
+  nativeStickyHorizontalElement: HTMLDivElement
+  nativeVeverticalTrackElement: HTMLDivElement
+  nativeVeverticalThumbElement: HTMLDivElement
+  scrollTo: (options?: ScrollToOptions) => void
   scrollToTop: () => void
   scrollToBottom: () => void
   scrollToLeft: () => void

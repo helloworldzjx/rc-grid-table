@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+
 import type { ColumnType, StickyOffsets } from '../interface';
 
 /**

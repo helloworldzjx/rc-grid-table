@@ -1,11 +1,8 @@
 import { type CSSInterpolation, useCSSVarRegister, useStyleRegister } from '@ant-design/cssinjs';
+
 import { useTableContext } from '../context';
 import { tableToken, type ComponentToken } from '../design';
 import useToken from "../../theme/hooks/useToken"
-
-type genStylesProps = {
-  
-};
 
 type ComponentClsType = {
   wrapperCls: string
@@ -31,6 +28,13 @@ type ComponentClsType = {
   cellEllipsisCls: string
   cellEllipsisInnerCls: string
   cellEllipsisInnerShowTitleCls: string
+  headLastCellCls: string
+  headCellResizableCls: string
+  headCellResizeDisabledCls: string
+  headSortableCellCls: string
+  sortableColumnCellCls: string
+  overableColumnCellCls: string
+  headDraggingOverlayCellCls: string
   cellFixedStartCls: string
   cellFixedStartLastCls: string
   cellFixedEndCls: string
@@ -137,6 +141,7 @@ const genHeadStyle = (
   [`.${headCls}`]: {
     display: 'grid',
     gridTemplateColumns: `var(--${componentCls}-cols-width)`,
+    overflow: 'hidden',
 
     [`.${headRowCls}`]: {
       display: 'contents',
@@ -167,6 +172,7 @@ const genSummaryCls = ({
   [`.${summaryCls}`]: {
     display: 'grid',
     gridTemplateColumns: `var(--${componentCls}-cols-width)`,
+    overflow: 'hidden',
 
     [`.${summaryRowCls}`]: {
       display: 'contents',
@@ -183,6 +189,13 @@ const genCellStyle = (
     cellEllipsisCls,
     cellEllipsisInnerCls,
     cellEllipsisInnerShowTitleCls,
+    headLastCellCls,
+    headCellResizableCls,
+    headCellResizeDisabledCls,
+    headSortableCellCls,
+    sortableColumnCellCls,
+    overableColumnCellCls,
+    headDraggingOverlayCellCls,
   }: ComponentClsType,
   token: ComponentToken,
 ): CSSInterpolation => ({
@@ -194,26 +207,47 @@ const genCellStyle = (
       borderBottom: `1px solid ${token.borderColor}`,
     },
 
-    [`&:first-child .${cellCls}:not(:last-child)::before`]: {
+    [`.${cellCls}:not(.${headLastCellCls})::before`]: {
       content: "' '",
       position: 'absolute',
       right: 1,
-      top: token.cellPaddingBlock || 8,
-      bottom: token.cellPaddingBlock || 8,
+      insetBlock: token.cellPaddingBlock,
       borderRight: `1px solid ${token.borderColor}`,
     },
 
-    [`&:not(:first-child) .${cellCls}::before`]: {
-      content: "' '",
+    [`.${headCellResizableCls}`]: {
       position: 'absolute',
       right: 1,
-      top: token.cellPaddingBlock || 8,
-      bottom: token.cellPaddingBlock || 8,
-      borderRight: `1px solid ${token.borderColor}`,
+      insetBlock: token.cellPaddingBlock,
+      width: 10,
+      backgroundColor: 'transparent',
+    },
+    [`.${headCellResizableCls}:not(.${headCellResizeDisabledCls})`]: {
+      cursor: 'e-resize',
+    },
+    [`.${headSortableCellCls}`]: {
+      userSelect: 'none',
+    },
+    [`.${sortableColumnCellCls}::before, .${overableColumnCellCls}::before`]: {
+      display: 'none',
+    },
+    [`.${headDraggingOverlayCellCls}`]: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: token.cellPaddingInline,
+      paddingInline: token.cellPaddingInline,
+      boxSizing: 'border-box',
+      whiteSpace: 'nowrap',
+      textOverflow: 'ellipsis',
+      overflow: 'hidden',
+      border: `1px solid ${token.borderColor}`,
+      backgroundColor: '#fff',
+      cursor: 'move',
     },
   },
 
   [`.${bodyRowCls} .${cellCls}`]: {
+    // backgroundColor: '#fff',
     borderBottom: `1px solid ${token.borderColor}`,
   },
 
@@ -241,6 +275,14 @@ const genCellStyle = (
         textOverflow: 'ellipsis',
       }
     }
+  },
+
+  [`.${overableColumnCellCls}`]: {
+    backgroundColor: `${token.overableCellBgColor} !important`,
+  },
+  
+  [`.${sortableColumnCellCls}`]: {
+    backgroundColor: `${token.sortableCellBgColor} !important`,
   },
 });
 
@@ -279,9 +321,7 @@ const genFixedCellStyle = (
     bottom: -1,
     right: 0,
     transform: 'translateX(100%)',
-    transition: 'opacity 0.3s',
-    opacity: 0,
-    boxShadow: 'inset 10px 0 8px -8px rgba(0, 0, 0, 0.1)',
+    transition: 'box-shadow 0.3s',
     pointerEvents: 'none',
   },
 
@@ -293,9 +333,7 @@ const genFixedCellStyle = (
     bottom: -1,
     left: 0,
     transform: 'translateX(-100%)',
-    transition: 'opacity 0.3s',
-    opacity: 0,
-    boxShadow: 'inset -10px 0 8px -8px rgba(0, 0, 0, 0.1)',
+    transition: 'box-shadow 0.3s',
     pointerEvents: 'none',
   },
 });
@@ -309,11 +347,11 @@ const genFixedShadowStyle = ({
   cellFixedEndFirstCls,
 }: ComponentClsType): CSSInterpolation => ({
   [`.${componentCls}.${pingStartCls} .${cellFixedStartLastCls}::after`]: {
-    opacity: 1,
+    boxShadow: 'inset 10px 0 8px -8px rgba(0, 0, 0, 0.1)',
   },
 
   [`.${componentCls}.${pingEndCls} .${cellFixedEndFirstCls}::after`]: {
-    opacity: 1,
+    boxShadow: 'inset -10px 0 8px -8px rgba(0, 0, 0, 0.1)',
   },
 
   [`.${pingStartCls} .${headRowCls} .${cellFixedStartLastCls}::before`]: {
@@ -333,7 +371,7 @@ const genNestStyles = (clsObj: ComponentClsType, mergedToken: ComponentToken): C
   { [`.${clsObj.componentCls}`]: genFixedCellStyle(clsObj, mergedToken) },
 ];
 
-export const useStyles = ({  }: genStylesProps) => {
+export const useStyles = () => {
   const prefixCls = useTableContext().prefixCls as string;
   const [theme, token, hashId, realToken, cssVar] = useToken();
 
@@ -361,6 +399,13 @@ export const useStyles = ({  }: genStylesProps) => {
     cellEllipsisCls: `${prefixCls}-cell-ellipsis`,
     cellEllipsisInnerCls: `${prefixCls}-cell-ellipsis-inner`,
     cellEllipsisInnerShowTitleCls: `${prefixCls}-cell-ellipsis-inner-show-title`,
+    headLastCellCls: `${prefixCls}-head-last-cell`,
+    headCellResizableCls: `${prefixCls}-head-cell-resizable`,
+    headCellResizeDisabledCls: `${prefixCls}-head-cell-resize-disabled`,
+    headSortableCellCls: `${prefixCls}-head-sortable-cell`,
+    sortableColumnCellCls: `${prefixCls}-sortable-column-cell`,
+    overableColumnCellCls: `${prefixCls}-head-cell-overable`,
+    headDraggingOverlayCellCls: `${prefixCls}-head-dragging-verlay-cell`,
     cellFixedStartCls: `${prefixCls}-cell-fixed-start`,
     cellFixedStartLastCls: `${prefixCls}-cell-fixed-start-last`,
     cellFixedEndCls: `${prefixCls}-cell-fixed-end`,
@@ -399,7 +444,7 @@ export const useStyles = ({  }: genStylesProps) => {
 
   return {
     hashId,
-    cssVarKey: cssVar?.key,
+    cssVarCls: cssVar?.key,
     ...clsObj
   };
 };

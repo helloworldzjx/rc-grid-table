@@ -1,7 +1,8 @@
+import * as React from 'react';
 import useMemo from '@rc-component/util/lib/hooks/useMemo';
 import isEqual from '@rc-component/util/lib/isEqual';
+
 import type { ColumnType, StickyOffsets } from '../interface';
-import * as React from 'react';
 import { getCellFixedInfo } from '../utils/fixedColumns';
 
 export default function useFixedInfo<RecordType>(

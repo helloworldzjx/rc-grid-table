@@ -1,13 +1,13 @@
 import { useEffect, useRef } from "react";
 
-const useHorizontalWheelScroll = (container: HTMLDivElement, maxScrollLeftOffset: number) => {
+const useHorizontalWheelScroll = (container: HTMLDivElement) => {
   const isAnimating = useRef(false)
   const currentScrollX = useRef(0)
   const targetScrollX = useRef(0)
 
   function animateScroll() {
     // 计算剩余滚动距离（带缓动系数）
-    const diff = (targetScrollX.current - currentScrollX.current) * 0.2;
+    const diff = (targetScrollX.current - currentScrollX.current) * 0.3;
     currentScrollX.current += diff;
     container.scrollLeft = currentScrollX.current;
 
@@ -29,7 +29,7 @@ const useHorizontalWheelScroll = (container: HTMLDivElement, maxScrollLeftOffset
       
       const scrollWidth = container.scrollWidth
       const clientWidth = container.clientWidth
-      const maxScrollLeft = scrollWidth - clientWidth + maxScrollLeftOffset
+      const maxScrollLeft = scrollWidth - clientWidth
       const next = targetScrollX.current + deltaX;
       
       targetScrollX.current = Math.max(0, Math.min(next, maxScrollLeft));
@@ -48,7 +48,7 @@ const useHorizontalWheelScroll = (container: HTMLDivElement, maxScrollLeftOffset
     return () => {
       container?.removeEventListener('wheel', handleWheel);
     }
-  }, [container, maxScrollLeftOffset]);
+  }, [container]);
 };
 
 export default useHorizontalWheelScroll

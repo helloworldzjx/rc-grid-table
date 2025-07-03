@@ -19,6 +19,7 @@ export interface DesignToken {
 }
 
 export interface DerivativeToken extends DesignToken {
+  primaryColorHover: string
   primaryColorDisabled: string;
 }
 

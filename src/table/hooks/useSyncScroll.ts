@@ -1,24 +1,29 @@
-
 import { useEffect } from 'react';
 
-export const useSyncScroll = (sourceElement?: HTMLDivElement, targerElement?: HTMLDivElement) => {
+export const useSyncScroll = (...scrollElements: (HTMLDivElement | undefined)[]) => {
 
-  const handleScroll = (source?: HTMLDivElement, target?: HTMLDivElement) => {
-    if (!source || !target) return;
+  const handleScroll = (sourceElement: HTMLDivElement, ...targerElements: HTMLDivElement[]) => {
+    if (!sourceElement || !targerElements.length) return;
     
-    target.scrollTo({left: source.scrollLeft});
+    targerElements.forEach((el) => {
+      el.scrollLeft = sourceElement.scrollLeft
+    })
   };
 
   useEffect(() => {
-    const onDiv1Scroll = () => handleScroll(sourceElement, targerElement);
-    const onDiv2Scroll = () => handleScroll(targerElement, sourceElement);
-
-    sourceElement?.addEventListener('scroll', onDiv1Scroll);
-    targerElement?.addEventListener('scroll', onDiv2Scroll);
+    const elements = (scrollElements || []).filter(Boolean) as HTMLDivElement[]
+    const scrollFns = elements.map((sourceElement, index) => {
+      const targerElements = elements.filter((_, idx) => idx !== index)
+      return () => handleScroll(sourceElement, ...targerElements)
+    })
+    elements.forEach((el, index) => {
+      el.addEventListener('scroll', scrollFns[index]);
+    })
 
     return () => {
-      sourceElement?.removeEventListener('scroll', onDiv1Scroll);
-      targerElement?.removeEventListener('scroll', onDiv2Scroll);
+      elements.forEach((el, index) => {
+        el.removeEventListener('scroll', () => scrollFns[index]);
+      })
     };
-  }, [sourceElement, targerElement]);
+  }, [...scrollElements]);
 }
