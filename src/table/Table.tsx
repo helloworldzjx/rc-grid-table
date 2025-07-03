@@ -1,6 +1,7 @@
 import React, { type CSSProperties, forwardRef, useEffect, useMemo, useRef, useState } from 'react';
 import classNames from 'classnames';
 import { Empty, Spin } from 'antd';
+import warning from '@rc-component/util/lib/warning';
 
 import { useTableContext } from './context';
 import { useSyncScroll } from './hooks/useSyncScroll';
@@ -29,7 +30,7 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
   const tableHeadRef = useRef<HTMLDivElement>(null);
   const tableSummaryRef = useRef<HTMLDivElement>(null);
   useSyncScroll(tableHeadRef.current!, tableBodyRef.current?.nativeScrollElement, tableSummaryRef.current!);
-  useHorizontalWheelScroll(tableSummaryRef.current!);
+  useHorizontalWheelScroll(tableSummaryRef.current!, containerWidth);
   const [showStickyXScrollBar, setShowStickyXScrollBar] = useState(false);
   
   const gridTemplateColumns = flattenColumnsWidths?.length ? `${flattenColumnsWidths?.join('px ')}px` : ''
@@ -164,16 +165,21 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
                 </div>
               )
             }
-            {dataSource?.map((rowData, rowIndex) => (
-              <BodyRow 
-                flattenColumns={flattenColumns} 
-                fixedOffset={fixedOffset} 
-                key={rowData[rowKey as string]} 
-                rowData={rowData} 
-                rowIndex={rowIndex} 
-                className={rowClassName?.(rowData, rowIndex)}
-              />
-            ))}
+            {dataSource?.map((rowData, rowIndex) => {
+              const key = rowData[rowKey as string]
+              warning(key !== undefined, 'Each record in table should have a unique `key` prop, or set `rowKey` to an unique primary key.')
+
+              return (
+                <BodyRow 
+                  flattenColumns={flattenColumns} 
+                  fixedOffset={fixedOffset} 
+                  key={key} 
+                  rowData={rowData} 
+                  rowIndex={rowIndex} 
+                  className={rowClassName?.(rowData, rowIndex)}
+                />
+              )
+            })}
           </ScrollBarContainer>
           {
             hasSummary && !!dataSource?.length && (

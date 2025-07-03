@@ -1,4 +1,5 @@
-import { CSSProperties, UIEventHandler, useMemo, useState } from 'react';
+import { UIEventHandler, useMemo, useState } from 'react';
+import warning from '@rc-component/util/lib/warning';
 
 import { useTableContext } from '../context';
 
@@ -16,7 +17,7 @@ const useVirtual = () => {
     if(!virtual || !dataSource?.length) return scrollY
 
     if(virtual) {
-      if(!scrollY) console.error('virtual table should prop `scrollY`');
+      warning(!!scrollY, 'virtual table should prop `scrollY`')
 
       return {
         fullHeight: true,

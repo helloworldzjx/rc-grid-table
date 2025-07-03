@@ -11,10 +11,6 @@ import useStickyOffsets from './hooks/useStickyOffsets';
 import ScrollProvider from './scrollContext';
 
 const Table: FC<TableProps> = (props) => {
-  if (!props?.rowKey && props?.dataSource?.length && !props.dataSource.every((v) => v.key)) {
-    console.error('Table should prop `rowKey`');
-  }
-
   const {
     ready = true,
     rowKey = 'key',
