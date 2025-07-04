@@ -172,7 +172,8 @@ const genSummaryCls = ({
   [`.${summaryCls}`]: {
     display: 'grid',
     gridTemplateColumns: `var(--${componentCls}-cols-width)`,
-    overflow: 'hidden',
+    overflow: 'auto',
+    scrollbarWidth: 'none',
 
     [`.${summaryRowCls}`]: {
       display: 'contents',

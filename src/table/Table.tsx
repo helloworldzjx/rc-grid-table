@@ -13,7 +13,6 @@ import { useStyles } from './style';
 import { getCellFixedInfo } from './utils/fixedColumns';
 import Head from './Head/Head';
 import BodyRow from './Body/BodyRow';
-import useHorizontalWheelScroll from './hooks/useHorizontalWheelScroll';
 import { useScrollContext } from './scrollContext';
 
 const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
@@ -30,7 +29,6 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
   const tableHeadRef = useRef<HTMLDivElement>(null);
   const tableSummaryRef = useRef<HTMLDivElement>(null);
   useSyncScroll(tableHeadRef.current!, tableBodyRef.current?.nativeScrollElement, tableSummaryRef.current!);
-  useHorizontalWheelScroll(tableSummaryRef.current!, containerWidth);
   const [showStickyXScrollBar, setShowStickyXScrollBar] = useState(false);
   
   const gridTemplateColumns = flattenColumnsWidths?.length ? `${flattenColumnsWidths?.join('px ')}px` : ''
