@@ -75,7 +75,21 @@ const ScrollContainer = forwardRef<ScrollBarContainerRef, ScrollBarContainerProp
 
   return (
     <>
-      <div className={clsx(className, scrollbarCls, hashId)} ref={wrapperRef} {...rest}>
+      <div 
+        className={clsx(
+          className, 
+          scrollbarCls, 
+          hashId, 
+          classNames?.hasXScrollbarCls && {
+            [classNames.hasXScrollbarCls]: hasHorizontal
+          },
+          classNames?.hasYScrollbarCls && {
+            [classNames.hasYScrollbarCls]: hasVertical
+          },
+        )} 
+        ref={wrapperRef} 
+        {...rest}
+      >
         <div
           className={clsx(classNames.inner, scrollbarInnerCls)}
           ref={contentRef}

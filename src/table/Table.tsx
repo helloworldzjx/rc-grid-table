@@ -67,6 +67,7 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
     hashId, wrapperCls, cssVarCls, 
     wrapperInitializedCls, 
     borderedCls, contentCls, hasSummaryCls, 
+    hasXScrollbarCls, hasYScrollbarCls,
     hasFixColumnsCls, pingStartCls, pingEndCls,
     bodyCls, bodyInnerCls, bodyRowCls, 
     cellCls, cellFixedStartCls, 
@@ -112,7 +113,7 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
             },
             className,
           )}
-          classNames={{inner: contentCls}}
+          classNames={{inner: contentCls, hasXScrollbarCls, hasYScrollbarCls}}
           styles={{ content: { [`--${prefixCls}-cols-width`]: gridTemplateColumns } }}
           contentController={tableBodyRef.current?.nativeScrollElement}
           shouldHorizontalUpdate={[columnWidthTotal]}

@@ -14,6 +14,8 @@ type ComponentClsType = {
   pingStartCls: string
   pingEndCls: string
   hasSummaryCls: string
+  hasXScrollbarCls: string
+  hasYScrollbarCls: string
   headCls: string
   headRowCls: string
   bodyCls: string
@@ -326,11 +328,12 @@ const genFixedShadowStyle = ({
   hasFixColumnsCls,
   pingStartCls,
   pingEndCls,
+  hasXScrollbarCls,
   headRowCls,
   cellFixedStartLastCls,
   cellFixedEndFirstCls,
 }: ComponentClsType): CSSInterpolation => ({
-  [`.${componentCls}`]: {
+  [`.${componentCls}.${hasXScrollbarCls}`]: {
 
     '&::after': {
       content: "' '",
@@ -338,7 +341,7 @@ const genFixedShadowStyle = ({
       left: 0,
       top: 0,
       height: '100%',
-      width: '100%',
+      width: `min(100%, var(--${componentCls}-cols-width-total))`,
       pointerEvents: 'none',
       zIndex: 2,
     },
@@ -391,6 +394,8 @@ export const useStyles = () => {
     pingStartCls: `${prefixCls}-ping-start`,
     pingEndCls: `${prefixCls}-ping-end`,
     hasSummaryCls: `${prefixCls}-has-summary`,
+    hasXScrollbarCls: `${prefixCls}-has-horizontal-scrollbar`,
+    hasYScrollbarCls: `${prefixCls}-has-vertical-scrollbar`,
     headCls: `${prefixCls}-head`,
     headRowCls: `${prefixCls}-head-row`,
     bodyCls: `${prefixCls}-body`,

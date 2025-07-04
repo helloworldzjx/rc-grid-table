@@ -5,6 +5,8 @@ export interface ScrollBarContainerProps
     HTMLAttributes<HTMLDivElement> {
   classNames: {
     inner?: string;
+    hasXScrollbarCls?: string
+    hasYScrollbarCls?: string
   };
   styles?: {
     content?: CSSProperties;
