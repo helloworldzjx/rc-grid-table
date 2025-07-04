@@ -1,4 +1,4 @@
-import React, { FC, Key, useEffect, useRef, useState } from 'react';
+import React, { FC, Key, useEffect, useMemo, useRef, useState } from 'react';
 import ResizeObserver, { ResizeObserverProps } from "@rc-component/resize-observer"
 
 import TableContext from './context';
@@ -109,6 +109,7 @@ const Table: FC<TableProps> = (props) => {
     columnMinWidth,
     leafColumnMinWidth,
     fixedOffset,
+    hasFixedColumns: fixedOffset.hasFixColumns,
     sortableScopeKeys,
     updateSortableScopeKeys: setSortableScopeKeys,
     overableScopeKeys,

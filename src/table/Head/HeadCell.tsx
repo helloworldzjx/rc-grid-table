@@ -41,7 +41,6 @@ function HeadCell({
     columnsConfig,
   } = useTableContext();
   const { isStart, isEnd } = useScrollContext()
-  const fixedInfo = getCellFixedInfo(col.colStart as number, col.colEnd as number, flattenColumns, fixedOffset)
 
   const {
     cellCls, 
@@ -57,6 +56,10 @@ function HeadCell({
     cellFixedEndCls, 
     cellFixedEndFirstCls,
   } = useStyles();
+
+  const fixedInfo = useMemo(() => {
+    return getCellFixedInfo(col.colStart as number, col.colEnd as number, flattenColumns, fixedOffset)
+  }, [col.colStart, col.colEnd, flattenColumns, fixedOffset])
 
   const mergedStyle = useMemo(() => {
     const style: CSSProperties = {}

@@ -12,7 +12,7 @@ function useStickyOffsets<RecordType>(
   const stickyOffsets: StickyOffsets = useMemo(() => {
     const columnCount = flattenColumns.length;
 
-    const getOffsets = (startIndex: number, endIndex: number, offset: number) => {
+    const getOffsets = (startIndex: number, endIndex: number, offset: number): [offsets: number[], hasFixedColumns: boolean] => {
       const offsets: number[] = [];
       let total = 0;
 
@@ -24,16 +24,20 @@ function useStickyOffsets<RecordType>(
         }
       }
 
-      return offsets;
+      return [
+        offsets,
+        !!total,
+      ];
     };
 
-    const startOffsets = getOffsets(0, columnCount, 1);
-    const endOffsets = getOffsets(columnCount - 1, -1, -1).reverse();
+    const [startOffsets, hasStartFixedColumns] = getOffsets(0, columnCount, 1);
+    const [endOffsets, hasEndFixedColumns] = getOffsets(columnCount - 1, -1, -1);
 
     return {
       start: startOffsets,
-      end: endOffsets,
+      end: endOffsets.reverse(),
       widths: colWidths,
+      hasFixColumns: hasStartFixedColumns || hasEndFixedColumns,
     };
   }, [colWidths, flattenColumns]);
 

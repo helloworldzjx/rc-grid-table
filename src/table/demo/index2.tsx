@@ -97,6 +97,8 @@ export default () => {
         dataSource={dataSource} 
         bordered
         // style={{height: 360}}
+        resizableColumns
+        sortableColumns
         sticky
         scrollY={400}
         summary={() => ([

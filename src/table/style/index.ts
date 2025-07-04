@@ -7,17 +7,12 @@ import useToken from "../../theme/hooks/useToken"
 type ComponentClsType = {
   wrapperCls: string
   wrapperInitializedCls: string
-  wrapperborderedCls: string
   componentCls: string
   contentCls: string
   borderedCls: string
-  borderCls: string
+  hasFixColumnsCls: string
   pingStartCls: string
   pingEndCls: string
-  topBorderCls: string
-  rightBorderCls: string
-  bottomBorderCls: string
-  leftBorderCls: string
   hasSummaryCls: string
   headCls: string
   headRowCls: string
@@ -58,66 +53,36 @@ const genInitialStyle = ({
   },
 });
 
-const genWrapperBorderedStyle = (
-  {
-    wrapperCls,
-    wrapperborderedCls,
-    borderCls,
-    topBorderCls,
-    rightBorderCls,
-    bottomBorderCls,
-    leftBorderCls,
-  }: ComponentClsType,
-  token: ComponentToken,
-): CSSInterpolation => ({
-  [`.${wrapperCls}`]: {
-
-    [`.${borderCls}`]: {
-      position: 'absolute',
-      left: 0,
-      top: 0,
-      height: '100%',
-      width: '100%',
-      boxSizing: 'border-box',
-      pointerEvents: 'none',
-      zIndex: 2,
-    },
-
-    [`.${bottomBorderCls}`]: {
-      // height: 'calc(100% - 1px)',
-      borderBottom: `1px solid ${token.borderColor}`,
-    },
-  },
-
-  [`.${wrapperborderedCls}`]: {
-
-    [`.${borderCls}`]: {
-      borderRadius: token.borderRadius,
-    },
-
-    [`.${topBorderCls}`]: {
-      borderTop: `1px solid ${token.borderColor}`,
-    },
-    [`.${rightBorderCls}`]: {
-      borderRight: `1px solid ${token.borderColor}`,
-    },
-    [`.${leftBorderCls}`]: {
-      borderLeft: `1px solid ${token.borderColor}`,
-    },
-  },
-});
-
 const genBorderedStyle = (
   {
+    componentCls,
     borderedCls,  
     headRowCls,
     cellCls,
   }: ComponentClsType,
   token: ComponentToken,
 ): CSSInterpolation => ({
+  [`.${componentCls}::before`]: {
+    content: "' '",
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    height: '100%',
+    width: '100%',
+    boxSizing: 'border-box',
+    borderBottom: `1px solid ${token.borderColor}`,
+    pointerEvents: 'none',
+    zIndex: 2,
+  },
+  
   [`.${borderedCls}`]: {
     borderRadius: token.borderRadius,
     // boxShadow: `0px 0.5px 0.5px ${token.borderColor}, 0px -0.5px 0.5px ${token.borderColor}, inset 0.5px 0px 0.5px ${adjustColor(token.borderColor, {r: -5, g: -5, b: -5})}, 0.5px 0px 0.5px ${token.borderColor}`,
+
+    '&::before': {
+      border: `1px solid ${token.borderColor}`,
+      borderRadius: token.borderRadius,
+    },
 
     [`.${headRowCls} .${cellCls}::before`]: {
       // content: "none",
@@ -149,11 +114,28 @@ const genHeadStyle = (
   },
 });
 
-const genBodyStyle = ({
-  componentCls,
-  bodyInnerCls,
-  bodyRowCls,
-}: ComponentClsType): CSSInterpolation => ({
+const genBodyStyle = (
+  {
+    componentCls,
+    bodyCls,
+    bodyInnerCls,
+    bodyRowCls,
+  }: ComponentClsType,
+  token: ComponentToken,
+): CSSInterpolation => ({
+  [`.${bodyCls}::before`]: {
+    content: "' '",
+    position: 'absolute',
+    left: 0,
+    bottom: 0,
+    height: 0,
+    width: `var(--${componentCls}-cols-width-total)`,
+    boxSizing: 'border-box',
+    borderBottom: `1px solid ${token.borderColor}`,
+    pointerEvents: 'none',
+    zIndex: 2,
+  },
+
   [`.${bodyInnerCls}`]: {
     display: 'grid',
     gridTemplateColumns: `var(--${componentCls}-cols-width)`,
@@ -341,20 +323,44 @@ const genFixedCellStyle = (
 
 const genFixedShadowStyle = ({
   componentCls,
+  hasFixColumnsCls,
   pingStartCls,
   pingEndCls,
   headRowCls,
   cellFixedStartLastCls,
   cellFixedEndFirstCls,
 }: ComponentClsType): CSSInterpolation => ({
+  [`.${componentCls}`]: {
+
+    '&::after': {
+      content: "' '",
+      position: 'absolute',
+      left: 0,
+      top: 0,
+      height: '100%',
+      width: '100%',
+      pointerEvents: 'none',
+      zIndex: 2,
+    },
+
+    [`&.${pingStartCls}::after`]: {
+      boxShadow: 'inset 10px 0 8px -8px rgba(0, 0, 0, 0.1)',
+    },
+
+    [`&.${pingEndCls}::after`]: {
+      boxShadow: 'inset -10px 0 8px -8px rgba(0, 0, 0, 0.1)',
+    },
+  },
+  [`.${hasFixColumnsCls}::after`]: {
+    content: 'none',
+  },
+  
   [`.${componentCls}.${pingStartCls} .${cellFixedStartLastCls}::after`]: {
     boxShadow: 'inset 10px 0 8px -8px rgba(0, 0, 0, 0.1)',
   },
-
   [`.${componentCls}.${pingEndCls} .${cellFixedEndFirstCls}::after`]: {
     boxShadow: 'inset -10px 0 8px -8px rgba(0, 0, 0, 0.1)',
   },
-
   [`.${pingStartCls} .${headRowCls} .${cellFixedStartLastCls}::before`]: {
     display: 'none',
   },
@@ -362,11 +368,10 @@ const genFixedShadowStyle = ({
 
 const genNestStyles = (clsObj: ComponentClsType, mergedToken: ComponentToken): CSSInterpolation => [
   genInitialStyle(clsObj),
-  genWrapperBorderedStyle(clsObj, mergedToken),
   genBorderedStyle(clsObj, mergedToken),
   genFixedShadowStyle(clsObj),
   { [`.${clsObj.componentCls}`]: genHeadStyle(clsObj, mergedToken) },
-  { [`.${clsObj.componentCls}`]: genBodyStyle(clsObj) },
+  { [`.${clsObj.componentCls}`]: genBodyStyle(clsObj, mergedToken) },
   { [`.${clsObj.componentCls}`]: genSummaryCls(clsObj) },
   { [`.${clsObj.componentCls}`]: genCellStyle(clsObj, mergedToken) },
   { [`.${clsObj.componentCls}`]: genFixedCellStyle(clsObj, mergedToken) },
@@ -379,17 +384,12 @@ export const useStyles = () => {
   const clsObj: ComponentClsType = {
     wrapperCls: `${prefixCls}-wrapper`,
     wrapperInitializedCls: `${prefixCls}-wrapper-initialized`,
-    wrapperborderedCls: `${prefixCls}-wrapper-bordered`,
     componentCls: prefixCls,
     contentCls: `${prefixCls}-content`,
     borderedCls: `${prefixCls}-bordered`,
-    borderCls: `${prefixCls}-border`,
+    hasFixColumnsCls: `${prefixCls}-has-fix-columns`,
     pingStartCls: `${prefixCls}-ping-start`,
     pingEndCls: `${prefixCls}-ping-end`,
-    topBorderCls: `${prefixCls}-top-border`,
-    rightBorderCls: `${prefixCls}-right-border`,
-    bottomBorderCls: `${prefixCls}-bottom-border`,
-    leftBorderCls: `${prefixCls}-left-border`,
     hasSummaryCls: `${prefixCls}-has-summary`,
     headCls: `${prefixCls}-head`,
     headRowCls: `${prefixCls}-head-row`,
