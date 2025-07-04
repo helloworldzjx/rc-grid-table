@@ -9,6 +9,7 @@ export interface ScrollBarContainerProps
   styles?: {
     content?: CSSProperties;
   };
+  childrenNextSibling?: ReactNode
   contentController?: HTMLDivElement
   horizontalThumbController?: HTMLDivElement
   stickyHorizontalController?: HTMLDivElement
@@ -17,7 +18,6 @@ export interface ScrollBarContainerProps
   showHorizontal?: boolean | { offsetTop?: number, offsetBottom?: number };
   showVertical?: boolean | { offsetLeft?: number, offsetRight?: number };
   showStickyHorizontal?: boolean | { offsetTop?: number, offsetBottom?: number };
-  footer?: ReactNode
 }
 
 export interface ScrollBarContainerRef {
