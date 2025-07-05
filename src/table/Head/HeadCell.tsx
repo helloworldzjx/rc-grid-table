@@ -10,7 +10,6 @@ import { useTableContext } from "../context"
 import { useStyles } from "../style"
 import { CellType, ColumnState } from "../interface";
 import { getMergedSpanKeys } from "../utils/calc";
-import { useScrollContext } from "../scrollContext";
 
 interface HeadCellProps<T = any> {
   column: CellType<T>
@@ -40,7 +39,6 @@ function HeadCell({
     updateMiddleState,
     columnsConfig,
   } = useTableContext();
-  const { isStart, isEnd } = useScrollContext()
 
   const {
     cellCls, 
@@ -121,8 +119,7 @@ function HeadCell({
 
   const { listeners, setNodeRef } = useSortable({ 
     id: `${col.key}`, 
-    // 对固定列的拖拽排序做了限制，如果不限制，over元素有可能是磁吸元素层级之下的元素，导致看不到over元素的高亮，出现视觉上的误判
-    disabled: !sortableColumns || (!isStart && fixedInfo.fixStart !== null) || (!isEnd && fixedInfo.fixEnd !== null), 
+    disabled: !sortableColumns, 
     data: { 
       type: 'sortableColumns', 
       column: { 

@@ -108,7 +108,8 @@ const genHeadStyle = (
   [`.${headCls}`]: {
     display: 'grid',
     gridTemplateColumns: `var(--${componentCls}-cols-width)`,
-    overflow: 'hidden',
+    overflow: 'auto',
+    scrollbarWidth: 'none',
 
     [`.${headRowCls}`]: {
       display: 'contents',
@@ -355,7 +356,7 @@ const genFixedShadowStyle = ({
     },
   },
   [`.${hasFixColumnsCls}::after`]: {
-    content: 'none',
+    display: 'none',
   },
   
   [`.${componentCls}.${pingStartCls} .${cellFixedStartLastCls}::after`]: {

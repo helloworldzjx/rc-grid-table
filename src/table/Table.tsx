@@ -11,7 +11,7 @@ import { ScrollBarContainerRef } from '../scrollContainer/interface';
 import ScrollBarContainer from '../scrollContainer';
 import { parseHeaderRows } from './utils/handle';
 import { useStyles } from './style';
-import Head from './Head/Head';
+import Head, { HeadRef } from './Head/Head';
 import BodyRow from './Body/BodyRow';
 import Summary from './Summary/Summary';
 
@@ -27,9 +27,9 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
   const { scrollRef: tableBodyRef, isStart, isEnd, onScroll } = useScrollContext()
   
   const tableRef = useRef<ScrollBarContainerRef>(null);
-  const tableHeadRef = useRef<HTMLDivElement>(null);
+  const tableHeadRef = useRef<HeadRef>(null);
   const tableSummaryRef = useRef<HTMLDivElement>(null);
-  useSyncScroll(tableHeadRef.current!, tableBodyRef.current?.nativeScrollElement, tableSummaryRef.current!);
+  useSyncScroll(tableHeadRef.current?.nativeElement, tableBodyRef.current?.nativeScrollElement, tableSummaryRef.current!);
   const [showStickyXScrollBar, setShowStickyXScrollBar] = useState(false);
   
   const gridTemplateColumns = flattenColumnsWidths?.length ? `${flattenColumnsWidths?.join('px ')}px` : ''
