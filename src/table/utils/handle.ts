@@ -43,7 +43,7 @@ export function parseHeaderRows<T>(columns: ColumnState<T>[] = []): CellType<T>[
     rows[rowIndex] = rows[rowIndex] || [];
 
     let currentColIndex = colIndex;
-    const colSpans: number[] = cols.map((column, index) => {
+    const colSpans: number[] = cols.map((column) => {
       const cell: CellType<T> = {
         key: column.key,
         children: column.title,

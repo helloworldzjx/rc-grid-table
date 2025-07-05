@@ -350,9 +350,11 @@ const genFixedShadowStyle = ({
     [`&.${pingStartCls}::after`]: {
       boxShadow: 'inset 10px 0 8px -8px rgba(0, 0, 0, 0.1)',
     },
-
     [`&.${pingEndCls}::after`]: {
       boxShadow: 'inset -10px 0 8px -8px rgba(0, 0, 0, 0.1)',
+    },
+    [`&.${pingStartCls}.${pingEndCls}::after`]: {
+      boxShadow: 'inset -10px 0 8px -8px rgba(0, 0, 0, 0.1), inset 10px 0 8px -8px rgba(0, 0, 0, 0.1)',
     },
   },
   [`.${hasFixColumnsCls}::after`]: {

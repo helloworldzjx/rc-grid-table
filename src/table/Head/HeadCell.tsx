@@ -141,23 +141,25 @@ function HeadCell({
       parent = findNodeByKey(middleState, col.column?.parentKey as Key)
     }
 
-    const prevFrontKeysStartIndex = parent?.children?.find((column) => column.key === nextRearKeys[0])?.order as number
-    const addStartIndex = prevFrontKeysStartIndex + nextRearKeys.length + diffCount
-    const prevRearKeysStartIndex = parent?.children?.find((column) => column.key === nextForntKeys[0])?.order as number
-    const maxAddIndex = prevRearKeysStartIndex - prevFrontKeysStartIndex
+    const prevFrontKeysFirstIndex = parent?.children?.find((column) => column.key === nextRearKeys[0])?.order as number
+    const prevFrontKeysKLastIndex = prevFrontKeysFirstIndex + nextRearKeys.length - 1
+    const addStartIndex = prevFrontKeysKLastIndex + 1
+    const prevRearKeysFirstIndex = parent?.children?.find((column) => column.key === nextForntKeys[0])?.order as number
+    let addCount = prevRearKeysFirstIndex - prevFrontKeysKLastIndex - 1
 
     let frontKeysOrderCount = 0
     let rearKeysOrderCount = 0
-    const updatedChildren = parent?.children?.map((column, index) => {
+    const updatedChildren = parent?.children?.map((column) => {
       let order = column.order
-      if(nextForntKeys.includes(column.key) && frontKeysOrderCount <= nextForntKeys.length) {
-        order = prevFrontKeysStartIndex + frontKeysOrderCount
-        frontKeysOrderCount++
-      } else if(nextRearKeys.includes(column.key) && rearKeysOrderCount <= nextRearKeys.length) {
-        order = prevRearKeysStartIndex + rearKeysOrderCount
-        rearKeysOrderCount++
-      } else if(index >= addStartIndex && index <= maxAddIndex) {
+      if(diffCount && addCount > 0 && order >= addStartIndex) {
         order = column.order + diffCount
+        addCount--
+      } else if(nextRearKeys.includes(column.key) && rearKeysOrderCount < nextRearKeys.length) {
+        order = prevRearKeysFirstIndex + rearKeysOrderCount + diffCount
+        rearKeysOrderCount++
+      }  else if(nextForntKeys.includes(column.key) && frontKeysOrderCount < nextForntKeys.length) {
+        order = prevFrontKeysFirstIndex + frontKeysOrderCount
+        frontKeysOrderCount++
       }
 
       return { ...column, order }
