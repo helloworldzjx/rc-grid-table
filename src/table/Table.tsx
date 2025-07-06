@@ -20,7 +20,7 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
     prefixCls, initialized, containerWidth = 0, rowKey, className, rowClassName,
     dataSource, columns, flattenColumns = [], flattenColumnsWidths = [], 
     fixedOffset, hasFixedColumns, fixColumnsGapped,
-    bordered, stripe, scrollY, summary, sticky, 
+    size, bordered, stripe, scrollY, summary, sticky, 
     // scroll, virtual, itemHeight,
     style,
   } = useTableContext();
@@ -57,7 +57,9 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
   const { 
     hashId, wrapperCls, cssVarCls, 
     wrapperInitializedCls, 
-    borderedCls, stripeCls, emptyCls, contentCls, hasSummaryCls, 
+    componentSMCls, componentMDCls,
+    borderedCls, stripeCls, hasSummaryCls,
+    emptyCls, contentCls, 
     hasXScrollbarCls, hasYScrollbarCls,
     hasFixColumnsCls, fixColumnsGappedCls, pingStartCls, pingEndCls,
     bodyCls, bodyInnerCls, bodyRowCls, 
@@ -80,6 +82,8 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
             prefixCls,
             hashId,
             {
+              [componentSMCls]: size === 'small',
+              [componentMDCls]: size === 'middle',
               [borderedCls]: bordered,
               [stripeCls]: stripe,
               [emptyCls]: !dataSource?.length,

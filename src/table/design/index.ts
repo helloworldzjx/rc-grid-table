@@ -4,6 +4,10 @@ import { defaultDesignToken } from 'rc-grid-table/es/theme';
 import { DerivativeToken } from '../..';
 
 export interface ComponentToken extends Partial<DerivativeToken> {
+  cellPaddingBlockSM: number | string;
+  cellPaddingInlineSM: number | string;
+  cellPaddingBlockMD: number | string;
+  cellPaddingInlineMD: number | string;
   cellPaddingBlock: number | string;
   cellPaddingInline: number | string;
   sortableCellBgColor: string
@@ -11,8 +15,12 @@ export interface ComponentToken extends Partial<DerivativeToken> {
 }
 
 export const tableToken: ComponentToken = {
-  cellPaddingBlock: 8,
-  cellPaddingInline: 12,
+  cellPaddingBlockSM: 8,
+  cellPaddingInlineSM: 8,
+  cellPaddingBlockMD: 12,
+  cellPaddingInlineMD: 8,
+  cellPaddingBlock: 16,
+  cellPaddingInline: 16,
   sortableCellBgColor: new TinyColor(defaultDesignToken.primaryColor)
         .lighten(40)
         .toString(),

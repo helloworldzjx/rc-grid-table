@@ -1,4 +1,4 @@
-import { type CSSInterpolation, useCSSVarRegister, useStyleRegister } from '@ant-design/cssinjs';
+import { type CSSInterpolation, unit, useCSSVarRegister, useStyleRegister } from '@ant-design/cssinjs';
 
 import { useTableContext } from '../context';
 import { tableToken, type ComponentToken } from '../design';
@@ -8,6 +8,8 @@ type ComponentClsType = {
   wrapperCls: string
   wrapperInitializedCls: string
   componentCls: string
+  componentSMCls: string
+  componentMDCls: string
   contentCls: string
   borderedCls: string
   stripeCls: string
@@ -208,14 +210,14 @@ const genCellStyle = (
       content: "' '",
       position: 'absolute',
       right: 1,
-      insetBlock: token.cellPaddingBlock,
+      insetBlock: unit(token.cellPaddingBlock),
       borderRight: `1px solid ${token.borderColor}`,
     },
 
     [`.${headCellResizableCls}`]: {
       position: 'absolute',
       right: 1,
-      insetBlock: token.cellPaddingBlock,
+      insetBlock: unit(token.cellPaddingBlock),
       width: 10,
       backgroundColor: 'transparent',
     },
@@ -231,8 +233,8 @@ const genCellStyle = (
     [`.${headDraggingOverlayCellCls}`]: {
       display: 'flex',
       alignItems: 'center',
-      gap: token.cellPaddingInline,
-      paddingInline: token.cellPaddingInline,
+      gap: unit(token.cellPaddingInline),
+      paddingInline: unit(token.cellPaddingInline),
       boxSizing: 'border-box',
       whiteSpace: 'nowrap',
       textOverflow: 'ellipsis',
@@ -248,6 +250,7 @@ const genCellStyle = (
     [`.${cellCls}`]: {
       // backgroundColor: '#fff',
       borderBottom: `1px solid ${token.borderColor}`,
+      transition: 'background-color 0.3s',
     },
 
     [`&:hover .${cellCls}`]: {
@@ -262,8 +265,8 @@ const genCellStyle = (
   },
 
   [`.${cellCls}`]: {
-    paddingBlock: token.cellPaddingBlock,
-    paddingInline: token.cellPaddingInline,
+    paddingBlock: unit(token.cellPaddingBlock),
+    paddingInline: unit(token.cellPaddingInline),
     alignContent: 'center',
     wordBreak: 'break-word',
     boxSizing: 'border-box',
@@ -391,6 +394,47 @@ const genFixedShadowStyle = ({
   },
 });
 
+const genSizeClsStyle = (
+  {
+    componentCls,
+    componentSMCls,
+    componentMDCls,
+    headRowCls,
+    headLastCellCls,
+    headCellResizableCls,
+    cellCls,
+  }: ComponentClsType,
+  token: ComponentToken
+): CSSInterpolation => ({
+  [`.${componentCls}.${componentSMCls} .${headRowCls}`]: {
+    [`.${cellCls}:not(.${headLastCellCls})::before`]: {
+      insetBlock: unit(token.cellPaddingBlockSM),
+    },
+
+    [`.${headCellResizableCls}`]: {
+      insetBlock: unit(token.cellPaddingBlockSM),
+    },
+  },
+  [`.${componentCls}.${componentMDCls} .${headRowCls}`]: {
+    [`.${cellCls}:not(.${headLastCellCls})::before`]: {
+      insetBlock: unit(token.cellPaddingBlockMD),
+    },
+
+    [`.${headCellResizableCls}`]: {
+      insetBlock: unit(token.cellPaddingBlockMD),
+    },
+  },
+
+  [`.${componentCls}.${componentSMCls} .${cellCls}`]: {
+    paddingBlock: unit(token.cellPaddingBlockSM),
+    paddingInline: unit(token.cellPaddingInlineSM),
+  },
+  [`.${componentCls}.${componentMDCls} .${cellCls}`]: {
+    paddingBlock: unit(token.cellPaddingBlockMD),
+    paddingInline: unit(token.cellPaddingInlineMD),
+  },
+});
+
 const genStripeClsStyle = ({
   stripeCls,
   bodyRowCls,
@@ -425,6 +469,7 @@ const genNestStyles = (clsObj: ComponentClsType, mergedToken: ComponentToken): C
   genInitialStyle(clsObj),
   genBorderedStyle(clsObj, mergedToken),
   genFixedShadowStyle(clsObj),
+  genSizeClsStyle(clsObj, mergedToken),
   genStripeClsStyle(clsObj),
   genEmptyClsStyle(clsObj),
   // 避免对象属性冲突，分开来构建样式
@@ -443,6 +488,8 @@ export const useStyles = () => {
     wrapperCls: `${prefixCls}-wrapper`,
     wrapperInitializedCls: `${prefixCls}-wrapper-initialized`,
     componentCls: prefixCls,
+    componentSMCls: `${prefixCls}-wrapper-small`,
+    componentMDCls: `${prefixCls}-wrapper-middle`,
     contentCls: `${prefixCls}-content`,
     borderedCls: `${prefixCls}-bordered`,
     stripeCls: `${prefixCls}-stripe`,

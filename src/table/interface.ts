@@ -15,11 +15,6 @@ export interface CellType<T = any> {
   colEnd?: number;
 }
 
-export interface RenderedCell<T> {
-  props?: CellType<T>;
-  children?: ReactNode;
-}
-
 // ================= Fixed Column =================
 export interface StickyOffsets {
   start: readonly number[];
@@ -30,6 +25,7 @@ export interface StickyOffsets {
   fixColumnsGapped: boolean
 }
 
+export type SizeType = 'small' | 'middle' | 'large'
 export type FixedType = 'start' | 'end';
 export type AlignType =
   | 'start'
@@ -43,7 +39,6 @@ export type AlignType =
 export type GetComponentProps<DataType> = (data: DataType, rowIndex?: number) => React.HTMLAttributes<any> & { rowSpan?: number; colSpan?: number; align?: AlignType; };
 
 export type  PercentColumnWidthType = `${number}%`
-
 
 export interface ColumnProps<T = any> {
   title?: ReactNode;
@@ -77,8 +72,6 @@ export type ColumnType<T> = ColumnProps<T> & { children?: ColumnType<T>[] } & (
 );
 
 export type ColumnsType<T = any> = ColumnType<T>[];
-
-export type TableLayout = 'auto' | 'fixed';
 
 export interface TableSummaryRowCell {
   rowSpan?: number
@@ -181,6 +174,10 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
    * @default false
    */
   visibleColumns?: boolean
+  /**
+   * @description 网格style
+   */
+  size?: SizeType
   /**
    * @description 网格style
    */
