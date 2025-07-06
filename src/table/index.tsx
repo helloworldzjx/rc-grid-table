@@ -9,6 +9,7 @@ import { columnsSort, filterColumns } from './utils/handle';
 import { mergeColumnsState } from './utils/mergedColumnsState';
 import useStickyOffsets from './hooks/useStickyOffsets';
 import ScrollProvider from './scrollContext';
+import { useDebounceFn } from 'ahooks';
 
 const Table: FC<TableProps> = (props) => {
   const {
@@ -18,6 +19,10 @@ const Table: FC<TableProps> = (props) => {
     columns = [],
     columnMinWidth = 100,
     leafColumnMinWidth = 80,
+    resizableColumns,
+    sortableColumns,
+    fixableColumns,
+    visibleColumns,
     columnsConfig,
     onScroll,
     ...rest
@@ -41,58 +46,62 @@ const Table: FC<TableProps> = (props) => {
   const middleStateUpdated = useRef(false)
   const fixedOffset = useStickyOffsets(flattenColumnsWidths, flattenCols)
 
-  const onResize: ResizeObserverProps['onResize'] = ({width, height}) => {
+  const enableColumnsConfig = useMemo(() => {
+    return resizableColumns || sortableColumns || fixableColumns || visibleColumns
+  }, [resizableColumns, sortableColumns, fixableColumns, visibleColumns])
+
+  const { run: onResize } = useDebounceFn<OnResize>(({width, height}) => {
     setContainerWidth(width)
     setContainerHeight(height)
-  }
+  }, { wait: 0 })
 
   /** 使用了列配置的处理 start ***************************************************************************/
 
   useEffect(() => {
-    if(columnsConfig?.enable && columnsConfig?.useStorage && columnsConfig?.columnsState?.length) {
+    if(enableColumnsConfig && columnsConfig?.useStorage && columnsConfig?.columnsState?.length) {
       setMiddleState(columnsConfig.columnsState)
       middleStateUpdated.current = true
     }
-  }, [columnsConfig])
+  }, [enableColumnsConfig, columnsConfig])
 
   useEffect(() => {
-    if(!middleStateUpdated.current && ready && containerWidth && columnsConfig?.enable && (!columnsConfig.useStorage || !columnsConfig?.columnsState?.length)) {
+    if(!middleStateUpdated.current && ready && containerWidth && enableColumnsConfig && (!columnsConfig?.useStorage || !columnsConfig?.columnsState?.length)) {
       const { treeColumns } = columnsWidthDistribute(containerWidth, columns, columnMinWidth, leafColumnMinWidth)
       setMiddleState(treeColumns)
     }
-  }, [ready, containerWidth, columnsConfig, columns, columnMinWidth, leafColumnMinWidth])
+  }, [ready, containerWidth, enableColumnsConfig, columnsConfig, columns, columnMinWidth, leafColumnMinWidth])
 
   useEffect(() => {
-    if(ready && containerWidth && columnsConfig?.enable) {
+    if(ready && containerWidth && enableColumnsConfig) {
       const realColumns = filterColumns(columns)
       const mergedColumnsState = mergeColumnsState(realColumns, middleState)
       setInnerColumnsState(columnsSort(mergedColumnsState))
     }
-  }, [ready, containerWidth, columnsConfig?.enable, columns, middleState])
+  }, [ready, containerWidth, enableColumnsConfig, columns, middleState])
 
   useEffect(() => {
-    if(ready && containerWidth && columnsConfig?.enable && innerColumnsState.length) {
+    if(ready && containerWidth && enableColumnsConfig && innerColumnsState.length) {
       const { flattenColumns, treeColumns } = columnsWidthDistribute(containerWidth, innerColumnsState, columnMinWidth, leafColumnMinWidth)
       setCols(treeColumns)
       setFlattenCols(flattenColumns)
       setFlattenColumnsWidths(flattenColumns.map((column) => column.width as number))
       setInitialized(true)
     }
-  }, [ready, containerWidth, columnsConfig?.enable, innerColumnsState, columnMinWidth, leafColumnMinWidth])
+  }, [ready, containerWidth, enableColumnsConfig, innerColumnsState, columnMinWidth, leafColumnMinWidth])
 
   /** 使用了列配置的处理 end */
 
   /** 未使用列配置的处理 start ***************************************************************************/
 
   useEffect(() => {
-    if(ready && containerWidth && !columnsConfig?.enable) {
+    if(ready && containerWidth && !enableColumnsConfig) {
       const { flattenColumns, treeColumns } = columnsWidthDistribute(containerWidth, columns, columnMinWidth, leafColumnMinWidth)
       setCols(treeColumns)
       setFlattenCols(flattenColumns)
       setFlattenColumnsWidths(flattenColumns.map((column) => column.width as number))
       setInitialized(true)
     }
-  }, [ready, containerWidth, columnsConfig?.enable, columns, columnMinWidth, leafColumnMinWidth])
+  }, [ready, containerWidth, enableColumnsConfig, columns, columnMinWidth, leafColumnMinWidth])
 
   /** 未使用列配置的处理 end */
 
@@ -110,6 +119,10 @@ const Table: FC<TableProps> = (props) => {
     leafColumnMinWidth,
     fixedOffset,
     hasFixedColumns: fixedOffset.hasFixColumns,
+    resizableColumns,
+    sortableColumns,
+    fixableColumns,
+    visibleColumns,
     sortableScopeKeys,
     updateSortableScopeKeys: setSortableScopeKeys,
     overableScopeKeys,

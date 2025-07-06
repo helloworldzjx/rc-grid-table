@@ -191,7 +191,6 @@ export default () => {
           sticky
           scrollY={400}
           columnsConfig={{
-            enable: true,
             // useStorage: true,
             // columnsState: columnsState,
             // onChange(columnsState) {

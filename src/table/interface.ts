@@ -115,7 +115,6 @@ export type ColumnState<T = any> = Omit<ColumnType<T>, 'children'> & ColumnState
 }
 
 export type ColumnsConfig<T> = {
-  enable?: boolean
   /** 启用storage后才会使用columnsState中的数据，且可以使用onChange事件 */
   useStorage?: boolean
   columnsState?: ColumnState<T>[]
@@ -172,7 +171,12 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
    */
   sortableColumns?: boolean
   /**
-   * @description 开启列显隐操作
+   * @description 开启列固定配置(未实现)
+   * @default false
+   */
+  fixableColumns?: boolean
+  /**
+   * @description 开启列显隐操作(未实现)
    * @default false
    */
   visibleColumns?: boolean
@@ -193,7 +197,7 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
    */
   sticky?: boolean | TableSticky
   /**
-   * @description 虚拟模式(未实现)
+   * @description 开启虚拟列表(未实现)
    * @default false
    */
   virtual?: boolean
