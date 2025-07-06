@@ -30,7 +30,6 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
   const tableHeadRef = useRef<HeadRef>(null);
   const tableSummaryRef = useRef<HTMLDivElement>(null);
   useSyncScroll(tableHeadRef.current?.nativeElement, tableBodyRef.current?.nativeScrollElement, tableSummaryRef.current!);
-  const [showStickyXScrollBar, setShowStickyXScrollBar] = useState(false);
   
   const gridTemplateColumns = flattenColumnsWidths?.length ? `${flattenColumnsWidths?.join('px ')}px` : ''
   const columnWidthTotal = flattenColumnsWidths?.reduce((sum, num) => sum + num, 0)
@@ -55,14 +54,6 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
     return {[prop]: y}
   }, [scrollY])
 
-  const showStickyHorizontal = useMemo(() => {
-    if(!!sticky && typeof sticky === 'object' && showStickyXScrollBar) {
-      return { offsetBottom: sticky.offsetSummary }
-    }
-
-    return !!sticky && showStickyXScrollBar
-  }, [sticky, showStickyXScrollBar])
-
   const { 
     hashId, wrapperCls, cssVarCls, 
     wrapperInitializedCls, 
@@ -72,22 +63,6 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
     bodyCls, bodyInnerCls, bodyRowCls, 
     cellCls, cellFixedStartCls, 
   } = useStyles();
-
-  useEffect(() => {
-    if(!tableRef.current?.nativeHorizontalTrackElement) return
-    
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setShowStickyXScrollBar(!entry.isIntersecting);
-      },
-      { threshold: 0.01 }
-    );
-    observer.observe(tableRef.current?.nativeHorizontalTrackElement);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, []);
   
   return (
     <div
@@ -120,7 +95,7 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
           shouldVerticalUpdate={[dataSource, columnWidthTotal]}
           showHorizontal
           showVertical={!scrollY}
-          showStickyHorizontal={showStickyHorizontal}
+          showStickyHorizontal={sticky}
           ref={tableRef}
           style={{[`--${prefixCls}-cols-width-total`]: `${columnWidthTotal}px`, ...style}}
         >

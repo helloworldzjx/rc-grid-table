@@ -89,8 +89,13 @@ export interface TableSummaryRowCell {
 }
 
 export interface TableSticky {
+  /** header磁吸效果，未实现 */
   offsetHeader?: number
+  /** summary磁吸效果，未实现 */
   offsetSummary?: number
+  offsetStickyScroller?: number
+  /** 目前仅对offsetStickyScroller生效 */
+  getContainer?: () => HTMLElement
 }
 
 export type ColumnStateConfigType = {
@@ -184,7 +189,7 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
    */
   summary?: (dataSource: T[], columnsLength: number) => TableSummaryRowCell[][]
   /**
-   * @description 磁吸模式
+   * @description 横向滚动条可磁吸
    */
   sticky?: boolean | TableSticky
   /**

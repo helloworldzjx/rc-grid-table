@@ -19,7 +19,7 @@ export interface ScrollBarContainerProps
   shouldVerticalUpdate?: any[];
   showHorizontal?: boolean | { offsetTop?: number, offsetBottom?: number };
   showVertical?: boolean | { offsetLeft?: number, offsetRight?: number };
-  showStickyHorizontal?: boolean | { offsetTop?: number, offsetBottom?: number };
+  showStickyHorizontal?: boolean | { offsetStickyScroller?: number, getContainer?: () => HTMLElement };
 }
 
 export interface ScrollBarContainerRef {

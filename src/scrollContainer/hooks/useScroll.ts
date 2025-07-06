@@ -1,4 +1,5 @@
-import { MouseEventHandler, UIEventHandler, useCallback, useEffect, useRef, useState } from "react";
+import { MouseEventHandler, UIEventHandler, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useDebounceEffect } from "ahooks";
 
 import { useTableContext } from "../../table/context";
 import { ScrollBarContainerProps } from "../interface";
@@ -18,7 +19,7 @@ const useScroll = ({
   shouldVerticalUpdate = [],
   onScroll,
 }: UseScrollProps) => {
-  const { containerWidth, containerHeight } = useTableContext()
+  const { containerWidth, containerHeight } = useTableContext();
   const wrapperRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const horizontalTrackRef = useRef<HTMLDivElement>(null);
@@ -32,7 +33,44 @@ const useScroll = ({
   const [hasVertical, setHasVertical] = useState(false);
   const [horizontalThumbWidth, setHorizontalThumbWidth] = useState(0);
   const [verticalThumbHeight, setVerticalThumbHeight] = useState(0);
-  const [dragging, setDragging] = useState(false);
+  const [showStickyXScrollBar, setShowStickyXScrollBar] = useState(false);
+
+  useEffect(() => {
+    if(!wrapperRef.current || !showStickyHorizontal) return
+    
+    let bottom = 0
+    let root: Element | Document | undefined = undefined
+    if(typeof showStickyHorizontal === 'object') {
+      root = showStickyHorizontal.getContainer?.()
+      if(!!showStickyHorizontal.offsetStickyScroller) {
+        bottom = showStickyHorizontal.offsetStickyScroller
+      }
+    }
+    const { height } = wrapperRef.current.getBoundingClientRect()
+    let threshold = [1]
+    if(bottom) {
+      threshold = [(height - bottom) / height, 1].sort((a, b) => a - b)
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setShowStickyXScrollBar(!entry.isIntersecting && entry.intersectionRect.top > bottom);
+      },
+      {
+        threshold,
+        root,
+        rootMargin: `0px 0px ${bottom * -1}px 0px`,
+      }
+    );
+    observer.observe(wrapperRef.current);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [wrapperRef.current, showStickyHorizontal]);
+
+  const showStickyHorizontalScrollBar = useMemo(() => {
+    return showStickyXScrollBar && !!showStickyHorizontal
+  }, [showStickyXScrollBar, showStickyHorizontal])
 
   // 横向滚动条计算
   const updateHorizontalScrollbar = useCallback(() => {
@@ -71,13 +109,13 @@ const useScroll = ({
     }
   }, [containerHeight, showVertical, ...shouldVerticalUpdate]);
 
-  useEffect(() => {
+  useDebounceEffect(() => {
     updateHorizontalScrollbar();
-  }, [updateHorizontalScrollbar]);
+  }, [updateHorizontalScrollbar], { wait: 0 });
 
-  useEffect(() => {
+  useDebounceEffect(() => {
     updateVerticalScrollbar();
-  }, [updateVerticalScrollbar]);
+  }, [updateVerticalScrollbar], { wait: 0 });
 
   // 内容滚动事件
   const handleContentScroll: UIEventHandler<HTMLDivElement> = useCallback((e) => {
@@ -99,7 +137,7 @@ const useScroll = ({
       const maxTranslateX = trackWidth - (horizontalThumbWidth || horizontalThumb.offsetWidth);
       const translateX = leftPercent * maxTranslateX;
       horizontalThumb.style.transform = `translateX(${translateX}px)`;
-      if(stickyHorizontalController || !!showStickyHorizontal) {
+      if(stickyHorizontalController || !!showStickyHorizontalScrollBar) {
         const stickyHorizontalThumb = stickyHorizontalController || stickyHorizontalThumbRef.current
         stickyHorizontalThumb!.style.transform = `translateX(${translateX}px)`;
       }
@@ -111,7 +149,7 @@ const useScroll = ({
       const translateY = topPercent * maxTranslateY;
       verticalThumbRef.current.style.transform = `translateY(${translateY}px)`;
     }
-  }, [horizontalThumbWidth, verticalThumbHeight, showHorizontal, showVertical, showStickyHorizontal]);
+  }, [horizontalThumbWidth, verticalThumbHeight, showHorizontal, showVertical, showStickyHorizontalScrollBar]);
 
   // 拖拽横向滚动条
   const handleHorizontalDrag: MouseEventHandler<HTMLDivElement> = useCallback(
@@ -121,7 +159,7 @@ const useScroll = ({
       const stickyThumb = stickyHorizontalThumbRef.current;
       if (!thumb) return;
 
-      setDragging(true);
+      wrapperRef.current!.style.userSelect = 'none';
 
       const trackRect = track.getBoundingClientRect();
       const thumbRect = thumb.getBoundingClientRect();
@@ -148,7 +186,7 @@ const useScroll = ({
       };
 
       const upHandler = () => {
-        setDragging(false);
+        wrapperRef.current!.style.userSelect = ''
         document.documentElement.removeEventListener('mousemove', moveHandler);
         document.documentElement.removeEventListener('mouseup', upHandler);
       };
@@ -166,7 +204,7 @@ const useScroll = ({
       const thumb = verticalThumbRef.current;
       if (!thumb) return;
 
-      setDragging(true);
+      wrapperRef.current!.style.userSelect = 'none';
 
       const trackRect = track.getBoundingClientRect();
       const thumbRect = thumb.getBoundingClientRect();
@@ -192,7 +230,7 @@ const useScroll = ({
       };
 
       const upHandler = () => {
-        setDragging(false);
+        wrapperRef.current!.style.userSelect = ''
         document.documentElement.removeEventListener('mousemove', moveHandler);
         document.documentElement.removeEventListener('mouseup', upHandler);
       };
@@ -202,10 +240,6 @@ const useScroll = ({
     },
     [verticalThumbHeight],
   );
-  
-  useEffect(() => {
-    wrapperRef.current!.style.userSelect = dragging ? 'none' : ''
-  }, [dragging])
 
   const scrollTo = (options?: ScrollToOptions) => {
     if (contentRef.current) {
@@ -242,6 +276,7 @@ const useScroll = ({
     contentRef,
     horizontalTrackRef,
     horizontalThumbRef,
+    showStickyHorizontalScrollBar,
     stickyHorizontalTrackRef,
     stickyHorizontalThumbRef,
     verticalTrackRef,
