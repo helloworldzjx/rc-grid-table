@@ -117,6 +117,22 @@ export function filterColumns<T = any>(columns: ColumnsType<T>, parentKey: Key =
 }
 
 /**
+ * 展平middleState数组
+ * @param columns middleState
+ * @returns 展平后的middleState数组
+ */
+export function flattenMiddleState(middleState: ColumnState[]): ColumnState[] {
+  return middleState.reduce((result: ColumnState[], state) => {
+    if(state.hasChildren) {
+      result.push(...flattenMiddleState(state.children as ColumnState[]))
+    }
+    result.push(state)
+    
+    return result
+  }, [])
+}
+
+/**
  * 展平columns数组，只保留没有children的列
  * @param columns 列数组
  * @returns 展平后的叶子列数组

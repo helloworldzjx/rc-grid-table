@@ -9,11 +9,12 @@ import type { TableProps } from './interface';
 import { useSyncScroll } from './hooks/useSyncScroll';
 import { ScrollBarContainerRef } from '../scrollContainer/interface';
 import ScrollBarContainer from '../scrollContainer';
-import { parseHeaderRows } from './utils/handle';
+import { flattenMiddleState, parseHeaderRows, rebuildColumns } from './utils/handle';
 import { useStyles } from './style';
 import Head, { HeadRef } from './Head/Head';
 import BodyRow from './Body/BodyRow';
 import Summary from './Summary/Summary';
+import { distribute } from './utils/calc';
 
 const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
   const { 
@@ -23,8 +24,23 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
     size, bordered, stripe, scrollY, summary, sticky, 
     // scroll, virtual, itemHeight,
     style,
+    columnsWidthTotal,
+    middleState,
+    updateMiddleState,
   } = useTableContext();
   const { scrollRef: tableBodyRef, isStart, isEnd, onScroll } = useScrollContext()
+
+  const { 
+    hashId, wrapperCls, cssVarCls, 
+    wrapperInitializedCls, placeholderCls, placeholderBorderedCls,
+    componentSMCls, componentMDCls,
+    borderedCls, stripeCls, hasSummaryCls,
+    noDataCls, contentCls, 
+    hasXScrollbarCls, hasYScrollbarCls,
+    hasFixColumnsCls, fixColumnsGappedCls, pingStartCls, pingEndCls,
+    bodyCls, bodyInnerCls, bodyRowCls, 
+    cellCls, noDataCellCls, 
+  } = useStyles();
   
   const tableRef = useRef<ScrollBarContainerRef>(null);
   const tableHeadRef = useRef<HeadRef>(null);
@@ -32,7 +48,6 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
   useSyncScroll(tableHeadRef.current?.nativeElement, tableBodyRef.current?.nativeScrollElement, tableSummaryRef.current!);
   
   const gridTemplateColumns = flattenColumnsWidths?.length ? `${flattenColumnsWidths?.join('px ')}px` : ''
-  const columnWidthTotal = flattenColumnsWidths?.reduce((sum, num) => sum + num, 0)
   const hasSummary = typeof summary === 'function'
 
   const headRows = useMemo(() => {
@@ -54,17 +69,23 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
     return {[prop]: y}
   }, [scrollY])
 
-  const { 
-    hashId, wrapperCls, cssVarCls, 
-    wrapperInitializedCls, 
-    componentSMCls, componentMDCls,
-    borderedCls, stripeCls, hasSummaryCls,
-    emptyCls, contentCls, 
-    hasXScrollbarCls, hasYScrollbarCls,
-    hasFixColumnsCls, fixColumnsGappedCls, pingStartCls, pingEndCls,
-    bodyCls, bodyInnerCls, bodyRowCls, 
-    cellCls, placeholderCls, 
-  } = useStyles();
+  const autoFill = () => {
+    const flattenedMiddleState = flattenMiddleState(middleState)
+    const leafState = flattenedMiddleState.filter(state => !state.hasChildren)
+    const remainingWidth = containerWidth - columnsWidthTotal;
+    const { first, avg } = distribute(remainingWidth, leafState.length);
+  
+    // 合并
+    const mergedMiddleState = flattenedMiddleState.map((state, index) => {
+      if (!state.hasChildren) {
+        const width = state.width as number
+        const newWidth = width + (index === 0 ? first : avg);
+        return { ...state, width: newWidth, updatedWidth: true };
+      }
+      return state;
+    });
+    updateMiddleState(rebuildColumns(mergedMiddleState));
+  }
   
   return (
     <div
@@ -86,7 +107,7 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
               [componentMDCls]: size === 'middle',
               [borderedCls]: bordered,
               [stripeCls]: stripe,
-              [emptyCls]: !dataSource?.length,
+              [noDataCls]: !dataSource?.length,
               [hasSummaryCls]: hasSummary,
               [hasFixColumnsCls]: hasFixedColumns,
               [fixColumnsGappedCls]: fixColumnsGapped,
@@ -100,13 +121,13 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
             [`--${prefixCls}-cols-width`]: gridTemplateColumns
           }}}
           contentController={tableBodyRef.current?.nativeScrollElement}
-          shouldHorizontalUpdate={[columnWidthTotal]}
-          shouldVerticalUpdate={[dataSource, columnWidthTotal]}
+          shouldHorizontalUpdate={[columnsWidthTotal]}
+          shouldVerticalUpdate={[dataSource, columnsWidthTotal]}
           showHorizontal
           showVertical={!scrollY}
           showStickyHorizontal={sticky}
           ref={tableRef}
-          style={{[`--${prefixCls}-cols-width-total`]: `${columnWidthTotal}px`, ...style}}
+          style={{[`--${prefixCls}-cols-width-total`]: `${columnsWidthTotal}px`, ...style}}
         >
           <Head ref={tableHeadRef} rows={headRows} />
           <ScrollBarContainer
@@ -115,10 +136,10 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
             style={tableHeight}
             horizontalThumbController={tableRef.current?.nativeHorizontalThumbElement}
             stickyHorizontalController={tableRef.current?.nativeStickyHorizontalElement}
-            shouldVerticalUpdate={[dataSource, columnWidthTotal]}
+            shouldVerticalUpdate={[dataSource, columnsWidthTotal]}
             showHorizontal={false}
             showVertical={!!scrollY ? {
-              offsetLeft: containerWidth - columnWidthTotal > 0 ? columnWidthTotal - 12 : containerWidth - 12
+              offsetLeft: `min(${columnsWidthTotal - 12}px, ${containerWidth - 12}px)`
             } : undefined}
             ref={tableBodyRef}
             onScroll={onScroll}
@@ -137,8 +158,8 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
                       gridColumn: `span ${flattenColumns.length || 1}`}}
                   >
                     <div 
-                      className={placeholderCls}
-                      style={{width: containerWidth - columnWidthTotal > 0 ? columnWidthTotal : containerWidth}}
+                      className={noDataCellCls}
+                      style={{width: `min(${columnsWidthTotal}px, ${containerWidth}px)`}}
                     >
                       <Empty prefixCls={`${prefixCls}-empty`} />
                     </div>
@@ -165,25 +186,11 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
         </ScrollBarContainer>
         
         {
-          containerWidth - columnWidthTotal >= 1 && (
+          containerWidth - columnsWidthTotal >= 1 && (
             <div 
-              style={{
-                position: 'absolute', 
-                height: bordered ? 'calc(100% - 2px)' : '100%', 
-                top: bordered ? 1 : 0, 
-                left: columnWidthTotal,
-                right: 0,
-                ...bordered && {
-                  borderLeftWidth: '1px',
-                  borderLeftStyle: 'solid',
-                  borderLeftColor: '#ddd',
-                },
-                boxSizing: 'border-box',
-                backgroundColor: 'rgba(0, 0, 0, 0.03)',
-                borderTopRightRadius: 8,
-                borderBottomRightRadius: 8,
-                userSelect: 'none',
-              }}
+              className={classNames(placeholderCls, hashId, {[placeholderBorderedCls]: bordered})}
+              style={{left: columnsWidthTotal}}
+              onClick={autoFill}
             />
           )
         }

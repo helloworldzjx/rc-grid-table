@@ -113,6 +113,7 @@ const Table: FC<TableProps> = (props) => {
     rowKey,
     columns: cols,
     flattenColumnsWidths,
+    columnsWidthTotal: flattenColumnsWidths?.reduce((sum, num) => sum + num, 0),
     updateFlattenColumnsWidths: setFlattenColumnsWidths,
     flattenColumns: flattenCols,
     columnMinWidth,

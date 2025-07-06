@@ -7,13 +7,15 @@ import useToken from "../../theme/hooks/useToken"
 type ComponentClsType = {
   wrapperCls: string
   wrapperInitializedCls: string
+  placeholderCls: string
+  placeholderBorderedCls: string
   componentCls: string
   componentSMCls: string
   componentMDCls: string
   contentCls: string
   borderedCls: string
   stripeCls: string
-  emptyCls: string
+  noDataCls: string
   hasFixColumnsCls: string
   fixColumnsGappedCls: string
   pingStartCls: string
@@ -41,7 +43,7 @@ type ComponentClsType = {
   cellFixedStartLastCls: string
   cellFixedEndCls: string
   cellFixedEndFirstCls: string
-  placeholderCls: string
+  noDataCellCls: string
   summaryCls: string
   summaryRowCls: string
 }
@@ -49,7 +51,7 @@ type ComponentClsType = {
 const genInitialStyle = ({
   wrapperCls: initialCls,
   wrapperInitializedCls: initializedCls,
-}: ComponentClsType,): CSSInterpolation => ({
+}: ComponentClsType): CSSInterpolation => ({
   [`.${initialCls}`]: {
     opacity: 0,
     pointerEvents: 'none',
@@ -58,6 +60,41 @@ const genInitialStyle = ({
   [`.${initializedCls}`]: {
     opacity: 1,
     pointerEvents: 'auto',
+  },
+});
+
+const genPlaceholderStyle = (
+  {
+    placeholderCls,
+    placeholderBorderedCls,
+  }: ComponentClsType,
+  token: ComponentToken,
+): CSSInterpolation => ({
+  [`.${placeholderCls}`]: {
+    position: 'absolute',
+    height: '100%',
+    top: 0,
+    right: 0,
+    boxSizing: 'border-box',
+    backgroundColor: 'rgba(0, 0, 0, 0.03)',
+    transition: 'background-color 0.3s',
+    borderTopRightRadius: token.borderRadius,
+    borderBottomRightRadius: token.borderRadius,
+    userSelect: 'none',
+
+    '&:hover': {
+      backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    },
+
+    '&:active': {
+      backgroundColor: 'rgba(0, 0, 0, 0.07)',
+    },
+  },
+
+  [`.${placeholderBorderedCls}`]: {
+    height: 'calc(100% - 2px)',
+    top: 1,
+    borderLeft: `1px solid ${token.borderColor}`,
   },
 });
 
@@ -447,12 +484,11 @@ const genStripeClsStyle = ({
 });
 
 const genEmptyClsStyle = ({
-  emptyCls,
+  noDataCls,
   bodyRowCls,
-  placeholderCls,
+  noDataCellCls,
 }: ComponentClsType): CSSInterpolation => ({
-  // 这里使用nth-of-type去判断，后面展开行会使用p元素
-  [`.${emptyCls} .${bodyRowCls} .${placeholderCls}`]: {
+  [`.${noDataCls} .${bodyRowCls} .${noDataCellCls}`]: {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
@@ -467,6 +503,7 @@ const genEmptyClsStyle = ({
 
 const genNestStyles = (clsObj: ComponentClsType, mergedToken: ComponentToken): CSSInterpolation => [
   genInitialStyle(clsObj),
+  genPlaceholderStyle(clsObj, mergedToken),
   genBorderedStyle(clsObj, mergedToken),
   genFixedShadowStyle(clsObj),
   genSizeClsStyle(clsObj, mergedToken),
@@ -487,13 +524,15 @@ export const useStyles = () => {
   const clsObj: ComponentClsType = {
     wrapperCls: `${prefixCls}-wrapper`,
     wrapperInitializedCls: `${prefixCls}-wrapper-initialized`,
+    placeholderCls: `${prefixCls}-placeholder`,
+    placeholderBorderedCls: `${prefixCls}-placeholder-bordered`,
     componentCls: prefixCls,
     componentSMCls: `${prefixCls}-wrapper-small`,
     componentMDCls: `${prefixCls}-wrapper-middle`,
     contentCls: `${prefixCls}-content`,
     borderedCls: `${prefixCls}-bordered`,
     stripeCls: `${prefixCls}-stripe`,
-    emptyCls: `${prefixCls}-no-data`,
+    noDataCls: `${prefixCls}-no-data`,
     hasFixColumnsCls: `${prefixCls}-has-fix-columns`,
     fixColumnsGappedCls: `${prefixCls}-fix-columns-gapped`,
     pingStartCls: `${prefixCls}-ping-start`,
@@ -521,7 +560,7 @@ export const useStyles = () => {
     cellFixedStartLastCls: `${prefixCls}-cell-fixed-start-last`,
     cellFixedEndCls: `${prefixCls}-cell-fixed-end`,
     cellFixedEndFirstCls: `${prefixCls}-cell-fixed-end-first`,
-    placeholderCls: `${prefixCls}-placeholder`,
+    noDataCellCls: `${prefixCls}-no-data-cell`,
     summaryCls: `${prefixCls}-summary`,
     summaryRowCls: `${prefixCls}-summary-row`,
   }

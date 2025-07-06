@@ -146,7 +146,7 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
    */
   columnMinWidth?: number;
   /**
-   * @description 叶子列初始最小列宽
+   * @description 叶子列初始最小列宽，仅在表头分组时生效
    * @default 80
    */
   leafColumnMinWidth?: number;
@@ -225,6 +225,7 @@ export interface TableContextProps<T = any> extends TableProps<T> {
   columns?: ColumnState[]
   flattenColumns?: ColumnState[];
   flattenColumnsWidths?: number[]
+  columnsWidthTotal: number
   updateFlattenColumnsWidths: Dispatch<SetStateAction<number[]>>
   fixedOffset: StickyOffsets,
   hasFixedColumns: boolean

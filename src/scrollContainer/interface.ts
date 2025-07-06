@@ -17,8 +17,8 @@ export interface ScrollBarContainerProps
   stickyHorizontalController?: HTMLDivElement
   shouldHorizontalUpdate?: any[];
   shouldVerticalUpdate?: any[];
-  showHorizontal?: boolean | { offsetTop?: number, offsetBottom?: number };
-  showVertical?: boolean | { offsetLeft?: number, offsetRight?: number };
+  showHorizontal?: boolean | { offsetTop?: number | string, offsetBottom?: number | string };
+  showVertical?: boolean | { offsetLeft?: number | string, offsetRight?: number | string };
   showStickyHorizontal?: boolean | { offsetStickyScroller?: number, getContainer?: () => HTMLElement };
 }
 
