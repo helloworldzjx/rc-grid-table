@@ -11,6 +11,7 @@ type ComponentClsType = {
   contentCls: string
   borderedCls: string
   hasFixColumnsCls: string
+  fixColumnsGappedCls: string
   pingStartCls: string
   pingEndCls: string
   hasSummaryCls: string
@@ -58,6 +59,8 @@ const genInitialStyle = ({
 const genBorderedStyle = (
   {
     componentCls,
+    fixColumnsGappedCls,
+    cellFixedStartLastCls,
     borderedCls,  
     headRowCls,
     cellCls,
@@ -94,6 +97,11 @@ const genBorderedStyle = (
     [`.${cellCls}`]: {
       borderLeft: `1px solid ${token.borderColor}`,
     },
+
+    [`&.${fixColumnsGappedCls} .${cellFixedStartLastCls}::after`]: {
+      width: 32,
+      borderLeft: `1px solid ${token.borderColor}`,
+    }
   },
 });
 
@@ -327,6 +335,7 @@ const genFixedCellStyle = (
 const genFixedShadowStyle = ({
   componentCls,
   hasFixColumnsCls,
+  fixColumnsGappedCls,
   pingStartCls,
   pingEndCls,
   hasXScrollbarCls,
@@ -361,10 +370,10 @@ const genFixedShadowStyle = ({
     display: 'none',
   },
   
-  [`.${componentCls}.${pingStartCls} .${cellFixedStartLastCls}::after`]: {
+  [`.${componentCls}.${pingStartCls}:not(.${fixColumnsGappedCls}) .${cellFixedStartLastCls}::after`]: {
     boxShadow: 'inset 10px 0 8px -8px rgba(0, 0, 0, 0.1)',
   },
-  [`.${componentCls}.${pingEndCls} .${cellFixedEndFirstCls}::after`]: {
+  [`.${componentCls}.${pingEndCls}:not(.${fixColumnsGappedCls}) .${cellFixedEndFirstCls}::after`]: {
     boxShadow: 'inset -10px 0 8px -8px rgba(0, 0, 0, 0.1)',
   },
   [`.${pingStartCls} .${headRowCls} .${cellFixedStartLastCls}::before`]: {
@@ -394,6 +403,7 @@ export const useStyles = () => {
     contentCls: `${prefixCls}-content`,
     borderedCls: `${prefixCls}-bordered`,
     hasFixColumnsCls: `${prefixCls}-has-fix-columns`,
+    fixColumnsGappedCls: `${prefixCls}-fix-columns-gapped`,
     pingStartCls: `${prefixCls}-ping-start`,
     pingEndCls: `${prefixCls}-ping-end`,
     hasSummaryCls: `${prefixCls}-has-summary`,

@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useMemo, useRef, useState } from 'react';
+import React, { forwardRef, useMemo, useRef } from 'react';
 import classNames from 'classnames';
 import { Empty, Spin } from 'antd';
 import warning from '@rc-component/util/lib/warning';
@@ -19,7 +19,7 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
   const { 
     prefixCls, initialized, containerWidth = 0, rowKey, className, rowClassName,
     dataSource, columns, flattenColumns = [], flattenColumnsWidths = [], 
-    fixedOffset, hasFixedColumns,
+    fixedOffset, hasFixedColumns, fixColumnsGapped,
     bordered, scrollY, summary, sticky, 
     // scroll, virtual, itemHeight,
     style,
@@ -59,7 +59,7 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
     wrapperInitializedCls, 
     borderedCls, contentCls, hasSummaryCls, 
     hasXScrollbarCls, hasYScrollbarCls,
-    hasFixColumnsCls, pingStartCls, pingEndCls,
+    hasFixColumnsCls, fixColumnsGappedCls, pingStartCls, pingEndCls,
     bodyCls, bodyInnerCls, bodyRowCls, 
     cellCls, cellFixedStartCls, 
   } = useStyles();
@@ -83,13 +83,16 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
               [borderedCls]: bordered,
               [hasSummaryCls]: hasSummary,
               [hasFixColumnsCls]: hasFixedColumns,
+              [fixColumnsGappedCls]: fixColumnsGapped,
               [pingStartCls]: !isStart,
               [pingEndCls]: !isEnd,
             },
             className,
           )}
           classNames={{inner: contentCls, hasXScrollbarCls, hasYScrollbarCls}}
-          styles={{ content: { [`--${prefixCls}-cols-width`]: gridTemplateColumns } }}
+          styles={{content: {
+            [`--${prefixCls}-cols-width`]: gridTemplateColumns
+          }}}
           contentController={tableBodyRef.current?.nativeScrollElement}
           shouldHorizontalUpdate={[columnWidthTotal]}
           shouldVerticalUpdate={[dataSource, columnWidthTotal]}

@@ -2,16 +2,26 @@ import React, { createContext, FC, PropsWithChildren, SetStateAction, UIEventHan
 
 import { TableScrollContextProps, TableScrollProviderProps } from "./interface";
 import { ScrollBarContainerRef } from "../scrollContainer/interface";
+import { useTableContext } from "./context";
 
 const ScrollContext = createContext<TableScrollContextProps>({} as TableScrollContextProps);
 
 const ScrollProvider: FC<PropsWithChildren<TableScrollProviderProps>> = ({ children, onScroll }) => {
+  const { fixColumnsGapped } = useTableContext()
+
   const scrollRef = useRef<ScrollBarContainerRef>(null);
   const [isStart, setIsStart] = useState(true)
   const [isEnd, setIsEnd] = useState(false)
 
   const handleScroll: UIEventHandler<HTMLDivElement> = (e) => {
     onScroll?.(e)
+
+    if(fixColumnsGapped) {
+      setIsStart(false)
+      setIsEnd(false)
+      return
+    }
+
     const scrollLeft = e.currentTarget.scrollLeft
     const scrollWidth = e.currentTarget.scrollWidth
     const clientWidth = e.currentTarget.clientWidth

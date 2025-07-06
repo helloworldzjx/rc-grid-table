@@ -1,5 +1,5 @@
 import React, { FC, Key, useEffect, useMemo, useRef, useState } from 'react';
-import ResizeObserver, { ResizeObserverProps } from "@rc-component/resize-observer"
+import ResizeObserver, { OnResize } from "@rc-component/resize-observer"
 
 import TableContext from './context';
 import GridTable from './Table';
@@ -119,6 +119,7 @@ const Table: FC<TableProps> = (props) => {
     leafColumnMinWidth,
     fixedOffset,
     hasFixedColumns: fixedOffset.hasFixColumns,
+    fixColumnsGapped: fixedOffset.fixColumnsGapped,
     resizableColumns,
     sortableColumns,
     fixableColumns,

@@ -27,6 +27,7 @@ export interface StickyOffsets {
   widths: readonly number[];
   isSticky?: boolean;
   hasFixColumns: boolean
+  fixColumnsGapped: boolean
 }
 
 export type FixedType = 'start' | 'end';
@@ -226,6 +227,7 @@ export interface TableContextProps<T = any> extends TableProps<T> {
   updateFlattenColumnsWidths: Dispatch<SetStateAction<number[]>>
   fixedOffset: StickyOffsets,
   hasFixedColumns: boolean
+  fixColumnsGapped: boolean
   sortableScopeKeys?: Key[]
   updateSortableScopeKeys: Dispatch<SetStateAction<Key[]>>
   overableScopeKeys?: Key[]
