@@ -186,6 +186,10 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
    */
   bordered?: boolean
   /**
+   * @description 斑马纹style
+   */
+  stripe?: boolean
+  /**
    * @description tbody高度
    */
   scrollY?: number | { fullHeight?: boolean, y?: number }

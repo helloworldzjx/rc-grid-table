@@ -53,7 +53,6 @@ export default () => {
               dataIndex: 'test0-0-1',
               fixed: 'start',
               colSpan: 0,
-              width: 40,
             },
             {
               title: 'test0-0-2',
@@ -185,6 +184,7 @@ export default () => {
           columns={columns} 
           dataSource={dataSource} 
           bordered
+          stripe
           // style={{height: 360}}
           resizableColumns
           sortableColumns

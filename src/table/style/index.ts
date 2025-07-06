@@ -10,6 +10,8 @@ type ComponentClsType = {
   componentCls: string
   contentCls: string
   borderedCls: string
+  stripeCls: string
+  emptyCls: string
   hasFixColumnsCls: string
   fixColumnsGappedCls: string
   pingStartCls: string
@@ -37,6 +39,7 @@ type ComponentClsType = {
   cellFixedStartLastCls: string
   cellFixedEndCls: string
   cellFixedEndFirstCls: string
+  placeholderCls: string
   summaryCls: string
   summaryRowCls: string
 }
@@ -61,7 +64,7 @@ const genBorderedStyle = (
     componentCls,
     fixColumnsGappedCls,
     cellFixedStartLastCls,
-    borderedCls,  
+    borderedCls, 
     headRowCls,
     cellCls,
   }: ComponentClsType,
@@ -197,7 +200,7 @@ const genCellStyle = (
 
     [`.${cellCls}`] : {
       position: 'relative',
-      backgroundColor: '#fafafa',
+      backgroundColor: '#f8f8f8',
       borderBottom: `1px solid ${token.borderColor}`,
     },
 
@@ -240,14 +243,21 @@ const genCellStyle = (
     },
   },
 
-  [`.${bodyRowCls} .${cellCls}`]: {
-    // backgroundColor: '#fff',
-    borderBottom: `1px solid ${token.borderColor}`,
+  [`.${bodyRowCls}`]: {
+    
+    [`.${cellCls}`]: {
+      // backgroundColor: '#fff',
+      borderBottom: `1px solid ${token.borderColor}`,
+    },
+
+    [`&:hover .${cellCls}`]: {
+      backgroundColor: '#f2f2f2'
+    }
   },
 
   // [`.${summaryRowCls}:not(:last-of-type) .${cellCls}`]: {
   [`.${summaryRowCls} .${cellCls}`]: {
-    backgroundColor: '#fafafa',
+    backgroundColor: '#f8f8f8',
     borderBottom: `1px solid ${token.borderColor}`,
   },
 
@@ -381,10 +391,43 @@ const genFixedShadowStyle = ({
   },
 });
 
+const genStripeClsStyle = ({
+  stripeCls,
+  bodyRowCls,
+  cellCls,
+}: ComponentClsType): CSSInterpolation => ({
+  // 这里使用nth-of-type去判断，后面展开行会使用p元素
+  [`.${stripeCls} .${bodyRowCls}:nth-of-type(even) .${cellCls}`]: {
+    backgroundColor: '#f8f8f8',
+  }
+});
+
+const genEmptyClsStyle = ({
+  emptyCls,
+  bodyRowCls,
+  placeholderCls,
+}: ComponentClsType): CSSInterpolation => ({
+  // 这里使用nth-of-type去判断，后面展开行会使用p元素
+  [`.${emptyCls} .${bodyRowCls} .${placeholderCls}`]: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    height: '100%',
+    backgroundColor: '#fff',
+    pointerEvents: 'none',
+  }
+});
+
 const genNestStyles = (clsObj: ComponentClsType, mergedToken: ComponentToken): CSSInterpolation => [
   genInitialStyle(clsObj),
   genBorderedStyle(clsObj, mergedToken),
   genFixedShadowStyle(clsObj),
+  genStripeClsStyle(clsObj),
+  genEmptyClsStyle(clsObj),
+  // 避免对象属性冲突，分开来构建样式
   { [`.${clsObj.componentCls}`]: genHeadStyle(clsObj, mergedToken) },
   { [`.${clsObj.componentCls}`]: genBodyStyle(clsObj, mergedToken) },
   { [`.${clsObj.componentCls}`]: genSummaryCls(clsObj) },
@@ -402,6 +445,8 @@ export const useStyles = () => {
     componentCls: prefixCls,
     contentCls: `${prefixCls}-content`,
     borderedCls: `${prefixCls}-bordered`,
+    stripeCls: `${prefixCls}-stripe`,
+    emptyCls: `${prefixCls}-no-data`,
     hasFixColumnsCls: `${prefixCls}-has-fix-columns`,
     fixColumnsGappedCls: `${prefixCls}-fix-columns-gapped`,
     pingStartCls: `${prefixCls}-ping-start`,
@@ -429,6 +474,7 @@ export const useStyles = () => {
     cellFixedStartLastCls: `${prefixCls}-cell-fixed-start-last`,
     cellFixedEndCls: `${prefixCls}-cell-fixed-end`,
     cellFixedEndFirstCls: `${prefixCls}-cell-fixed-end-first`,
+    placeholderCls: `${prefixCls}-placeholder`,
     summaryCls: `${prefixCls}-summary`,
     summaryRowCls: `${prefixCls}-summary-row`,
   }

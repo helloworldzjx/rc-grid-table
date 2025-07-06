@@ -20,7 +20,7 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
     prefixCls, initialized, containerWidth = 0, rowKey, className, rowClassName,
     dataSource, columns, flattenColumns = [], flattenColumnsWidths = [], 
     fixedOffset, hasFixedColumns, fixColumnsGapped,
-    bordered, scrollY, summary, sticky, 
+    bordered, stripe, scrollY, summary, sticky, 
     // scroll, virtual, itemHeight,
     style,
   } = useTableContext();
@@ -57,11 +57,11 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
   const { 
     hashId, wrapperCls, cssVarCls, 
     wrapperInitializedCls, 
-    borderedCls, contentCls, hasSummaryCls, 
+    borderedCls, stripeCls, emptyCls, contentCls, hasSummaryCls, 
     hasXScrollbarCls, hasYScrollbarCls,
     hasFixColumnsCls, fixColumnsGappedCls, pingStartCls, pingEndCls,
     bodyCls, bodyInnerCls, bodyRowCls, 
-    cellCls, cellFixedStartCls, 
+    cellCls, placeholderCls, 
   } = useStyles();
   
   return (
@@ -81,6 +81,8 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
             hashId,
             {
               [borderedCls]: bordered,
+              [stripeCls]: stripe,
+              [emptyCls]: !dataSource?.length,
               [hasSummaryCls]: hasSummary,
               [hasFixColumnsCls]: hasFixedColumns,
               [fixColumnsGappedCls]: fixColumnsGapped,
@@ -126,19 +128,16 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
               !dataSource?.length && (
                 <div className={bodyRowCls}>
                   <div 
-                    className={classNames(cellCls, cellFixedStartCls)} 
+                    className={cellCls} 
                     style={{
-                      gridColumn: `span ${flattenColumns.length || 1}`,
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: containerWidth - columnWidthTotal > 0 ? columnWidthTotal : containerWidth,
-                      height: '100%',
-                      backgroundColor: '#fff',
-                      textAlign: 'center',
-                    }}
+                      gridColumn: `span ${flattenColumns.length || 1}`}}
                   >
-                    <Empty />
+                    <div 
+                      className={placeholderCls}
+                      style={{width: containerWidth - columnWidthTotal > 0 ? columnWidthTotal : containerWidth}}
+                    >
+                      <Empty prefixCls={`${prefixCls}-empty`} />
+                    </div>
                   </div>
                 </div>
               )
