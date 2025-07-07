@@ -1,5 +1,5 @@
 import { TinyColor } from '@ctrl/tinycolor';
-import { defaultDesignToken } from 'rc-grid-table/es/theme';
+import { defaultDesignToken } from '../../theme';
 
 import { DerivativeToken } from '../..';
 
