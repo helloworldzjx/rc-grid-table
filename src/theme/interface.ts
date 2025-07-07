@@ -3,24 +3,28 @@ import { CSSObject } from "@ant-design/cssinjs";
 export type GetStyle = (prefixCls: string, token: DerivativeToken) => CSSObject;
 
 export interface DesignToken {
-  primaryColor: string;
-  textColor: string;
+  colorPrimary: string;
+  colorTextBase: string;
 
-  componentBackgroundColor: string;
+  colorBgBase: string;
 
   borderRadius: number;
-  borderColor: string;
   borderWidth: number;
 
-  fontSize: number;
+  fontSizeBase: number;
 
-  lineHeight: number;
   lineHeightBase: number;
 }
 
 export interface DerivativeToken extends DesignToken {
-  primaryColorHover: string
+  lineHeight: string | number;
+  fontSize: number;
+  colorText: string;
+  primaryColorHover: string;
   primaryColorDisabled: string;
+  colorBgContainer: string
+  colorBgLayout: string
+  colorBorder: string
 }
 
 export interface DesignTokenContextPorps {

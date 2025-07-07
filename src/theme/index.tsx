@@ -7,31 +7,43 @@ import useInternalToken from "./hooks/useToken"
 import { DerivativeToken, DesignToken, DesignTokenContextPorps } from './interface';
 
 export const defaultDesignToken: DesignToken = {
-  primaryColor: '#1890ff',
-  textColor: '#333333',
+  lineHeightBase: 1.5,
+  fontSizeBase: 14,
+  colorTextBase: '#000',
+  colorBgBase: '#fff',
 
-  componentBackgroundColor: '#FFFFFF',
+  colorPrimary: '#1890ff',
 
   borderRadius: 8,
-  borderColor: '#dddddd',
   borderWidth: 1,
-
-  fontSize: 14,
-
-  lineHeight: 1.5,
-  lineHeightBase: 1.5,
 };
+
+const defaultDerivativeToken = {
+  fontSize: 14,
+  lineHeight: 1.5,
+} as DerivativeToken;
 
 // 亮色
 export function lightDerivative(designToken: DesignToken): DerivativeToken {
   return {
     ...designToken,
-    primaryColorHover: new TinyColor(designToken.primaryColor)
+    ...defaultDerivativeToken,
+    colorText: new TinyColor(designToken.colorTextBase)
+      .lighten(15)
+      .toString(),
+    primaryColorHover: new TinyColor(designToken.colorPrimary)
       .lighten(40)
       .toString(),
-    primaryColorDisabled: new TinyColor(designToken.primaryColor)
+    primaryColorDisabled: new TinyColor(designToken.colorPrimary)
       .desaturate(100)
       .setAlpha(0.7)
+      .toString(),
+    colorBgContainer: '#fff',
+    colorBgLayout: new TinyColor(designToken.colorBgBase)
+      .darken(3)
+      .toString(),
+    colorBorder: new TinyColor(designToken.colorBgBase)
+      .darken(13)
       .toString(),
   };
 }
@@ -40,12 +52,25 @@ export function lightDerivative(designToken: DesignToken): DerivativeToken {
 export function darkDerivative(designToken: DesignToken): DerivativeToken {
   return {
     ...designToken,
-    primaryColorHover: new TinyColor(designToken.primaryColor)
+    ...defaultDerivativeToken,
+    colorText: new TinyColor(designToken.colorTextBase)
+      .lighten(92)
+      .toString(),
+    primaryColorHover: new TinyColor(designToken.colorPrimary)
       .setAlpha(0.7)
       .toString(),
-    primaryColorDisabled: new TinyColor(designToken.primaryColor)
+    primaryColorDisabled: new TinyColor(designToken.colorPrimary)
       .desaturate(100)
       .setAlpha(0.7)
+      .toString(),
+    colorBgContainer: new TinyColor(designToken.colorBgBase)
+      .darken(84)
+      .toString(),
+    colorBgLayout: new TinyColor(designToken.colorBgBase)
+      .darken(88)
+      .toString(),
+    colorBorder: new TinyColor(designToken.colorBgBase)
+      .darken(76)
       .toString(),
   };
 }
