@@ -1,7 +1,7 @@
 import { type CSSInterpolation, unit, useCSSVarRegister, useStyleRegister } from '@ant-design/cssinjs';
 
 import { useTableContext } from '../context';
-import { tableToken, type ComponentToken } from '../design';
+import { lightTableToken, darkTableToken, type ComponentToken } from '../design';
 import useToken from "../../theme/hooks/useToken"
 
 type ComponentClsType = {
@@ -77,25 +77,25 @@ const genPlaceholderStyle = (
     top: 0,
     right: 0,
     boxSizing: 'border-box',
-    backgroundColor: 'rgba(0, 0, 0, 0.03)',
+    backgroundColor: token.placeholderColorBg,
     transition: 'background-color 0.3s',
     borderTopRightRadius: token.borderRadius,
     borderBottomRightRadius: token.borderRadius,
     userSelect: 'none',
 
     '&:hover': {
-      backgroundColor: 'rgba(0, 0, 0, 0.05)',
+      backgroundColor: token.cellColorHoverBg,
     },
 
     '&:active': {
-      backgroundColor: 'rgba(0, 0, 0, 0.07)',
+      backgroundColor: token.cellColorActiveBg,
     },
   },
 
   [`.${placeholderBorderedCls}`]: {
     height: 'calc(100% - 2px)',
     top: 1,
-    borderLeft: `1px solid ${token.borderColor}`,
+    borderLeft: `1px solid ${token.colorBorder}`,
   },
 });
 
@@ -118,17 +118,17 @@ const genBorderedStyle = (
     height: '100%',
     width: '100%',
     boxSizing: 'border-box',
-    borderBottom: `1px solid ${token.borderColor}`,
+    borderBottom: `1px solid ${token.colorBorder}`,
     pointerEvents: 'none',
     zIndex: 2,
   },
   
   [`.${borderedCls}`]: {
     borderRadius: token.borderRadius,
-    // boxShadow: `0px 0.5px 0.5px ${token.borderColor}, 0px -0.5px 0.5px ${token.borderColor}, inset 0.5px 0px 0.5px ${adjustColor(token.borderColor, {r: -5, g: -5, b: -5})}, 0.5px 0px 0.5px ${token.borderColor}`,
+    // boxShadow: `0px 0.5px 0.5px ${token.colorBorder}, 0px -0.5px 0.5px ${token.colorBorder}, inset 0.5px 0px 0.5px ${adjustColor(token.colorBorder, {r: -5, g: -5, b: -5})}, 0.5px 0px 0.5px ${token.colorBorder}`,
 
     '&::before': {
-      border: `1px solid ${token.borderColor}`,
+      border: `1px solid ${token.colorBorder}`,
       borderRadius: token.borderRadius,
     },
 
@@ -138,12 +138,12 @@ const genBorderedStyle = (
     },
 
     [`.${cellCls}`]: {
-      borderLeft: `1px solid ${token.borderColor}`,
+      borderLeft: `1px solid ${token.colorBorder}`,
     },
 
     [`&.${fixColumnsGappedCls} .${cellFixedStartLastCls}::after`]: {
       width: 32,
-      borderLeft: `1px solid ${token.borderColor}`,
+      borderLeft: `1px solid ${token.colorBorder}`,
     }
   },
 });
@@ -185,7 +185,7 @@ const genBodyStyle = (
     height: 0,
     width: `var(--${componentCls}-cols-width-total)`,
     boxSizing: 'border-box',
-    borderBottom: `1px solid ${token.borderColor}`,
+    borderBottom: `1px solid ${token.colorBorder}`,
     pointerEvents: 'none',
     zIndex: 2,
   },
@@ -240,8 +240,8 @@ const genCellStyle = (
 
     [`.${cellCls}`] : {
       position: 'relative',
-      backgroundColor: '#f8f8f8',
-      borderBottom: `1px solid ${token.borderColor}`,
+      backgroundColor: token.colorBgLayout,
+      borderBottom: `1px solid ${token.colorBorder}`,
     },
 
     [`.${cellCls}:not(.${headLastCellCls})::before`]: {
@@ -249,7 +249,7 @@ const genCellStyle = (
       position: 'absolute',
       right: 0,
       insetBlock: unit(token.cellPaddingBlock),
-      borderRight: `1px solid ${token.borderColor}`,
+      borderRight: `1px solid ${token.colorBorder}`,
     },
 
     [`.${headCellResizableCls}`]: {
@@ -274,8 +274,8 @@ const genCellStyle = (
       whiteSpace: 'nowrap',
       textOverflow: 'ellipsis',
       overflow: 'hidden',
-      border: `1px solid ${token.borderColor}`,
-      backgroundColor: '#fff',
+      border: `1px solid ${token.colorBorder}`,
+      backgroundColor: token.colorBgContainer,
       cursor: 'move',
     },
   },
@@ -283,23 +283,25 @@ const genCellStyle = (
   [`.${bodyRowCls}`]: {
     
     [`.${cellCls}`]: {
-      // backgroundColor: '#fff',
-      borderBottom: `1px solid ${token.borderColor}`,
+      backgroundColor: token.colorBgContainer,
+      borderBottom: `1px solid ${token.colorBorder}`,
     },
 
     [`&:hover .${cellCls}`]: {
-      backgroundColor: '#f2f2f2',
+      backgroundColor: token.cellColorHoverBg,
       transition: 'background-color 0.3s',
     }
   },
 
   // [`.${summaryRowCls}:not(:last-of-type) .${cellCls}`]: {
   [`.${summaryRowCls} .${cellCls}`]: {
-    backgroundColor: '#f8f8f8',
-    borderBottom: `1px solid ${token.borderColor}`,
+    backgroundColor: token.colorBgLayout,
+    borderBottom: `1px solid ${token.colorBorder}`,
   },
 
   [`.${cellCls}`]: {
+    fontSize: token.fontSize,
+    color: token.colorText,
     paddingBlock: unit(token.cellPaddingBlock),
     paddingInline: unit(token.cellPaddingInline),
     alignContent: 'center',
@@ -320,11 +322,11 @@ const genCellStyle = (
   },
 
   [`.${overableColumnCellCls}`]: {
-    backgroundColor: `${token.overableCellBgColor} !important`,
+    backgroundColor: `${token.overableCellColorBg} !important`,
   },
   
   [`.${sortableColumnCellCls}`]: {
-    backgroundColor: `${token.sortableCellBgColor} !important`,
+    backgroundColor: `${token.sortableCellColorBg} !important`,
   },
 });
 
@@ -337,7 +339,7 @@ const genFixedCellStyle = (
     cellFixedEndCls,
     cellFixedEndFirstCls,
   }: ComponentClsType,
-  _: ComponentToken,
+  token: ComponentToken,
 ): CSSInterpolation => ({
   [`.${headRowCls} .${cellFixedStartCls}, .${headRowCls} .${cellFixedEndCls}`]: {
     position: 'sticky',
@@ -349,7 +351,7 @@ const genFixedCellStyle = (
   },
 
   [`.${bodyRowCls} .${cellFixedStartCls}, .${bodyRowCls} .${cellFixedEndCls}`]: {
-    backgroundColor: '#fff',
+    backgroundColor: token.colorBgContainer,
   },
 
   [`.${cellFixedStartLastCls}::after`]: {
@@ -467,14 +469,17 @@ const genSizeClsStyle = (
   },
 });
 
-const genStripeClsStyle = ({
-  stripeCls,
-  bodyRowCls,
-  cellCls,
-}: ComponentClsType): CSSInterpolation => ({
+const genStripeClsStyle = (
+  {
+    stripeCls,
+    bodyRowCls,
+    cellCls,
+  }: ComponentClsType,
+  token: ComponentToken
+): CSSInterpolation => ({
   // 这里使用nth-of-type去判断，后面展开行会使用p元素
   [`.${stripeCls} .${bodyRowCls}:nth-of-type(even) .${cellCls}`]: {
-    backgroundColor: '#f8f8f8',
+    backgroundColor: token.colorBgLayout,
   }
 });
 
@@ -511,8 +516,8 @@ const genNestStyles = (clsObj: ComponentClsType, mergedToken: ComponentToken): C
   genBorderedStyle(clsObj, mergedToken),
   genFixedShadowStyle(clsObj),
   genSizeClsStyle(clsObj, mergedToken),
-  genStripeClsStyle(clsObj),
-  genEmptyClsStyle(clsObj),
+  genStripeClsStyle(clsObj, mergedToken),
+  genEmptyClsStyle(clsObj, mergedToken),
   // 避免对象属性冲突，分开来构建样式
   { [`.${clsObj.componentCls}`]: genHeadStyle(clsObj, mergedToken) },
   { [`.${clsObj.componentCls}`]: genBodyStyle(clsObj, mergedToken) },
@@ -523,7 +528,7 @@ const genNestStyles = (clsObj: ComponentClsType, mergedToken: ComponentToken): C
 
 export const useStyles = () => {
   const prefixCls = useTableContext().prefixCls as string;
-  const [theme, token, hashId, realToken, cssVar] = useToken();
+  const [theme, token, hashId, realToken, isDark, cssVar] = useToken();
 
   const clsObj: ComponentClsType = {
     wrapperCls: `${prefixCls}-wrapper`,
@@ -585,16 +590,16 @@ export const useStyles = () => {
       scope: clsObj.wrapperCls,
     },
     // @ts-ignore
-    () => tableToken,
+    () => isDark ? darkTableToken : lightTableToken,
   );
 
   const mergedToken: any = {
     ...token,
-    ...cssVar?.key ? cssVarToken : tableToken
+    ...cssVar?.key ? cssVarToken : isDark ? darkTableToken : lightTableToken
   };
 
   useStyleRegister(
-    { theme, token, hashId, path: [prefixCls] },
+    { theme, token, hashId, path: [prefixCls, `${isDark}`] },
     () => genNestStyles(clsObj, mergedToken),
   );
 
