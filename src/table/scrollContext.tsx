@@ -7,14 +7,14 @@ import { useTableContext } from "./context";
 const ScrollContext = createContext<TableScrollContextProps>({} as TableScrollContextProps);
 
 const ScrollProvider: FC<PropsWithChildren<TableScrollProviderProps>> = ({ children, onScroll }) => {
-  const { fixColumnsGapped, containerWidth = 0, columnsWidthTotal } = useTableContext()
+  const { fixColumnsGapped, containerWidth, columnsWidthTotal } = useTableContext()
 
   const scrollRef = useRef<ScrollBarContainerRef>(null);
   const [isStart, setIsStart] = useState(true)
   const [isEnd, setIsEnd] = useState(false)
 
   useEffect(() => {
-    if(fixColumnsGapped || containerWidth >= columnsWidthTotal) {
+    if(containerWidth && columnsWidthTotal && (fixColumnsGapped || containerWidth >= columnsWidthTotal)) {
       setIsStart(true)
       setIsEnd(true)
     }
