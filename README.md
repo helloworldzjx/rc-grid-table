@@ -2,13 +2,6 @@
 
 一个使用grid布局完成的react table组件
 
-[![NPM version]][npm-url] [![dumi](https://img.shields.io/badge/docs%20by-dumi-blue?style=flat-square)](https://github.com/umijs/dumi) [![build status]][github-actions-url] [![node version]][node-url] [![npm download]][download-url]
-
-[npm-url]: http://npmjs.org/package/rc-grid-table
-[github-actions-url]: https://github.com/helloworldzjx/rc-grid-table/actions
-[node-url]: http://nodejs.org/download/
-[download-url]: https://npmjs.org/package/rc-grid-table
-
 ## 组件文档
 
 [https://helloworldzjx.github.io/rc-grid-table](https://helloworldzjx.github.io/rc-grid-table)
@@ -25,8 +18,6 @@ or
 ```bash
 yarn add rc-grid-table
 ```
-
-[![rc-grid-table](https://nodei.co/npm/rc-grid-table.png)](https://npmjs.org/package/rc-grid-table)
 
 ## 特性
 
