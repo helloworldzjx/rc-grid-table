@@ -44,6 +44,7 @@ type ComponentClsType = {
   cellFixedEndCls: string
   cellFixedEndFirstCls: string
   noDataCellCls: string
+  noDataCellContentCls: string
   summaryCls: string
   summaryRowCls: string
 }
@@ -477,21 +478,30 @@ const genStripeClsStyle = ({
   }
 });
 
-const genEmptyClsStyle = ({
-  noDataCls,
-  bodyRowCls,
-  noDataCellCls,
-}: ComponentClsType): CSSInterpolation => ({
-  [`.${noDataCls} .${bodyRowCls} .${noDataCellCls}`]: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    height: '100%',
-    backgroundColor: '#fff',
-    pointerEvents: 'none',
+const genEmptyClsStyle = (
+  {
+    noDataCls,
+    noDataCellCls,
+    noDataCellContentCls,
+  }: ComponentClsType,
+  _: ComponentToken
+): CSSInterpolation => ({
+  [`.${noDataCls}`]: {
+    
+    [`.${noDataCellCls}`]: {
+      minHeight: '200px',
+    },
+
+    [`.${noDataCellContentCls}`]: {
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      position: 'absolute',
+      left: 0,
+      top: 0,
+      height: '100%',
+      pointerEvents: 'none',
+    }
   }
 });
 
@@ -555,6 +565,7 @@ export const useStyles = () => {
     cellFixedEndCls: `${prefixCls}-cell-fixed-end`,
     cellFixedEndFirstCls: `${prefixCls}-cell-fixed-end-first`,
     noDataCellCls: `${prefixCls}-no-data-cell`,
+    noDataCellContentCls: `${prefixCls}-no-data-cell-content`,
     summaryCls: `${prefixCls}-summary`,
     summaryRowCls: `${prefixCls}-summary-row`,
   }

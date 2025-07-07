@@ -39,7 +39,7 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
     hasXScrollbarCls, hasYScrollbarCls,
     hasFixColumnsCls, fixColumnsGappedCls, pingStartCls, pingEndCls,
     bodyCls, bodyInnerCls, bodyRowCls, 
-    cellCls, noDataCellCls, 
+    cellCls, noDataCellCls, noDataCellContentCls, 
   } = useStyles();
   
   const tableRef = useRef<ScrollBarContainerRef>(null);
@@ -153,12 +153,12 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
               !dataSource?.length && (
                 <div className={bodyRowCls}>
                   <div 
-                    className={cellCls} 
+                    className={classNames(cellCls, noDataCellCls)} 
                     style={{
                       gridColumn: `span ${flattenColumns.length || 1}`}}
                   >
                     <div 
-                      className={noDataCellCls}
+                      className={noDataCellContentCls}
                       style={{width: `min(${columnsWidthTotal}px, ${containerWidth}px)`}}
                     >
                       <Empty prefixCls={`${prefixCls}-empty`} />
