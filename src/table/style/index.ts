@@ -246,14 +246,14 @@ const genCellStyle = (
     [`.${cellCls}:not(.${headLastCellCls})::before`]: {
       content: "' '",
       position: 'absolute',
-      right: 1,
+      right: 0,
       insetBlock: unit(token.cellPaddingBlock),
       borderRight: `1px solid ${token.borderColor}`,
     },
 
     [`.${headCellResizableCls}`]: {
       position: 'absolute',
-      right: 1,
+      right: 0,
       insetBlock: unit(token.cellPaddingBlock),
       width: 10,
       backgroundColor: 'transparent',
@@ -263,9 +263,6 @@ const genCellStyle = (
     },
     [`.${headSortableCellCls}`]: {
       userSelect: 'none',
-    },
-    [`.${sortableColumnCellCls}::before, .${overableColumnCellCls}::before`]: {
-      display: 'none',
     },
     [`.${headDraggingOverlayCellCls}`]: {
       display: 'flex',
@@ -354,9 +351,6 @@ const genFixedCellStyle = (
     backgroundColor: '#fff',
   },
 
-  [`.${headRowCls} .${cellFixedStartLastCls}::before`]: {
-    right: '0px !important',
-  },
   [`.${cellFixedStartLastCls}::after`]: {
     content: "' '",
     position: 'absolute',
