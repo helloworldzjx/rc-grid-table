@@ -13,6 +13,6 @@
       "rc-grid-table/lib/*": ["src/*"]
     }
   },
-  "include": [".dumirc.ts", "src/**/*"],
+  "include": [".dumirc.ts", "src/**/*", "examples/**/*", ".dumi/**/*"],
   "exclude": ["node_modules", "lib", "es"]
 }

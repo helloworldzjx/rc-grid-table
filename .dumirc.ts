@@ -7,6 +7,10 @@ export default defineConfig({
   publicPath: '/rc-grid-table/',
   themeConfig: {
     name: 'rc-grid-table',
+    logo: false,
+    socialLinks: {
+      github: 'https://github.com/helloworldzjx/rc-grid-table',
+    },
   },
   apiParser: {},
   resolve: {

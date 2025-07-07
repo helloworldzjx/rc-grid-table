@@ -1,4 +1,4 @@
-import { ConfigProvider, Table, Theme } from 'rc-grid-table';
+import { Table, Theme } from 'rc-grid-table';
 import { ColumnState, ColumnsType } from 'rc-grid-table/es/table/interface';
 import React, { useState } from 'react';
 
@@ -178,40 +178,36 @@ export default () => {
   const [columnsState, setColumnsState] = useState<ColumnState[]>(JSON.parse(localStorage.getItem(storageKey) || '[]'))
 
   return (
-    <div>
-      <ConfigProvider>
-        <Table 
-          columns={columns} 
-          dataSource={dataSource} 
-          bordered
-          stripe
-          // style={{height: 360}}
-          resizableColumns
-          sortableColumns
-          sticky
-          scrollY={400}
-          columnsConfig={{
-            // useStorage: true,
-            // columnsState: columnsState,
-            // onChange(columnsState) {
-            //   localStorage.setItem(storageKey, JSON.stringify(columnsState))
-            // },
-          }}
-          summary={(_, columnsLength) => ([
-            [
-              { children: '123213' },
-              { children: 'a?."{&aaa' },
-              { colSpan: columnsLength - 3, children: 'a?."{&aaa' },
-              { children: '123213' },
-            ],
-            [
-              { children: '123213' },
-              { colSpan: columnsLength - 2, children: '123213' },
-              { children: 'a?."{&aaa' },
-            ],
-          ])}
-        />
-      </ConfigProvider>
-    </div>
+    <Table 
+      columns={columns} 
+      dataSource={dataSource} 
+      bordered
+      stripe
+      // style={{height: 360}}
+      resizableColumns
+      sortableColumns
+      sticky
+      scrollY={400}
+      columnsConfig={{
+        // useStorage: true,
+        // columnsState: columnsState,
+        // onChange(columnsState) {
+        //   localStorage.setItem(storageKey, JSON.stringify(columnsState))
+        // },
+      }}
+      // summary={(_, columnsLength) => ([
+      //   [
+      //     { children: '123213' },
+      //     { children: 'a?."{&aaa' },
+      //     { colSpan: columnsLength - 3, children: 'a?."{&aaa' },
+      //     { children: '123213' },
+      //   ],
+      //   [
+      //     { children: '123213' },
+      //     { colSpan: columnsLength - 2, children: '123213' },
+      //     { children: 'a?."{&aaa' },
+      //   ],
+      // ])}
+    />
   );
 };
