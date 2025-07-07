@@ -284,11 +284,11 @@ const genCellStyle = (
     [`.${cellCls}`]: {
       // backgroundColor: '#fff',
       borderBottom: `1px solid ${token.borderColor}`,
-      transition: 'background-color 0.3s',
     },
 
     [`&:hover .${cellCls}`]: {
-      backgroundColor: '#f2f2f2'
+      backgroundColor: '#f2f2f2',
+      transition: 'background-color 0.3s',
     }
   },
 
