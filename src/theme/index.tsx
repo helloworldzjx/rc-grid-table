@@ -61,21 +61,16 @@ export const DesignTokenContext = createContext<DesignTokenContextPorps>({
 export const DesignTokenProvider: FC<PropsWithChildren<DesignTokenContextPorps>> = ({ children, ...rest }) => {
 
   return (
-    <DesignTokenContext.Provider
-      value={{
-        ...rest,
-        isDark: false,
-      }}
-    >
+    <DesignTokenContext.Provider value={rest}>
       {children}
     </DesignTokenContext.Provider>
   );
 };
 
 function useToken() {
-  const [theme, token, hashId, _, cssVar] = useInternalToken();
+  const [theme, token, hashId, _, isDark] = useInternalToken();
 
-  return { theme, token, hashId, cssVarKey: cssVar?.key };
+  return { theme, token, hashId, isDark };
 }
 
 export type {

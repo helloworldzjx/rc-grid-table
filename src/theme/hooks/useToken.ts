@@ -9,6 +9,7 @@ function useToken(): [
   token: DesignToken,
   hashId: string,
   realToken: DesignToken,
+  isDark: boolean,
   cssVar?: DesignTokenContextPorps['cssVar'],
 ] {
   const {
@@ -33,7 +34,7 @@ function useToken(): [
     },
   });
   
-  return [theme, token, hashed ? hashId : '', actualToken, cssVar];
+  return [theme, token, hashed ? hashId : '', actualToken, isDark, cssVar];
 }
 
 export default useToken
