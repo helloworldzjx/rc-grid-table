@@ -92,7 +92,8 @@ function HeadRow({
                 columnIndex={columnIndex}
                 rowIndex={headRowIndex}
                 prevRowLastCellKey={previousRow[previousRow.length - 1]?.column?.key}
-                headRowLastIndex={columns.length - 1}
+                currentRowLastIndex={columns.length - 1}
+                rowsLastIndex={headRows.length - 1}
               />
             )
           )}
@@ -106,6 +107,7 @@ function HeadRow({
                     className={headDraggingOverlayCellCls} 
                     style={{
                       ...dragOverlaySize,
+                      lineHeight: `${dragOverlaySize.height}px`,
                       transform: `translate(${translate.x}px, ${translate.y}px)`
                     }}
                   >

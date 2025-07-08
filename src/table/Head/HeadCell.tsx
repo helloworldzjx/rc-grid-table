@@ -18,7 +18,9 @@ interface HeadCellProps<T = any> {
   /** 最后一列的parentKey */
   prevRowLastCellKey?: Key
   /** 当前行的最大index */
-  headRowLastIndex: number
+  currentRowLastIndex: number
+  /** rows最大index */
+  rowsLastIndex: number
 }
 
 function HeadCell({
@@ -26,7 +28,8 @@ function HeadCell({
   column: col,
   columnIndex: colIndex,
   prevRowLastCellKey,
-  headRowLastIndex,
+  currentRowLastIndex,
+  rowsLastIndex,
 }: HeadCellProps) {
   const {
     flattenColumns = [], 
@@ -58,6 +61,23 @@ function HeadCell({
   const fixedInfo = useMemo(() => {
     return getCellFixedInfo(col.colStart as number, col.colEnd as number, flattenColumns, fixedOffset)
   }, [col.colStart, col.colEnd, flattenColumns, fixedOffset])
+
+  /** 
+   * 最后一列不显示右侧border
+   * 判断当前列是否为最后一列：
+   * 当前列是否为第一行的最后一列；
+   * 当前列是否是最后一行的列，且当前列的parentKey是否为上一行最后一列的key；
+   * 当前列非第一行和最后一行的列，则判断当前列的parentKey是否为上一行最后一列的key 
+   */
+  const hasHeadLastCellCls = useMemo(() => {
+    if(rowIndex === 0) {
+      return colIndex === currentRowLastIndex
+    } else if (rowIndex === rowsLastIndex) {
+      return (col.column?.parentKey === prevRowLastCellKey && col.column?.key === flattenColumns[flattenColumns.length - 1].key)
+    }
+
+    return col.column?.parentKey === prevRowLastCellKey
+  }, [rowIndex, colIndex, currentRowLastIndex, rowsLastIndex, col.column?.parentKey, prevRowLastCellKey, col.column?.key, flattenColumns])
 
   const mergedStyle = useMemo(() => {
     const style: CSSProperties = {}
@@ -197,8 +217,7 @@ function HeadCell({
         cellCls, 
         {
           [cellEllipsisCls]: ellipsis,
-          // 最后一列不显示右侧border，判断逻辑：当前列是否为第一行的最后一列 || 当前列的parentKey是否为上一行最后一列的key
-          [headLastCellCls]: (rowIndex === 0 && colIndex === headRowLastIndex) || col.column?.parentKey === prevRowLastCellKey,
+          [headLastCellCls]: hasHeadLastCellCls,
           [cellFixedStartCls]: fixedInfo.fixStart !== null,
           [cellFixedStartLastCls]: fixedInfo.fixedStartShadow,
           [cellFixedEndCls]: fixedInfo.fixEnd !== null,
