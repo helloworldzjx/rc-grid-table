@@ -12,9 +12,10 @@ const ConfigActions: FC<CheckboxGroupProps> = ({value, onChange}) => {
         algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
       }}
     >
-      <div style={{color: '#999', fontSize: 14}}>动态控制 bordered、resizableColumns、sortableColumns 属性</div>
+      <div style={{color: '#999', fontSize: 14}}>动态控制 bordered、stripe、resizableColumns、sortableColumns 属性</div>
       <Checkbox.Group value={value} onChange={onChange} style={{marginBlock: '10px 20px'}}>
         <Checkbox value='bordered'>bordered</Checkbox>
+        <Checkbox value='stripe'>stripe</Checkbox>
         <Checkbox value='resizableColumns'>resizableColumns</Checkbox>
         <Checkbox value='sortableColumns'>sortableColumns</Checkbox>
       </Checkbox.Group>

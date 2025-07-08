@@ -7,12 +7,28 @@
     "jsx": "react",
     "baseUrl": "./",
     "paths": {
-      "@@/*": [".dumi/tmp/*"],
-      "rc-grid-table": ["src/index.ts"],
-      "rc-grid-table/es/*": ["src/*"],
-      "rc-grid-table/lib/*": ["src/*"]
+      "@@/*": [
+        ".dumi/tmp/*"
+      ],
+      "rc-grid-table": [
+        "src/index.ts"
+      ],
+      "rc-grid-table/es/*": [
+        "src/*"
+      ],
+      "rc-grid-table/lib/*": [
+        "src/*"
+      ]
     }
   },
-  "include": [".dumirc.ts", "src/**/*", "examples/**/*", ".dumi/**/*"],
-  "exclude": ["node_modules", "lib", "es"]
+  "include": [
+    ".dumirc.ts",
+    "src/**/*",
+    "examples/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "lib",
+    "es"
+  ]
 }
