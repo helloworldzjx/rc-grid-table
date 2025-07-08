@@ -186,15 +186,15 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
           </ScrollBarContainer>
         </ScrollBarContainer>
         
-        {
-          containerWidth - columnsWidthTotal >= 1 && (
-            <div 
-              className={classNames(placeholderCls, hashId, {[placeholderBorderedCls]: bordered})}
-              style={{left: columnsWidthTotal}}
-              onClick={autoFill}
-            />
-          )
-        }
+        {/* 暂时不使用表达式 containerWidth - columnsWidthTotal >= 0.5 动态渲染这个占位元素 */}
+        <div 
+          onClick={autoFill}
+          className={classNames(placeholderCls, hashId, {[placeholderBorderedCls]: bordered})}
+          style={{
+            left: columnsWidthTotal, 
+            display: containerWidth - columnsWidthTotal >= 0.5 ? 'block' : 'none'
+          }}
+        />
       </Spin>
     </div>
   );

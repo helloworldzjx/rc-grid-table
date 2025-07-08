@@ -1,4 +1,5 @@
 import React, { createContext, FC, PropsWithChildren, SetStateAction, UIEventHandler, useContext, useEffect, useRef, useState } from "react";
+import { useDebounceEffect } from "ahooks";
 
 import { TableScrollContextProps, TableScrollProviderProps } from "./interface";
 import { ScrollBarContainerRef } from "../scrollContainer/interface";
@@ -13,12 +14,12 @@ const ScrollProvider: FC<PropsWithChildren<TableScrollProviderProps>> = ({ child
   const [isStart, setIsStart] = useState(true)
   const [isEnd, setIsEnd] = useState(false)
 
-  useEffect(() => {
+  useDebounceEffect(() => {
     if(containerWidth && columnsWidthTotal && (fixColumnsGapped || containerWidth >= columnsWidthTotal)) {
       setIsStart(true)
       setIsEnd(true)
     }
-  }, [fixColumnsGapped, containerWidth, columnsWidthTotal])
+  }, [fixColumnsGapped, containerWidth, columnsWidthTotal], { wait: 0 })
 
   const handleScroll: UIEventHandler<HTMLDivElement> = (e) => {
     onScroll?.(e)

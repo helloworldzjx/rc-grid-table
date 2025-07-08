@@ -79,8 +79,6 @@ const genPlaceholderStyle = (
     boxSizing: 'border-box',
     backgroundColor: token.placeholderColorBg,
     transition: 'background-color 0.3s',
-    borderTopRightRadius: token.borderRadius,
-    borderBottomRightRadius: token.borderRadius,
     userSelect: 'none',
 
     '&:hover': {
@@ -96,6 +94,8 @@ const genPlaceholderStyle = (
     height: 'calc(100% - 2px)',
     top: 1,
     borderLeft: `1px solid ${token.colorBorder}`,
+    borderTopRightRadius: token.borderRadius,
+    borderBottomRightRadius: token.borderRadius,
   },
 });
 
@@ -254,9 +254,11 @@ const genCellStyle = (
 
     [`.${headCellResizableCls}`]: {
       position: 'absolute',
+      top: 0,
       right: 0,
-      insetBlock: unit(token.cellPaddingBlock),
+      // insetBlock: unit(token.cellPaddingBlock), // 暂时不使用自动高度
       width: 10,
+      height: 999,
       backgroundColor: 'transparent',
     },
     [`.${headCellResizableCls}:not(.${headCellResizeDisabledCls})`]: {

@@ -53,7 +53,7 @@ const Table: FC<TableProps> = (props) => {
   const { run: onResize } = useDebounceFn<OnResize>(({width, height}) => {
     setContainerWidth(width)
     setContainerHeight(height)
-  }, { wait: 0 })
+  }, { wait: 5 })
 
   /** 使用了列配置的处理 start ***************************************************************************/
 
