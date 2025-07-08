@@ -23,6 +23,7 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
     fixedOffset, hasFixedColumns, fixColumnsGapped,
     size, bordered, stripe, scrollY, summary, sticky, 
     // scroll, virtual, itemHeight,
+    loading = false,
     style,
     columnsWidthTotal,
     middleState,
@@ -97,7 +98,7 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
       )}
       ref={ref} 
     >
-      <Spin prefixCls={`${prefixCls}-spin`} spinning={false}>
+      <Spin prefixCls={`${prefixCls}-spin`} spinning={loading}>
         <ScrollBarContainer
           className={classNames(
             prefixCls,

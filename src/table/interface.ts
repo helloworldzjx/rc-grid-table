@@ -128,6 +128,11 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
    */
   ready?: boolean
   /**
+   * @description 加载状态
+   * @default false
+   */
+  loading?: boolean
+  /**
    * @description 行的唯一标识符
    * @default "key"
    */
@@ -227,7 +232,7 @@ export interface TableContextProps<T = any> extends TableProps<T> {
   flattenColumnsWidths?: number[]
   columnsWidthTotal: number
   updateFlattenColumnsWidths: Dispatch<SetStateAction<number[]>>
-  fixedOffset: StickyOffsets,
+  fixedOffset: StickyOffsets
   hasFixedColumns: boolean
   fixColumnsGapped: boolean
   sortableScopeKeys?: Key[]
