@@ -104,12 +104,11 @@ const ScrollContainer = forwardRef<ScrollBarContainerRef, ScrollBarContainerProp
           className={clsx(
             xScrollBarCls, 
             hashId,
-            {[xScrollBarShowCls]: !!showHorizontal}
+            {[xScrollBarShowCls]: !!showHorizontal && hasHorizontal}
           )}
           ref={horizontalTrackRef}
           onMouseDown={handleHorizontalDrag}
           style={{
-            display: hasHorizontal ? 'block' : 'none',
             ...typeof showHorizontal !== 'boolean' && {
               top: showHorizontal?.offsetTop,
               bottom: showHorizontal?.offsetBottom,
@@ -127,12 +126,11 @@ const ScrollContainer = forwardRef<ScrollBarContainerRef, ScrollBarContainerProp
           className={clsx(
             yScrollBarCls, 
             hashId,
-            { [yScrollBarShowCls]: !!showVertical }
+            { [yScrollBarShowCls]: !!showVertical && hasVertical }
           )}
           ref={verticalTrackRef}
           onMouseDown={handleVerticalDrag}
           style={{
-            display: hasVertical ? 'block' : 'none',
             ...typeof showVertical !== 'boolean' && {
               left: showVertical?.offsetLeft,
               right: showVertical?.offsetRight,
@@ -153,12 +151,11 @@ const ScrollContainer = forwardRef<ScrollBarContainerRef, ScrollBarContainerProp
         className={clsx(
           xScrollBarCls, 
           hashId,
-          {[xScrollBarShowCls]: !!showStickyHorizontalScrollBar}
+          {[xScrollBarShowCls]: hasHorizontal && !!showStickyHorizontalScrollBar}
         )}
         ref={stickyHorizontalTrackRef}
         onMouseDown={handleHorizontalDrag}
         style={{
-          display: hasHorizontal && !!showStickyHorizontalScrollBar ? 'block' : 'none',
           position: 'sticky',
           ...typeof showStickyHorizontal !== 'boolean' && {
             bottom: showStickyHorizontal?.offsetStickyScroller,

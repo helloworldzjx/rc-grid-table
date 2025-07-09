@@ -36,7 +36,7 @@ const useScroll = ({
   const [showStickyXScrollBar, setShowStickyXScrollBar] = useState(false);
 
   useEffect(() => {
-    if(!wrapperRef.current || !showStickyHorizontal) return
+    if(!horizontalTrackRef.current || !showStickyHorizontal) return
     
     let bottom = 0
     let root: Element | Document | undefined = undefined
@@ -46,31 +46,22 @@ const useScroll = ({
         bottom = showStickyHorizontal.offsetStickyScroller
       }
     }
-    const { height } = wrapperRef.current.getBoundingClientRect()
-    let threshold = [1]
-    if(bottom) {
-      threshold = [(height - bottom) / height, 1].sort((a, b) => a - b)
-    }
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setShowStickyXScrollBar(!entry.isIntersecting && entry.intersectionRect.top > bottom);
+        setShowStickyXScrollBar(!entry.isIntersecting);
       },
-      {
-        threshold,
-        root,
-        rootMargin: `0px 0px ${bottom * -1}px 0px`,
-      }
+      { threshold: [0], root }
     );
-    observer.observe(wrapperRef.current);
+    observer.observe(horizontalTrackRef.current);
 
     return () => {
       observer.disconnect();
     };
-  }, [wrapperRef.current, showStickyHorizontal]);
+  }, [horizontalTrackRef.current, showStickyHorizontal]);
 
   const showStickyHorizontalScrollBar = useMemo(() => {
-    return showStickyXScrollBar && !!showStickyHorizontal
-  }, [showStickyXScrollBar, showStickyHorizontal])
+    return hasHorizontal && !!showStickyHorizontal && showStickyXScrollBar
+  }, [hasHorizontal, showStickyHorizontal, showStickyXScrollBar])
 
   // 横向滚动条计算
   const updateHorizontalScrollbar = useCallback(() => {
