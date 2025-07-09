@@ -175,7 +175,7 @@ export default () => {
   }))
 
   const { token } = Theme.useToken()
-  // 动态控制 bordered、resizableColumns、sortableColumns 属性
+  // 动态控制 bordered、stripe、resizableColumns、sortableColumns 属性
   const { baseProps, state, onChange } = useConfigActions({bordered: true})
   const tableKey = 'testTable'
   const storageKey = `${tableKey}-columnsState`

@@ -6,11 +6,10 @@ import ConfigActions from './_utils/components/ConfigActions';
 import useConfigActions from './_utils/hooks/useConfigActions';
 
 interface DataType {
-  key: string;
+  key: React.Key;
   name: string;
   age: number;
   address: string;
-  tags: string[];
 }
 
 const App: React.FC = () => {
@@ -21,46 +20,37 @@ const App: React.FC = () => {
       dataIndex: 'name',
       key: 'name',
       render: (text) => <a>{text}</a>,
+      width: 150,
     },
     {
       title: 'Age',
       dataIndex: 'age',
       key: 'age',
+      width: 80,
     },
     {
       title: 'Address',
       dataIndex: 'address',
-      key: 'address',
+      key: 'address 1',
+      ellipsis: true,
     },
     {
-      title: 'Tags',
-      key: 'tags',
-      dataIndex: 'tags',
-      render: (_, { tags }) => (
-        <>
-          {tags.map((tag) => {
-            let color = tag.length > 5 ? 'geekblue' : 'green';
-            if (tag === 'loser') {
-              color = 'volcano';
-            }
-            return (
-              <Tag color={color} key={tag}>
-                {tag.toUpperCase()}
-              </Tag>
-            );
-          })}
-        </>
-      ),
+      title: 'Long Column Long Column Long Column',
+      dataIndex: 'address',
+      key: 'address 2',
+      ellipsis: true,
     },
     {
-      title: 'Action',
-      key: 'action',
-      render: (_, record) => (
-        <Space size="middle">
-          <a>Invite {record.name}</a>
-          <a>Delete</a>
-        </Space>
-      ),
+      title: 'Long Column Long Column',
+      dataIndex: 'address',
+      key: 'address 3',
+      ellipsis: true,
+    },
+    {
+      title: 'Long Column',
+      dataIndex: 'address',
+      key: 'address 4',
+      ellipsis: true,
     },
   ];
 
@@ -70,22 +60,19 @@ const App: React.FC = () => {
       key: '1',
       name: 'John Brown',
       age: 32,
-      address: 'New York No. 1 Lake Park',
-      tags: ['nice', 'developer'],
+      address: 'New York No. 1 Lake Park, New York No. 1 Lake Park',
     },
     {
       key: '2',
       name: 'Jim Green',
       age: 42,
-      address: 'London No. 1 Lake Park',
-      tags: ['loser'],
+      address: 'London No. 2 Lake Park, London No. 2 Lake Park',
     },
     {
       key: '3',
       name: 'Joe Black',
       age: 32,
-      address: 'Sydney No. 1 Lake Park',
-      tags: ['cool', 'teacher'],
+      address: 'Sydney No. 1 Lake Park, Sydney No. 1 Lake Park',
     },
   ];
 

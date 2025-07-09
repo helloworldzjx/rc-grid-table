@@ -21,7 +21,6 @@ export default () => {
     {
       title: 'Name',
       dataIndex: 'name',
-      key: 'name',
       width: 100,
       fixed: 'start',
     },
@@ -32,8 +31,7 @@ export default () => {
         {
           title: 'Age',
           dataIndex: 'age',
-          key: 'age',
-          width: 150,
+          width: 100,
         },
         {
           title: 'Address',
@@ -42,7 +40,6 @@ export default () => {
             {
               title: 'Street',
               dataIndex: 'street',
-              key: 'street',
               width: 150,
             },
             {
@@ -52,13 +49,11 @@ export default () => {
                 {
                   title: 'Building',
                   dataIndex: 'building',
-                  key: 'building',
                   width: 100,
                 },
                 {
                   title: 'Door No.',
                   dataIndex: 'number',
-                  key: 'number',
                   width: 100,
                 },
               ],
@@ -74,26 +69,25 @@ export default () => {
         {
           title: 'Company Address',
           dataIndex: 'companyAddress',
-          key: 'companyAddress',
-          width: 200,
+          width: 240,
         },
         {
           title: 'Company Name',
           dataIndex: 'companyName',
           key: 'companyName',
+          width: 240,
         },
       ],
     },
     {
       title: 'Gender',
       dataIndex: 'gender',
-      key: 'gender',
       width: 80,
       fixed: 'end',
     },
   ];
 
-  const dataSource = Array.from({ length: 50 }).map<DataType>((_, i) => ({
+  const dataSource = Array.from({ length: 30 }).map<DataType>((_, i) => ({
     key: i,
     name: 'John Brown',
     age: i + 1,
@@ -105,7 +99,7 @@ export default () => {
     gender: 'M',
   }));
 
-  // 动态控制 bordered、resizableColumns、sortableColumns 属性
+  // 动态控制 bordered、stripe、resizableColumns、sortableColumns 属性
   const { baseProps, state, onChange } = useConfigActions({bordered: true})
 
   return (
@@ -116,7 +110,7 @@ export default () => {
         columns={columns} 
         dataSource={dataSource} 
         sticky
-        scrollY={400}
+        scrollY={1000}
         size='middle'
       />
     </>
