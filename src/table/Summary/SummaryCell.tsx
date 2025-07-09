@@ -26,7 +26,6 @@ const SummaryCell: FC<SummaryCellProps> = ({ column, colEnd }) => {
     cellFixedEndCls,
     cellFixedEndFirstCls,
     cellEllipsisInnerCls, 
-    cellEllipsisInnerShowTitleCls 
   } = useStyles();
 
   const { colStart, spanStyle } = useMemo(() => {
@@ -67,7 +66,7 @@ const SummaryCell: FC<SummaryCellProps> = ({ column, colEnd }) => {
   if(ellipsis) {
     const showTitle = typeof column?.ellipsis === "boolean" ? column?.ellipsis : column?.ellipsis?.showTitle
     const elTitle = showTitle ? getEllipsisTitle(childrenNode) as string : undefined
-    childrenNode = <div title={elTitle} className={classNames(cellEllipsisInnerCls, {[cellEllipsisInnerShowTitleCls]: showTitle})}>{childrenNode}</div>
+    childrenNode = <div title={elTitle} className={cellEllipsisInnerCls}>{childrenNode}</div>
   }
   
   return (
