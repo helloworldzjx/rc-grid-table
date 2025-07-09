@@ -268,11 +268,10 @@ const genCellStyle = (
       userSelect: 'none',
     },
     [`.${headDraggingOverlayCellCls}`]: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: unit(token.cellPaddingInline),
       paddingInline: unit(token.cellPaddingInline),
       boxSizing: 'border-box',
+      fontSize: token.fontSize,
+      color: token.colorText,
       whiteSpace: 'nowrap',
       textOverflow: 'ellipsis',
       overflow: 'hidden',
