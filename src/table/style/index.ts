@@ -159,7 +159,7 @@ const genHeadStyle = (
   [`.${headCls}`]: {
     display: 'grid',
     gridTemplateColumns: `var(--${componentCls}-cols-width)`,
-    overflow: 'auto',
+    overflow: 'auto hidden',
     scrollbarWidth: 'none',
 
     [`.${headRowCls}`]: {
@@ -208,7 +208,7 @@ const genSummaryCls = ({
   [`.${summaryCls}`]: {
     display: 'grid',
     gridTemplateColumns: `var(--${componentCls}-cols-width)`,
-    overflow: 'auto',
+    overflow: 'auto hidden',
     scrollbarWidth: 'none',
 
     [`.${summaryRowCls}`]: {
