@@ -151,11 +151,11 @@ const ScrollContainer = forwardRef<ScrollBarContainerRef, ScrollBarContainerProp
         className={clsx(
           xScrollBarCls, 
           hashId,
-          {[xScrollBarShowCls]: hasHorizontal && !!showStickyHorizontalScrollBar}
         )}
         ref={stickyHorizontalTrackRef}
         onMouseDown={handleHorizontalDrag}
         style={{
+          display: showStickyHorizontalScrollBar ? 'block' : 'none',
           position: 'sticky',
           ...typeof showStickyHorizontal !== 'boolean' && {
             bottom: showStickyHorizontal?.offsetStickyScroller,
