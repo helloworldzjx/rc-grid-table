@@ -31,7 +31,6 @@ type ComponentClsType = {
   cellCls: string
   cellEllipsisCls: string
   cellEllipsisInnerCls: string
-  cellEllipsisInnerShowTitleCls: string
   headLastCellCls: string
   headCellResizableCls: string
   headCellResizeDisabledCls: string
@@ -225,7 +224,6 @@ const genCellStyle = (
     cellCls,
     cellEllipsisCls,
     cellEllipsisInnerCls,
-    cellEllipsisInnerShowTitleCls,
     headLastCellCls,
     headCellResizableCls,
     headCellResizeDisabledCls,
@@ -314,11 +312,8 @@ const genCellStyle = (
 
     [`.${cellEllipsisInnerCls}`]: {
       overflow: 'hidden',
-      
-      [`&.${cellEllipsisInnerShowTitleCls}`]: {
-        whiteSpace: 'nowrap',
-        textOverflow: 'ellipsis',
-      }
+      whiteSpace: 'nowrap',
+      textOverflow: 'ellipsis',
     }
   },
 
@@ -558,7 +553,6 @@ export const useStyles = () => {
     cellCls: `${prefixCls}-cell`,
     cellEllipsisCls: `${prefixCls}-cell-ellipsis`,
     cellEllipsisInnerCls: `${prefixCls}-cell-ellipsis-inner`,
-    cellEllipsisInnerShowTitleCls: `${prefixCls}-cell-ellipsis-inner-show-title`,
     headLastCellCls: `${prefixCls}-head-last-cell`,
     headCellResizableCls: `${prefixCls}-head-cell-resizable`,
     headCellResizeDisabledCls: `${prefixCls}-head-cell-resize-disabled`,

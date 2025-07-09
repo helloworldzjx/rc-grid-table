@@ -151,6 +151,7 @@ const ScrollContainer = forwardRef<ScrollBarContainerRef, ScrollBarContainerProp
         className={clsx(
           xScrollBarCls, 
           hashId,
+          {[xScrollBarShowCls]: showStickyHorizontalScrollBar}
         )}
         ref={stickyHorizontalTrackRef}
         onMouseDown={handleHorizontalDrag}

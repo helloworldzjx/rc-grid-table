@@ -29,7 +29,6 @@ function BodyCell({
     cellCls,
     cellEllipsisCls,
     cellEllipsisInnerCls,
-    cellEllipsisInnerShowTitleCls,
     cellFixedStartCls,
     cellFixedStartLastCls,
     cellFixedEndCls,
@@ -71,7 +70,7 @@ function BodyCell({
   if(ellipsis) {
     const showTitle = typeof column.ellipsis === "boolean" ? column.ellipsis : column.ellipsis?.showTitle
     const elTitle = showTitle ? getEllipsisTitle(childrenNode) as string : undefined
-    childrenNode = <div title={elTitle} className={classNames(cellEllipsisInnerCls, {[cellEllipsisInnerShowTitleCls]: showTitle})}>{childrenNode}</div>
+    childrenNode = <div title={elTitle} className={cellEllipsisInnerCls}>{childrenNode}</div>
   }
 
   return (

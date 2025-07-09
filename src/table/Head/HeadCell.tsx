@@ -47,7 +47,6 @@ function HeadCell({
     cellCls, 
     cellEllipsisCls, 
     cellEllipsisInnerCls, 
-    cellEllipsisInnerShowTitleCls, 
     headLastCellCls,
     headSortableCellCls,
     sortableColumnCellCls,
@@ -208,7 +207,7 @@ function HeadCell({
   if(ellipsis) {
     const showTitle = typeof col.column?.ellipsis === "boolean" ? col.column?.ellipsis : col.column?.ellipsis?.showTitle
     const elTitle = showTitle ? getEllipsisTitle(childrenNode) as string : undefined
-    childrenNode = <div title={elTitle} className={classNames(cellEllipsisInnerCls, {[cellEllipsisInnerShowTitleCls]: showTitle})}>{childrenNode}</div>
+    childrenNode = <div title={elTitle} className={cellEllipsisInnerCls}>{childrenNode}</div>
   }
 
   return (
