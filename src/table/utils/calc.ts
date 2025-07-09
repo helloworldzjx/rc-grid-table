@@ -70,16 +70,15 @@ export function columnsWidthDistribute<T>(
 
   // 需要重新分配的列
   const cols = unAllDistributable ? leafColumns : distributableColumns
-  const count = cols.length
 
   // 分配剩余宽度
-  const { first, avg } = distribute(remainingWidth, count);
+  const { first, avg } = distribute(remainingWidth, cols.length);
 
   // 合并
   let index = 0;
   const mergedFlattenColumns = flattenColumns.map(column => {
     // 当前列是否重新分配
-    const distributable = !column.hasChildren && (column.distribute || unAllDistributable || count === 1)
+    const distributable = !column.hasChildren && (column.distribute || unAllDistributable || leafColumns.length === 1)
     if (distributable) {
       const width = column.width as number
       const newWidth = width + (index === 0 ? first : avg);
