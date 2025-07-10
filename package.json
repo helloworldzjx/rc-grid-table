@@ -1,6 +1,6 @@
 {
   "name": "rc-grid-table",
-  "version": "0.0.1-alpha.5",
+  "version": "0.0.1-alpha.8",
   "description": "A React Table Component Completed with Grid Layout",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -25,6 +25,10 @@
     "1445003564@qq.com"
   ],
   "keywords": [
+    "rc-grid-table",
+    "rc grid table",
+    "rc-table",
+    "rc table",
     "table",
     "react table",
     "table component",
