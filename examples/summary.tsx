@@ -126,6 +126,7 @@ const App: React.FC = () => {
         {...smBaseProps} 
         columns={fixedColumns} 
         dataSource={fixedDataSource} 
+        scrollY={350}
         summary={() => [
           [
             {children: 'Summary'},

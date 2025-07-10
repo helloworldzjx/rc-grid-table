@@ -4,11 +4,11 @@
 
 ## 组件文档
 
-[https://helloworldzjx.github.io/rc-grid-table](https://helloworldzjx.github.io/rc-grid-table)
+[https://helloworldzjx.github.io/rc-grid-table/guide](https://helloworldzjx.github.io/rc-grid-table/guide)
 
 ## 组件预览
 
-[https://helloworldzjx.github.io/rc-grid-table/components/table](https://helloworldzjx.github.io/rc-grid-table/components/table)
+[https://helloworldzjx.github.io/rc-grid-table/components](https://helloworldzjx.github.io/rc-grid-table/components)
 
 ## 安装
 ```bash
