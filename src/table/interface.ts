@@ -156,7 +156,7 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
    */
   leafColumnMinWidth?: number;
   /**
-   * @description 列配置
+   * @description 列配置，四个属性至少有一个启用则生效：resizableColumns、sortableColumns、fixableColumns、visibleColumns
    */
   columnsConfig?: ColumnsConfig<T>
   /**
