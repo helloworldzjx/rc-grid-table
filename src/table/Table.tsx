@@ -9,12 +9,12 @@ import type { TableProps } from './interface';
 import { useSyncScroll } from './hooks/useSyncScroll';
 import { ScrollBarContainerRef } from '../scrollContainer/interface';
 import ScrollBarContainer from '../scrollContainer';
-import { flattenMiddleState, parseHeaderRows, rebuildColumns } from './utils/handle';
+import { parseHeaderRows } from './utils/handle';
 import { useStyles } from './style';
 import Head, { HeadRef } from './Head/Head';
 import BodyRow from './Body/BodyRow';
 import Summary from './Summary/Summary';
-import { distribute } from './utils/calc';
+import Placeholder from './Placeholder';
 
 const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
   const { 
@@ -26,14 +26,12 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
     loading = false,
     style,
     columnsWidthTotal,
-    middleState,
-    updateMiddleState,
   } = useTableContext();
   const { scrollRef: tableBodyRef, isStart, isEnd, onScroll } = useScrollContext()
 
   const { 
     hashId, wrapperCls, cssVarCls, 
-    wrapperInitializedCls, placeholderCls, placeholderBorderedCls,
+    wrapperInitializedCls,
     componentSMCls, componentMDCls,
     borderedCls, stripeCls, hasSummaryCls,
     noDataCls, contentCls, 
@@ -69,24 +67,6 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
 
     return {[prop]: y}
   }, [scrollY])
-
-  const autoFill = () => {
-    const flattenedMiddleState = flattenMiddleState(middleState)
-    const leafState = flattenedMiddleState.filter(state => !state.hasChildren)
-    const remainingWidth = containerWidth - columnsWidthTotal;
-    const { first, avg } = distribute(remainingWidth, leafState.length);
-  
-    // 合并
-    const mergedMiddleState = flattenedMiddleState.map((state, index) => {
-      if (!state.hasChildren) {
-        const width = state.width as number
-        const newWidth = width + (index === 0 ? first : avg);
-        return { ...state, width: newWidth, updatedWidth: true };
-      }
-      return state;
-    });
-    updateMiddleState(rebuildColumns(mergedMiddleState));
-  }
   
   return (
     <div
@@ -131,6 +111,7 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
           style={{[`--${prefixCls}-cols-width-total`]: `${columnsWidthTotal}px`, ...style}}
         >
           <Head ref={tableHeadRef} rows={headRows} />
+          
           <ScrollBarContainer
             className={bodyCls} 
             classNames={{inner: bodyInnerCls}}
@@ -186,15 +167,7 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
           </ScrollBarContainer>
         </ScrollBarContainer>
         
-        {/* 暂时不使用表达式 containerWidth - columnsWidthTotal >= 0.5 动态渲染这个占位元素 */}
-        <div 
-          onClick={autoFill}
-          className={classNames(placeholderCls, hashId, {[placeholderBorderedCls]: bordered})}
-          style={{
-            left: columnsWidthTotal, 
-            display: containerWidth - columnsWidthTotal >= 0.5 ? 'block' : 'none'
-          }}
-        />
+        <Placeholder />
       </Spin>
     </div>
   );
