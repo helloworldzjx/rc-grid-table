@@ -1,15 +1,37 @@
 import { useOutlet, usePrefersColor } from 'dumi';
-import { ConfigProvider } from 'rc-grid-table';
+import { ConfigProvider, Theme } from 'rc-grid-table';
 import { ConfigProviderProps } from 'rc-grid-table/es/configProvider/interface';
-import React from 'react';
+import React, { useMemo } from 'react';
+import { ConfigProvider as AntdConfigProvider, App, theme } from "antd"
 
 const GlobalLayout: React.FC = () => {
-  const outlet = useOutlet();
   const [_, prefers] = usePrefersColor();
-  const themeMode: ConfigProviderProps['themeMode'] = prefers === 'auto' ? 'system' : prefers === 'dark' ? 'dark' : 'light'
+
+  const themeMode: ConfigProviderProps['themeMode'] = useMemo(() => {
+    return prefers === 'auto' ? 'system' : prefers === 'dark' ? 'dark' : 'light'
+  }, [prefers])
+
+  const AntdConfigProviderComponent = () => {
+    const outlet = useOutlet();
+    const { isDark } = Theme.useToken()
+
+    return (
+      <AntdConfigProvider
+        theme={{
+          algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
+        }}
+      >
+        <App>
+          {outlet}
+        </App>
+      </AntdConfigProvider>
+    )
+  }
 
   return (
-    <ConfigProvider themeMode={themeMode}>{outlet}</ConfigProvider>
+    <ConfigProvider themeMode={themeMode}>
+      <AntdConfigProviderComponent />
+    </ConfigProvider>
   )
 };
 
