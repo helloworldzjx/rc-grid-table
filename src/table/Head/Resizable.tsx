@@ -19,6 +19,7 @@ const Resizable: FC<ResizableProps> = ({
     flattenColumns = [],
     flattenColumnsWidths = [],
     middleState,
+    updateLockContainerWidth,
     updateFlattenColumnsWidths,
     updateMiddleState,
     columnsConfig,
@@ -88,6 +89,7 @@ const Resizable: FC<ResizableProps> = ({
   useDndMonitor({
     onDragStart(event) {
       if(event.active.id !== id || event.active.data.current?.type !== 'resizableColumns') return
+      updateLockContainerWidth(true)
       document.documentElement.style.cursor = 'e-resize'
     },
     onDragMove(event) {
@@ -98,6 +100,7 @@ const Resizable: FC<ResizableProps> = ({
     },
     onDragEnd(event) {
       if(event.active.id !== id || event.active.data.current?.type !== 'resizableColumns') return
+      updateLockContainerWidth(false)
       document.documentElement.style.cursor = ''
       if(updated.current) {
         updateState()

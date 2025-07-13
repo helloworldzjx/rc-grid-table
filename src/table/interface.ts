@@ -224,6 +224,9 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
 }
 
 export interface TableContextProps<T = any> extends TableProps<T> {
+  /** bug ref https://github.com/helloworldzjx/rc-grid-table/issues/1 */
+  lockContainerWidth: boolean
+  updateLockContainerWidth: Dispatch<SetStateAction<boolean>>,
   containerWidth?: number
   containerHeight?: number
   initialized?: boolean

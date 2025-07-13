@@ -1,4 +1,4 @@
-import React, { FC, Key, useEffect, useMemo, useRef, useState } from 'react';
+import React, { FC, Key, SetStateAction, useEffect, useMemo, useRef, useState } from 'react';
 import ResizeObserver, { OnResize } from "@rc-component/resize-observer"
 
 import TableContext from './context';
@@ -28,6 +28,7 @@ const Table: FC<TableProps> = (props) => {
     ...rest
   } = props;
 
+  const lockContainerWidth = useRef(false)
   const [containerWidth, setContainerWidth] = useState(0)
   const [containerHeight, setContainerHeight] = useState(0)
   const [initialized, setInitialized] = useState(false)
@@ -50,6 +51,11 @@ const Table: FC<TableProps> = (props) => {
     return resizableColumns || sortableColumns || fixableColumns || visibleColumns
   }, [resizableColumns, sortableColumns, fixableColumns, visibleColumns])
 
+  const updateLockContainerWidth = (dispatch: SetStateAction<boolean>) => {
+    const value = typeof dispatch === 'function' ? dispatch(lockContainerWidth.current) : dispatch
+    lockContainerWidth.current = value
+  };
+
   const { run: onResize } = useDebounceFn<OnResize>(({width, height}) => {
     setContainerWidth(width)
     setContainerHeight(height)
@@ -65,49 +71,51 @@ const Table: FC<TableProps> = (props) => {
   }, [enableColumnsConfig, columnsConfig])
 
   useEffect(() => {
-    if(!middleStateUpdated.current && ready && containerWidth && enableColumnsConfig && (!columnsConfig?.useStorage || !columnsConfig?.columnsState?.length)) {
+    if(!middleStateUpdated.current && !lockContainerWidth.current && containerWidth && ready && enableColumnsConfig && (!columnsConfig?.useStorage || !columnsConfig?.columnsState?.length)) {
       const { treeColumns } = columnsWidthDistribute(containerWidth, columns, columnMinWidth, leafColumnMinWidth)
       setMiddleState(treeColumns)
     }
-  }, [ready, containerWidth, enableColumnsConfig, columnsConfig, columns, columnMinWidth, leafColumnMinWidth])
+  }, [containerWidth, ready, enableColumnsConfig, columnsConfig, columns, columnMinWidth, leafColumnMinWidth])
 
   useEffect(() => {
-    if(ready && containerWidth && enableColumnsConfig) {
+    if(!lockContainerWidth.current && containerWidth && ready && enableColumnsConfig) {
       const realColumns = filterColumns(columns)
       const mergedColumnsState = mergeColumnsState(realColumns, middleState)
       setInnerColumnsState(columnsSort(mergedColumnsState))
     }
-  }, [ready, containerWidth, enableColumnsConfig, columns, middleState])
+  }, [containerWidth, ready, enableColumnsConfig, columns, middleState])
 
   useEffect(() => {
-    if(ready && containerWidth && enableColumnsConfig && innerColumnsState.length) {
+    if(!lockContainerWidth.current && containerWidth && ready && enableColumnsConfig && innerColumnsState.length) {
       const { flattenColumns, treeColumns } = columnsWidthDistribute(containerWidth, innerColumnsState, columnMinWidth, leafColumnMinWidth)
       setCols(treeColumns)
       setFlattenCols(flattenColumns)
       setFlattenColumnsWidths(flattenColumns.map((column) => column.width as number))
       setInitialized(true)
     }
-  }, [ready, containerWidth, enableColumnsConfig, innerColumnsState, columnMinWidth, leafColumnMinWidth])
+  }, [containerWidth, ready, enableColumnsConfig, innerColumnsState, columnMinWidth, leafColumnMinWidth])
 
   /** 使用了列配置的处理 end */
 
   /** 未使用列配置的处理 start ***************************************************************************/
 
   useEffect(() => {
-    if(ready && containerWidth && !enableColumnsConfig) {
+    if(containerWidth && ready && !enableColumnsConfig) {
       const { flattenColumns, treeColumns } = columnsWidthDistribute(containerWidth, columns, columnMinWidth, leafColumnMinWidth)
       setCols(treeColumns)
       setFlattenCols(flattenColumns)
       setFlattenColumnsWidths(flattenColumns.map((column) => column.width as number))
       setInitialized(true)
     }
-  }, [ready, containerWidth, enableColumnsConfig, columns, columnMinWidth, leafColumnMinWidth])
+  }, [containerWidth, ready, enableColumnsConfig, columns, columnMinWidth, leafColumnMinWidth])
 
   /** 未使用列配置的处理 end */
 
   const baseProps: TableContextProps = {
     prefixCls,
     initialized,
+    lockContainerWidth: lockContainerWidth.current,
+    updateLockContainerWidth,
     containerWidth,
     containerHeight,
     rowKey,
