@@ -1,5 +1,5 @@
 import { useDndMonitor, useDraggable } from "@dnd-kit/core";
-import React, { FC, Key, useEffect, useMemo, useRef, useState } from "react";
+import React, { forwardRef, Key, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDebounceFn } from "ahooks";
 
 import { useTableContext } from "../context";
@@ -11,10 +11,10 @@ interface ResizableProps {
   keys: Key[]
 }
 
-const Resizable: FC<ResizableProps> = ({
+const Resizable = forwardRef<HTMLDivElement, ResizableProps>(({
   id,
   keys,
-}) => {
+}, ref) => {
   const {
     flattenColumns = [],
     flattenColumnsWidths = [],
@@ -37,6 +37,17 @@ const Resizable: FC<ResizableProps> = ({
     id, 
     data: { type: 'resizableColumns' },
   });
+
+  const setRefs = useCallback((node: HTMLDivElement | null) => {
+    setNodeRef(node)
+    if(typeof ref === 'function') {
+      ref(node)
+      return
+    }
+    if(ref) {
+      ref.current = node
+    }
+  }, [ref, setNodeRef])
 
   const idxs = useMemo(() => {
     const idxArr = flattenColumns.reduce((indexes: number[], item, index) => {
@@ -114,10 +125,10 @@ const Resizable: FC<ResizableProps> = ({
   return (
     <div 
       className={headCellResizableCls} 
-      ref={setNodeRef} 
+      ref={setRefs} 
       {...listeners} 
     />
   )
-}
+})
 
 export default Resizable
