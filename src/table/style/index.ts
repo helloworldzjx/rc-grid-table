@@ -442,7 +442,7 @@ const genSizeClsStyle = (
     },
 
     [`.${headCellResizableCls}`]: {
-      insetBlock: unit(token.cellPaddingBlockSM),
+      // insetBlock: unit(token.cellPaddingBlockSM), // 暂时不使用自动高度
     },
   },
   [`.${componentCls}.${componentMDCls} .${headRowCls}`]: {
@@ -451,7 +451,7 @@ const genSizeClsStyle = (
     },
 
     [`.${headCellResizableCls}`]: {
-      insetBlock: unit(token.cellPaddingBlockMD),
+      // insetBlock: unit(token.cellPaddingBlockMD), // 暂时不使用自动高度
     },
   },
 
