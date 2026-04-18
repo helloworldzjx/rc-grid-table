@@ -5,6 +5,7 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 # on:
 #   push:
 #     branches:
@@ -54,11 +55,14 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: 打包
+        if: startsWith(github.ref, 'refs/tags/')
         run: tar -zcvf release.tgz ./es/ ./lib/ LICENSE package.json README.md
       - name: Release
+        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           token: ${{ secrets.GH_NPM_TOKEN }}
-          name: ${{ github.ref }}
+          name: ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
           files: ./release.tgz
           draft: false
