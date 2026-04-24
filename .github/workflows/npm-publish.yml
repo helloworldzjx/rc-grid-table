@@ -61,7 +61,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          token: ${{ secrets.GH_NPM_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           name: ${{ github.ref_name }}
           tag_name: ${{ github.ref_name }}
           files: ./release.tgz
