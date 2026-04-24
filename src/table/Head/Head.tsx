@@ -20,6 +20,14 @@ const Head = forwardRef<HeadRef, HeadProps>((
 ) => {
   const { headCls } = useStyles();
   const innerRef = useRef<HTMLDivElement>(null);
+
+  const handleResizeDragStart = () => {
+    innerRef.current!.style.overflow = 'hidden'
+  }
+
+  const handleResizeDragEnd = () => {
+    innerRef.current!.style.overflow = ''
+  }
   
   useImperativeHandle(ref, () => ({
     nativeElement: innerRef.current!,
@@ -34,12 +42,10 @@ const Head = forwardRef<HeadRef, HeadProps>((
             headRows={rows} 
             row={row} 
             headRowIndex={rowIndex}
-            onResizeStart={() => {
-              innerRef.current!.style.overflow = 'hidden'
-            }}
-            onResizeEnd={() => {
-              innerRef.current!.style.overflow = ''
-            }}
+            onSortableStart={handleResizeDragStart}
+            onSortableEnd={handleResizeDragEnd}
+            onResizeStart={handleResizeDragStart}
+            onResizeEnd={handleResizeDragEnd}
           />
         ))
       }

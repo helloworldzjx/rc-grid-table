@@ -12,6 +12,8 @@ interface HeadRowProps<T = any> {
   headRows: CellType<T>[][]
   row: CellType<T>[]
   headRowIndex: number
+  onSortableStart?: () => void
+  onSortableEnd?: () => void
   onResizeStart?: () => void
   onResizeEnd?: () => void
 }
@@ -20,6 +22,8 @@ function HeadRow({
   headRows,
   row: columns,
   headRowIndex,
+  onSortableStart,
+  onSortableEnd,
   onResizeStart,
   onResizeEnd,
 }: HeadRowProps) {
@@ -38,6 +42,9 @@ function HeadRow({
 
   const handleDragStart = (event: DragStartEvent) => {
     if(event.active.data.current?.type === 'sortableColumns') {
+      /** bug ref https://github.com/helloworldzjx/rc-grid-table/issues/2 */
+      onSortableStart?.()
+
       document.documentElement.style.cursor = 'move'
       const x = (event.activatorEvent as MouseEvent).offsetX - dragOverlaySize.width / 2
       const y = (event.activatorEvent as MouseEvent).offsetY - dragOverlaySize.height / 2
@@ -64,6 +71,8 @@ function HeadRow({
 
   const handleDragEnd = (event: DragEndEvent) => {
     if(event.active.data.current?.type === 'sortableColumns') {
+      onSortableEnd?.()
+      
       document.documentElement.style.cursor = ''
       updateSortableScopeKeys([])
       updateOverableScopeKeys([])

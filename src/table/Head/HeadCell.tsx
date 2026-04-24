@@ -1,4 +1,4 @@
-import React, { CSSProperties, Key, useMemo, useRef } from "react";
+import React, { CSSProperties, Key, useMemo } from "react";
 import classNames from "classnames";
 import { useSortable } from "@dnd-kit/sortable";
 import { useDndMonitor } from "@dnd-kit/core";
@@ -56,8 +56,6 @@ function HeadCell({
     cellFixedEndCls, 
     cellFixedEndFirstCls,
   } = useStyles();
-
-  const resizableRef = useRef<HTMLDivElement | null>(null)
 
   const fixedInfo = useMemo(() => {
     return getCellFixedInfo(col.colStart as number, col.colEnd as number, flattenColumns, fixedOffset)
@@ -192,17 +190,7 @@ function HeadCell({
   }
 
   useDndMonitor({
-    onDragStart() {
-      /** bug ref https://github.com/helloworldzjx/rc-grid-table/issues/2 */
-      if(resizableRef.current) {
-        resizableRef.current.style.display = 'none'
-      }
-    },
     onDragEnd(event) {
-      if(resizableRef.current) {
-        resizableRef.current.style.display = ''
-      }
-
       if(event.active.id !== col.key || event.over?.id === col.key || event.active.data.current?.column?.parentKey !== event.over?.data.current?.column?.parentKey || event.active.data.current?.type !== 'sortableColumns') return
       const overColumn = event.over?.data.current?.column as ColumnState
       const overSpanKeys = getMergedSpanKeys(overColumn, flattenColumns)
@@ -247,7 +235,6 @@ function HeadCell({
       {
         resizableColumns && (
           <Resizable 
-            ref={resizableRef}
             id={`${col.key}-resizable`} 
             keys={keys} 
           />
