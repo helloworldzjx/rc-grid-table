@@ -1,4 +1,4 @@
-import type { CSSProperties, Dispatch, HTMLAttributes, Key, ReactNode, RefObject, SetStateAction } from 'react';
+import type { CSSProperties, Dispatch, HTMLAttributes, Key, MouseEvent, ReactNode, RefObject, SetStateAction } from 'react';
 import { ScrollBarContainerRef } from '../scrollContainer/interface';
 
 export interface CellType<T = any> {
@@ -40,7 +40,36 @@ export type GetComponentProps<DataType> = (data: DataType, rowIndex?: number) =>
 
 export type  PercentColumnWidthType = `${number}%`
 
+export interface ExpandIconProps<T = any> {
+  expanded: boolean;
+  expandable: boolean;
+  record: T;
+  index: number;
+  indent: number;
+  onExpand: (record: T, event: MouseEvent<HTMLElement>) => void;
+}
+
+export interface ExpandableConfig<T = any> {
+  childrenColumnName?: string;
+  columnTitle?: ReactNode;
+  columnWidth?: PercentColumnWidthType | number;
+  defaultExpandAllRows?: boolean;
+  defaultExpandedRowKeys?: Key[];
+  expandedRowClassName?: string | ((record: T, index: number, indent: number) => string);
+  expandedRowKeys?: Key[];
+  expandedRowRender?: (record: T, index: number, indent: number, expanded: boolean) => ReactNode;
+  expandIcon?: (props: ExpandIconProps<T>) => ReactNode;
+  expandRowByClick?: boolean;
+  fixed?: FixedType;
+  indentSize?: number;
+  rowExpandable?: (record: T) => boolean;
+  showExpandColumn?: boolean;
+  onExpand?: (expanded: boolean, record: T) => void;
+  onExpandedRowsChange?: (expandedRows: Key[]) => void;
+}
+
 export interface ColumnProps<T = any> {
+  __RC_GRID_TABLE_EXPAND_COLUMN?: true;
   title?: ReactNode;
   render?: (value: any, record: T, rowIndex: number) => ReactNode;
   /** 列宽，仅支持数字和百分比数字，不支持px的写法 */
@@ -58,6 +87,13 @@ export interface ColumnProps<T = any> {
   colSpan?: number
   onCell?: GetComponentProps<T>;
 }
+
+export type ExpandColumnType = ColumnProps<any> & {
+  key: Key;
+  dataIndex?: Key;
+  children?: never;
+  __RC_GRID_TABLE_EXPAND_COLUMN: true;
+};
 
 export type ColumnType<T> = ColumnProps<T> & { children?: ColumnType<T>[] } & (
   { 
@@ -200,6 +236,10 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
    */
   summary?: (dataSource: T[], columnsLength: number) => TableSummaryRowCell[][]
   /**
+   * @description 展开配置，支持额外展开行和树形数据展示
+   */
+  expandable?: ExpandableConfig<T>
+  /**
    * @description 横向滚动条可磁吸
    */
   sticky?: boolean | TableSticky
@@ -227,6 +267,8 @@ export interface TableContextProps<T = any> extends TableProps<T> {
   /** bug ref https://github.com/helloworldzjx/rc-grid-table/issues/1 */
   lockContainerWidth: boolean
   updateLockContainerWidth: Dispatch<SetStateAction<boolean>>,
+  mergedExpandedRowKeys?: Key[]
+  onTriggerExpand?: (record: T) => void
   containerWidth?: number
   containerHeight?: number
   initialized?: boolean

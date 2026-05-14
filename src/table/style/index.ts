@@ -28,9 +28,18 @@ type ComponentClsType = {
   bodyCls: string
   bodyInnerCls: string
   bodyRowCls: string
+  bodyRowExpandableCls: string
   cellCls: string
   cellEllipsisCls: string
   cellEllipsisInnerCls: string
+  expandIconCellCls: string
+  expandIconCls: string
+  expandIconExpandedCls: string
+  expandIconSpacedCls: string
+  expandTreeCellInnerCls: string
+  expandedRowCls: string
+  expandedRowCellCls: string
+  expandedRowContentCls: string
   headLastCellCls: string
   headCellResizableCls: string
   headCellResizeDisabledCls: string
@@ -220,10 +229,19 @@ const genCellStyle = (
   {
     headRowCls,
     bodyRowCls,
+    bodyRowExpandableCls,
     summaryRowCls,
     cellCls,
     cellEllipsisCls,
     cellEllipsisInnerCls,
+    expandIconCellCls,
+    expandIconCls,
+    expandIconExpandedCls,
+    expandIconSpacedCls,
+    expandTreeCellInnerCls,
+    expandedRowCls,
+    expandedRowCellCls,
+    expandedRowContentCls,
     headLastCellCls,
     headCellResizableCls,
     headCellResizeDisabledCls,
@@ -292,6 +310,24 @@ const genCellStyle = (
     }
   },
 
+  [`.${bodyRowExpandableCls}`]: {
+    cursor: 'pointer',
+  },
+
+  [`.${expandedRowCls}`]: {
+    [`.${expandedRowCellCls}`]: {
+      position: 'sticky',
+      left: 0,
+      padding: 0,
+    },
+
+    [`.${expandedRowContentCls}`]: {
+      paddingBlock: unit(token.cellPaddingBlock),
+      paddingInline: unit(token.cellPaddingInline),
+      boxSizing: 'border-box',
+    },
+  },
+
   // [`.${summaryRowCls}:not(:last-of-type) .${cellCls}`]: {
   [`.${summaryRowCls} .${cellCls}`]: {
     backgroundColor: token.colorBgLayout,
@@ -306,6 +342,65 @@ const genCellStyle = (
     alignContent: 'center',
     wordBreak: 'break-word',
     boxSizing: 'border-box',
+  },
+
+  [`.${expandIconCellCls}`]: {
+    paddingInline: 0,
+    textAlign: 'center',
+  },
+
+  [`.${expandTreeCellInnerCls}`]: {
+    display: 'flex',
+    alignItems: 'center',
+    minWidth: 0,
+  },
+
+  [`.${expandIconCls}`]: {
+    position: 'relative',
+    flex: '0 0 16px',
+    width: 16,
+    height: 16,
+    margin: 0,
+    padding: 0,
+    border: `1px solid ${token.colorBorder}`,
+    borderRadius: 2,
+    backgroundColor: token.colorBgContainer,
+    color: token.colorText,
+    cursor: 'pointer',
+    verticalAlign: 'middle',
+    boxSizing: 'border-box',
+  },
+
+  [`.${expandIconCls}::before, .${expandIconCls}::after`]: {
+    content: "' '",
+    position: 'absolute',
+    backgroundColor: 'currentColor',
+    left: '50%',
+    top: '50%',
+    transform: 'translate(-50%, -50%)',
+  },
+
+  [`.${expandIconCls}::before`]: {
+    width: 8,
+    height: 1,
+  },
+
+  [`.${expandIconCls}::after`]: {
+    width: 1,
+    height: 8,
+  },
+
+  [`.${expandIconExpandedCls}::after`]: {
+    display: 'none',
+  },
+
+  [`.${expandIconSpacedCls}`]: {
+    marginInlineEnd: 8,
+  },
+
+  [`.${expandIconCls}:disabled`]: {
+    cursor: 'default',
+    visibility: 'hidden',
   },
 
   [`.${cellEllipsisCls}`]: {
@@ -550,9 +645,18 @@ export const useStyles = () => {
     bodyCls: `${prefixCls}-body`,
     bodyInnerCls: `${prefixCls}-body-inner`,
     bodyRowCls: `${prefixCls}-body-row`,
+    bodyRowExpandableCls: `${prefixCls}-body-row-expandable`,
     cellCls: `${prefixCls}-cell`,
     cellEllipsisCls: `${prefixCls}-cell-ellipsis`,
     cellEllipsisInnerCls: `${prefixCls}-cell-ellipsis-inner`,
+    expandIconCellCls: `${prefixCls}-expand-icon-cell`,
+    expandIconCls: `${prefixCls}-expand-icon`,
+    expandIconExpandedCls: `${prefixCls}-expand-icon-expanded`,
+    expandIconSpacedCls: `${prefixCls}-expand-icon-spaced`,
+    expandTreeCellInnerCls: `${prefixCls}-expand-tree-cell-inner`,
+    expandedRowCls: `${prefixCls}-expanded-row`,
+    expandedRowCellCls: `${prefixCls}-expanded-row-cell`,
+    expandedRowContentCls: `${prefixCls}-expanded-row-content`,
     headLastCellCls: `${prefixCls}-head-last-cell`,
     headCellResizableCls: `${prefixCls}-head-cell-resizable`,
     headCellResizeDisabledCls: `${prefixCls}-head-cell-resize-disabled`,

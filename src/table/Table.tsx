@@ -10,15 +10,18 @@ import { useSyncScroll } from './hooks/useSyncScroll';
 import { ScrollBarContainerRef } from '../scrollContainer/interface';
 import ScrollBarContainer from '../scrollContainer';
 import { parseHeaderRows } from './utils/handle';
+import { flattenDataSource, getRecordChildren, hasChildrenInData } from './utils/expand';
 import { useStyles } from './style';
 import Head, { HeadRef } from './Head/Head';
 import BodyRow from './Body/BodyRow';
+import ExpandedRow from './Body/ExpandedRow';
 import Summary from './Summary/Summary';
 import Placeholder from './Placeholder';
 
 const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
   const { 
     prefixCls, initialized, containerWidth = 0, rowKey, className, rowClassName,
+    expandable, mergedExpandedRowKeys = [],
     dataSource, columns, flattenColumns = [], flattenColumnsWidths = [], 
     fixedOffset, hasFixedColumns, fixColumnsGapped,
     size, bordered, stripe, scrollY, summary, sticky, 
@@ -48,10 +51,27 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
   
   const gridTemplateColumns = flattenColumnsWidths?.length ? `${flattenColumnsWidths?.join('px ')}px` : ''
   const hasSummary = typeof summary === 'function'
+  const hasExpandedRowRender = typeof expandable?.expandedRowRender === 'function'
+  const childrenColumnName = expandable?.childrenColumnName ?? 'children'
+  const isTreeMode = !hasExpandedRowRender
+  const hasTreeData = useMemo(() => {
+    return isTreeMode && hasChildrenInData(dataSource, childrenColumnName)
+  }, [isTreeMode, dataSource, childrenColumnName])
 
   const headRows = useMemo(() => {
     return parseHeaderRows(columns)
   }, [columns])
+
+  const flattenData = useMemo(() => {
+    return isTreeMode
+      ? flattenDataSource(dataSource, rowKey as string, childrenColumnName, mergedExpandedRowKeys)
+      : (dataSource || []).map((record, rowIndex) => ({
+        record,
+        rowIndex,
+        indent: 0,
+        key: record?.[rowKey as string],
+      }))
+  }, [isTreeMode, dataSource, rowKey, childrenColumnName, mergedExpandedRowKeys])
 
   const tableHeight = useMemo(() => {
     let y: number | string = 'auto'
@@ -103,7 +123,7 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
           }}}
           contentController={tableBodyRef.current?.nativeScrollElement}
           shouldHorizontalUpdate={[columnsWidthTotal]}
-          shouldVerticalUpdate={[dataSource, columnsWidthTotal]}
+          shouldVerticalUpdate={[flattenData, mergedExpandedRowKeys, columnsWidthTotal]}
           showHorizontal
           showVertical={!scrollY}
           showStickyHorizontal={sticky}
@@ -118,7 +138,7 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
             style={tableHeight}
             horizontalThumbController={tableRef.current?.nativeHorizontalThumbElement}
             stickyHorizontalController={tableRef.current?.nativeStickyHorizontalElement}
-            shouldVerticalUpdate={[dataSource, columnsWidthTotal]}
+            shouldVerticalUpdate={[flattenData, mergedExpandedRowKeys, columnsWidthTotal]}
             showHorizontal={false}
             showVertical={!!scrollY ? {
               offsetLeft: `min(${columnsWidthTotal - 12}px, ${containerWidth - 12}px)`
@@ -149,19 +169,37 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
                 </div>
               )
             }
-            {dataSource?.map((rowData, rowIndex) => {
-              const key = rowData[rowKey as string]
+            {flattenData?.map(({record: rowData, rowIndex, indent, key}) => {
               warning(key !== undefined, 'Each record in table should have a unique `key` prop, or set `rowKey` to an unique primary key.')
+              const expanded = mergedExpandedRowKeys.includes(key)
+              const children = getRecordChildren(rowData, childrenColumnName)
+              const treeExpandable = isTreeMode && children.length > 0
+              const rowExpandable = hasExpandedRowRender ? expandable?.rowExpandable?.(rowData) !== false : treeExpandable
+              const expandedRowClassName = typeof expandable?.expandedRowClassName === 'function'
+                ? expandable.expandedRowClassName(rowData, rowIndex, indent)
+                : expandable?.expandedRowClassName
 
               return (
-                <BodyRow 
-                  flattenColumns={flattenColumns} 
-                  fixedOffset={fixedOffset} 
-                  key={key} 
-                  rowData={rowData} 
-                  rowIndex={rowIndex} 
-                  className={rowClassName?.(rowData, rowIndex)}
-                />
+                <React.Fragment key={key}>
+                  <BodyRow 
+                    flattenColumns={flattenColumns} 
+                    fixedOffset={fixedOffset} 
+                    rowData={rowData} 
+                    rowIndex={rowIndex} 
+                    indent={indent}
+                    expanded={expanded}
+                    expandable={hasTreeData || treeExpandable}
+                    rowSupportExpand={rowExpandable}
+                    className={rowClassName?.(rowData, rowIndex)}
+                  />
+                  {
+                    hasExpandedRowRender && expanded && rowExpandable && (
+                      <ExpandedRow className={expandedRowClassName} indent={1}>
+                        {expandable?.expandedRowRender?.(rowData, rowIndex, indent, expanded)}
+                      </ExpandedRow>
+                    )
+                  }
+                </React.Fragment>
               )
             })}
           </ScrollBarContainer>

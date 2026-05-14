@@ -1,4 +1,4 @@
-import React, { FC, Key, SetStateAction, useEffect, useMemo, useRef, useState } from 'react';
+import React, { FC, Key, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ResizeObserver, { OnResize } from "@rc-component/resize-observer"
 
 import TableContext from './context';
@@ -10,13 +10,22 @@ import { mergeColumnsState } from './utils/mergedColumnsState';
 import useStickyOffsets from './hooks/useStickyOffsets';
 import ScrollProvider from './scrollContext';
 import { useDebounceFn } from 'ahooks';
+import { EXPAND_COLUMN } from './utils/const';
+import { getColumnsWithExpandColumn, getDefaultExpandedRowKeys, getRecordKey } from './utils/expand';
+import { ExpandColumnType } from './interface';
 
-const Table: FC<TableProps> = (props) => {
+type TableComponent = FC<TableProps> & {
+  EXPAND_COLUMN: ExpandColumnType;
+}
+
+const Table: TableComponent = ((props) => {
   const {
     ready = true,
     rowKey = 'key',
     prefixCls = 'rc-grid-table',
     columns = [],
+    dataSource = [],
+    expandable,
     columnMinWidth = 100,
     leafColumnMinWidth = 80,
     resizableColumns,
@@ -43,6 +52,12 @@ const Table: FC<TableProps> = (props) => {
   /** 列隐藏，列拖拽排序，列宽拖拽 */
   const [innerColumnsState, setInnerColumnsState] = useState<ColumnState[]>([])
   const [middleState, setMiddleState] = useState<ColumnState[]>([])
+  const [innerExpandedRowKeys, setInnerExpandedRowKeys] = useState<Key[]>(() => {
+    if(expandable?.expandedRowKeys) return expandable.expandedRowKeys;
+    if(expandable?.defaultExpandedRowKeys) return expandable.defaultExpandedRowKeys;
+    if(expandable?.defaultExpandAllRows) return getDefaultExpandedRowKeys(dataSource, rowKey, expandable);
+    return [];
+  })
   /** 是否进行了修改表格外观的操作，操作后不再允许通过原columns修改middleState */
   const middleStateUpdated = useRef(false)
   const fixedOffset = useStickyOffsets(flattenColumnsWidths, flattenCols)
@@ -50,6 +65,27 @@ const Table: FC<TableProps> = (props) => {
   const enableColumnsConfig = useMemo(() => {
     return resizableColumns || sortableColumns || fixableColumns || visibleColumns
   }, [resizableColumns, sortableColumns, fixableColumns, visibleColumns])
+
+  const mergedColumns = useMemo(() => {
+    return getColumnsWithExpandColumn(columns, expandable)
+  }, [columns, expandable])
+
+  const mergedExpandedRowKeys = expandable?.expandedRowKeys ?? innerExpandedRowKeys
+
+  const onTriggerExpand = useCallback((record: any) => {
+    const key = getRecordKey(record, rowKey)
+    const expanded = mergedExpandedRowKeys.includes(key)
+    const nextExpandedRowKeys = expanded
+      ? mergedExpandedRowKeys.filter((item) => item !== key)
+      : [...mergedExpandedRowKeys, key]
+
+    if(!expandable?.expandedRowKeys) {
+      setInnerExpandedRowKeys(nextExpandedRowKeys)
+    }
+
+    expandable?.onExpand?.(!expanded, record)
+    expandable?.onExpandedRowsChange?.(nextExpandedRowKeys)
+  }, [rowKey, expandable, mergedExpandedRowKeys])
 
   const updateLockContainerWidth = (dispatch: SetStateAction<boolean>) => {
     const value = typeof dispatch === 'function' ? dispatch(lockContainerWidth.current) : dispatch
@@ -72,18 +108,18 @@ const Table: FC<TableProps> = (props) => {
 
   useEffect(() => {
     if(!middleStateUpdated.current && !lockContainerWidth.current && containerWidth && ready && enableColumnsConfig && (!columnsConfig?.useStorage || !columnsConfig?.columnsState?.length)) {
-      const { treeColumns } = columnsWidthDistribute(containerWidth, columns, columnMinWidth, leafColumnMinWidth)
+      const { treeColumns } = columnsWidthDistribute(containerWidth, mergedColumns, columnMinWidth, leafColumnMinWidth)
       setMiddleState(treeColumns)
     }
-  }, [containerWidth, ready, enableColumnsConfig, columnsConfig, columns, columnMinWidth, leafColumnMinWidth])
+  }, [containerWidth, ready, enableColumnsConfig, columnsConfig, mergedColumns, columnMinWidth, leafColumnMinWidth])
 
   useEffect(() => {
     if(!lockContainerWidth.current && containerWidth && ready && enableColumnsConfig) {
-      const realColumns = filterColumns(columns)
+      const realColumns = filterColumns(mergedColumns)
       const mergedColumnsState = mergeColumnsState(realColumns, middleState)
       setInnerColumnsState(columnsSort(mergedColumnsState))
     }
-  }, [containerWidth, ready, enableColumnsConfig, columns, middleState])
+  }, [containerWidth, ready, enableColumnsConfig, mergedColumns, middleState])
 
   useEffect(() => {
     if(!lockContainerWidth.current && containerWidth && ready && enableColumnsConfig && innerColumnsState.length) {
@@ -101,13 +137,13 @@ const Table: FC<TableProps> = (props) => {
 
   useEffect(() => {
     if(containerWidth && ready && !enableColumnsConfig) {
-      const { flattenColumns, treeColumns } = columnsWidthDistribute(containerWidth, columns, columnMinWidth, leafColumnMinWidth)
+      const { flattenColumns, treeColumns } = columnsWidthDistribute(containerWidth, mergedColumns, columnMinWidth, leafColumnMinWidth)
       setCols(treeColumns)
       setFlattenCols(flattenColumns)
       setFlattenColumnsWidths(flattenColumns.map((column) => column.width as number))
       setInitialized(true)
     }
-  }, [containerWidth, ready, enableColumnsConfig, columns, columnMinWidth, leafColumnMinWidth])
+  }, [containerWidth, ready, enableColumnsConfig, mergedColumns, columnMinWidth, leafColumnMinWidth])
 
   /** 未使用列配置的处理 end */
 
@@ -119,6 +155,10 @@ const Table: FC<TableProps> = (props) => {
     containerWidth,
     containerHeight,
     rowKey,
+    dataSource,
+    expandable,
+    mergedExpandedRowKeys,
+    onTriggerExpand,
     columns: cols,
     flattenColumnsWidths,
     columnsWidthTotal: flattenColumnsWidths?.reduce((sum, num) => sum + num, 0),
@@ -155,6 +195,8 @@ const Table: FC<TableProps> = (props) => {
       </ScrollProvider>
     </TableContext.Provider>
   );
-};
+}) as TableComponent;
+
+Table.EXPAND_COLUMN = EXPAND_COLUMN;
 
 export default Table;
