@@ -1,7 +1,16 @@
 import type { Key } from "react";
 
-import type { ColumnType, ColumnsType, ExpandableConfig } from "../interface";
-import { DEFAULT_EXPAND_COLUMN_WIDTH, EXPAND_COLUMN, INTERNAL_EXPAND_COLUMN_KEY, isExpandColumn } from "./const";
+import type { ColumnType, ColumnsType, ExpandableConfig, TableRowSelection } from "../interface";
+import {
+  DEFAULT_EXPAND_COLUMN_WIDTH,
+  DEFAULT_SELECTION_COLUMN_WIDTH,
+  EXPAND_COLUMN,
+  INTERNAL_EXPAND_COLUMN_KEY,
+  INTERNAL_SELECTION_COLUMN_KEY,
+  SELECTION_COLUMN,
+  isExpandColumn,
+  isSelectionColumn,
+} from "./const";
 
 export interface FlattenRecord<T = any> {
   record: T;
@@ -93,9 +102,9 @@ export const getDefaultExpandedRowKeys = <T = any>(
   return keys;
 };
 
-const removeExpandColumn = <T = any>(columns: ColumnsType<T>): ColumnsType<T> => {
+const removeInternalColumns = <T = any>(columns: ColumnsType<T>): ColumnsType<T> => {
   return columns.reduce((result: ColumnsType<T>, column) => {
-    if (isExpandColumn(column)) {
+    if (isExpandColumn(column) || isSelectionColumn(column)) {
       return result;
     }
 
@@ -103,7 +112,7 @@ const removeExpandColumn = <T = any>(columns: ColumnsType<T>): ColumnsType<T> =>
     if (realColumn.children?.length) {
       result.push({
         ...realColumn,
-        children: removeExpandColumn(realColumn.children),
+        children: removeInternalColumns(realColumn.children),
       } as ColumnType<T>);
     } else {
       result.push(realColumn as ColumnType<T>);
@@ -127,7 +136,7 @@ export const getColumnsWithExpandColumn = <T = any>(
   const hasExpandedRowRender = typeof expandedRowRender === 'function';
 
   if (!hasExpandedRowRender || !showExpandColumn) {
-    return removeExpandColumn(columns);
+    return removeInternalColumns(columns).filter((column) => !isSelectionColumn(column));
   }
 
   const expandColumn = {
@@ -151,6 +160,84 @@ export const getColumnsWithExpandColumn = <T = any>(
 
   if (!inserted) {
     nextColumns.unshift(expandColumn);
+  }
+
+  return nextColumns;
+};
+
+export const getColumnsWithInternalColumns = <T = any>(
+  columns: ColumnsType<T> = [],
+  expandable: ExpandableConfig<T> = {},
+  rowSelection?: TableRowSelection<T>,
+): ColumnsType<T> => {
+  const {
+    columnTitle,
+    columnWidth = DEFAULT_EXPAND_COLUMN_WIDTH,
+    expandedRowRender,
+    fixed,
+    showExpandColumn = true,
+  } = expandable;
+  const hasExpandedRowRender = typeof expandedRowRender === 'function';
+  const shouldShowExpandColumn = hasExpandedRowRender && showExpandColumn;
+  const shouldShowSelectionColumn = !!rowSelection;
+
+  if (!shouldShowExpandColumn && !shouldShowSelectionColumn) {
+    return removeInternalColumns(columns);
+  }
+
+  const expandColumn = shouldShowExpandColumn ? {
+    ...EXPAND_COLUMN,
+    key: INTERNAL_EXPAND_COLUMN_KEY,
+    title: columnTitle,
+    width: columnWidth,
+    fixed,
+  } as ColumnType<T> : null;
+  const selectionColumn = shouldShowSelectionColumn ? {
+    ...SELECTION_COLUMN,
+    key: INTERNAL_SELECTION_COLUMN_KEY,
+    title: '',
+    width: rowSelection?.columnWidth ?? DEFAULT_SELECTION_COLUMN_WIDTH,
+    fixed: rowSelection?.fixed,
+    align: rowSelection?.align ?? 'center',
+    onCell: rowSelection?.onCell,
+  } as ColumnType<T> : null;
+
+  let expandInserted = false;
+  let selectionInserted = false;
+  const nextColumns = columns.reduce((result: ColumnsType<T>, column) => {
+    if (isExpandColumn(column)) {
+      if (expandColumn) {
+        result.push(expandColumn);
+        expandInserted = true;
+      }
+    } else if (isSelectionColumn(column)) {
+      if (selectionColumn) {
+        result.push(selectionColumn);
+        selectionInserted = true;
+      }
+    } else {
+      result.push(column);
+    }
+
+    return result;
+  }, []);
+
+  if (expandColumn && !expandInserted) {
+    if (selectionColumn && selectionInserted) {
+      const selectionIndex = nextColumns.findIndex(isSelectionColumn);
+      nextColumns.splice(selectionIndex + 1, 0, expandColumn);
+    } else {
+      nextColumns.unshift(expandColumn);
+    }
+  }
+
+  if (selectionColumn && !selectionInserted) {
+    const expandIndex = nextColumns.findIndex(isExpandColumn);
+    if (expandIndex >= 0) {
+      nextColumns.splice(expandIndex, 0, selectionColumn);
+    } else {
+      nextColumns.unshift(selectionColumn);
+    }
   }
 
   return nextColumns;

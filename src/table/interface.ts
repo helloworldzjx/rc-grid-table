@@ -68,8 +68,37 @@ export interface ExpandableConfig<T = any> {
   onExpandedRowsChange?: (expandedRows: Key[]) => void;
 }
 
+export type SelectionType = 'checkbox' | 'radio';
+export type SelectionSelectAllMode = 'all' | 'enabled';
+export type SelectionInfoType = 'single' | 'all' | 'none';
+
+export type SelectionControlProps = Omit<HTMLAttributes<HTMLElement>, 'onChange'> & {
+  disabled?: boolean;
+};
+
+export interface TableRowSelection<T = any> {
+  align?: 'start' | 'end' | 'center';
+  checkStrictly?: boolean;
+  columnTitle?: ReactNode | ((originalNode: ReactNode) => ReactNode);
+  columnWidth?: PercentColumnWidthType | number;
+  fixed?: FixedType;
+  getRadioProps?: (record: T) => SelectionControlProps;
+  getCheckboxProps?: (record: T) => SelectionControlProps;
+  getTitleCheckboxProps?: () => SelectionControlProps;
+  hideSelectAll?: boolean;
+  renderCell?: (checked: boolean, record: T, index: number, originNode: ReactNode) => ReactNode;
+  selectedRowKeys?: Key[];
+  defaultSelectedRowKeys?: Key[];
+  type?: SelectionType;
+  onCell?: GetComponentProps<T>;
+  onChange?: (selectedRowKeys: Key[], selectedRows: T[], info: { type: SelectionInfoType }) => void;
+  onSelect?: (record: T, selected: boolean, selectedRows: T[], nativeEvent: MouseEvent<HTMLElement>) => void;
+  selectAllMode?: SelectionSelectAllMode;
+}
+
 export interface ColumnProps<T = any> {
   __RC_GRID_TABLE_EXPAND_COLUMN?: true;
+  __RC_GRID_TABLE_SELECTION_COLUMN?: true;
   title?: ReactNode;
   render?: (value: any, record: T, rowIndex: number) => ReactNode;
   /** 列宽，仅支持数字和百分比数字，不支持px的写法 */
@@ -93,6 +122,13 @@ export type ExpandColumnType = ColumnProps<any> & {
   dataIndex?: Key;
   children?: never;
   __RC_GRID_TABLE_EXPAND_COLUMN: true;
+};
+
+export type SelectionColumnType = ColumnProps<any> & {
+  key: Key;
+  dataIndex?: Key;
+  children?: never;
+  __RC_GRID_TABLE_SELECTION_COLUMN: true;
 };
 
 export type ColumnType<T> = ColumnProps<T> & { children?: ColumnType<T>[] } & (
@@ -240,6 +276,10 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
    */
   expandable?: ExpandableConfig<T>
   /**
+   * @description 行选择配置
+   */
+  rowSelection?: TableRowSelection<T>
+  /**
    * @description 横向滚动条可磁吸
    */
   sticky?: boolean | TableSticky
@@ -287,6 +327,17 @@ export interface TableContextProps<T = any> extends TableProps<T> {
   middleState: ColumnState<T>[]
   updateMiddleState: Dispatch<SetStateAction<ColumnState<T>[]>>
   innerColumnsState: ColumnState<T>[]
+  selection?: TableSelectionContextProps<T>
+}
+
+export interface TableSelectionContextProps<T = any> {
+  selectedRowKeys: Key[];
+  isSelected: (record: T) => boolean;
+  isHalfSelected: (record: T) => boolean;
+  isAllSelected: boolean;
+  isPartiallySelected: boolean;
+  onSelectRecord: (record: T, rowIndex: number, nativeEvent: MouseEvent<HTMLElement>) => void;
+  onSelectAll: (nativeEvent: MouseEvent<HTMLElement>) => void;
 }
 
 export interface TableScrollContextProps extends Pick<HTMLAttributes<HTMLDivElement>, 'onScroll'> {

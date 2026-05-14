@@ -6,7 +6,8 @@ import { useStyles } from "../style";
 import { ColumnState } from "../interface";
 import { getEllipsisTitle } from "../utils/handle";
 import { FixedInfo } from "../utils/fixedColumns";
-import { isExpandColumn } from "../utils/const";
+import { isExpandColumn, isSelectionColumn } from "../utils/const";
+import { SelectionCheckbox, SelectionRadio } from "../Selection";
 
 interface BodyRowProps<T = any> {
   column: ColumnState<T>
@@ -17,7 +18,7 @@ interface BodyRowProps<T = any> {
   expanded?: boolean
   expandable?: boolean
   rowSupportExpand?: boolean
-  isFirstColumn?: boolean
+  isFirstDataColumn?: boolean
 }
 
 function BodyCell({
@@ -29,12 +30,14 @@ function BodyCell({
   expanded = false,
   expandable = false,
   rowSupportExpand = false,
-  isFirstColumn = false,
+  isFirstDataColumn = false,
 }: BodyRowProps) {
   const {
     sortableScopeKeys,
     overableScopeKeys,
     expandable: expandableConfig,
+    rowSelection,
+    selection,
     onTriggerExpand,
   } = useTableContext();
 
@@ -49,6 +52,7 @@ function BodyCell({
     sortableColumnCellCls,
     overableColumnCellCls,
     expandIconCellCls,
+    selectionCellCls,
     expandTreeCellInnerCls,
     expandIconCls,
     expandIconExpandedCls,
@@ -56,7 +60,8 @@ function BodyCell({
   } = useStyles();
 
   const mergedStyle = useMemo(() => {
-    const { rowSpan, colSpan } = column.onCell?.(rowData, rowIndex) || {}
+    const cellProps = column.onCell?.(rowData, rowIndex) || {}
+    const { rowSpan, colSpan, style: cellStyle, align } = cellProps
     const style: CSSProperties = {}
     if(rowSpan && rowSpan > 1) {
       style.gridRow = `span ${rowSpan}`
@@ -71,11 +76,25 @@ function BodyCell({
     if(fixedInfo.fixEnd !== null) {
       style.right = fixedInfo.fixEnd as number
     }
+    if(align || column.align) {
+      style.textAlign = align || column.align
+    }
 
-    return { ...style, ...column.style }
+    return { ...style, ...column.style, ...cellStyle }
   }, [column.onCell, rowData, rowIndex, fixedInfo.fixStart, fixedInfo.fixEnd, column.style])
 
   const isInternalExpandColumn = isExpandColumn(column)
+  const isInternalSelectionColumn = isSelectionColumn(column)
+  const cellProps = useMemo(() => {
+    const restProps = { ...column.onCell?.(rowData, rowIndex) }
+    delete restProps.rowSpan
+    delete restProps.colSpan
+    delete restProps.style
+    delete restProps.align
+    delete restProps.className
+    return restProps
+  }, [column.onCell, rowData, rowIndex])
+  const cellClassName = useMemo(() => column.onCell?.(rowData, rowIndex)?.className, [column.onCell, rowData, rowIndex])
 
   const handleExpand = (event: MouseEvent<HTMLElement>) => {
     event.stopPropagation()
@@ -116,15 +135,50 @@ function BodyCell({
     )
   }
 
+  const renderSelectionControl = () => {
+    if (!selection || !rowSelection) return null;
+
+    const type = rowSelection.type ?? 'checkbox';
+    const checked = selection.isSelected(rowData);
+    const controlProps = type === 'radio'
+      ? rowSelection.getRadioProps?.(rowData) || {}
+      : rowSelection.getCheckboxProps?.(rowData) || {};
+    const disabled = !!controlProps.disabled;
+    const originNode = type === 'radio'
+      ? (
+        <SelectionRadio
+          {...controlProps}
+          checked={checked}
+          disabled={disabled}
+          onChange={(event) => selection.onSelectRecord(rowData, rowIndex, event)}
+        />
+      )
+      : (
+        <SelectionCheckbox
+          {...controlProps}
+          checked={checked}
+          indeterminate={selection.isHalfSelected(rowData)}
+          disabled={disabled}
+          onChange={(event) => selection.onSelectRecord(rowData, rowIndex, event)}
+        />
+      );
+
+    return rowSelection.renderCell?.(checked, rowData, rowIndex, originNode) ?? originNode;
+  };
+
   let cellValue: ReactNode = undefined;
-  if (!isInternalExpandColumn && column.dataIndex && typeof column.dataIndex === 'string') {
+  if (!isInternalExpandColumn && !isInternalSelectionColumn && column.dataIndex && typeof column.dataIndex === 'string') {
     cellValue = rowData?.[column.dataIndex];
   }
-  if (!isInternalExpandColumn && column.render && typeof column.render === 'function') {
+  if (!isInternalExpandColumn && !isInternalSelectionColumn && column.render && typeof column.render === 'function') {
     cellValue = column.render?.(cellValue, rowData, rowIndex);
   }
 
-  let childrenNode = isInternalExpandColumn ? renderExpandIcon() : cellValue
+  let childrenNode = isInternalExpandColumn
+    ? renderExpandIcon()
+    : isInternalSelectionColumn
+      ? renderSelectionControl()
+      : cellValue
   const ellipsis = !!column.ellipsis
   if(ellipsis) {
     const showTitle = typeof column.ellipsis === "boolean" ? column.ellipsis : column.ellipsis?.showTitle
@@ -132,7 +186,7 @@ function BodyCell({
     childrenNode = <div title={elTitle} className={cellEllipsisInnerCls}>{childrenNode}</div>
   }
 
-  if(!isInternalExpandColumn && isFirstColumn && expandable && !expandableConfig?.expandedRowRender) {
+  if(!isInternalExpandColumn && !isInternalSelectionColumn && isFirstDataColumn && expandable && !expandableConfig?.expandedRowRender) {
     childrenNode = (
       <div
         className={expandTreeCellInnerCls}
@@ -157,10 +211,13 @@ function BodyCell({
           [overableColumnCellCls]: overableScopeKeys?.includes(column.key),
           [sortableColumnCellCls]: sortableScopeKeys?.includes(column.key),
           [expandIconCellCls]: isInternalExpandColumn,
+          [selectionCellCls]: isInternalSelectionColumn,
         },
         column.className,
+        cellClassName,
       )} 
       style={mergedStyle}
+      {...cellProps}
     >
       {childrenNode}
     </div>

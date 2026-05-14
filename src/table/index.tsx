@@ -10,12 +10,14 @@ import { mergeColumnsState } from './utils/mergedColumnsState';
 import useStickyOffsets from './hooks/useStickyOffsets';
 import ScrollProvider from './scrollContext';
 import { useDebounceFn } from 'ahooks';
-import { EXPAND_COLUMN } from './utils/const';
-import { getColumnsWithExpandColumn, getDefaultExpandedRowKeys, getRecordKey } from './utils/expand';
-import { ExpandColumnType } from './interface';
+import { EXPAND_COLUMN, SELECTION_COLUMN } from './utils/const';
+import { getColumnsWithInternalColumns, getDefaultExpandedRowKeys, getRecordKey } from './utils/expand';
+import { ExpandColumnType, SelectionColumnType } from './interface';
+import useSelection from './hooks/useSelection';
 
 type TableComponent = FC<TableProps> & {
   EXPAND_COLUMN: ExpandColumnType;
+  SELECTION_COLUMN: SelectionColumnType;
 }
 
 const Table: TableComponent = ((props) => {
@@ -26,6 +28,7 @@ const Table: TableComponent = ((props) => {
     columns = [],
     dataSource = [],
     expandable,
+    rowSelection,
     columnMinWidth = 100,
     leafColumnMinWidth = 80,
     resizableColumns,
@@ -67,10 +70,16 @@ const Table: TableComponent = ((props) => {
   }, [resizableColumns, sortableColumns, fixableColumns, visibleColumns])
 
   const mergedColumns = useMemo(() => {
-    return getColumnsWithExpandColumn(columns, expandable)
-  }, [columns, expandable])
+    return getColumnsWithInternalColumns(columns, expandable, rowSelection)
+  }, [columns, expandable, rowSelection])
 
   const mergedExpandedRowKeys = expandable?.expandedRowKeys ?? innerExpandedRowKeys
+  const selection = useSelection({
+    rowKey,
+    dataSource,
+    rowSelection,
+    childrenColumnName: expandable?.childrenColumnName,
+  })
 
   const onTriggerExpand = useCallback((record: any) => {
     const key = getRecordKey(record, rowKey)
@@ -157,6 +166,7 @@ const Table: TableComponent = ((props) => {
     rowKey,
     dataSource,
     expandable,
+    rowSelection,
     mergedExpandedRowKeys,
     onTriggerExpand,
     columns: cols,
@@ -184,6 +194,7 @@ const Table: TableComponent = ((props) => {
     },
     innerColumnsState,
     columnsConfig,
+    selection,
   };
 
   return (
@@ -198,5 +209,6 @@ const Table: TableComponent = ((props) => {
 }) as TableComponent;
 
 Table.EXPAND_COLUMN = EXPAND_COLUMN;
+Table.SELECTION_COLUMN = SELECTION_COLUMN;
 
 export default Table;

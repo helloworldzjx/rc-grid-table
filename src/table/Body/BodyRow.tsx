@@ -7,6 +7,7 @@ import { filterCellSpan } from "../utils/handle";
 import { ColumnState, StickyOffsets } from "../interface";
 import useFixedInfo from "../hooks/useFixedInfo";
 import { useTableContext } from "../context";
+import { isInternalColumn } from "../utils/const";
 
 interface BodyRowProps<T = any> {
   rowData: T
@@ -37,6 +38,7 @@ function BodyRow({
   const { bodyRowCls, bodyRowExpandableCls } = useStyles();
   const fixedInfoList = useFixedInfo(flattenColumns, fixedOffset)
   const expandByClick = !!expandableConfig?.expandRowByClick && rowSupportExpand
+  const firstDataColumnIndex = flattenColumns.findIndex((column) => !isInternalColumn(column))
 
   const handleClick = () => {
     if(expandByClick) {
@@ -64,7 +66,7 @@ function BodyRow({
             expanded={expanded}
             expandable={expandable}
             rowSupportExpand={rowSupportExpand}
-            isFirstColumn={colIndex === 0}
+            isFirstDataColumn={colIndex === firstDataColumnIndex}
           />
         )
       })}

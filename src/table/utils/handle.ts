@@ -1,7 +1,7 @@
 import { isValidElement, Key, type ReactNode } from "react"
 
 import type { CellType, ColumnsType, ColumnType, ColumnState } from "../interface";
-import { DEFAULT_EXPAND_COLUMN_WIDTH, isExpandColumn } from "./const";
+import { DEFAULT_EXPAND_COLUMN_WIDTH, DEFAULT_SELECTION_COLUMN_WIDTH, isInternalColumn, isSelectionColumn } from "./const";
 
 export const getEllipsisTitle = (children: ReactNode) => {
   let title = children
@@ -103,8 +103,8 @@ export function filterColumns<T = any>(columns: ColumnsType<T>, parentKey: Key =
   if (!Array.isArray(columns)) return [];
   
   return columns.reduce((result: ColumnState<T>[], column: ColumnType<T>, index: number) => {
-    if(isExpandColumn(column)) {
-      const width = column.width ?? DEFAULT_EXPAND_COLUMN_WIDTH;
+    if(isInternalColumn(column)) {
+      const width = column.width ?? (isSelectionColumn(column) ? DEFAULT_SELECTION_COLUMN_WIDTH : DEFAULT_EXPAND_COLUMN_WIDTH);
       result.push({
         ...column,
         title: column.title ?? '',
@@ -190,8 +190,8 @@ export function flattenColumnsWithTotalWidth<T>(
     depth: number = 0
   ) {
     cols.forEach((column, index) => {
-      if(isExpandColumn(column)) {
-        let width = column.width ?? DEFAULT_EXPAND_COLUMN_WIDTH
+      if(isInternalColumn(column)) {
+        let width = column.width ?? (isSelectionColumn(column) ? DEFAULT_SELECTION_COLUMN_WIDTH : DEFAULT_EXPAND_COLUMN_WIDTH)
         if(typeof width === 'string') {
           width = parseFloat(width.substring(0, width.length - 1)) / 100 * containerWidth
           width = parseFloat(width.toFixed(2))

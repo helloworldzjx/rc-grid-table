@@ -33,6 +33,13 @@ type ComponentClsType = {
   cellEllipsisCls: string
   cellEllipsisInnerCls: string
   expandIconCellCls: string
+  selectionCellCls: string
+  selectionControlCls: string
+  selectionCheckboxCls: string
+  selectionRadioCls: string
+  selectionControlCheckedCls: string
+  selectionControlIndeterminateCls: string
+  selectionControlDisabledCls: string
   expandIconCls: string
   expandIconExpandedCls: string
   expandIconSpacedCls: string
@@ -235,6 +242,13 @@ const genCellStyle = (
     cellEllipsisCls,
     cellEllipsisInnerCls,
     expandIconCellCls,
+    selectionCellCls,
+    selectionControlCls,
+    selectionCheckboxCls,
+    selectionRadioCls,
+    selectionControlCheckedCls,
+    selectionControlIndeterminateCls,
+    selectionControlDisabledCls,
     expandIconCls,
     expandIconExpandedCls,
     expandIconSpacedCls,
@@ -347,6 +361,82 @@ const genCellStyle = (
   [`.${expandIconCellCls}`]: {
     paddingInline: 0,
     textAlign: 'center',
+  },
+
+  [`.${selectionCellCls}`]: {
+    paddingInline: 0,
+    textAlign: 'center',
+  },
+
+  [`.${selectionControlCls}`]: {
+    position: 'relative',
+    display: 'inline-block',
+    width: 16,
+    height: 16,
+    margin: 0,
+    padding: 0,
+    border: `1px solid ${token.colorBorder}`,
+    backgroundColor: token.colorBgContainer,
+    color: token.colorBgContainer,
+    cursor: 'pointer',
+    verticalAlign: 'middle',
+    boxSizing: 'border-box',
+    transition: 'border-color 0.2s, background-color 0.2s',
+  },
+
+  [`.${selectionCheckboxCls}`]: {
+    borderRadius: 2,
+  },
+
+  [`.${selectionRadioCls}`]: {
+    borderRadius: '50%',
+  },
+
+  [`.${selectionCheckboxCls}.${selectionControlCheckedCls}, .${selectionCheckboxCls}.${selectionControlIndeterminateCls}, .${selectionRadioCls}.${selectionControlCheckedCls}`]: {
+    borderColor: token.colorPrimary,
+    backgroundColor: token.colorPrimary,
+  },
+
+  [`.${selectionCheckboxCls}.${selectionControlCheckedCls}::after`]: {
+    content: "' '",
+    position: 'absolute',
+    left: 4,
+    top: 1,
+    width: 5,
+    height: 9,
+    border: `solid ${token.colorBgContainer}`,
+    borderWidth: '0 2px 2px 0',
+    transform: 'rotate(45deg)',
+  },
+
+  [`.${selectionCheckboxCls}.${selectionControlIndeterminateCls}::after`]: {
+    content: "' '",
+    position: 'absolute',
+    left: 3,
+    right: 3,
+    top: 6,
+    height: 2,
+    backgroundColor: token.colorBgContainer,
+  },
+
+  [`.${selectionRadioCls}.${selectionControlCheckedCls}::after`]: {
+    content: "' '",
+    position: 'absolute',
+    inset: 4,
+    borderRadius: '50%',
+    backgroundColor: token.colorBgContainer,
+  },
+
+  [`.${selectionControlDisabledCls}`]: {
+    borderColor: token.colorBorder,
+    backgroundColor: token.colorBgLayout,
+    cursor: 'not-allowed',
+    opacity: 0.65,
+  },
+
+  [`.${selectionControlDisabledCls}.${selectionControlCheckedCls}, .${selectionControlDisabledCls}.${selectionControlIndeterminateCls}`]: {
+    borderColor: token.colorBorder,
+    backgroundColor: token.colorBorder,
   },
 
   [`.${expandTreeCellInnerCls}`]: {
@@ -650,6 +740,13 @@ export const useStyles = () => {
     cellEllipsisCls: `${prefixCls}-cell-ellipsis`,
     cellEllipsisInnerCls: `${prefixCls}-cell-ellipsis-inner`,
     expandIconCellCls: `${prefixCls}-expand-icon-cell`,
+    selectionCellCls: `${prefixCls}-selection-cell`,
+    selectionControlCls: `${prefixCls}-selection-control`,
+    selectionCheckboxCls: `${prefixCls}-selection-checkbox`,
+    selectionRadioCls: `${prefixCls}-selection-radio`,
+    selectionControlCheckedCls: `${prefixCls}-selection-control-checked`,
+    selectionControlIndeterminateCls: `${prefixCls}-selection-control-indeterminate`,
+    selectionControlDisabledCls: `${prefixCls}-selection-control-disabled`,
     expandIconCls: `${prefixCls}-expand-icon`,
     expandIconExpandedCls: `${prefixCls}-expand-icon-expanded`,
     expandIconSpacedCls: `${prefixCls}-expand-icon-spaced`,

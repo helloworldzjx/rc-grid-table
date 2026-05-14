@@ -10,6 +10,8 @@ import { useTableContext } from "../context"
 import { useStyles } from "../style"
 import { CellType, ColumnState } from "../interface";
 import { getMergedSpanKeys } from "../utils/calc";
+import { isSelectionColumn } from "../utils/const";
+import { SelectionCheckbox } from "../Selection";
 
 interface HeadCellProps<T = any> {
   column: CellType<T>
@@ -41,6 +43,8 @@ function HeadCell({
     middleState,
     updateMiddleState,
     columnsConfig,
+    rowSelection,
+    selection,
   } = useTableContext();
 
   const {
@@ -96,9 +100,12 @@ function HeadCell({
     if(fixedInfo.fixEnd !== null) {
       style.right = fixedInfo.fixEnd as number
     }
+    if(col.column?.align) {
+      style.textAlign = col.column.align
+    }
 
     return { ...style, ...col.column?.style }
-  }, [col.rowSpan, col.colSpan, fixedInfo.fixStart, fixedInfo.fixEnd, col.column?.style])
+  }, [col.rowSpan, col.colSpan, fixedInfo.fixStart, fixedInfo.fixEnd, col.column?.align, col.column?.style])
   
   const mergedSpanKeys = useMemo(() => {
     return getMergedSpanKeys(
@@ -202,7 +209,28 @@ function HeadCell({
 
   /** 列拖拽排序 end */
 
+  const isInternalSelectionColumn = isSelectionColumn(col.column)
   let childrenNode = col.children
+  if(isInternalSelectionColumn) {
+    if((rowSelection?.type ?? 'checkbox') === 'radio' || rowSelection?.hideSelectAll) {
+      childrenNode = null
+    } else {
+      const checkboxProps = rowSelection?.getTitleCheckboxProps?.() || {}
+      const disabled = !!checkboxProps.disabled
+      const originNode = (
+        <SelectionCheckbox
+          {...checkboxProps}
+          checked={!!selection?.isAllSelected}
+          indeterminate={!!selection?.isPartiallySelected}
+          disabled={disabled}
+          onChange={(event) => selection?.onSelectAll(event)}
+        />
+      )
+      childrenNode = typeof rowSelection?.columnTitle === 'function'
+        ? rowSelection.columnTitle(originNode)
+        : rowSelection?.columnTitle ?? originNode
+    }
+  }
   const ellipsis = !!col.column?.ellipsis
   if(ellipsis) {
     const showTitle = typeof col.column?.ellipsis === "boolean" ? col.column?.ellipsis : col.column?.ellipsis?.showTitle
