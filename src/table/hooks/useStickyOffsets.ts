@@ -15,7 +15,8 @@ function useStickyOffsets<RecordType>(
     const getOffsets = (startIndex: number, endIndex: number, offset: number): [offsets: number[], hasFixedColumns: boolean, fixColumnsGapped: boolean] => {
       const offsets: number[] = [];
       let total = 0;
-      let fixColumnsGapped = false
+      let hasFixedColumns = false;
+      let fixColumnsGapped = false;
 
       for (let i = startIndex; i !== endIndex; i += offset) {
         offsets.push(total);
@@ -23,8 +24,11 @@ function useStickyOffsets<RecordType>(
         if (flattenColumns[i].fixed) {
           total += colWidths[i] || 0;
 
-          const prevIndex = i - offset
           const fixed = offset === 1 ? 'start' : 'end'
+          if(flattenColumns[i].fixed === fixed) {
+            hasFixedColumns = true
+          }
+          const prevIndex = i - offset
           if(flattenColumns[prevIndex] && flattenColumns[i].fixed === fixed && !flattenColumns[prevIndex].fixed) {
             fixColumnsGapped = true
           }
@@ -33,7 +37,7 @@ function useStickyOffsets<RecordType>(
 
       return [
         offsets,
-        !!total,
+        hasFixedColumns,
         fixColumnsGapped,
       ];
     };
@@ -46,6 +50,8 @@ function useStickyOffsets<RecordType>(
       end: endOffsets.reverse(),
       widths: colWidths,
       hasFixColumns: hasStartFixedColumns || hasEndFixedColumns,
+      hasFixStartColumns: hasStartFixedColumns,
+      hasFixEndColumns: hasEndFixedColumns,
       fixColumnsGapped: startFixColumnsGapped || endFixColumnsGapped
     };
   }, [colWidths, flattenColumns]);

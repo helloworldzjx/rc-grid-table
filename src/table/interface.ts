@@ -22,6 +22,8 @@ export interface StickyOffsets {
   widths: readonly number[];
   isSticky?: boolean;
   hasFixColumns: boolean
+  hasFixStartColumns: boolean
+  hasFixEndColumns: boolean
   fixColumnsGapped: boolean
 }
 

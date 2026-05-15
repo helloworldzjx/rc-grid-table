@@ -39,7 +39,7 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
     borderedCls, stripeCls, hasSummaryCls,
     noDataCls, contentCls, 
     hasXScrollbarCls, hasYScrollbarCls,
-    hasFixColumnsCls, fixColumnsGappedCls, pingStartCls, pingEndCls,
+    hasFixColumnsCls, hasFixStartColumnsCls, hasFixEndColumnsCls, fixColumnsGappedCls, pingStartCls, pingEndCls,
     bodyCls, bodyInnerCls, bodyRowCls, 
     cellCls, noDataCellCls, noDataCellContentCls, 
   } = useStyles();
@@ -111,6 +111,8 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
               [noDataCls]: !dataSource?.length,
               [hasSummaryCls]: hasSummary,
               [hasFixColumnsCls]: hasFixedColumns,
+              [hasFixStartColumnsCls]: fixedOffset.hasFixStartColumns,
+              [hasFixEndColumnsCls]: fixedOffset.hasFixEndColumns,
               [fixColumnsGappedCls]: fixColumnsGapped,
               [pingStartCls]: !isStart,
               [pingEndCls]: !isEnd,

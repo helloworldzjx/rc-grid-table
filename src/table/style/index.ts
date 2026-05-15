@@ -17,6 +17,8 @@ type ComponentClsType = {
   stripeCls: string
   noDataCls: string
   hasFixColumnsCls: string
+  hasFixStartColumnsCls: string
+  hasFixEndColumnsCls: string
   fixColumnsGappedCls: string
   pingStartCls: string
   pingEndCls: string
@@ -140,7 +142,6 @@ const genBorderedStyle = (
   
   [`.${borderedCls}`]: {
     borderRadius: token.borderRadius,
-    // boxShadow: `0px 0.5px 0.5px ${token.colorBorder}, 0px -0.5px 0.5px ${token.colorBorder}, inset 0.5px 0px 0.5px ${adjustColor(token.colorBorder, {r: -5, g: -5, b: -5})}, 0.5px 0px 0.5px ${token.colorBorder}`,
 
     '&::before': {
       border: `1px solid ${token.colorBorder}`,
@@ -148,7 +149,6 @@ const genBorderedStyle = (
     },
 
     [`.${headRowCls} .${cellCls}::before`]: {
-      // content: "none",
       display: 'none',
     },
 
@@ -562,7 +562,8 @@ const genFixedCellStyle = (
 
 const genFixedShadowStyle = ({
   componentCls,
-  hasFixColumnsCls,
+  hasFixStartColumnsCls,
+  hasFixEndColumnsCls,
   fixColumnsGappedCls,
   pingStartCls,
   pingEndCls,
@@ -583,6 +584,9 @@ const genFixedShadowStyle = ({
       pointerEvents: 'none',
       zIndex: 2,
     },
+    [`&.${hasFixStartColumnsCls}.${hasFixEndColumnsCls}::after`]: {
+      display: 'none',
+    },
 
     [`&.${pingStartCls}::after`]: {
       boxShadow: 'inset 10px 0 8px -8px rgba(0, 0, 0, 0.1)',
@@ -593,19 +597,31 @@ const genFixedShadowStyle = ({
     [`&.${pingStartCls}.${pingEndCls}::after`]: {
       boxShadow: 'inset -10px 0 8px -8px rgba(0, 0, 0, 0.1), inset 10px 0 8px -8px rgba(0, 0, 0, 0.1)',
     },
-  },
-  [`.${hasFixColumnsCls}::after`]: {
-    display: 'none',
-  },
-  
-  [`.${componentCls}.${pingStartCls}:not(.${fixColumnsGappedCls}) .${cellFixedStartLastCls}::after`]: {
-    boxShadow: 'inset 10px 0 8px -8px rgba(0, 0, 0, 0.1)',
-  },
-  [`.${componentCls}.${pingEndCls}:not(.${fixColumnsGappedCls}) .${cellFixedEndFirstCls}::after`]: {
+
+    [`&.${hasFixStartColumnsCls}:not(.${hasFixEndColumnsCls}).${pingStartCls}:not(.${pingEndCls})::after`]: {
+      boxShadow: 'none',
+    },
+    [`&.${hasFixStartColumnsCls}:not(.${hasFixEndColumnsCls}).${pingStartCls}.${pingEndCls}::after`]: {
     boxShadow: 'inset -10px 0 8px -8px rgba(0, 0, 0, 0.1)',
-  },
-  [`.${pingStartCls} .${headRowCls} .${cellFixedStartLastCls}::before`]: {
-    display: 'none',
+    },
+    [`&.${hasFixEndColumnsCls}:not(.${hasFixStartColumnsCls}).${pingEndCls}:not(.${pingStartCls})::after`]: {
+      boxShadow: 'none',
+    },
+    [`&.${hasFixEndColumnsCls}:not(.${hasFixStartColumnsCls}).${pingStartCls}.${pingEndCls}::after`]: {
+      boxShadow: 'inset 10px 0 8px -8px rgba(0, 0, 0, 0.1)',
+    },
+
+    [`&.${pingStartCls}:not(.${fixColumnsGappedCls}) .${cellFixedStartLastCls}::after`]: {
+      boxShadow: 'inset 10px 0 8px -8px rgba(0, 0, 0, 0.1)',
+    },
+    [`&.${pingEndCls}:not(.${fixColumnsGappedCls}) .${cellFixedEndFirstCls}::after`]: {
+      boxShadow: 'inset -10px 0 8px -8px rgba(0, 0, 0, 0.1)',
+    },
+
+    // 左侧最后一列固定列显示阴影时不显示使用::before制作的分割线border
+    [`&.${pingStartCls} .${headRowCls} .${cellFixedStartLastCls}::before`]: {
+      display: 'none',
+    },
   },
 });
 
@@ -658,7 +674,6 @@ const genStripeClsStyle = (
   }: ComponentClsType,
   token: ComponentToken
 ): CSSInterpolation => ({
-  // 这里使用nth-of-type去判断，后面展开行会使用p元素
   [`.${stripeCls} .${bodyRowCls}:nth-of-type(even) .${cellCls}`]: {
     backgroundColor: token.colorBgLayout,
   }
@@ -724,6 +739,8 @@ export const useStyles = () => {
     stripeCls: `${prefixCls}-stripe`,
     noDataCls: `${prefixCls}-no-data`,
     hasFixColumnsCls: `${prefixCls}-has-fix-columns`,
+    hasFixStartColumnsCls: `${prefixCls}-has-fix-start-columns`,
+    hasFixEndColumnsCls: `${prefixCls}-has-fix-end-columns`,
     fixColumnsGappedCls: `${prefixCls}-fix-columns-gapped`,
     pingStartCls: `${prefixCls}-ping-start`,
     pingEndCls: `${prefixCls}-ping-end`,
