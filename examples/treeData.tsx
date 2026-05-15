@@ -15,7 +15,7 @@ interface DataType {
 }
 
 const App: React.FC = () => {
-  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>(['1']);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>(['1', '1-1', '1-1-1', '1-2']);
   const [checkStrictly, setCheckStrictly] = useState(false);
 
   // 列数组

@@ -201,7 +201,7 @@ function HeadCell({
       if(event.active.id !== col.key || event.over?.id === col.key || event.active.data.current?.column?.parentKey !== event.over?.data.current?.column?.parentKey || event.active.data.current?.type !== 'sortableColumns') return
       const overColumn = event.over?.data.current?.column as ColumnState
       const overSpanKeys = getMergedSpanKeys(overColumn, flattenColumns)
-      // 当前排序靠后的列在拖拽后，下次重新排序会在前面
+      // 排序靠后的列在拖拽排序后，下次排序会在前面
       const isNextFront = col.column?.order as number > overColumn.order
       updateState(isNextFront ? mergedSpanKeys : overSpanKeys, isNextFront ? overSpanKeys : mergedSpanKeys)
     },

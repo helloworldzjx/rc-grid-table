@@ -103,7 +103,7 @@ export interface ColumnProps<T = any> {
   __RC_GRID_TABLE_SELECTION_COLUMN?: true;
   title?: ReactNode;
   render?: (value: any, record: T, rowIndex: number) => ReactNode;
-  /** 列宽，仅支持数字和百分比数字，不支持px的写法 */
+  /** 列宽，仅支持数字和百分比数字，不支持px的字符串写法 */
   width?: number | PercentColumnWidthType;
   align?: AlignType;
   fixed?: FixedType;
