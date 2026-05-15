@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { Space, Tag } from 'antd';
+import { Space, Tag, Typography } from 'antd';
 import { Table } from 'rc-grid-table';
 import type { TableProps } from 'rc-grid-table/es/table/interface';
 import ConfigActions from './_utils/components/ConfigActions';
 import useConfigActions from './_utils/hooks/useConfigActions';
+
+const { Text } = Typography;
 
 interface DataType {
   key: React.Key;
@@ -49,7 +51,7 @@ const App: React.FC = () => {
     },
   ];
 
-  const data: DataType[] = [
+  const checkboxData: DataType[] = [
     {
       key: '1',
       name: 'Operations Center',
@@ -82,6 +84,30 @@ const App: React.FC = () => {
     },
   ];
 
+  const radioData: DataType[] = [
+    {
+      key: '1',
+      name: 'Operations Center',
+      role: 'Department',
+      department: 'Operations',
+      status: 'Active',
+    },
+    {
+      key: '2',
+      name: 'Product Center',
+      role: 'Department',
+      department: 'Product',
+      status: 'Pending',
+    },
+    {
+      key: '3',
+      name: 'Finance Center',
+      role: 'Department',
+      department: 'Finance',
+      status: 'Disabled',
+    },
+  ];
+
   const { baseProps, state, onChange } = useConfigActions({ bordered: true });
 
   return (
@@ -91,7 +117,7 @@ const App: React.FC = () => {
         <Table
           {...baseProps}
           columns={columns}
-          dataSource={data}
+          dataSource={checkboxData}
           rowSelection={{
             selectedRowKeys,
             checkStrictly: false,
@@ -111,11 +137,36 @@ const App: React.FC = () => {
         <Table
           {...baseProps}
           columns={columns}
-          dataSource={data}
+          dataSource={radioData}
           rowSelection={{
             type: 'radio',
             selectedRowKeys: radioSelectedRowKeys,
+            getRadioProps: (record) => ({
+              disabled: record.status === 'Disabled',
+              title: record.status === 'Disabled' ? 'Disabled record' : undefined,
+            }),
             onChange: (keys) => setRadioSelectedRowKeys(keys),
+          }}
+          summary={(pageData) => {
+            const disabledCount = pageData.filter((record) => record.status === 'Disabled').length;
+            const selectedRecord = pageData.find((record) => radioSelectedRowKeys.includes(record.key));
+
+            return [
+              [
+                // 空出选择列
+                { children: null },
+                {
+                  children: (
+                    <div>
+                      总计: <Text type="danger">Total {pageData.length}</Text>
+                    </div>
+                  )
+                },
+                { children: <Text type="danger">Available: {pageData.length - disabledCount}</Text> },
+                { children: <Text type="danger">Disabled: {disabledCount}</Text> },
+                { children: <Text type="danger">{selectedRecord ? `Selected: ${selectedRecord.name}` : 'Selected: -'}</Text> },
+              ],
+            ];
           }}
         />
       </Space>

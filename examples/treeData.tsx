@@ -1,5 +1,5 @@
-import React from 'react';
-import { Tag } from 'antd';
+import React, { useState } from 'react';
+import { Space, Switch, Tag } from 'antd';
 import { Table } from 'rc-grid-table';
 import type { TableProps } from 'rc-grid-table/es/table/interface';
 import ConfigActions from './_utils/components/ConfigActions';
@@ -15,6 +15,9 @@ interface DataType {
 }
 
 const App: React.FC = () => {
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>(['1']);
+  const [checkStrictly, setCheckStrictly] = useState(false);
+
   // 列数组
   const columns: TableProps<DataType>['columns'] = [
     {
@@ -105,15 +108,26 @@ const App: React.FC = () => {
   return (
     <>
       <ConfigActions value={state} onChange={onChange} />
-      <Table
-        {...baseProps}
-        columns={columns}
-        dataSource={data}
-        expandable={{
-          defaultExpandedRowKeys: ['1', '1-1'],
-          indentSize: 24,
-        }}
-      />
+      <Space direction="vertical" size={16} style={{ width: '100%' }}>
+        <Space>
+          <span>checkStrictly</span>
+          <Switch checked={checkStrictly} onChange={setCheckStrictly} />
+        </Space>
+        <Table
+          {...baseProps}
+          columns={columns}
+          dataSource={data}
+          rowSelection={{
+            selectedRowKeys,
+            checkStrictly,
+            onChange: (keys) => setSelectedRowKeys(keys),
+          }}
+          expandable={{
+            defaultExpandedRowKeys: ['1', '1-1'],
+            indentSize: 24,
+          }}
+        />
+      </Space>
     </>
   );
 };
