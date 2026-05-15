@@ -1,5 +1,7 @@
 import { CSSProperties, HTMLAttributes, ReactNode, RefAttributes } from "react";
 
+export type ScrollElementController = HTMLDivElement | (() => HTMLDivElement | undefined);
+
 export interface ScrollBarContainerProps
   extends RefAttributes<HTMLDivElement>,
     HTMLAttributes<HTMLDivElement> {
@@ -12,9 +14,9 @@ export interface ScrollBarContainerProps
     content?: CSSProperties;
   };
   childrenNextSibling?: ReactNode
-  contentController?: HTMLDivElement
-  horizontalThumbController?: HTMLDivElement
-  stickyHorizontalController?: HTMLDivElement
+  contentController?: ScrollElementController
+  horizontalThumbController?: ScrollElementController
+  stickyHorizontalController?: ScrollElementController
   shouldHorizontalUpdate?: any[];
   shouldVerticalUpdate?: any[];
   showHorizontal?: boolean | { offsetTop?: number | string, offsetBottom?: number | string };

@@ -2,11 +2,16 @@ import { MouseEventHandler, UIEventHandler, useCallback, useEffect, useMemo, use
 import { useDebounceEffect } from "ahooks";
 
 import { useTableContext } from "../../table/context";
-import { ScrollBarContainerProps } from "../interface";
+import { ScrollBarContainerProps, ScrollElementController } from "../interface";
 
 interface UseScrollProps extends Omit<ScrollBarContainerProps, 'classNames'> {
   
 }
+
+
+const getControllerElement = (controller?: ScrollElementController) => {
+  return typeof controller === 'function' ? controller() : controller;
+};
 
 const useScroll = ({
   contentController,
@@ -65,7 +70,7 @@ const useScroll = ({
 
   // 横向滚动条计算
   const updateHorizontalScrollbar = useCallback(() => {
-    const content = contentController || contentRef.current
+    const content = getControllerElement(contentController) || contentRef.current
     if (!wrapperRef.current || !content) return;
 
     const wrapperWidth = wrapperRef.current.clientWidth;
@@ -80,7 +85,7 @@ const useScroll = ({
       const ratio = wrapperWidth / contentWidth;
       setHorizontalThumbWidth(Math.max(ratio * wrapperWidth, 20));
     }
-  }, [containerWidth, showHorizontal, ...shouldHorizontalUpdate]);
+  }, [contentController, containerWidth, showHorizontal, ...shouldHorizontalUpdate]);
 
   // 纵向滚动条计算
   const updateVerticalScrollbar = useCallback(() => {
@@ -108,31 +113,37 @@ const useScroll = ({
     updateVerticalScrollbar();
   }, [updateVerticalScrollbar], { wait: 0 });
 
-  // 内容滚动事件
-  const handleContentScroll: UIEventHandler<HTMLDivElement> = useCallback((e) => {
-    onScroll?.(e)
-    
-    const content = contentRef.current;
-    if (!content) return;
-
+  const syncHorizontalScrollbar = useCallback((content: HTMLDivElement) => {
     const hMaxScroll = content.scrollWidth - content.clientWidth;
-    const vMaxScroll = content.scrollHeight - content.clientHeight;
     const contentScrollLeft = content.scrollLeft
 
     const leftPercent = hMaxScroll > 0 ? contentScrollLeft / hMaxScroll : 0;
-    const topPercent = vMaxScroll > 0 ? content.scrollTop / vMaxScroll : 0;
+    const controlledHorizontalThumb = getControllerElement(horizontalThumbController);
+    const horizontalThumb = controlledHorizontalThumb || (!!showHorizontal ? horizontalThumbRef.current : undefined);
 
-    if (horizontalThumbController || (horizontalThumbRef.current && !!showHorizontal)) {
-      const horizontalThumb = horizontalThumbController || horizontalThumbRef.current!
+    if (horizontalThumb) {
       const trackWidth = horizontalThumb.parentElement!.clientWidth;
       const maxTranslateX = trackWidth - (horizontalThumbWidth || horizontalThumb.offsetWidth);
       const translateX = leftPercent * maxTranslateX;
       horizontalThumb.style.transform = `translateX(${translateX}px)`;
-      if(stickyHorizontalController || !!showStickyHorizontalScrollBar) {
-        const stickyHorizontalThumb = stickyHorizontalController || stickyHorizontalThumbRef.current
-        stickyHorizontalThumb!.style.transform = `translateX(${translateX}px)`;
+
+      const controlledStickyHorizontalThumb = getControllerElement(stickyHorizontalController);
+      const stickyHorizontalThumb = controlledStickyHorizontalThumb || stickyHorizontalThumbRef.current;
+      if(stickyHorizontalThumb && (controlledStickyHorizontalThumb || !!showStickyHorizontalScrollBar)) {
+        stickyHorizontalThumb.style.transform = `translateX(${translateX}px)`;
       }
     }
+  }, [
+    horizontalThumbController,
+    horizontalThumbWidth,
+    showHorizontal,
+    showStickyHorizontalScrollBar,
+    stickyHorizontalController,
+  ]);
+
+  const syncVerticalScrollbar = useCallback((content: HTMLDivElement) => {
+    const vMaxScroll = content.scrollHeight - content.clientHeight;
+    const topPercent = vMaxScroll > 0 ? content.scrollTop / vMaxScroll : 0;
 
     if (verticalThumbRef.current && !!showVertical) {
       const trackHeight = verticalThumbRef.current.parentElement!.clientHeight;
@@ -140,14 +151,22 @@ const useScroll = ({
       const translateY = topPercent * maxTranslateY;
       verticalThumbRef.current.style.transform = `translateY(${translateY}px)`;
     }
-  }, [horizontalThumbWidth, verticalThumbHeight, showHorizontal, showVertical, showStickyHorizontalScrollBar]);
+  }, [showVertical, verticalThumbHeight]);
+
+  // 内容滚动事件
+  const handleContentScroll: UIEventHandler<HTMLDivElement> = useCallback((e) => {
+    onScroll?.(e)
+
+    syncHorizontalScrollbar(e.currentTarget);
+    syncVerticalScrollbar(e.currentTarget);
+  }, [onScroll, syncHorizontalScrollbar, syncVerticalScrollbar]);
 
   // 拖拽横向滚动条
   const handleHorizontalDrag: MouseEventHandler<HTMLDivElement> = useCallback(
     (e) => {
       const track = e.currentTarget;
-      const thumb = horizontalThumbRef.current;
-      const stickyThumb = stickyHorizontalThumbRef.current;
+      const thumb = getControllerElement(horizontalThumbController) || horizontalThumbRef.current;
+      const stickyThumb = getControllerElement(stickyHorizontalController) || stickyHorizontalThumbRef.current;
       if (!thumb) return;
 
       wrapperRef.current!.style.userSelect = 'none';
@@ -168,10 +187,12 @@ const useScroll = ({
         newTranslateX = Math.min(Math.max(newTranslateX, 0), maxTranslateX);
 
         thumb.style.transform = `translateX(${newTranslateX}px)`;
-        stickyThumb!.style.transform = `translateX(${newTranslateX}px)`;
+        if(stickyThumb) {
+          stickyThumb.style.transform = `translateX(${newTranslateX}px)`;
+        }
 
         const percent = newTranslateX / maxTranslateX;
-        const content = contentController || contentRef.current;
+        const content = getControllerElement(contentController) || contentRef.current;
         const hMaxScroll = content!.scrollWidth - content!.clientWidth
         content!.scrollLeft = percent * hMaxScroll;
       };
@@ -185,7 +206,7 @@ const useScroll = ({
       document.documentElement.addEventListener('mousemove', moveHandler);
       document.documentElement.addEventListener('mouseup', upHandler);
     },
-    [horizontalThumbWidth],
+    [contentController, horizontalThumbController, horizontalThumbWidth, stickyHorizontalController],
   );
 
   // 拖拽纵向滚动条

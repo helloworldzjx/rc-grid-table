@@ -1,4 +1,4 @@
-import React, { forwardRef, useMemo, useRef } from 'react';
+import React, { forwardRef, useCallback, useMemo, useRef } from 'react';
 import classNames from 'classnames';
 import { Empty, Spin } from 'antd';
 import warning from '@rc-component/util/lib/warning';
@@ -47,6 +47,9 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
   const tableRef = useRef<ScrollBarContainerRef>(null);
   const tableHeadRef = useRef<HeadRef>(null);
   const tableSummaryRef = useRef<HTMLDivElement>(null);
+  const getTableBodyScrollElement = useCallback(() => tableBodyRef.current?.nativeScrollElement, [tableBodyRef]);
+  const getTableHorizontalThumbElement = useCallback(() => tableRef.current?.nativeHorizontalThumbElement, []);
+  const getTableStickyHorizontalElement = useCallback(() => tableRef.current?.nativeStickyHorizontalElement, []);
   useSyncScroll(tableHeadRef.current?.nativeElement, tableBodyRef.current?.nativeScrollElement, tableSummaryRef.current!);
   
   const gridTemplateColumns = flattenColumnsWidths?.length ? `${flattenColumnsWidths?.join('px ')}px` : ''
@@ -123,7 +126,7 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
           styles={{content: {
             [`--${prefixCls}-cols-width`]: gridTemplateColumns
           }}}
-          contentController={tableBodyRef.current?.nativeScrollElement}
+          contentController={getTableBodyScrollElement}
           shouldHorizontalUpdate={[columnsWidthTotal]}
           shouldVerticalUpdate={[flattenData, mergedExpandedRowKeys, columnsWidthTotal]}
           showHorizontal
@@ -138,8 +141,8 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
             className={bodyCls} 
             classNames={{inner: bodyInnerCls}}
             style={tableHeight}
-            horizontalThumbController={tableRef.current?.nativeHorizontalThumbElement}
-            stickyHorizontalController={tableRef.current?.nativeStickyHorizontalElement}
+            horizontalThumbController={getTableHorizontalThumbElement}
+            stickyHorizontalController={getTableStickyHorizontalElement}
             shouldVerticalUpdate={[flattenData, mergedExpandedRowKeys, columnsWidthTotal]}
             showHorizontal={false}
             showVertical={!!scrollY ? {
