@@ -1,13 +1,12 @@
 import type { Key } from "react";
 
-import type { ColumnType, ColumnsType, ExpandableConfig, TableRowSelection } from "../interface";
+import type { ColumnType, ColumnsType, ExpandableConfig, SizeType, TableRowSelection } from "../interface";
 import {
-  DEFAULT_EXPAND_COLUMN_WIDTH,
-  DEFAULT_SELECTION_COLUMN_WIDTH,
   EXPAND_COLUMN,
   INTERNAL_EXPAND_COLUMN_KEY,
   INTERNAL_SELECTION_COLUMN_KEY,
   SELECTION_COLUMN,
+  getDefaultInternalColumnWidth,
   isExpandColumn,
   isSelectionColumn,
 } from "./const";
@@ -125,10 +124,11 @@ const removeInternalColumns = <T = any>(columns: ColumnsType<T>): ColumnsType<T>
 export const getColumnsWithExpandColumn = <T = any>(
   columns: ColumnsType<T> = [],
   expandable: ExpandableConfig<T> = {},
+  size?: SizeType,
 ): ColumnsType<T> => {
   const {
     columnTitle,
-    columnWidth = DEFAULT_EXPAND_COLUMN_WIDTH,
+    columnWidth,
     expandedRowRender,
     fixed,
     showExpandColumn = true,
@@ -143,7 +143,7 @@ export const getColumnsWithExpandColumn = <T = any>(
     ...EXPAND_COLUMN,
     key: INTERNAL_EXPAND_COLUMN_KEY,
     title: columnTitle,
-    width: columnWidth,
+    width: columnWidth ?? getDefaultInternalColumnWidth(size),
     fixed,
   } as ColumnType<T>;
   let inserted = false;
@@ -169,10 +169,11 @@ export const getColumnsWithInternalColumns = <T = any>(
   columns: ColumnsType<T> = [],
   expandable: ExpandableConfig<T> = {},
   rowSelection?: TableRowSelection<T>,
+  size?: SizeType,
 ): ColumnsType<T> => {
   const {
     columnTitle,
-    columnWidth = DEFAULT_EXPAND_COLUMN_WIDTH,
+    columnWidth,
     expandedRowRender,
     fixed,
     showExpandColumn = true,
@@ -189,14 +190,14 @@ export const getColumnsWithInternalColumns = <T = any>(
     ...EXPAND_COLUMN,
     key: INTERNAL_EXPAND_COLUMN_KEY,
     title: columnTitle,
-    width: columnWidth,
+    width: columnWidth ?? getDefaultInternalColumnWidth(size),
     fixed,
   } as ColumnType<T> : null;
   const selectionColumn = shouldShowSelectionColumn ? {
     ...SELECTION_COLUMN,
     key: INTERNAL_SELECTION_COLUMN_KEY,
     title: '',
-    width: rowSelection?.columnWidth ?? DEFAULT_SELECTION_COLUMN_WIDTH,
+    width: rowSelection?.columnWidth ?? getDefaultInternalColumnWidth(size),
     fixed: rowSelection?.fixed,
     align: rowSelection?.align ?? 'center',
     onCell: rowSelection?.onCell,

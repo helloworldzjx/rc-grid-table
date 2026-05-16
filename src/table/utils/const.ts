@@ -1,9 +1,16 @@
-import type { ExpandColumnType, SelectionColumnType } from "../interface";
+import type { ExpandColumnType, SelectionColumnType, SizeType } from "../interface";
 
 export const INTERNAL_EXPAND_COLUMN_KEY = '__RC_GRID_TABLE_EXPAND_COLUMN__';
 export const INTERNAL_SELECTION_COLUMN_KEY = '__RC_GRID_TABLE_SELECTION_COLUMN__';
-export const DEFAULT_EXPAND_COLUMN_WIDTH = 55;
-export const DEFAULT_SELECTION_COLUMN_WIDTH = 55;
+export const DEFAULT_INTERNAL_COLUMN_WIDTH_BY_SIZE: Record<SizeType, number> = {
+  small: 39,
+  middle: 47,
+  large: 55,
+};
+
+export const getDefaultInternalColumnWidth = (size: SizeType = 'large') => {
+  return DEFAULT_INTERNAL_COLUMN_WIDTH_BY_SIZE[size] ?? DEFAULT_INTERNAL_COLUMN_WIDTH_BY_SIZE.large;
+};
 
 export const EXPAND_COLUMN: ExpandColumnType = {
   key: INTERNAL_EXPAND_COLUMN_KEY,

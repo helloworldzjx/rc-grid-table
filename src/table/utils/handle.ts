@@ -1,7 +1,7 @@
 import { isValidElement, Key, type ReactNode } from "react"
 
-import type { CellType, ColumnsType, ColumnType, ColumnState } from "../interface";
-import { DEFAULT_EXPAND_COLUMN_WIDTH, DEFAULT_SELECTION_COLUMN_WIDTH, isInternalColumn, isSelectionColumn } from "./const";
+import type { CellType, ColumnsType, ColumnType, ColumnState, SizeType } from "../interface";
+import { getDefaultInternalColumnWidth, isInternalColumn } from "./const";
 
 export const getEllipsisTitle = (children: ReactNode) => {
   let title = children
@@ -99,12 +99,12 @@ export function parseHeaderRows<T>(columns: ColumnState<T>[] = []): CellType<T>[
   return rows;
 }
 
-export function filterColumns<T = any>(columns: ColumnsType<T>, parentKey: Key = '', depth = 0) {
+export function filterColumns<T = any>(size: SizeType, columns: ColumnsType<T>, parentKey: Key = '', depth = 0) {
   if (!Array.isArray(columns)) return [];
   
   return columns.reduce((result: ColumnState<T>[], column: ColumnType<T>, index: number) => {
     if(isInternalColumn(column)) {
-      const width = column.width ?? (isSelectionColumn(column) ? DEFAULT_SELECTION_COLUMN_WIDTH : DEFAULT_EXPAND_COLUMN_WIDTH);
+      const width = column.width ?? getDefaultInternalColumnWidth(size);
       result.push({
         ...column,
         title: column.title ?? '',
@@ -125,7 +125,7 @@ export function filterColumns<T = any>(columns: ColumnsType<T>, parentKey: Key =
     if (column.hidden === true || (column.children?.length && column.children?.every(subColumn => subColumn.hidden))) return result;
     let children: ColumnsType<T> = []
     if (column.children?.length) {
-      children = filterColumns(column.children, currentKey, depth + 1);
+      children = filterColumns(size, column.children, currentKey, depth + 1);
     }
     
     const newNode = { ...column, key: currentKey, parentKey, depth };
@@ -179,7 +179,8 @@ export function flattenColumnsWithTotalWidth<T>(
   containerWidth: number,
   columns: FnColumnType<T>[],
   topMinWidth: number,
-  leafMinWidth: number
+  leafMinWidth: number,
+  size?: SizeType,
 ): { flattenColumns: ColumnState<T>[], usedWidthTotal: number } {
   const result: ColumnState<T>[] = [];
   let usedWidthTotal = 0
@@ -191,7 +192,7 @@ export function flattenColumnsWithTotalWidth<T>(
   ) {
     cols.forEach((column, index) => {
       if(isInternalColumn(column)) {
-        let width = column.width ?? (isSelectionColumn(column) ? DEFAULT_SELECTION_COLUMN_WIDTH : DEFAULT_EXPAND_COLUMN_WIDTH)
+        let width = column.width ?? getDefaultInternalColumnWidth(size)
         if(typeof width === 'string') {
           width = parseFloat(width.substring(0, width.length - 1)) / 100 * containerWidth
           width = parseFloat(width.toFixed(2))

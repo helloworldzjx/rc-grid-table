@@ -258,7 +258,8 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
    */
   visibleColumns?: boolean
   /**
-   * @description 网格style
+   * @description 表格大小
+   * @default large
    */
   size?: SizeType
   /**

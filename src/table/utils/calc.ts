@@ -1,6 +1,6 @@
 import { Key } from "react";
 
-import type { ColumnState, ColumnsType } from "../interface";
+import type { ColumnState, ColumnsType, SizeType } from "../interface";
 import { filterSpan, flattenColumnsWithTotalWidth, rebuildColumns } from "./handle";
 
 /**
@@ -46,9 +46,10 @@ export function columnsWidthDistribute<T>(
   columns: ColumnsType<T>,
   topMinWidth: number,
   leafMinWidth: number,
+  size?: SizeType,
 ): { flattenColumns: ColumnState<T>[], treeColumns: ColumnState<T>[] } {
   // 第一次分配列宽，只是给width没有值的列设置默认宽度
-  const { flattenColumns, usedWidthTotal } = flattenColumnsWithTotalWidth(containerWidth, columns as ColumnState<T>[], topMinWidth, leafMinWidth)
+  const { flattenColumns, usedWidthTotal } = flattenColumnsWithTotalWidth(containerWidth, columns as ColumnState<T>[], topMinWidth, leafMinWidth, size)
   const leafColumns = flattenColumns.filter(column => !column.hasChildren)
 
   // 剩余未使用的宽度

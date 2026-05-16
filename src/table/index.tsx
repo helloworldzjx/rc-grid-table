@@ -36,6 +36,7 @@ const Table: TableComponent = ((props) => {
     fixableColumns,
     visibleColumns,
     columnsConfig,
+    size = 'large',
     onScroll,
     ...rest
   } = props;
@@ -70,8 +71,8 @@ const Table: TableComponent = ((props) => {
   }, [resizableColumns, sortableColumns, fixableColumns, visibleColumns])
 
   const mergedColumns = useMemo(() => {
-    return getColumnsWithInternalColumns(columns, expandable, rowSelection)
-  }, [columns, expandable, rowSelection])
+    return getColumnsWithInternalColumns(columns, expandable, rowSelection, size)
+  }, [columns, expandable, rowSelection, size])
 
   const mergedExpandedRowKeys = expandable?.expandedRowKeys ?? innerExpandedRowKeys
   const selection = useSelection({
@@ -117,28 +118,28 @@ const Table: TableComponent = ((props) => {
 
   useEffect(() => {
     if(!middleStateUpdated.current && !lockContainerWidth.current && containerWidth && ready && enableColumnsConfig && (!columnsConfig?.useStorage || !columnsConfig?.columnsState?.length)) {
-      const { treeColumns } = columnsWidthDistribute(containerWidth, mergedColumns, columnMinWidth, leafColumnMinWidth)
+      const { treeColumns } = columnsWidthDistribute(containerWidth, mergedColumns, columnMinWidth, leafColumnMinWidth, size)
       setMiddleState(treeColumns)
     }
-  }, [containerWidth, ready, enableColumnsConfig, columnsConfig, mergedColumns, columnMinWidth, leafColumnMinWidth])
+  }, [containerWidth, ready, enableColumnsConfig, columnsConfig, mergedColumns, columnMinWidth, leafColumnMinWidth, size])
 
   useEffect(() => {
     if(!lockContainerWidth.current && containerWidth && ready && enableColumnsConfig) {
-      const realColumns = filterColumns(mergedColumns)
+      const realColumns = filterColumns(size, mergedColumns)
       const mergedColumnsState = mergeColumnsState(realColumns, middleState)
       setInnerColumnsState(columnsSort(mergedColumnsState))
     }
-  }, [containerWidth, ready, enableColumnsConfig, mergedColumns, middleState])
+  }, [containerWidth, ready, enableColumnsConfig, mergedColumns, middleState, size])
 
   useEffect(() => {
     if(!lockContainerWidth.current && containerWidth && ready && enableColumnsConfig && innerColumnsState.length) {
-      const { flattenColumns, treeColumns } = columnsWidthDistribute(containerWidth, innerColumnsState, columnMinWidth, leafColumnMinWidth)
+      const { flattenColumns, treeColumns } = columnsWidthDistribute(containerWidth, innerColumnsState, columnMinWidth, leafColumnMinWidth, size)
       setCols(treeColumns)
       setFlattenCols(flattenColumns)
       setFlattenColumnsWidths(flattenColumns.map((column) => column.width as number))
       setInitialized(true)
     }
-  }, [containerWidth, ready, enableColumnsConfig, innerColumnsState, columnMinWidth, leafColumnMinWidth])
+  }, [containerWidth, ready, enableColumnsConfig, innerColumnsState, columnMinWidth, leafColumnMinWidth, size])
 
   /** 使用了列配置的处理 end */
 
@@ -146,13 +147,13 @@ const Table: TableComponent = ((props) => {
 
   useEffect(() => {
     if(containerWidth && ready && !enableColumnsConfig) {
-      const { flattenColumns, treeColumns } = columnsWidthDistribute(containerWidth, mergedColumns, columnMinWidth, leafColumnMinWidth)
+      const { flattenColumns, treeColumns } = columnsWidthDistribute(containerWidth, mergedColumns, columnMinWidth, leafColumnMinWidth, size)
       setCols(treeColumns)
       setFlattenCols(flattenColumns)
       setFlattenColumnsWidths(flattenColumns.map((column) => column.width as number))
       setInitialized(true)
     }
-  }, [containerWidth, ready, enableColumnsConfig, mergedColumns, columnMinWidth, leafColumnMinWidth])
+  }, [containerWidth, ready, enableColumnsConfig, mergedColumns, columnMinWidth, leafColumnMinWidth, size])
 
   /** 未使用列配置的处理 end */
 
@@ -176,6 +177,7 @@ const Table: TableComponent = ((props) => {
     flattenColumns: flattenCols,
     columnMinWidth,
     leafColumnMinWidth,
+    size,
     fixedOffset,
     hasFixedColumns: fixedOffset.hasFixColumns,
     fixColumnsGapped: fixedOffset.fixColumnsGapped,
