@@ -8,11 +8,13 @@ export const DEFAULT_SELECTION_COLUMN_WIDTH = 55;
 export const EXPAND_COLUMN: ExpandColumnType = {
   key: INTERNAL_EXPAND_COLUMN_KEY,
   __RC_GRID_TABLE_EXPAND_COLUMN: true,
+  resizeDisabled: true,
 };
 
 export const SELECTION_COLUMN: SelectionColumnType = {
   key: INTERNAL_SELECTION_COLUMN_KEY,
   __RC_GRID_TABLE_SELECTION_COLUMN: true,
+  resizeDisabled: true,
 };
 
 export const isExpandColumn = (column: unknown): column is ExpandColumnType => {
