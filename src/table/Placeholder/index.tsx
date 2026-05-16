@@ -4,7 +4,7 @@ import classNames from "classnames";
 import { useTableContext } from "../context"
 import { useStyles } from "../style"
 import { flattenMiddleState, rebuildColumns } from "../utils/handle";
-import { distribute } from "../utils/calc";
+import { distribute, filterResizeEnabledColumns } from "../utils/calc";
 
 const Placeholder: FC = () => {
   const { 
@@ -25,14 +25,19 @@ const Placeholder: FC = () => {
   const autoFill = () => {
     const flattenedMiddleState = flattenMiddleState(middleState)
     const leafState = flattenedMiddleState.filter(state => !state.hasChildren)
+    const resizeEnabledLeafState = filterResizeEnabledColumns(leafState)
+    if(!resizeEnabledLeafState.length) return;
+
     const remainingWidth = containerWidth - columnsWidthTotal;
-    const { first, avg } = distribute(remainingWidth, leafState.length);
+    const { first, avg } = distribute(remainingWidth, resizeEnabledLeafState.length);
+    let leafIndex = 0;
   
     // 合并
-    const mergedMiddleState = flattenedMiddleState.map((state, index) => {
-      if (!state.hasChildren) {
+    const mergedMiddleState = flattenedMiddleState.map((state) => {
+      if (!state.hasChildren && !state.resizeDisabled) {
         const width = state.width as number
-        const newWidth = width + (index === 0 ? first : avg);
+        const newWidth = width + (leafIndex === 0 ? first : avg);
+        leafIndex++;
         return { ...state, width: newWidth, updatedWidth: true };
       }
       return state;
@@ -43,7 +48,7 @@ const Placeholder: FC = () => {
   }
 
   return (
-    // 暂时不使用表达式 containerWidth - columnsWidthTotal >= 0.5 动态渲染这个占位元素
+    // 暂不动态渲染这个占位元素，而是通过display控制
     <div 
       onClick={autoFill}
       className={classNames(placeholderCls, hashId, {[placeholderBorderedCls]: bordered})}

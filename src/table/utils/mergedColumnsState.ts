@@ -23,7 +23,13 @@ function mergeColumn<T = any>(column: ColumnState<T>, bKeyMap: Map<Key, ColumnSt
     key: column.key,
     parentKey: column.parentKey,
     title: column.title,
+    resizeDisabled: column.resizeDisabled,
   };
+
+  if(column.resizeDisabled && !column.hasChildren) {
+    merged.width = column.width;
+    merged.updatedWidth = false;
+  }
 
   if (column.children?.length || bColumn.children?.length) {
     const aChildren = column.children || [];

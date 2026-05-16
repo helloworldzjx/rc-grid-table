@@ -29,6 +29,10 @@ export const distribute = (
   return { first: result[0], avg: avg };
 };
 
+export const filterResizeEnabledColumns = <T extends { resizeDisabled?: boolean }>(columns: T[]) => {
+  return columns.filter(column => !column.resizeDisabled);
+};
+
 /**
  * 调整表格列宽度
  * @param containerWidth 容器总宽度
@@ -51,9 +55,10 @@ export function columnsWidthDistribute<T>(
   const remainingWidth = containerWidth - usedWidthTotal;
   
   // 获取宽度是自动分配的列
-  const distributableColumns = leafColumns.filter(column => column.distribute);
+  const resizeEnabledLeafColumns = filterResizeEnabledColumns(leafColumns);
+  const distributableColumns = resizeEnabledLeafColumns.filter(column => column.distribute);
   // 所有列都是自动分配的
-  const allDistributable = leafColumns.length === distributableColumns.length
+  const allDistributable = resizeEnabledLeafColumns.length === distributableColumns.length
   // 所有列都不是自动分配的，即原始列数组的所有列都设置了width
   const unAllDistributable = distributableColumns.length === 0
   // 是否继续分配宽度
@@ -69,16 +74,23 @@ export function columnsWidthDistribute<T>(
   }
 
   // 需要重新分配的列
-  const cols = unAllDistributable ? leafColumns : distributableColumns
+  const cols = unAllDistributable ? resizeEnabledLeafColumns : distributableColumns
 
   // 分配剩余宽度
+  if(!cols.length) {
+    return {
+      flattenColumns: leafColumns,
+      treeColumns: rebuildColumns(flattenColumns),
+    };
+  }
+
   const { first, avg } = distribute(remainingWidth, cols.length);
 
   // 合并
   let index = 0;
   const mergedFlattenColumns = flattenColumns.map(column => {
     // 当前列是否重新分配
-    const distributable = !column.hasChildren && (column.distribute || unAllDistributable || leafColumns.length === 1)
+    const distributable = !column.hasChildren && !column.resizeDisabled && (column.distribute || unAllDistributable || leafColumns.length === 1)
     if (distributable) {
       const width = column.width as number
       const newWidth = width + (index === 0 ? first : avg);

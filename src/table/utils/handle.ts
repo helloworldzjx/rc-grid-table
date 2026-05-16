@@ -246,8 +246,8 @@ export function flattenColumnsWithTotalWidth<T>(
         depth,
         order: column.order ?? index,
         visible: column.visible ?? true,
-        distribute: column.updatedWidth ? false : distribute,
-        updatedWidth: !!column.updatedWidth,
+        distribute: column.resizeDisabled ? false : column.updatedWidth ? false : distribute,
+        updatedWidth: column.resizeDisabled ? false : !!column.updatedWidth,
         hasChildren: !!column.children?.length,
         children: [],
       });

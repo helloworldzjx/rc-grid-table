@@ -105,6 +105,8 @@ export interface ColumnProps<T = any> {
   render?: (value: any, record: T, rowIndex: number) => ReactNode;
   /** 列宽，仅支持数字和百分比数字，不支持px的字符串写法 */
   width?: number | PercentColumnWidthType;
+  /** 禁止表格重新调整叶子列宽度 */
+  resizeDisabled?: boolean;
   align?: AlignType;
   fixed?: FixedType;
   /** 是否完全消失在表格中，连管理列显隐的时候也不会出现 */
@@ -266,7 +268,7 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
    */
   stripe?: boolean
   /**
-   * @description tbody高度
+   * @description table body高度
    */
   scrollY?: number | { fullHeight?: boolean, y?: number }
   /**

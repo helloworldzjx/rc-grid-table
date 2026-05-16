@@ -25,7 +25,7 @@ const Resizable: FC<ResizableProps> = ({
     columnsConfig,
   } = useTableContext();
   
-  const { headCellResizableCls, headCellResizeDisabledCls: _ } = useStyles();
+  const { headCellResizableCls } = useStyles();
 
   const minWidth = 50
   const [distance, setDistance] = useState(0)
@@ -48,7 +48,7 @@ const Resizable: FC<ResizableProps> = ({
     }, []);
     
     return idxArr
-  }, [keys])
+  }, [flattenColumns, keys])
 
   useEffect(() => {
     if(!distance) return
@@ -76,8 +76,8 @@ const Resizable: FC<ResizableProps> = ({
   }, [distance, distanceTotal])
 
   const updateState = () => {
-    const updates = idxs.map((idx, index) => ({
-      targetKey: keys[index],
+    const updates = idxs.map((idx) => ({
+      targetKey: flattenColumns[idx].key,
       prop: ['width', 'updatedWidth'],
       value: [flattenColumnsWidths[idx], true]
     }))

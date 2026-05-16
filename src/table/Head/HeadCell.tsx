@@ -141,6 +141,15 @@ function HeadCell({
     return mergedSpanKeys
   }, [resizableColumns, sortableColumns, mergedSpanKeys, childrenKeys])
 
+  const resizeKeys = useMemo(() => {
+    if(!resizableColumns || col.column?.resizeDisabled) return []
+
+    return keys.filter((key) => {
+      const column = flattenColumns.find((item) => item.key === key)
+      return column && !column.resizeDisabled
+    })
+  }, [resizableColumns, col.column?.resizeDisabled, keys, flattenColumns])
+
   /** 列拖拽排序 start ***************************************************************************/
 
   const { listeners, setNodeRef } = useSortable({ 
@@ -261,10 +270,10 @@ function HeadCell({
     >
       {childrenNode}
       {
-        resizableColumns && (
+        !!resizeKeys.length && (
           <Resizable 
             id={`${col.key}-resizable`} 
-            keys={keys} 
+            keys={resizeKeys} 
           />
         )
       }
