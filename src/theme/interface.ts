@@ -20,6 +20,7 @@ export interface DerivativeToken extends DesignToken {
   lineHeight: string | number;
   fontSize: number;
   colorText: string;
+  colorTextLightSolid: string;
   primaryColorHover: string;
   primaryColorDisabled: string;
   colorBgContainer: string

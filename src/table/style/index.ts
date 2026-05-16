@@ -404,7 +404,7 @@ const genCellStyle = (
     top: 1,
     width: 5,
     height: 9,
-    border: `solid ${token.colorBgContainer}`,
+    border: `solid ${token.colorTextLightSolid}`,
     borderWidth: '0 2px 2px 0',
     transform: 'rotate(45deg)',
   },
@@ -416,7 +416,7 @@ const genCellStyle = (
     right: 3,
     top: 6,
     height: 2,
-    backgroundColor: token.colorBgContainer,
+    backgroundColor: token.colorTextLightSolid,
   },
 
   [`.${selectionRadioCls}.${selectionControlCheckedCls}::after`]: {
@@ -424,7 +424,7 @@ const genCellStyle = (
     position: 'absolute',
     inset: 4,
     borderRadius: '50%',
-    backgroundColor: token.colorBgContainer,
+    backgroundColor: token.colorTextLightSolid,
   },
 
   [`.${selectionControlDisabledCls}`]: {

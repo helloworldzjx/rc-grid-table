@@ -21,6 +21,7 @@ export const defaultDesignToken: DesignToken = {
 const defaultDerivativeToken = {
   fontSize: 14,
   lineHeight: 1.5,
+  colorTextLightSolid: '#fff',
 } as DerivativeToken;
 
 // 亮色

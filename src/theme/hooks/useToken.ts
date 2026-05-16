@@ -6,9 +6,9 @@ import { DerivativeToken, DesignToken, DesignTokenContextPorps } from "../interf
 
 function useToken(): [
   theme: Theme<DesignToken, DerivativeToken>,
-  token: DesignToken,
+  token: DerivativeToken,
   hashId: string,
-  realToken: DesignToken,
+  realToken: DerivativeToken,
   isDark: boolean,
   cssVar?: DesignTokenContextPorps['cssVar'],
 ] {
