@@ -51,7 +51,8 @@ function BodyCell({
     cellFixedEndFirstCls,
     sortableColumnCellCls,
     overableColumnCellCls,
-    expandIconCellCls,
+    expandControlCellCls,
+    expandControlCls,
     selectionCellCls,
     expandTreeCellInnerCls,
     expandIconCls,
@@ -113,25 +114,32 @@ function BodyCell({
       onExpand: (_record: any, event: MouseEvent<HTMLElement>) => handleExpand(event),
     }
 
-    if(expandableConfig?.expandIcon) {
-      return expandableConfig.expandIcon(iconProps)
-    }
+    const iconNode = expandableConfig?.expandIcon
+      ? expandableConfig.expandIcon(iconProps)
+      : (
+        <button
+          type="button"
+          className={classNames(
+            expandIconCls,
+            {
+              [expandIconExpandedCls]: expanded,
+              [expandIconSpacedCls]: spaced || !rowSupportExpand,
+            }
+          )}
+          aria-label={expanded ? 'Collapse row' : 'Expand row'}
+          aria-expanded={rowSupportExpand ? expanded : undefined}
+          disabled={!rowSupportExpand}
+          onClick={handleExpand}
+        />
+      )
 
     return (
-      <button
-        type="button"
-        className={classNames(
-          expandIconCls,
-          {
-            [expandIconExpandedCls]: expanded,
-            [expandIconSpacedCls]: spaced || !rowSupportExpand,
-          }
-        )}
-        aria-label={expanded ? 'Collapse row' : 'Expand row'}
-        aria-expanded={rowSupportExpand ? expanded : undefined}
-        disabled={!rowSupportExpand}
-        onClick={handleExpand}
-      />
+      <div
+        className={expandControlCls}
+        style={{ justifyContent: expandableConfig?.align ?? 'center' }}
+      >
+        {iconNode}
+      </div>
     )
   }
 
@@ -148,6 +156,7 @@ function BodyCell({
       ? (
         <SelectionRadio
           {...controlProps}
+          style={{ ...controlProps.style, justifyContent: rowSelection.align ?? 'center' }}
           checked={checked}
           disabled={disabled}
           onChange={(event) => selection.onSelectRecord(rowData, rowIndex, event)}
@@ -156,6 +165,7 @@ function BodyCell({
       : (
         <SelectionCheckbox
           {...controlProps}
+          style={{ ...controlProps.style, justifyContent: rowSelection.align ?? 'center' }}
           checked={checked}
           indeterminate={selection.isHalfSelected(rowData)}
           disabled={disabled}
@@ -210,7 +220,7 @@ function BodyCell({
           [cellFixedEndFirstCls]: fixedInfo.fixedEndShadow,
           [overableColumnCellCls]: overableScopeKeys?.includes(column.key),
           [sortableColumnCellCls]: sortableScopeKeys?.includes(column.key),
-          [expandIconCellCls]: isInternalExpandColumn,
+          [expandControlCellCls]: isInternalExpandColumn,
           [selectionCellCls]: isInternalSelectionColumn,
         },
         column.className,

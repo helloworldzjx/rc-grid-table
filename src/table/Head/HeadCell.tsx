@@ -51,6 +51,7 @@ function HeadCell({
     cellCls, 
     cellEllipsisCls, 
     cellEllipsisInnerCls, 
+    selectionCellCls,
     headLastCellCls,
     headSortableCellCls,
     sortableColumnCellCls,
@@ -242,6 +243,7 @@ function HeadCell({
       const originNode = (
         <SelectionCheckbox
           {...checkboxProps}
+          style={{ ...checkboxProps.style, justifyContent: rowSelection?.align ?? 'center' }}
           checked={!!selection?.isAllSelected}
           indeterminate={!!selection?.isPartiallySelected}
           disabled={disabled}
@@ -271,6 +273,7 @@ function HeadCell({
           [cellFixedStartLastCls]: fixedInfo.fixedStartShadow,
           [cellFixedEndCls]: fixedInfo.fixEnd !== null,
           [cellFixedEndFirstCls]: fixedInfo.fixedEndShadow,
+          [selectionCellCls]: isInternalSelectionColumn,
           [headSortableCellCls]: sortEnabled,
           [overableColumnCellCls]: sortEnabled && overableScopeKeys?.includes(col.key as Key),
           [sortableColumnCellCls]: sortEnabled && sortableScopeKeys?.includes(col.key as Key),

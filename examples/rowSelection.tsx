@@ -153,15 +153,9 @@ const App: React.FC = () => {
 
             return [
               [
-                // 空出选择列
-                { children: null },
-                {
-                  children: (
-                    <div>
-                      总计: <Text type="danger">Total {pageData.length}</Text>
-                    </div>
-                  )
-                },
+                // 设置了 rowSelection 会多出选择列，可以用来显示 '总计'
+                { children: '总计' },
+                { children: <Text type="danger">Total: {pageData.length}</Text>, },
                 { children: <Text type="danger">Available: {pageData.length - disabledCount}</Text> },
                 { children: <Text type="danger">Disabled: {disabledCount}</Text> },
                 { children: <Text type="danger">{selectedRecord ? `Selected: ${selectedRecord.name}` : 'Selected: -'}</Text> },

@@ -34,9 +34,12 @@ type ComponentClsType = {
   cellCls: string
   cellEllipsisCls: string
   cellEllipsisInnerCls: string
-  expandIconCellCls: string
+  expandControlCellCls: string
+  expandControlCls: string
   selectionCellCls: string
   selectionControlCls: string
+  selectionControlInputCls: string
+  selectionControlContentCls: string
   selectionCheckboxCls: string
   selectionRadioCls: string
   selectionControlCheckedCls: string
@@ -169,7 +172,6 @@ const genHeadStyle = (
     headCls,
     headRowCls,
   }: ComponentClsType,
-  _: ComponentToken,
 ): CSSInterpolation => ({
   [`.${headCls}`]: {
     display: 'grid',
@@ -241,9 +243,12 @@ const genCellStyle = (
     cellCls,
     cellEllipsisCls,
     cellEllipsisInnerCls,
-    expandIconCellCls,
-    selectionCellCls,
+    expandControlCellCls: _expandControlCellCls,
+    expandControlCls,
+    selectionCellCls: _selectionCellCls,
     selectionControlCls,
+    selectionControlInputCls,
+    selectionControlContentCls,
     selectionCheckboxCls,
     selectionRadioCls,
     selectionControlCheckedCls,
@@ -358,46 +363,56 @@ const genCellStyle = (
     boxSizing: 'border-box',
   },
 
-  [`.${expandIconCellCls}`]: {
-    paddingInline: 0,
-    textAlign: 'center',
-  },
-
-  [`.${selectionCellCls}`]: {
-    paddingInline: 0,
-    textAlign: 'center',
-  },
-
   [`.${selectionControlCls}`]: {
-    position: 'relative',
-    display: 'inline-block',
-    width: 16,
-    height: 16,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
     margin: 0,
     padding: 0,
+    cursor: 'pointer',
+    userSelect: 'none',
+  },
+
+  [`.${selectionControlInputCls}`]: {
+    position: 'relative',
+    flex: '0 0 16px',
+    width: 16,
+    height: 16,
     border: `1px solid ${token.colorBorder}`,
     backgroundColor: token.colorBgContainer,
     color: token.colorBgContainer,
-    cursor: 'pointer',
-    verticalAlign: 'middle',
     boxSizing: 'border-box',
     transition: 'border-color 0.2s, background-color 0.2s',
   },
 
-  [`.${selectionCheckboxCls}`]: {
+  [`.${selectionControlInputCls} input`]: {
+    position: 'absolute',
+    inset: 0,
+    width: '100%',
+    height: '100%',
+    margin: 0,
+    opacity: 0,
+    pointerEvents: 'none',
+  },
+
+  [`.${selectionControlContentCls}`]: {
+    minWidth: 0,
+  },
+
+  [`.${selectionCheckboxCls} .${selectionControlInputCls}`]: {
     borderRadius: 2,
   },
 
-  [`.${selectionRadioCls}`]: {
+  [`.${selectionRadioCls} .${selectionControlInputCls}`]: {
     borderRadius: '50%',
   },
 
-  [`.${selectionCheckboxCls}.${selectionControlCheckedCls}, .${selectionCheckboxCls}.${selectionControlIndeterminateCls}, .${selectionRadioCls}.${selectionControlCheckedCls}`]: {
+  [`.${selectionCheckboxCls}.${selectionControlCheckedCls} .${selectionControlInputCls}, .${selectionCheckboxCls}.${selectionControlIndeterminateCls} .${selectionControlInputCls}, .${selectionRadioCls}.${selectionControlCheckedCls} .${selectionControlInputCls}`]: {
     borderColor: token.colorPrimary,
     backgroundColor: token.colorPrimary,
   },
 
-  [`.${selectionCheckboxCls}.${selectionControlCheckedCls}::after`]: {
+  [`.${selectionCheckboxCls}.${selectionControlCheckedCls} .${selectionControlInputCls}::after`]: {
     content: "' '",
     position: 'absolute',
     left: 4,
@@ -409,7 +424,7 @@ const genCellStyle = (
     transform: 'rotate(45deg)',
   },
 
-  [`.${selectionCheckboxCls}.${selectionControlIndeterminateCls}::after`]: {
+  [`.${selectionCheckboxCls}.${selectionControlIndeterminateCls} .${selectionControlInputCls}::after`]: {
     content: "' '",
     position: 'absolute',
     left: 3,
@@ -419,7 +434,7 @@ const genCellStyle = (
     backgroundColor: token.colorTextLightSolid,
   },
 
-  [`.${selectionRadioCls}.${selectionControlCheckedCls}::after`]: {
+  [`.${selectionRadioCls}.${selectionControlCheckedCls} .${selectionControlInputCls}::after`]: {
     content: "' '",
     position: 'absolute',
     inset: 4,
@@ -428,15 +443,23 @@ const genCellStyle = (
   },
 
   [`.${selectionControlDisabledCls}`]: {
-    borderColor: token.colorBorder,
-    backgroundColor: token.colorBgLayout,
     cursor: 'not-allowed',
     opacity: 0.65,
   },
 
-  [`.${selectionControlDisabledCls}.${selectionControlCheckedCls}, .${selectionControlDisabledCls}.${selectionControlIndeterminateCls}`]: {
+  [`.${selectionControlDisabledCls} .${selectionControlInputCls}`]: {
+    borderColor: token.colorBorder,
+    backgroundColor: token.colorBgLayout,
+  },
+
+  [`.${selectionControlDisabledCls}.${selectionControlCheckedCls} .${selectionControlInputCls}, .${selectionControlDisabledCls}.${selectionControlIndeterminateCls} .${selectionControlInputCls}`]: {
     borderColor: token.colorBorder,
     backgroundColor: token.colorBorder,
+  },
+
+  [`.${expandControlCls}`]: {
+    display: 'flex',
+    alignItems: 'center',
   },
 
   [`.${expandTreeCellInnerCls}`]: {
@@ -684,8 +707,7 @@ const genEmptyClsStyle = (
     noDataCls,
     noDataCellCls,
     noDataCellContentCls,
-  }: ComponentClsType,
-  _: ComponentToken
+  }: ComponentClsType
 ): CSSInterpolation => ({
   [`.${noDataCls}`]: {
     
@@ -713,9 +735,9 @@ const genNestStyles = (clsObj: ComponentClsType, mergedToken: ComponentToken): C
   genFixedShadowStyle(clsObj),
   genSizeClsStyle(clsObj, mergedToken),
   genStripeClsStyle(clsObj, mergedToken),
-  genEmptyClsStyle(clsObj, mergedToken),
+  genEmptyClsStyle(clsObj),
   // 避免对象属性冲突，分开来构建样式
-  { [`.${clsObj.componentCls}`]: genHeadStyle(clsObj, mergedToken) },
+  { [`.${clsObj.componentCls}`]: genHeadStyle(clsObj) },
   { [`.${clsObj.componentCls}`]: genBodyStyle(clsObj, mergedToken) },
   { [`.${clsObj.componentCls}`]: genSummaryCls(clsObj) },
   { [`.${clsObj.componentCls}`]: genCellStyle(clsObj, mergedToken) },
@@ -756,9 +778,12 @@ export const useStyles = () => {
     cellCls: `${prefixCls}-cell`,
     cellEllipsisCls: `${prefixCls}-cell-ellipsis`,
     cellEllipsisInnerCls: `${prefixCls}-cell-ellipsis-inner`,
-    expandIconCellCls: `${prefixCls}-expand-icon-cell`,
+    expandControlCellCls: `${prefixCls}-expand-control-cell`,
+    expandControlCls: `${prefixCls}-expand-control`,
     selectionCellCls: `${prefixCls}-selection-cell`,
     selectionControlCls: `${prefixCls}-selection-control`,
+    selectionControlInputCls: `${prefixCls}-selection-control-input`,
+    selectionControlContentCls: `${prefixCls}-selection-control-content`,
     selectionCheckboxCls: `${prefixCls}-selection-checkbox`,
     selectionRadioCls: `${prefixCls}-selection-radio`,
     selectionControlCheckedCls: `${prefixCls}-selection-control-checked`,

@@ -1,9 +1,9 @@
-import React, { FC, HTMLAttributes, MouseEvent } from "react";
+import React, { FC, LabelHTMLAttributes, MouseEvent } from "react";
 import classNames from "classnames";
 
 import { useStyles } from "../style";
 
-interface CheckboxProps extends HTMLAttributes<HTMLSpanElement> {
+type CheckboxProps = Omit<LabelHTMLAttributes<HTMLLabelElement>, 'onChange'> & {
   checked?: boolean;
   indeterminate?: boolean;
   disabled?: boolean;
@@ -15,26 +15,33 @@ const Checkbox: FC<CheckboxProps> = ({
   indeterminate = false,
   disabled = false,
   className,
+  children,
   onChange,
   ...rest
 }) => {
   const {
     selectionControlCls,
+    selectionControlInputCls,
+    selectionControlContentCls,
     selectionCheckboxCls,
     selectionControlCheckedCls,
     selectionControlIndeterminateCls,
     selectionControlDisabledCls,
   } = useStyles();
 
-  const handleClick = (event: MouseEvent<HTMLElement>) => {
+  const handleClick = (event: MouseEvent<HTMLLabelElement>) => {
     event.stopPropagation();
     if (!disabled) {
       onChange?.(event);
     }
   };
 
+  const handleInputClick = (event: MouseEvent<HTMLInputElement>) => {
+    event.stopPropagation();
+  };
+
   return (
-    <span
+    <label
       role="checkbox"
       tabIndex={disabled ? -1 : 0}
       aria-checked={indeterminate ? 'mixed' : checked}
@@ -51,7 +58,21 @@ const Checkbox: FC<CheckboxProps> = ({
         className,
       )}
       onClick={handleClick}
-    />
+    >
+      <div className={selectionControlInputCls}>
+        <input
+          type="checkbox"
+          checked={checked}
+          disabled={disabled}
+          readOnly
+          tabIndex={-1}
+          onClick={handleInputClick}
+        />
+      </div>
+      {children && (
+        <div className={selectionControlContentCls}>{children}</div>
+      )}
+    </label>
   );
 };
 

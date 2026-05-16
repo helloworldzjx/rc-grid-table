@@ -63,6 +63,7 @@ export interface ExpandableConfig<T = any> {
   expandIcon?: (props: ExpandIconProps<T>) => ReactNode;
   expandRowByClick?: boolean;
   fixed?: FixedType;
+  align?: 'start' | 'end' | 'center';
   indentSize?: number;
   rowExpandable?: (record: T) => boolean;
   showExpandColumn?: boolean;

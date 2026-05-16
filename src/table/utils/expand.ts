@@ -199,7 +199,6 @@ export const getColumnsWithInternalColumns = <T = any>(
     title: '',
     width: rowSelection?.columnWidth ?? getDefaultInternalColumnWidth(size),
     fixed: rowSelection?.fixed,
-    align: rowSelection?.align ?? 'center',
     onCell: rowSelection?.onCell,
   } as ColumnType<T> : null;
 
