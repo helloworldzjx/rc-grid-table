@@ -152,9 +152,12 @@ function HeadCell({
 
   /** 列拖拽排序 start ***************************************************************************/
 
+  const dragSortDisabled = !!col.column?.dragSortDisabled
+  const sortEnabled = !!sortableColumns && !dragSortDisabled
+
   const { listeners, setNodeRef } = useSortable({ 
     id: `${col.key}`, 
-    disabled: !sortableColumns, 
+    disabled: !sortEnabled,
     data: { 
       type: 'sortableColumns', 
       column: { 
@@ -163,8 +166,9 @@ function HeadCell({
         colSpan: col.column?.colSpan, 
         order: col.column?.order, 
         hasChildren: col.column?.hasChildren, 
+        dragSortDisabled,
       }, 
-      scopeKeys: nestedKeys 
+      scopeKeys: sortEnabled ? nestedKeys : []
     }
   });
 
@@ -207,8 +211,17 @@ function HeadCell({
 
   useDndMonitor({
     onDragEnd(event) {
-      if(event.active.id !== col.key || event.over?.id === col.key || event.active.data.current?.column?.parentKey !== event.over?.data.current?.column?.parentKey || event.active.data.current?.type !== 'sortableColumns') return
-      const overColumn = event.over?.data.current?.column as ColumnState
+      const activeColumn = event.active.data.current?.column as ColumnState | undefined
+      const overColumn = event.over?.data.current?.column as ColumnState | undefined
+      if(
+        event.active.id !== col.key
+        || event.over?.id === col.key
+        || !overColumn
+        || activeColumn?.parentKey !== overColumn.parentKey
+        || event.active.data.current?.type !== 'sortableColumns'
+        || activeColumn?.dragSortDisabled
+        || overColumn.dragSortDisabled
+      ) return
       const overSpanKeys = getMergedSpanKeys(overColumn, flattenColumns)
       // 排序靠后的列在拖拽排序后，下次排序会在前面
       const isNextFront = col.column?.order as number > overColumn.order
@@ -258,9 +271,9 @@ function HeadCell({
           [cellFixedStartLastCls]: fixedInfo.fixedStartShadow,
           [cellFixedEndCls]: fixedInfo.fixEnd !== null,
           [cellFixedEndFirstCls]: fixedInfo.fixedEndShadow,
-          [headSortableCellCls]: sortableColumns,
-          [overableColumnCellCls]: overableScopeKeys?.includes(col.key as Key),
-          [sortableColumnCellCls]: sortableScopeKeys?.includes(col.key as Key),
+          [headSortableCellCls]: sortEnabled,
+          [overableColumnCellCls]: sortEnabled && overableScopeKeys?.includes(col.key as Key),
+          [sortableColumnCellCls]: sortEnabled && sortableScopeKeys?.includes(col.key as Key),
         },
         col.column?.className,
       )} 

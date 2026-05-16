@@ -107,6 +107,8 @@ export interface ColumnProps<T = any> {
   width?: number | PercentColumnWidthType;
   /** 禁止表格重新调整叶子列宽度 */
   resizeDisabled?: boolean;
+  /** 禁止列拖拽排序 */
+  dragSortDisabled?: boolean;
   align?: AlignType;
   fixed?: FixedType;
   /** 是否完全消失在表格中，连管理列显隐的时候也不会出现 */

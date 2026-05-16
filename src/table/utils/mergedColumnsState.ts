@@ -24,6 +24,7 @@ function mergeColumn<T = any>(column: ColumnState<T>, bKeyMap: Map<Key, ColumnSt
     parentKey: column.parentKey,
     title: column.title,
     resizeDisabled: column.resizeDisabled,
+    dragSortDisabled: column.dragSortDisabled,
   };
 
   if(column.resizeDisabled && !column.hasChildren) {

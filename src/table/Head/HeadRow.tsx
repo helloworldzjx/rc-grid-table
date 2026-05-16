@@ -60,8 +60,13 @@ function HeadRow({
 
   const { run: handleDragMove } = useDebounceFn((event: DragMoveEvent) => {
     if(event.active.data.current?.type === 'sortableColumns') {
+      const activeColumn = event.active.data.current?.column
+      const overColumn = event.over?.data.current?.column
+
+      if(activeColumn?.dragSortDisabled || overColumn?.dragSortDisabled) return
+
       // 限制同一行中，只有parentKey相同的列才能交换位置
-      if(event.active.data.current?.column?.parentKey === event.over?.data.current?.column?.parentKey) {
+      if(activeColumn?.parentKey === overColumn.parentKey) {
         updateOverableScopeKeys(event.over?.data.current?.scopeKeys)
       } else {
         updateOverableScopeKeys([])
