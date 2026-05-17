@@ -336,6 +336,8 @@ export interface TableContextProps<T = any> extends TableProps<T> {
   updateSortableScopeKeys: Dispatch<SetStateAction<Key[]>>
   overableScopeKeys?: Key[]
   updateOverableScopeKeys: Dispatch<SetStateAction<Key[]>>
+  sortableInsertIndicator?: { key: Key, placement: 'start' | 'end' } | null
+  updateSortableInsertIndicator: Dispatch<SetStateAction<{ key: Key, placement: 'start' | 'end' } | null>>
   middleState: ColumnState<T>[]
   updateMiddleState: Dispatch<SetStateAction<ColumnState<T>[]>>
   innerColumnsState: ColumnState<T>[]

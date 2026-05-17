@@ -27,7 +27,7 @@ function HeadRow({
   onResizeStart,
   onResizeEnd,
 }: HeadRowProps) {
-  const { sortableColumns, updateSortableScopeKeys, updateOverableScopeKeys } = useTableContext();
+  const { sortableColumns, updateSortableScopeKeys, updateOverableScopeKeys, updateSortableInsertIndicator } = useTableContext();
 
   const { headRowCls, headDraggingOverlayCellCls } = useStyles();
   
@@ -64,10 +64,15 @@ function HeadRow({
       const overColumn = event.over?.data.current?.column
 
       // 限制同一行中，只有parentKey相同的列才能交换位置
-      if(activeColumn?.parentKey === overColumn?.parentKey && !activeColumn?.dragSortDisabled && !overColumn?.dragSortDisabled) {
+      if(overColumn && activeColumn?.parentKey === overColumn.parentKey && activeColumn?.key !== overColumn.key && !activeColumn?.dragSortDisabled && !overColumn.dragSortDisabled) {
         updateOverableScopeKeys(event.over?.data.current?.scopeKeys)
+        updateSortableInsertIndicator({
+          key: overColumn.key,
+          placement: activeColumn.order > overColumn.order ? 'start' : 'end',
+        })
       } else {
         updateOverableScopeKeys([])
+        updateSortableInsertIndicator(null)
       }
     }
   }, { wait: 0 })
@@ -79,6 +84,7 @@ function HeadRow({
       document.documentElement.style.cursor = ''
       updateSortableScopeKeys([])
       updateOverableScopeKeys([])
+      updateSortableInsertIndicator(null)
       setActiveKey(null);
       setTranslate({x: 0, y: 0})
     }

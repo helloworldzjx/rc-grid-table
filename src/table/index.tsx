@@ -20,6 +20,18 @@ type TableComponent = FC<TableProps> & {
   SELECTION_COLUMN: SelectionColumnType;
 }
 
+const isColumnsOrderEqual = (a: ColumnState[] = [], b: ColumnState[] = []): boolean => {
+  if(a.length !== b.length) return false
+
+  return a.every((column, index) => {
+    const target = b[index]
+    return !!target
+      && column.key === target.key
+      && column.order === target.order
+      && isColumnsOrderEqual(column.children || [], target.children || [])
+  })
+}
+
 const Table: TableComponent = ((props) => {
   const {
     ready = true,
@@ -47,6 +59,7 @@ const Table: TableComponent = ((props) => {
   const [initialized, setInitialized] = useState(false)
   const [sortableScopeKeys, setSortableScopeKeys] = useState<Key[]>([])
   const [overableScopeKeys, setOverableScopeKeys] = useState<Key[]>([])
+  const [sortableInsertIndicator, setSortableInsertIndicator] = useState<{ key: Key, placement: 'start' | 'end' } | null>(null)
   /** 列 */
   const [cols, setCols] = useState<ColumnState[]>([])
   /** 列宽数组 */
@@ -110,36 +123,40 @@ const Table: TableComponent = ((props) => {
   /** 使用了列配置的处理 start ***************************************************************************/
 
   useEffect(() => {
-    if(enableColumnsConfig && columnsConfig?.useStorage && columnsConfig?.columnsState?.length) {
+    if(ready && enableColumnsConfig && columnsConfig?.useStorage && columnsConfig?.columnsState?.length) {
       setMiddleState(columnsConfig.columnsState)
       middleStateUpdated.current = true
     }
-  }, [enableColumnsConfig, columnsConfig])
+  }, [ready, enableColumnsConfig, columnsConfig])
 
   useEffect(() => {
-    if(!middleStateUpdated.current && !lockContainerWidth.current && containerWidth && ready && enableColumnsConfig && (!columnsConfig?.useStorage || !columnsConfig?.columnsState?.length)) {
+    if(!middleStateUpdated.current && !lockContainerWidth.current && containerWidth && ready && enableColumnsConfig && (!columnsConfig?.useStorage || (columnsConfig?.useStorage && !columnsConfig?.columnsState?.length))) {
       const { treeColumns } = columnsWidthDistribute(containerWidth, mergedColumns, columnMinWidth, leafColumnMinWidth, size)
       setMiddleState(treeColumns)
     }
   }, [containerWidth, ready, enableColumnsConfig, columnsConfig, mergedColumns, columnMinWidth, leafColumnMinWidth, size])
 
   useEffect(() => {
-    if(!lockContainerWidth.current && containerWidth && ready && enableColumnsConfig) {
+    if(!lockContainerWidth.current && containerWidth && middleState.length) {
       const realColumns = filterColumns(size, mergedColumns)
       const mergedColumnsState = mergeColumnsState(realColumns, middleState)
+      
+      if(!isColumnsOrderEqual(mergedColumnsState, middleState)) {
+        setMiddleState(mergedColumnsState)
+      }
       setInnerColumnsState(columnsSort(mergedColumnsState))
     }
-  }, [containerWidth, ready, enableColumnsConfig, mergedColumns, middleState, size])
+  }, [containerWidth, mergedColumns, middleState, size])
 
   useEffect(() => {
-    if(!lockContainerWidth.current && containerWidth && ready && enableColumnsConfig && innerColumnsState.length) {
+    if(!lockContainerWidth.current && containerWidth && innerColumnsState.length) {
       const { flattenColumns, treeColumns } = columnsWidthDistribute(containerWidth, innerColumnsState, columnMinWidth, leafColumnMinWidth, size)
       setCols(treeColumns)
       setFlattenCols(flattenColumns)
       setFlattenColumnsWidths(flattenColumns.map((column) => column.width as number))
       setInitialized(true)
     }
-  }, [containerWidth, ready, enableColumnsConfig, innerColumnsState, columnMinWidth, leafColumnMinWidth, size])
+  }, [containerWidth, innerColumnsState, columnMinWidth, leafColumnMinWidth, size])
 
   /** 使用了列配置的处理 end */
 
@@ -189,6 +206,8 @@ const Table: TableComponent = ((props) => {
     updateSortableScopeKeys: setSortableScopeKeys,
     overableScopeKeys,
     updateOverableScopeKeys: setOverableScopeKeys,
+    sortableInsertIndicator,
+    updateSortableInsertIndicator: setSortableInsertIndicator,
     middleState,
     updateMiddleState: (state) => {
       middleStateUpdated.current = true

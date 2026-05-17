@@ -39,6 +39,7 @@ function HeadCell({
     sortableColumns,
     sortableScopeKeys,
     overableScopeKeys,
+    sortableInsertIndicator,
     fixedOffset,
     middleState,
     updateMiddleState,
@@ -56,6 +57,9 @@ function HeadCell({
     headSortableCellCls,
     sortableColumnCellCls,
     overableColumnCellCls,
+    headCellInsertStartCls,
+    headCellInsertEndCls,
+    headCellInsertLineCls,
     cellFixedStartCls, 
     cellFixedStartLastCls, 
     cellFixedEndCls, 
@@ -173,36 +177,45 @@ function HeadCell({
     }
   });
 
-  const updateState = (nextForntKeys: Key[], nextRearKeys: Key[]) => {
-    const diffCount = nextForntKeys.length - nextRearKeys.length
+  const updateState = (activeKeys: Key[], overKeys: Key[]) => {
     let parent = { children: middleState }
     if(rowIndex !== 0) {
       // @ts-ignore
       parent = findNodeByKey(middleState, col.column?.parentKey as Key)
     }
 
-    const prevFrontKeysFirstIndex = parent?.children?.find((column) => column.key === nextRearKeys[0])?.order as number
-    const prevFrontKeysKLastIndex = prevFrontKeysFirstIndex + nextRearKeys.length - 1
-    const addStartIndex = prevFrontKeysKLastIndex + 1
-    const prevRearKeysFirstIndex = parent?.children?.find((column) => column.key === nextForntKeys[0])?.order as number
-    let addCount = prevRearKeysFirstIndex - prevFrontKeysKLastIndex - 1
+    const children = parent?.children || []
+    const activeKeySet = new Set(activeKeys)
+    const overKeySet = new Set(overKeys)
+    if(activeKeys.some((key) => overKeySet.has(key))) return
 
-    let frontKeysOrderCount = 0
-    let rearKeysOrderCount = 0
-    const updatedChildren = parent?.children?.map((column) => {
+    const activeColumns = children.filter((column) => activeKeySet.has(column.key))
+    const overColumns = children.filter((column) => overKeySet.has(column.key))
+    if(activeColumns.length !== activeKeys.length || overColumns.length !== overKeys.length) return
+
+    const activeOrders = activeColumns.map((column) => column.order)
+    const overOrders = overColumns.map((column) => column.order)
+    const activeStart = Math.min(...activeOrders)
+    const activeEnd = Math.max(...activeOrders)
+    const overStart = Math.min(...overOrders)
+    const overEnd = Math.max(...overOrders)
+    const activeCount = activeColumns.length
+    if(overStart === activeStart) return
+
+    const updatedChildren = children.map((column) => {
       let order = column.order
-      if(diffCount && addCount > 0 && order >= addStartIndex) {
-        order = column.order + diffCount
-        addCount--
-      } else if(nextRearKeys.includes(column.key) && rearKeysOrderCount < nextRearKeys.length) {
-        order = prevRearKeysFirstIndex + rearKeysOrderCount + diffCount
-        rearKeysOrderCount++
-      }  else if(nextForntKeys.includes(column.key) && frontKeysOrderCount < nextForntKeys.length) {
-        order = prevFrontKeysFirstIndex + frontKeysOrderCount
-        frontKeysOrderCount++
+
+      if(activeKeySet.has(column.key)) {
+        order = overStart < activeStart
+          ? overStart + column.order - activeStart
+          : overEnd - activeCount + 1 + column.order - activeStart
+      } else if(overStart < activeStart && column.order >= overStart && column.order < activeStart) {
+        order = column.order + activeCount
+      } else if(overStart > activeStart && column.order > activeEnd && column.order <= overEnd) {
+        order = column.order - activeCount
       }
 
-      return { ...column, order }
+      return order === column.order ? column : { ...column, order }
     })
 
     const updatedMiddleState = replaceTreeNode(middleState, parent?.children?.map((column) => column.key) || [], updatedChildren || [])
@@ -224,13 +237,37 @@ function HeadCell({
         || overColumn.dragSortDisabled
       ) return
       const overSpanKeys = getMergedSpanKeys(overColumn, flattenColumns)
-      // 排序靠后的列在拖拽排序后，下次排序会在前面
-      const isNextFront = col.column?.order as number > overColumn.order
-      updateState(isNextFront ? mergedSpanKeys : overSpanKeys, isNextFront ? overSpanKeys : mergedSpanKeys)
+      updateState(mergedSpanKeys, overSpanKeys)
     },
   })
 
   /** 列拖拽排序 end */
+
+  const insertBoundary = useMemo(() => {
+    if(!sortableInsertIndicator || !overableScopeKeys?.length) return null
+
+    const indexes = flattenColumns.reduce((result: number[], column, index) => {
+      if(overableScopeKeys.includes(column.key)) {
+        result.push(index)
+      }
+
+      return result
+    }, [])
+    if(!indexes.length) return null
+
+    return {
+      start: Math.min(...indexes),
+      end: Math.max(...indexes),
+    }
+  }, [sortableInsertIndicator, overableScopeKeys, flattenColumns])
+  
+  const isOverableColumn = !!overableScopeKeys?.includes(col.key as Key)
+  const showInsertStart = isOverableColumn
+    && sortableInsertIndicator?.placement === 'start'
+    && col.colStart === insertBoundary?.start
+  const showInsertEnd = isOverableColumn
+    && sortableInsertIndicator?.placement === 'end'
+    && col.colEnd === insertBoundary?.end
 
   const isInternalSelectionColumn = isSelectionColumn(col.column)
   let childrenNode = col.children
@@ -275,8 +312,10 @@ function HeadCell({
           [cellFixedEndFirstCls]: fixedInfo.fixedEndShadow,
           [selectionCellCls]: isInternalSelectionColumn,
           [headSortableCellCls]: sortEnabled,
-          [overableColumnCellCls]: sortEnabled && overableScopeKeys?.includes(col.key as Key),
+          [overableColumnCellCls]: sortEnabled && isOverableColumn,
           [sortableColumnCellCls]: sortEnabled && sortableScopeKeys?.includes(col.key as Key),
+          [headCellInsertStartCls]: showInsertStart,
+          [headCellInsertEndCls]: showInsertEnd,
         },
         col.column?.className,
       )} 
@@ -285,6 +324,11 @@ function HeadCell({
       ref={setNodeRef}
     >
       {childrenNode}
+      {
+        (showInsertStart || showInsertEnd) && (
+          <div className={headCellInsertLineCls} />
+        )
+      }
       {
         !!resizeKeys.length && (
           <Resizable 

@@ -58,6 +58,9 @@ type ComponentClsType = {
   headSortableCellCls: string
   sortableColumnCellCls: string
   overableColumnCellCls: string
+  headCellInsertStartCls: string
+  headCellInsertEndCls: string
+  headCellInsertLineCls: string
   headDraggingOverlayCellCls: string
   cellFixedStartCls: string
   cellFixedStartLastCls: string
@@ -267,6 +270,9 @@ const genCellStyle = (
     headSortableCellCls,
     sortableColumnCellCls,
     overableColumnCellCls,
+    headCellInsertStartCls,
+    headCellInsertEndCls,
+    headCellInsertLineCls,
     headDraggingOverlayCellCls,
   }: ComponentClsType,
   token: ComponentToken,
@@ -301,6 +307,28 @@ const genCellStyle = (
     },
     [`.${headSortableCellCls}`]: {
       userSelect: 'none',
+    },
+    [`.${headCellInsertLineCls}`]: {
+      position: 'absolute',
+      top: -10,
+      bottom: 0,
+      width: 3,
+      backgroundColor: token.colorPrimary,
+      borderBottomLeftRadius: 2,
+      borderBottomRightRadius: 2,
+      pointerEvents: 'none',
+      zIndex: 3,
+    },
+    [`&:first-child .${headCellInsertLineCls}`]: {
+      top: 0,
+      borderTopLeftRadius: 2,
+      borderTopRightRadius: 2,
+    },
+    [`.${headCellInsertStartCls} .${headCellInsertLineCls}`]: {
+      left: 0,
+    },
+    [`.${headCellInsertEndCls} .${headCellInsertLineCls}`]: {
+      right: 0,
     },
     [`.${headDraggingOverlayCellCls}`]: {
       paddingInline: unit(token.cellPaddingInline),
@@ -802,6 +830,9 @@ export const useStyles = () => {
     headSortableCellCls: `${prefixCls}-head-sortable-cell`,
     sortableColumnCellCls: `${prefixCls}-sortable-column-cell`,
     overableColumnCellCls: `${prefixCls}-head-cell-overable`,
+    headCellInsertStartCls: `${prefixCls}-head-cell-insert-start`,
+    headCellInsertEndCls: `${prefixCls}-head-cell-insert-end`,
+    headCellInsertLineCls: `${prefixCls}-head-cell-insert-line`,
     headDraggingOverlayCellCls: `${prefixCls}-head-dragging-verlay-cell`,
     cellFixedStartCls: `${prefixCls}-cell-fixed-start`,
     cellFixedStartLastCls: `${prefixCls}-cell-fixed-start-last`,
