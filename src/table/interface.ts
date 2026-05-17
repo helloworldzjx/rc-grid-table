@@ -65,6 +65,8 @@ export interface ExpandableConfig<T = any> {
   fixed?: FixedType;
   align?: 'start' | 'end' | 'center';
   indentSize?: number;
+  /** 禁止展开列重新调整宽度 */
+  resizeDisabled?: boolean;
   rowExpandable?: (record: T) => boolean;
   showExpandColumn?: boolean;
   onExpand?: (expanded: boolean, record: T) => void;
@@ -85,6 +87,8 @@ export interface TableRowSelection<T = any> {
   columnTitle?: ReactNode | ((originalNode: ReactNode) => ReactNode);
   columnWidth?: PercentColumnWidthType | number;
   fixed?: FixedType;
+  /** 禁止选择列重新调整宽度 */
+  resizeDisabled?: boolean;
   getRadioProps?: (record: T) => SelectionControlProps;
   getCheckboxProps?: (record: T) => SelectionControlProps;
   getTitleCheckboxProps?: () => SelectionControlProps;

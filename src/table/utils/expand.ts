@@ -131,6 +131,7 @@ export const getColumnsWithExpandColumn = <T = any>(
     columnWidth,
     expandedRowRender,
     fixed,
+    resizeDisabled = true,
     showExpandColumn = true,
   } = expandable;
   const hasExpandedRowRender = typeof expandedRowRender === 'function';
@@ -145,6 +146,7 @@ export const getColumnsWithExpandColumn = <T = any>(
     title: columnTitle,
     width: columnWidth ?? getDefaultInternalColumnWidth(size),
     fixed,
+    resizeDisabled,
   } as ColumnType<T>;
   let inserted = false;
   const nextColumns = columns.reduce((result: ColumnsType<T>, column) => {
@@ -176,6 +178,7 @@ export const getColumnsWithInternalColumns = <T = any>(
     columnWidth,
     expandedRowRender,
     fixed,
+    resizeDisabled = true,
     showExpandColumn = true,
   } = expandable;
   const hasExpandedRowRender = typeof expandedRowRender === 'function';
@@ -192,6 +195,7 @@ export const getColumnsWithInternalColumns = <T = any>(
     title: columnTitle,
     width: columnWidth ?? getDefaultInternalColumnWidth(size),
     fixed,
+    resizeDisabled,
   } as ColumnType<T> : null;
   const selectionColumn = shouldShowSelectionColumn ? {
     ...SELECTION_COLUMN,
@@ -199,6 +203,7 @@ export const getColumnsWithInternalColumns = <T = any>(
     title: '',
     width: rowSelection?.columnWidth ?? getDefaultInternalColumnWidth(size),
     fixed: rowSelection?.fixed,
+    resizeDisabled: rowSelection?.resizeDisabled ?? true,
     onCell: rowSelection?.onCell,
   } as ColumnType<T> : null;
 
