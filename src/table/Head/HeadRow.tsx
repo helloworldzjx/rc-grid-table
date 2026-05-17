@@ -63,10 +63,8 @@ function HeadRow({
       const activeColumn = event.active.data.current?.column
       const overColumn = event.over?.data.current?.column
 
-      if(activeColumn?.dragSortDisabled || overColumn?.dragSortDisabled) return
-
       // 限制同一行中，只有parentKey相同的列才能交换位置
-      if(activeColumn?.parentKey === overColumn.parentKey) {
+      if(activeColumn?.parentKey === overColumn?.parentKey && !activeColumn?.dragSortDisabled && !overColumn?.dragSortDisabled) {
         updateOverableScopeKeys(event.over?.data.current?.scopeKeys)
       } else {
         updateOverableScopeKeys([])

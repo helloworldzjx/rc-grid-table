@@ -142,6 +142,7 @@ export default () => {
           useStorage,
           columnsState,
           onChange(value) {
+            if(!useStorage) return
             localStorage.setItem(storageKey, JSON.stringify(value))
           },
         }}
