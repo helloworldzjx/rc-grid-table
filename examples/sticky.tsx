@@ -111,7 +111,6 @@ export default () => {
         dataSource={dataSource} 
         sticky
         scrollY={1000}
-        size='middle'
       />
     </>
   );

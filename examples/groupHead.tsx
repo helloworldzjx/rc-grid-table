@@ -109,7 +109,6 @@ export default () => {
         columns={columns} 
         dataSource={dataSource} 
         scrollY={400}
-        size='middle'
       />
     </>
   );

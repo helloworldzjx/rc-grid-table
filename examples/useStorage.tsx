@@ -1,9 +1,9 @@
 import { Table } from 'rc-grid-table';
-import { ColumnState, ColumnsType } from 'rc-grid-table/es/table/interface';
+import { ColumnState, ColumnsType, SizeType } from 'rc-grid-table/es/table/interface';
 import React, { useState } from 'react';
 import useConfigActions from './_utils/hooks/useConfigActions';
 import ConfigActions from './_utils/components/ConfigActions';
-import { Button, Checkbox, Flex, Tooltip } from 'antd';
+import { Button, Checkbox, Flex, Segmented, Tooltip, Typography } from 'antd';
 
 interface DataType {
   key: React.Key;
@@ -100,6 +100,8 @@ export default () => {
     gender: 'M',
   }));
 
+  const [size, setSize] = useState<SizeType>('large');
+
   // 持久化存储属性控制
   const storageKey = 'use-storage-demo'
   const [columnsState, setColumnsState] = useState<ColumnState[]>(JSON.parse(localStorage.getItem(storageKey) || '[]'))
@@ -124,7 +126,7 @@ export default () => {
           disabled={useStorage} 
           onChange={({target}) => {
             if(!useStorage) {
-              setState((prevData) => Array.from(new Set([...prevData, 'resizableColumns', 'sortableColumns'])) as any[] )
+              setState((prevData) => Array.from(new Set([...prevData, 'resizableColumns', 'sortableColumns'])) )
               setUseStorage(target.checked)
             }
           }}
@@ -134,6 +136,13 @@ export default () => {
         <Tooltip title="清除持久化数据">
           <Button size="small" onClick={clear}>清除</Button>
         </Tooltip>
+
+        <Typography.Text style={{marginLeft: 50, marginRight: 10}}>Size</Typography.Text>
+        <Segmented<SizeType>
+          options={['small', 'middle', 'large']}
+          value={size}
+          onChange={setSize}
+        />
       </Flex>
       <Table 
         {...baseProps}
@@ -148,9 +157,10 @@ export default () => {
         }}
         columns={columns} 
         dataSource={dataSource} 
+        rowSelection={{ fixed: 'start' }}
         sticky
         scrollY={1000}
-        size='middle'
+        size={size}
       />
     </>
   );
