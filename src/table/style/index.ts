@@ -310,19 +310,15 @@ const genCellStyle = (
     },
     [`.${headCellInsertLineCls}`]: {
       position: 'absolute',
-      top: -10,
+      top: -1,
       bottom: 0,
       width: 3,
       backgroundColor: token.colorPrimary,
-      borderBottomLeftRadius: 2,
-      borderBottomRightRadius: 2,
       pointerEvents: 'none',
       zIndex: 3,
     },
     [`&:first-child .${headCellInsertLineCls}`]: {
       top: 0,
-      borderTopLeftRadius: 2,
-      borderTopRightRadius: 2,
     },
     [`.${headCellInsertStartCls} .${headCellInsertLineCls}`]: {
       left: 0,
