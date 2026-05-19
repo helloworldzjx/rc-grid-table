@@ -5,4 +5,5 @@ node_modules
 .dumi/tmp
 .dumi/tmp-test
 .dumi/tmp-production
+.dumirc.local.json
 .DS_Store

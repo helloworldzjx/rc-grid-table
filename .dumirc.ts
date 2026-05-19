@@ -1,5 +1,17 @@
 import { defineConfig } from 'dumi';
+import fs from 'fs';
 import path from 'path';
+
+interface LocalConfig {
+  apiParser?: boolean;
+}
+
+const localConfigPath = path.join(__dirname, '.dumirc.local.json');
+const localConfig: LocalConfig = fs.existsSync(localConfigPath)
+  ? JSON.parse(fs.readFileSync(localConfigPath, 'utf-8'))
+  : {};
+
+const enableApiParser = localConfig.apiParser ?? true;
 
 export default defineConfig({
   outputPath: 'docs-dist',
@@ -12,7 +24,7 @@ export default defineConfig({
       github: 'https://github.com/helloworldzjx/rc-grid-table',
     },
   },
-  apiParser: {},
+  ...(enableApiParser ? { apiParser: {} } : {}),
   resolve: {
     // 配置入口文件路径，API 解析将从这里开始
     entryFile: './src/index.ts',
