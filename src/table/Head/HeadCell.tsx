@@ -158,11 +158,15 @@ function HeadCell({
   /** 列拖拽排序 start ***************************************************************************/
 
   const dragSortDisabled = !!col.column?.dragSortDisabled
-  const sortEnabled = !!sortableColumns && !dragSortDisabled
+  const sortEnabled = !!sortableColumns
+  const dragEnabled = sortEnabled && !dragSortDisabled
 
   const { listeners, setNodeRef } = useSortable({ 
     id: `${col.key}`, 
-    disabled: !sortEnabled,
+    disabled: {
+      draggable: !dragEnabled,
+      droppable: !sortEnabled,
+    },
     data: { 
       type: 'sortableColumns', 
       column: { 
@@ -234,7 +238,6 @@ function HeadCell({
         || activeColumn?.parentKey !== overColumn.parentKey
         || event.active.data.current?.type !== 'sortableColumns'
         || activeColumn?.dragSortDisabled
-        || overColumn.dragSortDisabled
       ) return
       const overSpanKeys = getMergedSpanKeys(overColumn, flattenColumns)
       updateState(mergedSpanKeys, overSpanKeys)
@@ -311,9 +314,9 @@ function HeadCell({
           [cellFixedEndCls]: fixedInfo.fixEnd !== null,
           [cellFixedEndFirstCls]: fixedInfo.fixedEndShadow,
           [selectionCellCls]: isInternalSelectionColumn,
-          [headSortableCellCls]: sortEnabled,
+          [headSortableCellCls]: dragEnabled,
           [overableColumnCellCls]: sortEnabled && isOverableColumn,
-          [sortableColumnCellCls]: sortEnabled && sortableScopeKeys?.includes(col.key as Key),
+          [sortableColumnCellCls]: dragEnabled && sortableScopeKeys?.includes(col.key as Key),
           [headCellInsertStartCls]: showInsertStart,
           [headCellInsertEndCls]: showInsertEnd,
         },

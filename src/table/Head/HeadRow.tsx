@@ -63,8 +63,8 @@ function HeadRow({
       const activeColumn = event.active.data.current?.column
       const overColumn = event.over?.data.current?.column
 
-      // 限制同一行中，只有parentKey相同的列才能交换位置
-      if(overColumn && activeColumn?.parentKey === overColumn.parentKey && activeColumn?.key !== overColumn.key && !activeColumn?.dragSortDisabled && !overColumn.dragSortDisabled) {
+      // 限制同一行中，只有parentKey相同的列才能插入排序
+      if(overColumn && activeColumn?.parentKey === overColumn.parentKey && activeColumn?.key !== overColumn.key && !activeColumn?.dragSortDisabled) {
         updateOverableScopeKeys(event.over?.data.current?.scopeKeys)
         updateSortableInsertIndicator({
           key: overColumn.key,
