@@ -1,39 +1,38 @@
-import React, { FC } from "react";
+import React, { FC } from 'react';
 
-import { useStyles } from "../style";
-import SummaryCell from "./SummaryCell";
-import { TableSummaryRowCell } from "../interface";
-import { filterSpan } from "../utils/handle";
+import { TableSummaryRowCell } from '../interface';
+import { useStyles } from '../style';
+import { filterSpan } from '../utils/handle';
+import SummaryCell from './SummaryCell';
 
 interface SummaryRowProps {
-  row: TableSummaryRowCell[]
+  row: TableSummaryRowCell[];
 }
 
 const SummaryRow: FC<SummaryRowProps> = ({ row }) => {
   const { summaryRowCls } = useStyles();
-  let ignoreCol = 0
+  let ignoreCol = 0;
 
   return (
     <div className={summaryRowCls}>
-      {
-        row?.map((column, columnIndex) => {
-          if(!filterSpan(column.colSpan) || !filterSpan(column.rowSpan)) return
+      {row?.map((column, columnIndex) => {
+        if (!filterSpan(column.colSpan) || !filterSpan(column.rowSpan))
+          return null;
 
-          if(column.colSpan && column.colSpan > 1) {
-            ignoreCol += column.colSpan - 1
-          }
+        if (column.colSpan && column.colSpan > 1) {
+          ignoreCol += column.colSpan - 1;
+        }
 
-          return (
-            <SummaryCell 
-              key={columnIndex} 
-              column={column} 
-              colEnd={columnIndex + ignoreCol}
-            />
-          )
-        })
-      }
+        return (
+          <SummaryCell
+            key={column.key ?? columnIndex}
+            column={column}
+            colEnd={columnIndex + ignoreCol}
+          />
+        );
+      })}
     </div>
-  )
-}
+  );
+};
 
-export default SummaryRow
+export default SummaryRow;

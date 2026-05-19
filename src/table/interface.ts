@@ -1,4 +1,13 @@
-import type { CSSProperties, Dispatch, HTMLAttributes, Key, MouseEvent, ReactNode, RefObject, SetStateAction } from 'react';
+import type {
+  CSSProperties,
+  Dispatch,
+  HTMLAttributes,
+  Key,
+  MouseEvent,
+  ReactNode,
+  RefObject,
+  SetStateAction,
+} from 'react';
 import { ScrollBarContainerRef } from '../scrollContainer/interface';
 
 export interface CellType<T = any> {
@@ -21,13 +30,13 @@ export interface StickyOffsets {
   end: readonly number[];
   widths: readonly number[];
   isSticky?: boolean;
-  hasFixColumns: boolean
-  hasFixStartColumns: boolean
-  hasFixEndColumns: boolean
-  fixColumnsGapped: boolean
+  hasFixColumns: boolean;
+  hasFixStartColumns: boolean;
+  hasFixEndColumns: boolean;
+  fixColumnsGapped: boolean;
 }
 
-export type SizeType = 'small' | 'middle' | 'large'
+export type SizeType = 'small' | 'middle' | 'large';
 export type FixedType = 'start' | 'end';
 export type AlignType =
   | 'start'
@@ -38,9 +47,16 @@ export type AlignType =
   | 'justify'
   | 'match-parent';
 
-export type GetComponentProps<DataType> = (data: DataType, rowIndex?: number) => React.HTMLAttributes<any> & { rowSpan?: number; colSpan?: number; align?: AlignType; };
+export type GetComponentProps<DataType> = (
+  data: DataType,
+  rowIndex?: number,
+) => React.HTMLAttributes<any> & {
+  rowSpan?: number;
+  colSpan?: number;
+  align?: AlignType;
+};
 
-export type  PercentColumnWidthType = `${number}%`
+export type PercentColumnWidthType = `${number}%`;
 
 export interface ExpandIconProps<T = any> {
   expanded: boolean;
@@ -57,9 +73,16 @@ export interface ExpandableConfig<T = any> {
   columnWidth?: PercentColumnWidthType | number;
   defaultExpandAllRows?: boolean;
   defaultExpandedRowKeys?: Key[];
-  expandedRowClassName?: string | ((record: T, index: number, indent: number) => string);
+  expandedRowClassName?:
+    | string
+    | ((record: T, index: number, indent: number) => string);
   expandedRowKeys?: Key[];
-  expandedRowRender?: (record: T, index: number, indent: number, expanded: boolean) => ReactNode;
+  expandedRowRender?: (
+    record: T,
+    index: number,
+    indent: number,
+    expanded: boolean,
+  ) => ReactNode;
   expandIcon?: (props: ExpandIconProps<T>) => ReactNode;
   expandRowByClick?: boolean;
   fixed?: FixedType;
@@ -77,7 +100,10 @@ export type SelectionType = 'checkbox' | 'radio';
 export type SelectionSelectAllMode = 'all' | 'enabled';
 export type SelectionInfoType = 'single' | 'all' | 'none';
 
-export type SelectionControlProps = Omit<HTMLAttributes<HTMLElement>, 'onChange'> & {
+export type SelectionControlProps = Omit<
+  HTMLAttributes<HTMLElement>,
+  'onChange'
+> & {
   disabled?: boolean;
 };
 
@@ -93,13 +119,27 @@ export interface TableRowSelection<T = any> {
   getCheckboxProps?: (record: T) => SelectionControlProps;
   getTitleCheckboxProps?: () => SelectionControlProps;
   hideSelectAll?: boolean;
-  renderCell?: (checked: boolean, record: T, index: number, originNode: ReactNode) => ReactNode;
+  renderCell?: (
+    checked: boolean,
+    record: T,
+    index: number,
+    originNode: ReactNode,
+  ) => ReactNode;
   selectedRowKeys?: Key[];
   defaultSelectedRowKeys?: Key[];
   type?: SelectionType;
   onCell?: GetComponentProps<T>;
-  onChange?: (selectedRowKeys: Key[], selectedRows: T[], info: { type: SelectionInfoType }) => void;
-  onSelect?: (record: T, selected: boolean, selectedRows: T[], nativeEvent: MouseEvent<HTMLElement>) => void;
+  onChange?: (
+    selectedRowKeys: Key[],
+    selectedRows: T[],
+    info: { type: SelectionInfoType },
+  ) => void;
+  onSelect?: (
+    record: T,
+    selected: boolean,
+    selectedRows: T[],
+    nativeEvent: MouseEvent<HTMLElement>,
+  ) => void;
   selectAllMode?: SelectionSelectAllMode;
 }
 
@@ -119,12 +159,14 @@ export interface ColumnProps<T = any> {
   /** 是否完全消失在表格中，连管理列显隐的时候也不会出现 */
   hidden?: boolean;
   className?: string;
-  style?: CSSProperties
-  ellipsis?: boolean | {
-    showTitle?: boolean
-  }
-  rowSpan?: number
-  colSpan?: number
+  style?: CSSProperties;
+  ellipsis?:
+    | boolean
+    | {
+        showTitle?: boolean;
+      };
+  rowSpan?: number;
+  colSpan?: number;
   onCell?: GetComponentProps<T>;
 }
 
@@ -143,61 +185,66 @@ export type SelectionColumnType = ColumnProps<any> & {
 };
 
 export type ColumnType<T> = ColumnProps<T> & { children?: ColumnType<T>[] } & (
-  { 
-    key?: Key; 
-    /** 数据key，数据层级较深时使用render */
-    dataIndex: Key 
-  } | { 
-    key: Key; 
-    /** 数据key，数据层级较深时使用render */
-    dataIndex?: Key 
-  }
-);
+    | {
+        key?: Key;
+        /** 数据key，数据层级较深时使用render */
+        dataIndex: Key;
+      }
+    | {
+        key: Key;
+        /** 数据key，数据层级较深时使用render */
+        dataIndex?: Key;
+      }
+  );
 
 export type ColumnsType<T = any> = ColumnType<T>[];
 
 export interface TableSummaryRowCell {
-  rowSpan?: number
-  colSpan?: number
-  ellipsis?: boolean | {
-    showTitle?: boolean
-  }
-  children?: ReactNode
+  key?: Key;
+  rowSpan?: number;
+  colSpan?: number;
+  ellipsis?:
+    | boolean
+    | {
+        showTitle?: boolean;
+      };
+  children?: ReactNode;
 }
 
 export interface TableSticky {
   /** header磁吸效果，未实现 */
-  offsetHeader?: number
+  offsetHeader?: number;
   /** summary磁吸效果，未实现 */
-  offsetSummary?: number
-  offsetStickyScroller?: number
+  offsetSummary?: number;
+  offsetStickyScroller?: number;
   /** 目前仅对offsetStickyScroller生效 */
-  getContainer?: () => HTMLElement
+  getContainer?: () => HTMLElement;
 }
 
 export type ColumnStateConfigType = {
-  key: Key
-  parentKey: Key
-  depth: number
-  order: number
-  distribute: boolean
-  visible: boolean
-  hasChildren: boolean
-  updatedWidth: boolean
-}
+  key: Key;
+  parentKey: Key;
+  depth: number;
+  order: number;
+  distribute: boolean;
+  visible: boolean;
+  hasChildren: boolean;
+  updatedWidth: boolean;
+};
 
-export type ColumnState<T = any> = Omit<ColumnType<T>, 'children'> & ColumnStateConfigType & {
-  width?: number
-  children?: ColumnState<T>[]
-}
+export type ColumnState<T = any> = Omit<ColumnType<T>, 'children'> &
+  ColumnStateConfigType & {
+    width?: number;
+    children?: ColumnState<T>[];
+  };
 
 export type ColumnsConfig<T> = {
   /** 启用storage后才会使用columnsState中的数据，且可以使用onChange事件 */
-  useStorage?: boolean
-  columnsState?: ColumnState<T>[]
+  useStorage?: boolean;
+  columnsState?: ColumnState<T>[];
   /** 当外部修改了宽度、顺序，以及修改了列显隐状态后会触发onChange */
-  onChange?: (columnsState: ColumnState<T>[]) => void
-}
+  onChange?: (columnsState: ColumnState<T>[]) => void;
+};
 
 export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
   /**
@@ -209,12 +256,12 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
    * @description 如果希望table在一些操作之后再显示可以使用ready参数
    * @default true
    */
-  ready?: boolean
+  ready?: boolean;
   /**
    * @description 加载状态
    * @default false
    */
-  loading?: boolean
+  loading?: boolean;
   /**
    * @description 行的唯一标识符
    * @default "key"
@@ -241,70 +288,73 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
   /**
    * @description 列配置，四个属性至少有一个启用则生效：resizableColumns、sortableColumns、fixableColumns、visibleColumns
    */
-  columnsConfig?: ColumnsConfig<T>
+  columnsConfig?: ColumnsConfig<T>;
   /**
    * @description 开启调整列宽
    * @default false
    */
-  resizableColumns?: boolean
+  resizableColumns?: boolean;
   /**
    * @description 开启列拖拽排序
    * @default false
    */
-  sortableColumns?: boolean
+  sortableColumns?: boolean;
   /**
    * @description 开启列固定配置(未实现)
    * @default false
    */
-  fixableColumns?: boolean
+  fixableColumns?: boolean;
   /**
    * @description 开启列显隐操作(未实现)
    * @default false
    */
-  visibleColumns?: boolean
+  visibleColumns?: boolean;
   /**
    * @description 表格大小
    * @default large
    */
-  size?: SizeType
+  size?: SizeType;
   /**
    * @description 网格style
    */
-  bordered?: boolean
+  bordered?: boolean;
   /**
    * @description 斑马纹style
    */
-  stripe?: boolean
+  stripe?: boolean;
   /**
    * @description table body高度
    */
-  scrollY?: number | { fullHeight?: boolean, y?: number }
+  scrollY?: number | { fullHeight?: boolean; y?: number };
   /**
    * @description 总结栏
    */
-  summary?: (dataSource: T[], columnsLength: number) => TableSummaryRowCell[][]
+  summary?: (
+    dataSource: T[],
+    flattenColumns?: ColumnState<T>[],
+  ) => TableSummaryRowCell[][];
   /**
    * @description 展开配置，支持额外展开行和树形数据展示
    */
-  expandable?: ExpandableConfig<T>
+  expandable?: ExpandableConfig<T>;
   /**
    * @description 行选择配置
    */
-  rowSelection?: TableRowSelection<T>
+  rowSelection?: TableRowSelection<T>;
   /**
    * @description 横向滚动条可磁吸
    */
-  sticky?: boolean | TableSticky
+  sticky?: boolean | TableSticky;
   /**
    * @description 开启虚拟列表(未实现)
    * @default false
    */
-  virtual?: boolean
+  virtual?: boolean;
   /**
    * @description 行的高度，在开启虚拟模式时有效(未实现)
    * @default 40
    */
-  itemHeight?: number
+  itemHeight?: number;
   /**
    * 滚动条自动隐藏(未实现)
    */
@@ -312,36 +362,34 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
   //   autoHide?: boolean | { delay?: number }
   //   immediatelyShowOnAutoHide?: boolean
   // }
-  rowClassName?: (dataSource?: T[], rowIndex?: number) => string
+  rowClassName?: (dataSource?: T[], rowIndex?: number) => string;
 }
 
 export interface TableContextProps<T = any> extends TableProps<T> {
   /** bug ref https://github.com/helloworldzjx/rc-grid-table/issues/1 */
-  lockContainerWidth: boolean
-  updateLockContainerWidth: Dispatch<SetStateAction<boolean>>,
-  mergedExpandedRowKeys?: Key[]
-  onTriggerExpand?: (record: T) => void
-  containerWidth?: number
-  containerHeight?: number
-  initialized?: boolean
-  columns?: ColumnState[]
+  lockContainerWidth: boolean;
+  updateLockContainerWidth: Dispatch<SetStateAction<boolean>>;
+  mergedExpandedRowKeys?: Key[];
+  onTriggerExpand?: (record: T) => void;
+  containerWidth?: number;
+  containerHeight?: number;
+  initialized?: boolean;
+  columns?: ColumnState[];
   flattenColumns?: ColumnState[];
-  flattenColumnsWidths?: number[]
-  columnsWidthTotal: number
-  updateFlattenColumnsWidths: Dispatch<SetStateAction<number[]>>
-  fixedOffset: StickyOffsets
-  hasFixedColumns: boolean
-  fixColumnsGapped: boolean
-  sortableScopeKeys?: Key[]
-  updateSortableScopeKeys: Dispatch<SetStateAction<Key[]>>
-  overableScopeKeys?: Key[]
-  updateOverableScopeKeys: Dispatch<SetStateAction<Key[]>>
-  sortableInsertIndicator?: { key: Key, placement: 'start' | 'end' } | null
-  updateSortableInsertIndicator: Dispatch<SetStateAction<{ key: Key, placement: 'start' | 'end' } | null>>
-  middleState: ColumnState<T>[]
-  updateMiddleState: Dispatch<SetStateAction<ColumnState<T>[]>>
-  innerColumnsState: ColumnState<T>[]
-  selection?: TableSelectionContextProps<T>
+  flattenColumnsWidths?: number[];
+  columnsWidthTotal: number;
+  updateFlattenColumnsWidths: Dispatch<SetStateAction<number[]>>;
+  fixedOffset: StickyOffsets;
+  hasFixedColumns: boolean;
+  fixColumnsGapped: boolean;
+  middleState: ColumnState<T>[];
+  updateMiddleState: Dispatch<SetStateAction<ColumnState<T>[]>>;
+  sortableDraftState?: ColumnState<T>[] | null;
+  updateSortableDraftState: Dispatch<SetStateAction<ColumnState<T>[] | null>>;
+  sortingColumns: boolean;
+  updateSortingColumns: Dispatch<SetStateAction<boolean>>;
+  innerColumnsState: ColumnState<T>[];
+  selection?: TableSelectionContextProps<T>;
 }
 
 export interface TableSelectionContextProps<T = any> {
@@ -350,17 +398,23 @@ export interface TableSelectionContextProps<T = any> {
   isHalfSelected: (record: T) => boolean;
   isAllSelected: boolean;
   isPartiallySelected: boolean;
-  onSelectRecord: (record: T, rowIndex: number, nativeEvent: MouseEvent<HTMLElement>) => void;
+  onSelectRecord: (
+    record: T,
+    rowIndex: number,
+    nativeEvent: MouseEvent<HTMLElement>,
+  ) => void;
   onSelectAll: (nativeEvent: MouseEvent<HTMLElement>) => void;
 }
 
-export interface TableScrollContextProps extends Pick<HTMLAttributes<HTMLDivElement>, 'onScroll'> {
-  scrollRef: RefObject<ScrollBarContainerRef>
-  updateScrollLeft: (dispatch: SetStateAction<number>) => void
-  isStart?: boolean
-  isEnd?: boolean
+export interface TableScrollContextProps
+  extends Pick<HTMLAttributes<HTMLDivElement>, 'onScroll'> {
+  scrollRef: RefObject<ScrollBarContainerRef>;
+  updateScrollLeft: (dispatch: SetStateAction<number>) => void;
+  isStart?: boolean;
+  isEnd?: boolean;
 }
 
-export interface TableScrollProviderProps extends Omit<TableScrollContextProps, 'scrollRef' | 'updateScrollLeft'> {
-  
-}
+export type TableScrollProviderProps = Omit<
+  TableScrollContextProps,
+  'scrollRef' | 'updateScrollLeft'
+>;

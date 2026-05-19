@@ -1,63 +1,186 @@
-import React, { FC } from "react";
-import classNames from "classnames";
+import classNames from 'classnames';
+import React, { FC, useEffect, useRef } from 'react';
 
-import { useTableContext } from "../context"
-import { useStyles } from "../style"
-import { flattenMiddleState, rebuildColumns } from "../utils/handle";
-import { distribute, filterResizeEnabledColumns } from "../utils/calc";
+import { useTableContext } from '../context';
+import { useStyles } from '../style';
+import { distribute } from '../utils/calc';
+import { batchUpdateColumns } from '../utils/handle';
 
 const Placeholder: FC = () => {
-  const { 
+  const {
     containerWidth = 0,
     bordered,
     columnsWidthTotal,
+    flattenColumns = [],
+    flattenColumnsWidths = [],
+    sortableDraftState,
     middleState,
+    updateFlattenColumnsWidths,
     updateMiddleState,
+    updateSortableDraftState,
     columnsConfig,
   } = useTableContext();
 
-  const { 
-    hashId, 
-    placeholderCls, 
-    placeholderBorderedCls, 
-  } = useStyles();
+  const { hashId, placeholderCls, placeholderBorderedCls } = useStyles();
+  const autoFillFrameRef = useRef<number | null>(null);
+  const autoFillCheckCountRef = useRef(0);
+  // autoFill 会在 rAF 中二次校准，使用 ref 保存最新状态，避免回调读到旧闭包。
+  const latestAutoFillStateRef = useRef({
+    containerWidth,
+    columnsWidthTotal,
+    flattenColumns,
+    flattenColumnsWidths,
+    sortableDraftState,
+    middleState,
+    updateFlattenColumnsWidths,
+    updateMiddleState,
+    updateSortableDraftState,
+    columnsConfig,
+  });
 
-  const autoFill = () => {
-    const flattenedMiddleState = flattenMiddleState(middleState)
-    const leafState = flattenedMiddleState.filter(state => !state.hasChildren)
-    const resizeEnabledLeafState = filterResizeEnabledColumns(leafState)
-    if(!resizeEnabledLeafState.length) return;
+  latestAutoFillStateRef.current = {
+    containerWidth,
+    columnsWidthTotal,
+    flattenColumns,
+    flattenColumnsWidths,
+    sortableDraftState,
+    middleState,
+    updateFlattenColumnsWidths,
+    updateMiddleState,
+    updateSortableDraftState,
+    columnsConfig,
+  };
+
+  useEffect(() => {
+    return () => {
+      if (
+        autoFillFrameRef.current !== null &&
+        typeof cancelAnimationFrame === 'function'
+      ) {
+        cancelAnimationFrame(autoFillFrameRef.current);
+      }
+    };
+  }, []);
+
+  // 按当前剩余宽度补齐可 resize 的叶子列，并同步渲染宽度与 columnsState。
+  const applyAutoFill = () => {
+    const {
+      containerWidth,
+      columnsWidthTotal,
+      flattenColumns,
+      flattenColumnsWidths,
+      sortableDraftState,
+      middleState,
+      updateFlattenColumnsWidths,
+      updateMiddleState,
+      updateSortableDraftState,
+      columnsConfig,
+    } = latestAutoFillStateRef.current;
+
+    // 排序 draft 还没清理时不补宽，避免把临时排序态提交成真实列宽状态。
+    if (sortableDraftState) return false;
 
     const remainingWidth = containerWidth - columnsWidthTotal;
-    const { first, avg } = distribute(remainingWidth, resizeEnabledLeafState.length);
-    let leafIndex = 0;
-  
-    // 合并
-    const mergedMiddleState = flattenedMiddleState.map((state) => {
-      if (!state.hasChildren && !state.resizeDisabled) {
-        const width = state.width as number
+    if (remainingWidth < 0.5 || !middleState.length) return false;
+
+    const resizeEnabledLeafColumns = flattenColumns.reduce(
+      (result: { index: number; width: number }[], column, index) => {
+        const width = flattenColumnsWidths[index] ?? column.width;
+        if (
+          !column.hasChildren &&
+          !column.resizeDisabled &&
+          typeof width === 'number'
+        ) {
+          result.push({ index, width });
+        }
+        return result;
+      },
+      [],
+    );
+    if (!resizeEnabledLeafColumns.length) return false;
+
+    const { first, avg } = distribute(
+      remainingWidth,
+      resizeEnabledLeafColumns.length,
+    );
+    const updatedWidths = [...flattenColumnsWidths];
+
+    const updates = resizeEnabledLeafColumns.map(
+      ({ index, width }, leafIndex) => {
+        const column = flattenColumns[index];
         const newWidth = width + (leafIndex === 0 ? first : avg);
-        leafIndex++;
-        return { ...state, width: newWidth, updatedWidth: true };
-      }
-      return state;
-    });
-    const updatedMiddleState = rebuildColumns(mergedMiddleState);
+        updatedWidths[index] = newWidth;
+
+        return {
+          targetKey: column.key,
+          prop: ['width' as const, 'updatedWidth' as const],
+          value: [newWidth, true],
+        };
+      },
+    );
+
+    updateSortableDraftState((state) =>
+      state ? batchUpdateColumns(state, updates) : state,
+    );
+    updateFlattenColumnsWidths(updatedWidths);
+
+    const updatedMiddleState = batchUpdateColumns(middleState, updates);
     updateMiddleState(updatedMiddleState);
     columnsConfig?.onChange?.(updatedMiddleState);
-  }
+    // 立即更新 ref，防止下一帧在 React render 前基于旧 columnsWidthTotal 重复累加。
+    latestAutoFillStateRef.current = {
+      ...latestAutoFillStateRef.current,
+      columnsWidthTotal: updatedWidths.reduce((sum, num) => sum + num, 0),
+      flattenColumnsWidths: updatedWidths,
+      middleState: updatedMiddleState,
+    };
+
+    return true;
+  };
+
+  // 补宽后 body 纵向滚动条可能消失，可用宽度会在后续帧变大；自动检查几帧补齐新增空间。
+  const scheduleAutoFillCheck = () => {
+    if (typeof requestAnimationFrame !== 'function') return;
+
+    if (autoFillFrameRef.current !== null) {
+      cancelAnimationFrame(autoFillFrameRef.current);
+    }
+
+    const check = () => {
+      autoFillFrameRef.current = null;
+      if (autoFillCheckCountRef.current <= 0) return;
+
+      autoFillCheckCountRef.current -= 1;
+      applyAutoFill();
+
+      if (autoFillCheckCountRef.current > 0) {
+        autoFillFrameRef.current = requestAnimationFrame(check);
+      }
+    };
+
+    autoFillFrameRef.current = requestAnimationFrame(check);
+  };
+
+  const autoFill = () => {
+    if (applyAutoFill()) {
+      autoFillCheckCountRef.current = 4;
+      scheduleAutoFillCheck();
+    }
+  };
 
   return (
     // 暂不动态渲染这个占位元素，而是通过display控制
-    <div 
+    <div
       onClick={autoFill}
-      className={classNames(placeholderCls, hashId, {[placeholderBorderedCls]: bordered})}
+      className={classNames(placeholderCls, hashId, {
+        [placeholderBorderedCls]: bordered,
+      })}
       style={{
-        left: columnsWidthTotal, 
-        display: containerWidth - columnsWidthTotal >= 0.5 ? 'block' : 'none'
+        left: columnsWidthTotal,
+        display: containerWidth - columnsWidthTotal >= 0.5 ? 'block' : 'none',
       }}
     />
-  )
-}
+  );
+};
 
-export default Placeholder
+export default Placeholder;

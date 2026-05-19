@@ -1,76 +1,80 @@
-import { type CSSInterpolation, unit, useCSSVarRegister, useStyleRegister } from '@ant-design/cssinjs';
+import {
+  unit,
+  useCSSVarRegister,
+  useStyleRegister,
+  type CSSInterpolation,
+} from '@ant-design/cssinjs';
 
+import useToken from '../../theme/hooks/useToken';
 import { useTableContext } from '../context';
-import { lightTableToken, darkTableToken, type ComponentToken } from '../design';
-import useToken from "../../theme/hooks/useToken"
+import {
+  darkTableToken,
+  lightTableToken,
+  type ComponentToken,
+} from '../design';
 
 type ComponentClsType = {
-  wrapperCls: string
-  wrapperInitializedCls: string
-  placeholderCls: string
-  placeholderBorderedCls: string
-  componentCls: string
-  componentSMCls: string
-  componentMDCls: string
-  contentCls: string
-  borderedCls: string
-  stripeCls: string
-  noDataCls: string
-  hasFixColumnsCls: string
-  hasFixStartColumnsCls: string
-  hasFixEndColumnsCls: string
-  fixColumnsGappedCls: string
-  pingStartCls: string
-  pingEndCls: string
-  hasSummaryCls: string
-  hasXScrollbarCls: string
-  hasYScrollbarCls: string
-  headCls: string
-  headRowCls: string
-  bodyCls: string
-  bodyInnerCls: string
-  bodyRowCls: string
-  bodyRowExpandableCls: string
-  cellCls: string
-  cellEllipsisCls: string
-  cellEllipsisInnerCls: string
-  expandControlCellCls: string
-  expandControlCls: string
-  selectionCellCls: string
-  selectionControlCls: string
-  selectionControlInputCls: string
-  selectionControlContentCls: string
-  selectionCheckboxCls: string
-  selectionRadioCls: string
-  selectionControlCheckedCls: string
-  selectionControlIndeterminateCls: string
-  selectionControlDisabledCls: string
-  expandIconCls: string
-  expandIconExpandedCls: string
-  expandIconSpacedCls: string
-  expandTreeCellInnerCls: string
-  expandedRowCls: string
-  expandedRowCellCls: string
-  expandedRowContentCls: string
-  headLastCellCls: string
-  headCellResizableCls: string
-  headCellResizeDisabledCls: string
-  headSortableCellCls: string
-  sortableColumnCellCls: string
-  overableColumnCellCls: string
-  headCellInsertStartCls: string
-  headCellInsertEndCls: string
-  headCellInsertLineCls: string
-  headDraggingOverlayCellCls: string
-  cellFixedStartCls: string
-  cellFixedStartLastCls: string
-  cellFixedEndCls: string
-  cellFixedEndFirstCls: string
-  noDataCellCls: string
-  noDataCellContentCls: string
-  summaryCls: string
-  summaryRowCls: string
-}
+  wrapperCls: string;
+  wrapperInitializedCls: string;
+  placeholderCls: string;
+  placeholderBorderedCls: string;
+  componentCls: string;
+  componentSMCls: string;
+  componentMDCls: string;
+  contentCls: string;
+  borderedCls: string;
+  stripeCls: string;
+  noDataCls: string;
+  hasFixColumnsCls: string;
+  hasFixStartColumnsCls: string;
+  hasFixEndColumnsCls: string;
+  fixColumnsGappedCls: string;
+  pingStartCls: string;
+  pingEndCls: string;
+  hasSummaryCls: string;
+  hasXScrollbarCls: string;
+  hasYScrollbarCls: string;
+  headCls: string;
+  headRowCls: string;
+  bodyCls: string;
+  bodyInnerCls: string;
+  bodyRowCls: string;
+  bodyRowExpandableCls: string;
+  cellCls: string;
+  cellEllipsisCls: string;
+  cellEllipsisInnerCls: string;
+  expandControlCellCls: string;
+  expandControlCls: string;
+  selectionCellCls: string;
+  selectionControlCls: string;
+  selectionControlInputCls: string;
+  selectionControlContentCls: string;
+  selectionCheckboxCls: string;
+  selectionRadioCls: string;
+  selectionControlCheckedCls: string;
+  selectionControlIndeterminateCls: string;
+  selectionControlDisabledCls: string;
+  expandIconCls: string;
+  expandIconExpandedCls: string;
+  expandIconSpacedCls: string;
+  expandTreeCellInnerCls: string;
+  expandedRowCls: string;
+  expandedRowCellCls: string;
+  expandedRowContentCls: string;
+  headLastCellCls: string;
+  headCellResizableCls: string;
+  headCellResizeDisabledCls: string;
+  headSortableCellCls: string;
+  headDraggingOverlayCellCls: string;
+  cellFixedStartCls: string;
+  cellFixedStartLastCls: string;
+  cellFixedEndCls: string;
+  cellFixedEndFirstCls: string;
+  noDataCellCls: string;
+  noDataCellContentCls: string;
+  summaryCls: string;
+  summaryRowCls: string;
+};
 
 const genInitialStyle = ({
   wrapperCls: initialCls,
@@ -88,10 +92,7 @@ const genInitialStyle = ({
 });
 
 const genPlaceholderStyle = (
-  {
-    placeholderCls,
-    placeholderBorderedCls,
-  }: ComponentClsType,
+  { placeholderCls, placeholderBorderedCls }: ComponentClsType,
   token: ComponentToken,
 ): CSSInterpolation => ({
   [`.${placeholderCls}`]: {
@@ -127,7 +128,7 @@ const genBorderedStyle = (
     componentCls,
     fixColumnsGappedCls,
     cellFixedStartLastCls,
-    borderedCls, 
+    borderedCls,
     headRowCls,
     cellCls,
   }: ComponentClsType,
@@ -145,7 +146,7 @@ const genBorderedStyle = (
     pointerEvents: 'none',
     zIndex: 2,
   },
-  
+
   [`.${borderedCls}`]: {
     borderRadius: token.borderRadius,
 
@@ -165,17 +166,15 @@ const genBorderedStyle = (
     [`&.${fixColumnsGappedCls} .${cellFixedStartLastCls}::after`]: {
       width: 32,
       borderLeft: `1px solid ${token.colorBorder}`,
-    }
+    },
   },
 });
 
-const genHeadStyle = (
-  {
-    componentCls,
-    headCls,
-    headRowCls,
-  }: ComponentClsType,
-): CSSInterpolation => ({
+const genHeadStyle = ({
+  componentCls,
+  headCls,
+  headRowCls,
+}: ComponentClsType): CSSInterpolation => ({
   [`.${headCls}`]: {
     display: 'grid',
     gridTemplateColumns: `var(--${componentCls}-cols-width)`,
@@ -189,12 +188,7 @@ const genHeadStyle = (
 });
 
 const genBodyStyle = (
-  {
-    componentCls,
-    bodyCls,
-    bodyInnerCls,
-    bodyRowCls,
-  }: ComponentClsType,
+  { componentCls, bodyCls, bodyInnerCls, bodyRowCls }: ComponentClsType,
   token: ComponentToken,
 ): CSSInterpolation => ({
   [`.${bodyCls}::before`]: {
@@ -246,9 +240,7 @@ const genCellStyle = (
     cellCls,
     cellEllipsisCls,
     cellEllipsisInnerCls,
-    expandControlCellCls: _expandControlCellCls,
     expandControlCls,
-    selectionCellCls: _selectionCellCls,
     selectionControlCls,
     selectionControlInputCls,
     selectionControlContentCls,
@@ -268,18 +260,12 @@ const genCellStyle = (
     headCellResizableCls,
     headCellResizeDisabledCls,
     headSortableCellCls,
-    sortableColumnCellCls,
-    overableColumnCellCls,
-    headCellInsertStartCls,
-    headCellInsertEndCls,
-    headCellInsertLineCls,
     headDraggingOverlayCellCls,
   }: ComponentClsType,
   token: ComponentToken,
 ): CSSInterpolation => ({
   [`.${headRowCls}`]: {
-
-    [`.${cellCls}`] : {
+    [`.${cellCls}`]: {
       position: 'relative',
       backgroundColor: token.colorBgLayout,
       borderBottom: `1px solid ${token.colorBorder}`,
@@ -308,24 +294,6 @@ const genCellStyle = (
     [`.${headSortableCellCls}`]: {
       userSelect: 'none',
     },
-    [`.${headCellInsertLineCls}`]: {
-      position: 'absolute',
-      top: -1,
-      bottom: 0,
-      width: 3,
-      backgroundColor: token.colorPrimary,
-      pointerEvents: 'none',
-      zIndex: 3,
-    },
-    [`&:first-child .${headCellInsertLineCls}`]: {
-      top: 0,
-    },
-    [`.${headCellInsertStartCls} .${headCellInsertLineCls}`]: {
-      left: 0,
-    },
-    [`.${headCellInsertEndCls} .${headCellInsertLineCls}`]: {
-      right: 0,
-    },
     [`.${headDraggingOverlayCellCls}`]: {
       paddingInline: unit(token.cellPaddingInline),
       boxSizing: 'border-box',
@@ -341,7 +309,6 @@ const genCellStyle = (
   },
 
   [`.${bodyRowCls}`]: {
-    
     [`.${cellCls}`]: {
       backgroundColor: token.colorBgContainer,
       borderBottom: `1px solid ${token.colorBorder}`,
@@ -350,7 +317,7 @@ const genCellStyle = (
     [`&:hover .${cellCls}`]: {
       backgroundColor: token.cellColorHoverBg,
       transition: 'background-color 0.3s',
-    }
+    },
   },
 
   [`.${bodyRowExpandableCls}`]: {
@@ -431,40 +398,44 @@ const genCellStyle = (
     borderRadius: '50%',
   },
 
-  [`.${selectionCheckboxCls}.${selectionControlCheckedCls} .${selectionControlInputCls}, .${selectionCheckboxCls}.${selectionControlIndeterminateCls} .${selectionControlInputCls}, .${selectionRadioCls}.${selectionControlCheckedCls} .${selectionControlInputCls}`]: {
-    borderColor: token.colorPrimary,
-    backgroundColor: token.colorPrimary,
-  },
+  [`.${selectionCheckboxCls}.${selectionControlCheckedCls} .${selectionControlInputCls}, .${selectionCheckboxCls}.${selectionControlIndeterminateCls} .${selectionControlInputCls}, .${selectionRadioCls}.${selectionControlCheckedCls} .${selectionControlInputCls}`]:
+    {
+      borderColor: token.colorPrimary,
+      backgroundColor: token.colorPrimary,
+    },
 
-  [`.${selectionCheckboxCls}.${selectionControlCheckedCls} .${selectionControlInputCls}::after`]: {
-    content: "' '",
-    position: 'absolute',
-    left: 4,
-    top: 1,
-    width: 5,
-    height: 9,
-    border: `solid ${token.colorTextLightSolid}`,
-    borderWidth: '0 2px 2px 0',
-    transform: 'rotate(45deg)',
-  },
+  [`.${selectionCheckboxCls}.${selectionControlCheckedCls} .${selectionControlInputCls}::after`]:
+    {
+      content: "' '",
+      position: 'absolute',
+      left: 4,
+      top: 1,
+      width: 5,
+      height: 9,
+      border: `solid ${token.colorTextLightSolid}`,
+      borderWidth: '0 2px 2px 0',
+      transform: 'rotate(45deg)',
+    },
 
-  [`.${selectionCheckboxCls}.${selectionControlIndeterminateCls} .${selectionControlInputCls}::after`]: {
-    content: "' '",
-    position: 'absolute',
-    left: 3,
-    right: 3,
-    top: 6,
-    height: 2,
-    backgroundColor: token.colorTextLightSolid,
-  },
+  [`.${selectionCheckboxCls}.${selectionControlIndeterminateCls} .${selectionControlInputCls}::after`]:
+    {
+      content: "' '",
+      position: 'absolute',
+      left: 3,
+      right: 3,
+      top: 6,
+      height: 2,
+      backgroundColor: token.colorTextLightSolid,
+    },
 
-  [`.${selectionRadioCls}.${selectionControlCheckedCls} .${selectionControlInputCls}::after`]: {
-    content: "' '",
-    position: 'absolute',
-    inset: 4,
-    borderRadius: '50%',
-    backgroundColor: token.colorTextLightSolid,
-  },
+  [`.${selectionRadioCls}.${selectionControlCheckedCls} .${selectionControlInputCls}::after`]:
+    {
+      content: "' '",
+      position: 'absolute',
+      inset: 4,
+      borderRadius: '50%',
+      backgroundColor: token.colorTextLightSolid,
+    },
 
   [`.${selectionControlDisabledCls}`]: {
     cursor: 'not-allowed',
@@ -476,10 +447,11 @@ const genCellStyle = (
     backgroundColor: token.colorBgLayout,
   },
 
-  [`.${selectionControlDisabledCls}.${selectionControlCheckedCls} .${selectionControlInputCls}, .${selectionControlDisabledCls}.${selectionControlIndeterminateCls} .${selectionControlInputCls}`]: {
-    borderColor: token.colorBorder,
-    backgroundColor: token.colorBorder,
-  },
+  [`.${selectionControlDisabledCls}.${selectionControlCheckedCls} .${selectionControlInputCls}, .${selectionControlDisabledCls}.${selectionControlIndeterminateCls} .${selectionControlInputCls}`]:
+    {
+      borderColor: token.colorBorder,
+      backgroundColor: token.colorBorder,
+    },
 
   [`.${expandControlCls}`]: {
     display: 'flex',
@@ -541,20 +513,11 @@ const genCellStyle = (
   },
 
   [`.${cellEllipsisCls}`]: {
-
     [`.${cellEllipsisInnerCls}`]: {
       overflow: 'hidden',
       whiteSpace: 'nowrap',
       textOverflow: 'ellipsis',
-    }
-  },
-
-  [`.${overableColumnCellCls}`]: {
-    backgroundColor: `${token.overableCellColorBg} !important`,
-  },
-  
-  [`.${sortableColumnCellCls}`]: {
-    backgroundColor: `${token.sortableCellColorBg} !important`,
+    },
   },
 });
 
@@ -569,18 +532,20 @@ const genFixedCellStyle = (
   }: ComponentClsType,
   token: ComponentToken,
 ): CSSInterpolation => ({
-  [`.${headRowCls} .${cellFixedStartCls}, .${headRowCls} .${cellFixedEndCls}`]: {
-    position: 'sticky',
-    zIndex: 1,
-  },
+  [`.${headRowCls} .${cellFixedStartCls}, .${headRowCls} .${cellFixedEndCls}`]:
+    {
+      position: 'sticky',
+      zIndex: 1,
+    },
   [`.${cellFixedStartCls}, .${cellFixedEndCls}`]: {
     position: 'sticky',
     zIndex: 1,
   },
 
-  [`.${bodyRowCls} .${cellFixedStartCls}, .${bodyRowCls} .${cellFixedEndCls}`]: {
-    backgroundColor: token.colorBgContainer,
-  },
+  [`.${bodyRowCls} .${cellFixedStartCls}, .${bodyRowCls} .${cellFixedEndCls}`]:
+    {
+      backgroundColor: token.colorBgContainer,
+    },
 
   [`.${cellFixedStartLastCls}::after`]: {
     content: "' '",
@@ -620,7 +585,6 @@ const genFixedShadowStyle = ({
   cellFixedEndFirstCls,
 }: ComponentClsType): CSSInterpolation => ({
   [`.${componentCls}.${hasXScrollbarCls}`]: {
-
     '&::after': {
       content: "' '",
       position: 'absolute',
@@ -642,28 +606,35 @@ const genFixedShadowStyle = ({
       boxShadow: 'inset -10px 0 8px -8px rgba(0, 0, 0, 0.1)',
     },
     [`&.${pingStartCls}.${pingEndCls}::after`]: {
-      boxShadow: 'inset -10px 0 8px -8px rgba(0, 0, 0, 0.1), inset 10px 0 8px -8px rgba(0, 0, 0, 0.1)',
+      boxShadow:
+        'inset -10px 0 8px -8px rgba(0, 0, 0, 0.1), inset 10px 0 8px -8px rgba(0, 0, 0, 0.1)',
     },
 
-    [`&.${hasFixStartColumnsCls}:not(.${hasFixEndColumnsCls}).${pingStartCls}:not(.${pingEndCls})::after`]: {
-      boxShadow: 'none',
-    },
-    [`&.${hasFixStartColumnsCls}:not(.${hasFixEndColumnsCls}).${pingStartCls}.${pingEndCls}::after`]: {
-    boxShadow: 'inset -10px 0 8px -8px rgba(0, 0, 0, 0.1)',
-    },
-    [`&.${hasFixEndColumnsCls}:not(.${hasFixStartColumnsCls}).${pingEndCls}:not(.${pingStartCls})::after`]: {
-      boxShadow: 'none',
-    },
-    [`&.${hasFixEndColumnsCls}:not(.${hasFixStartColumnsCls}).${pingStartCls}.${pingEndCls}::after`]: {
-      boxShadow: 'inset 10px 0 8px -8px rgba(0, 0, 0, 0.1)',
-    },
+    [`&.${hasFixStartColumnsCls}:not(.${hasFixEndColumnsCls}).${pingStartCls}:not(.${pingEndCls})::after`]:
+      {
+        boxShadow: 'none',
+      },
+    [`&.${hasFixStartColumnsCls}:not(.${hasFixEndColumnsCls}).${pingStartCls}.${pingEndCls}::after`]:
+      {
+        boxShadow: 'inset -10px 0 8px -8px rgba(0, 0, 0, 0.1)',
+      },
+    [`&.${hasFixEndColumnsCls}:not(.${hasFixStartColumnsCls}).${pingEndCls}:not(.${pingStartCls})::after`]:
+      {
+        boxShadow: 'none',
+      },
+    [`&.${hasFixEndColumnsCls}:not(.${hasFixStartColumnsCls}).${pingStartCls}.${pingEndCls}::after`]:
+      {
+        boxShadow: 'inset 10px 0 8px -8px rgba(0, 0, 0, 0.1)',
+      },
 
-    [`&.${pingStartCls}:not(.${fixColumnsGappedCls}) .${cellFixedStartLastCls}::after`]: {
-      boxShadow: 'inset 10px 0 8px -8px rgba(0, 0, 0, 0.1)',
-    },
-    [`&.${pingEndCls}:not(.${fixColumnsGappedCls}) .${cellFixedEndFirstCls}::after`]: {
-      boxShadow: 'inset -10px 0 8px -8px rgba(0, 0, 0, 0.1)',
-    },
+    [`&.${pingStartCls}:not(.${fixColumnsGappedCls}) .${cellFixedStartLastCls}::after`]:
+      {
+        boxShadow: 'inset 10px 0 8px -8px rgba(0, 0, 0, 0.1)',
+      },
+    [`&.${pingEndCls}:not(.${fixColumnsGappedCls}) .${cellFixedEndFirstCls}::after`]:
+      {
+        boxShadow: 'inset -10px 0 8px -8px rgba(0, 0, 0, 0.1)',
+      },
 
     // 左侧最后一列固定列显示阴影时不显示使用::before制作的分割线border
     [`&.${pingStartCls} .${headRowCls} .${cellFixedStartLastCls}::before`]: {
@@ -682,7 +653,7 @@ const genSizeClsStyle = (
     headCellResizableCls,
     cellCls,
   }: ComponentClsType,
-  token: ComponentToken
+  token: ComponentToken,
 ): CSSInterpolation => ({
   [`.${componentCls}.${componentSMCls} .${headRowCls}`]: {
     [`.${cellCls}:not(.${headLastCellCls})::before`]: {
@@ -714,27 +685,20 @@ const genSizeClsStyle = (
 });
 
 const genStripeClsStyle = (
-  {
-    stripeCls,
-    bodyRowCls,
-    cellCls,
-  }: ComponentClsType,
-  token: ComponentToken
+  { stripeCls, bodyRowCls, cellCls }: ComponentClsType,
+  token: ComponentToken,
 ): CSSInterpolation => ({
   [`.${stripeCls} .${bodyRowCls}:nth-of-type(even) .${cellCls}`]: {
     backgroundColor: token.colorBgLayout,
-  }
+  },
 });
 
-const genEmptyClsStyle = (
-  {
-    noDataCls,
-    noDataCellCls,
-    noDataCellContentCls,
-  }: ComponentClsType
-): CSSInterpolation => ({
+const genEmptyClsStyle = ({
+  noDataCls,
+  noDataCellCls,
+  noDataCellContentCls,
+}: ComponentClsType): CSSInterpolation => ({
   [`.${noDataCls}`]: {
-    
     [`.${noDataCellCls}`]: {
       minHeight: '200px',
     },
@@ -748,11 +712,14 @@ const genEmptyClsStyle = (
       top: 0,
       height: '100%',
       pointerEvents: 'none',
-    }
-  }
+    },
+  },
 });
 
-const genNestStyles = (clsObj: ComponentClsType, mergedToken: ComponentToken): CSSInterpolation => [
+const genNestStyles = (
+  clsObj: ComponentClsType,
+  mergedToken: ComponentToken,
+): CSSInterpolation => [
   genInitialStyle(clsObj),
   genPlaceholderStyle(clsObj, mergedToken),
   genBorderedStyle(clsObj, mergedToken),
@@ -824,11 +791,6 @@ export const useStyles = () => {
     headCellResizableCls: `${prefixCls}-head-cell-resizable`,
     headCellResizeDisabledCls: `${prefixCls}-head-cell-resize-disabled`,
     headSortableCellCls: `${prefixCls}-head-sortable-cell`,
-    sortableColumnCellCls: `${prefixCls}-sortable-column-cell`,
-    overableColumnCellCls: `${prefixCls}-head-cell-overable`,
-    headCellInsertStartCls: `${prefixCls}-head-cell-insert-start`,
-    headCellInsertEndCls: `${prefixCls}-head-cell-insert-end`,
-    headCellInsertLineCls: `${prefixCls}-head-cell-insert-line`,
     headDraggingOverlayCellCls: `${prefixCls}-head-dragging-verlay-cell`,
     cellFixedStartCls: `${prefixCls}-cell-fixed-start`,
     cellFixedStartLastCls: `${prefixCls}-cell-fixed-start-last`,
@@ -838,7 +800,7 @@ export const useStyles = () => {
     noDataCellContentCls: `${prefixCls}-no-data-cell-content`,
     summaryCls: `${prefixCls}-summary`,
     summaryRowCls: `${prefixCls}-summary-row`,
-  }
+  };
 
   const [cssVarToken] = useCSSVarRegister(
     {
@@ -855,12 +817,12 @@ export const useStyles = () => {
       scope: clsObj.wrapperCls,
     },
     // @ts-ignore
-    () => isDark ? darkTableToken : lightTableToken,
+    () => (isDark ? darkTableToken : lightTableToken),
   );
 
   const mergedToken: any = {
     ...token,
-    ...cssVar?.key ? cssVarToken : isDark ? darkTableToken : lightTableToken
+    ...(cssVar?.key ? cssVarToken : isDark ? darkTableToken : lightTableToken),
   };
 
   useStyleRegister(
@@ -871,6 +833,6 @@ export const useStyles = () => {
   return {
     hashId,
     cssVarCls: cssVar?.key,
-    ...clsObj
+    ...clsObj,
   };
 };

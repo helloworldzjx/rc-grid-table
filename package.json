@@ -2,28 +2,6 @@
   "name": "rc-grid-table",
   "version": "0.0.2-alpha.1",
   "description": "A React Table Component Completed with Grid Layout",
-  "main": "lib/index.js",
-  "module": "es/index.js",
-  "types": "es/index.d.ts",
-  "scripts": {
-    "start": "npm run dev",
-    "dev": "dumi dev",
-    "build": "father build",
-    "build:watch": "father dev",
-    "docs:build": "dumi build",
-    "docs:preview": "dumi preview",
-    "prepare": "husky install && dumi setup",
-    "doctor": "father doctor",
-    "lint": "npm run lint:es && npm run lint:css",
-    "lint:css": "stylelint \"{src,test}/**/*.{css,less}\"",
-    "lint:es": "eslint \"{src,test}/**/*.{js,jsx,ts,tsx}\"",
-    "prepublishOnly": "father doctor && npm run build"
-  },
-  "repository": "https://github.com/helloworldzjx/rc-grid-table.git",
-  "homepage": "https://helloworldzjx.github.io/rc-grid-table",
-  "authors": [
-    "1445003564@qq.com"
-  ],
   "keywords": [
     "rc-grid-table",
     "rc grid table",
@@ -34,11 +12,30 @@
     "table component",
     "grid table"
   ],
+  "homepage": "https://helloworldzjx.github.io/rc-grid-table",
+  "repository": "https://github.com/helloworldzjx/rc-grid-table.git",
   "license": "MIT",
+  "main": "lib/index.js",
+  "module": "es/index.js",
+  "types": "es/index.d.ts",
   "files": [
     "es",
     "lib"
   ],
+  "scripts": {
+    "build": "father build",
+    "build:watch": "father dev",
+    "dev": "dumi dev",
+    "docs:build": "dumi build",
+    "docs:preview": "dumi preview",
+    "doctor": "father doctor",
+    "lint": "npm run lint:es && npm run lint:css",
+    "lint:css": "stylelint \"{src,test}/**/*.{css,less}\"",
+    "lint:es": "eslint \"{src,test}/**/*.{js,jsx,ts,tsx}\"",
+    "prepare": "husky install && dumi setup",
+    "prepublishOnly": "father doctor && npm run build",
+    "start": "npm run dev"
+  },
   "commitlint": {
     "extends": [
       "@commitlint/config-conventional"
@@ -61,12 +58,19 @@
       "prettier --parser=typescript --write"
     ]
   },
-  "publishConfig": {
-    "access": "public"
-  },
-  "peerDependencies": {
-    "react": ">=16.9.0",
-    "react-dom": ">=16.9.0"
+  "dependencies": {
+    "@ant-design/cssinjs": "^1.23.0",
+    "@ctrl/tinycolor": "^4.1.0",
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/modifiers": "^9.0.0",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    "@rc-component/resize-observer": "^1.0.0",
+    "@rc-component/util": "^1.2.0",
+    "ahooks": "^3.8.5",
+    "antd": "^5.26.1",
+    "classnames": "^2.5.1",
+    "motion": "^12.39.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.1.2",
@@ -87,17 +91,14 @@
     "react-dom": "^18.0.0",
     "stylelint": "^14.9.1"
   },
-  "dependencies": {
-    "@ant-design/cssinjs": "^1.23.0",
-    "@ctrl/tinycolor": "^4.1.0",
-    "@dnd-kit/core": "^6.3.1",
-    "@dnd-kit/modifiers": "^9.0.0",
-    "@dnd-kit/sortable": "^10.0.0",
-    "@dnd-kit/utilities": "^3.2.2",
-    "@rc-component/resize-observer": "^1.0.0",
-    "@rc-component/util": "^1.2.0",
-    "ahooks": "^3.8.5",
-    "antd": "^5.26.1",
-    "classnames": "^2.5.1"
-  }
+  "peerDependencies": {
+    "react": ">=16.9.0",
+    "react-dom": ">=16.9.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "authors": [
+    "1445003564@qq.com"
+  ]
 }
