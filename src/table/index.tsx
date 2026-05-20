@@ -44,8 +44,11 @@ const isColumnsOrderEqual = (
 ): boolean => {
   if (a.length !== b.length) return false;
 
-  return a.every((column, index) => {
-    const target = b[index];
+  const orderedA = [...a].sort((prev, next) => prev.order - next.order);
+  const orderedB = [...b].sort((prev, next) => prev.order - next.order);
+
+  return orderedA.every((column, index) => {
+    const target = orderedB[index];
     return (
       !!target &&
       column.key === target.key &&
