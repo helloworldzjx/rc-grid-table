@@ -1,7 +1,6 @@
-import React from 'react';
-import { Space, Tag } from 'antd';
 import { Table } from 'rc-grid-table';
 import type { TableProps } from 'rc-grid-table/es/table/interface';
+import React from 'react';
 import ConfigActions from './_utils/components/ConfigActions';
 import useConfigActions from './_utils/hooks/useConfigActions';
 
@@ -78,57 +77,57 @@ const App: React.FC = () => {
 
   // 数据源
   const data: DataType[] = [
-  {
-    key: '1',
-    name: 'John Brown',
-    age: 32,
-    tel: '0571-22098909',
-    phone: 18889898989,
-    address: 'New York No. 1 Lake Park',
-  },
-  {
-    key: '2',
-    name: 'Jim Green',
-    tel: '0571-22098333',
-    phone: 18889898888,
-    age: 42,
-    address: 'London No. 1 Lake Park',
-  },
-  {
-    key: '3',
-    name: 'Joe Black',
-    age: 32,
-    tel: '0575-22098909',
-    phone: 18900010002,
-    address: 'Sydney No. 1 Lake Park',
-  },
-  {
-    key: '4',
-    name: 'Jim Red',
-    age: 18,
-    tel: '0575-22098909',
-    phone: 18900010002,
-    address: 'London No. 2 Lake Park',
-  },
-  {
-    key: '5',
-    name: 'Jake White',
-    age: 18,
-    tel: '0575-22098909',
-    phone: 18900010002,
-    address: 'Dublin No. 2 Lake Park',
-  },
-];
+    {
+      key: '1',
+      name: 'John Brown',
+      age: 32,
+      tel: '0571-22098909',
+      phone: 18889898989,
+      address: 'New York No. 1 Lake Park',
+    },
+    {
+      key: '2',
+      name: 'Jim Green',
+      tel: '0571-22098333',
+      phone: 18889898888,
+      age: 42,
+      address: 'London No. 1 Lake Park',
+    },
+    {
+      key: '3',
+      name: 'Joe Black',
+      age: 32,
+      tel: '0575-22098909',
+      phone: 18900010002,
+      address: 'Sydney No. 1 Lake Park',
+    },
+    {
+      key: '4',
+      name: 'Jim Red',
+      age: 18,
+      tel: '0575-22098909',
+      phone: 18900010002,
+      address: 'London No. 2 Lake Park',
+    },
+    {
+      key: '5',
+      name: 'Jake White',
+      age: 18,
+      tel: '0575-22098909',
+      phone: 18900010002,
+      address: 'Dublin No. 2 Lake Park',
+    },
+  ];
 
   // 动态控制 bordered、stripe、resizableColumns、sortableColumns 属性
-  const { baseProps, state, onChange } = useConfigActions({bordered: true})
+  const { baseProps, state, onChange } = useConfigActions({ bordered: true });
 
   return (
     <>
       <ConfigActions value={state} onChange={onChange} />
       <Table {...baseProps} columns={columns} dataSource={data} />
     </>
-  )
+  );
 };
 
 export default App;

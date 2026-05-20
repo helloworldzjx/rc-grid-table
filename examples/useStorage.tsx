@@ -1,9 +1,13 @@
-import { Table } from 'rc-grid-table';
-import { ColumnState, ColumnsType, SizeType } from 'rc-grid-table/es/table/interface';
-import React, { useState } from 'react';
-import useConfigActions from './_utils/hooks/useConfigActions';
-import ConfigActions from './_utils/components/ConfigActions';
 import { Button, Checkbox, Flex, Segmented, Tooltip, Typography } from 'antd';
+import { Table } from 'rc-grid-table';
+import {
+  ColumnState,
+  ColumnsType,
+  SizeType,
+} from 'rc-grid-table/es/table/interface';
+import React, { useState } from 'react';
+import ConfigActions from './_utils/components/ConfigActions';
+import useConfigActions from './_utils/hooks/useConfigActions';
 
 interface DataType {
   key: React.Key;
@@ -103,60 +107,80 @@ export default () => {
   const [size, setSize] = useState<SizeType>('large');
 
   // 持久化存储属性控制
-  const storageKey = 'use-storage-demo'
-  const [columnsState, setColumnsState] = useState<ColumnState[]>(JSON.parse(localStorage.getItem(storageKey) || '[]'))
-  
-  const [useStorage, setUseStorage] = useState(columnsState.length > 0)
+  const storageKey = 'use-storage-demo';
+  const [columnsState, setColumnsState] = useState<ColumnState[]>(
+    JSON.parse(localStorage.getItem(storageKey) || '[]'),
+  );
+
+  const [useStorage, setUseStorage] = useState(columnsState.length > 0);
 
   // 动态控制 bordered、stripe、resizableColumns、sortableColumns 属性
-  const { baseProps, state, onChange: setState } = useConfigActions(useStorage ? {resizableColumns: true, sortableColumns: true} : {})
+  const {
+    baseProps,
+    state,
+    onChange: setState,
+  } = useConfigActions(
+    useStorage ? { resizableColumns: true, sortableColumns: true } : {},
+  );
 
   const clear = () => {
-    setColumnsState([])
-    localStorage.removeItem(storageKey)
-    setUseStorage(false)
-  }
+    setColumnsState([]);
+    localStorage.removeItem(storageKey);
+    setUseStorage(false);
+  };
 
   return (
     <>
       <ConfigActions value={state} onChange={setState} />
-      <Flex align="center" style={{marginBottom: 20}}>
-        <Checkbox 
-          checked={useStorage} 
-          disabled={useStorage} 
-          onChange={({target}) => {
-            if(!useStorage) {
-              setState((prevData) => Array.from(new Set([...prevData, 'resizableColumns', 'sortableColumns'])) )
-              setUseStorage(target.checked)
+      <Flex align="center" style={{ marginBottom: 20 }}>
+        <Checkbox
+          checked={useStorage}
+          disabled={useStorage}
+          onChange={({ target }) => {
+            if (!useStorage) {
+              setState((prevData) =>
+                Array.from(
+                  new Set([
+                    ...prevData,
+                    'resizableColumns' as const,
+                    'sortableColumns' as const,
+                  ]),
+                ),
+              );
+              setUseStorage(target.checked);
             }
           }}
         >
           useStorage（配置持久化）
         </Checkbox>
         <Tooltip title="清除持久化数据">
-          <Button size="small" onClick={clear}>清除</Button>
+          <Button size="small" onClick={clear}>
+            清除
+          </Button>
         </Tooltip>
 
-        <Typography.Text style={{marginLeft: 50, marginRight: 10}}>Size</Typography.Text>
+        <Typography.Text style={{ marginLeft: 50, marginRight: 10 }}>
+          Size
+        </Typography.Text>
         <Segmented<SizeType>
           options={['small', 'middle', 'large']}
           value={size}
           onChange={setSize}
         />
       </Flex>
-      <Table 
+      <Table
         {...baseProps}
         // 持久化存储
         columnsConfig={{
           useStorage,
           columnsState,
           onChange(value) {
-            if(!useStorage) return
-            localStorage.setItem(storageKey, JSON.stringify(value))
+            if (!useStorage) return;
+            localStorage.setItem(storageKey, JSON.stringify(value));
           },
         }}
-        columns={columns} 
-        dataSource={dataSource} 
+        columns={columns}
+        dataSource={dataSource}
         rowSelection={{ fixed: 'start' }}
         sticky
         scrollY={1000}

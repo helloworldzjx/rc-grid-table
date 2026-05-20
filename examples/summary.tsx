@@ -1,7 +1,7 @@
-import React from 'react';
-import { Divider, Space, Tag, Typography } from 'antd';
+import { Divider, Typography } from 'antd';
 import { Table } from 'rc-grid-table';
 import type { TableProps } from 'rc-grid-table/es/table/interface';
+import React from 'react';
 import ConfigActions from './_utils/components/ConfigActions';
 import useConfigActions from './_utils/hooks/useConfigActions';
 
@@ -78,26 +78,36 @@ const App: React.FC = () => {
     },
   ];
 
-  const fixedDataSource = Array.from({ length: 20 }).map<FixedDataType>((_, i) => ({
-    key: i,
-    name: ['Light', 'Bamboo', 'Little'][i % 3],
-    description: 'Everything that has a beginning, has an end.',
-  }));
+  const fixedDataSource = Array.from({ length: 20 }).map<FixedDataType>(
+    (_, i) => ({
+      key: i,
+      name: ['Light', 'Bamboo', 'Little'][i % 3],
+      description: 'Everything that has a beginning, has an end.',
+    }),
+  );
 
   // 动态控制 两行总结栏 table 的 bordered、stripe、resizableColumns、sortableColumns 属性
-  const { baseProps: mdBaseProps, state: mdState, onChange: mdOnChange } = useConfigActions({bordered: true})
+  const {
+    baseProps: mdBaseProps,
+    state: mdState,
+    onChange: mdOnChange,
+  } = useConfigActions({ bordered: true });
 
   // 动态控制 一行总结栏 table 的 bordered、stripe、resizableColumns、sortableColumns 属性
-  const { baseProps: smBaseProps, state: smState, onChange: smOnChange } = useConfigActions({bordered: true})
+  const {
+    baseProps: smBaseProps,
+    state: smState,
+    onChange: smOnChange,
+  } = useConfigActions({ bordered: true });
 
   return (
     <>
       <Divider>两行总结栏 table</Divider>
       <ConfigActions value={mdState} onChange={mdOnChange} />
-      <Table 
-        {...mdBaseProps} 
-        columns={columns} 
-        dataSource={data} 
+      <Table
+        {...mdBaseProps}
+        columns={columns}
+        dataSource={data}
         summary={(pageData) => {
           let totalBorrow = 0;
           let totalRepayment = 0;
@@ -108,34 +118,36 @@ const App: React.FC = () => {
 
           return [
             [
-              {children: 'Total'},
-              {children: <Text type="danger">{totalBorrow}</Text>},
-              {children: <Text>{totalRepayment}</Text>},
+              { children: 'Total' },
+              { children: <Text type="danger">{totalBorrow}</Text> },
+              { children: <Text>{totalRepayment}</Text> },
             ],
             [
-              {children: 'Balance'},
-              {colSpan: 2, children: <Text type="danger">{totalBorrow - totalRepayment}</Text>},
+              { children: 'Balance' },
+              {
+                colSpan: 2,
+                children: (
+                  <Text type="danger">{totalBorrow - totalRepayment}</Text>
+                ),
+              },
             ],
-          ]
+          ];
         }}
       />
 
       <Divider>一行总结栏 table</Divider>
       <ConfigActions value={smState} onChange={smOnChange} />
-      <Table 
-        {...smBaseProps} 
-        columns={fixedColumns} 
-        dataSource={fixedDataSource} 
+      <Table
+        {...smBaseProps}
+        columns={fixedColumns}
+        dataSource={fixedDataSource}
         scrollY={350}
         summary={() => [
-          [
-            {children: 'Summary'},
-            {children: 'This is a summary content'},
-          ]
+          [{ children: 'Summary' }, { children: 'This is a summary content' }],
         ]}
       />
     </>
-  )
+  );
 };
 
 export default App;

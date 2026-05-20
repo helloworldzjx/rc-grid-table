@@ -1,73 +1,71 @@
-import { UIEventHandler, useMemo, useState } from 'react';
 import warning from '@rc-component/util/lib/warning';
+import { UIEventHandler, useMemo, useState } from 'react';
 
 import { useTableContext } from '../context';
 
 const useVirtual = () => {
-  const { 
-    dataSource, 
-    scrollY,
-    virtual, 
-    itemHeight = 40,
-  } = useTableContext();
+  const { dataSource, scrollY, virtual, itemHeight = 40 } = useTableContext();
 
   const [scrollTop, setScrollTop] = useState(0);
 
   const tbodyScrollY = useMemo(() => {
-    if(!virtual || !dataSource?.length) return scrollY
+    if (!virtual || !dataSource?.length) return scrollY;
 
-    if(virtual) {
-      warning(!!scrollY, 'virtual table should prop `scrollY`')
+    if (virtual) {
+      warning(!!scrollY, 'virtual table should prop `scrollY`');
 
       return {
         fullHeight: true,
-        y: typeof scrollY === 'number' ? scrollY : scrollY?.y
-      }
+        y: typeof scrollY === 'number' ? scrollY : scrollY?.y,
+      };
     }
-  }, [virtual, scrollY, dataSource])
+  }, [virtual, scrollY, dataSource]);
 
   const tbodyHeight = useMemo(() => {
-    let prop = 'height'
-    let y: number | string = 'auto'
-    
-    if(typeof tbodyScrollY === 'number') {
-      y = tbodyScrollY || 'auto'
-      prop = 'height'
-    } else if(typeof tbodyScrollY === 'object') {
-      y = tbodyScrollY.y || 'auto'
-      prop = tbodyScrollY.fullHeight ? 'height' : 'max-height'
+    let prop = 'height';
+    let y: number | string = 'auto';
+
+    if (typeof tbodyScrollY === 'number') {
+      y = tbodyScrollY || 'auto';
+      prop = 'height';
+    } else if (typeof tbodyScrollY === 'object') {
+      y = tbodyScrollY.y || 'auto';
+      prop = tbodyScrollY.fullHeight ? 'height' : 'max-height';
     }
 
-    return {[prop]: y}
-  }, [tbodyScrollY])
+    return { [prop]: y };
+  }, [tbodyScrollY]);
 
-  const len = dataSource?.length || 0
-  const virtualHeight = itemHeight * len
-  const visibleCount = Math.ceil(virtualHeight / itemHeight) + 2
-  const visibleHeight = itemHeight * visibleCount
-  const startIdx = Math.ceil(scrollTop / visibleHeight)
-  const endIdx = Math.min(startIdx + visibleCount, len - 1)
+  const len = dataSource?.length || 0;
+  const virtualHeight = itemHeight * len;
+  const visibleCount = Math.ceil(virtualHeight / itemHeight) + 2;
+  const visibleHeight = itemHeight * visibleCount;
+  const startIdx = Math.ceil(scrollTop / visibleHeight);
+  const endIdx = Math.min(startIdx + visibleCount, len - 1);
 
   const tbodyDataSource = useMemo(() => {
-    return dataSource?.slice(startIdx * visibleCount, endIdx * visibleCount + visibleCount)
-  }, [dataSource, itemHeight])
+    return dataSource?.slice(
+      startIdx * visibleCount,
+      endIdx * visibleCount + visibleCount,
+    );
+  }, [dataSource, itemHeight]);
 
   const enableVirtual = useMemo(() => {
-    return virtual && dataSource?.length
-  }, [virtual, dataSource?.length])
+    return virtual && dataSource?.length;
+  }, [virtual, dataSource?.length]);
 
   return {
     tbodyHeight,
     tbodyDataSource: enableVirtual ? tbodyDataSource : dataSource,
-    ...enableVirtual && {
+    ...(enableVirtual && {
       onScrol: ((e) => {
-        setScrollTop(e.currentTarget.scrollTop)
+        setScrollTop(e.currentTarget.scrollTop);
       }) as UIEventHandler<HTMLDivElement>,
-    }
-  }
-}
+    }),
+  };
+};
 
-
+export default useVirtual;
 
 // const containerRef = useRef(null);
 //   const [scrollTop, setScrollTop] = useState(0);
@@ -75,7 +73,7 @@ const useVirtual = () => {
 //   // 计算可见区域参数
 //   const visibleCount = Math.ceil(containerHeight / itemHeight);
 //   const totalHeight = data.length * itemHeight;
-  
+
 //   // 虚拟渲染逻辑
 //   const virtualRender = useMemo(() => {
 //     if (!enableVirtual) return {

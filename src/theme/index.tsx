@@ -3,8 +3,12 @@ import { createTheme } from '@ant-design/cssinjs';
 import { TinyColor } from '@ctrl/tinycolor';
 import React, { createContext, FC, PropsWithChildren } from 'react';
 
-import useInternalToken from "./hooks/useToken"
-import { DerivativeToken, DesignToken, DesignTokenContextPorps } from './interface';
+import useInternalToken from './hooks/useToken';
+import {
+  DerivativeToken,
+  DesignToken,
+  DesignTokenContextPorps,
+} from './interface';
 
 export const defaultDesignToken: DesignToken = {
   lineHeightBase: 1.5,
@@ -29,9 +33,7 @@ export function lightDerivative(designToken: DesignToken): DerivativeToken {
   return {
     ...designToken,
     ...defaultDerivativeToken,
-    colorText: new TinyColor(designToken.colorTextBase)
-      .lighten(15)
-      .toString(),
+    colorText: new TinyColor(designToken.colorTextBase).lighten(15).toString(),
     primaryColorHover: new TinyColor(designToken.colorPrimary)
       .lighten(40)
       .toString(),
@@ -40,12 +42,8 @@ export function lightDerivative(designToken: DesignToken): DerivativeToken {
       .setAlpha(0.7)
       .toString(),
     colorBgContainer: '#fff',
-    colorBgLayout: new TinyColor(designToken.colorBgBase)
-      .darken(3)
-      .toString(),
-    colorBorder: new TinyColor(designToken.colorBgBase)
-      .darken(13)
-      .toString(),
+    colorBgLayout: new TinyColor(designToken.colorBgBase).darken(3).toString(),
+    colorBorder: new TinyColor(designToken.colorBgBase).darken(13).toString(),
   };
 }
 
@@ -54,9 +52,7 @@ export function darkDerivative(designToken: DesignToken): DerivativeToken {
   return {
     ...designToken,
     ...defaultDerivativeToken,
-    colorText: new TinyColor(designToken.colorTextBase)
-      .lighten(92)
-      .toString(),
+    colorText: new TinyColor(designToken.colorTextBase).lighten(92).toString(),
     primaryColorHover: new TinyColor(designToken.colorPrimary)
       .setAlpha(0.7)
       .toString(),
@@ -67,25 +63,26 @@ export function darkDerivative(designToken: DesignToken): DerivativeToken {
     colorBgContainer: new TinyColor(designToken.colorBgBase)
       .darken(84)
       .toString(),
-    colorBgLayout: new TinyColor(designToken.colorBgBase)
-      .darken(88)
-      .toString(),
-    colorBorder: new TinyColor(designToken.colorBgBase)
-      .darken(76)
-      .toString(),
+    colorBgLayout: new TinyColor(designToken.colorBgBase).darken(88).toString(),
+    colorBorder: new TinyColor(designToken.colorBgBase).darken(76).toString(),
   };
 }
 
-export const LightThemeContext = createContext<Theme<DesignToken, DerivativeToken>>(createTheme(lightDerivative));
-export const DarkThemeContext = createContext<Theme<DesignToken, DerivativeToken>>(createTheme(darkDerivative));
+export const LightThemeContext = createContext<
+  Theme<DesignToken, DerivativeToken>
+>(createTheme(lightDerivative));
+export const DarkThemeContext = createContext<
+  Theme<DesignToken, DerivativeToken>
+>(createTheme(darkDerivative));
 
 export const DesignTokenContext = createContext<DesignTokenContextPorps>({
   token: defaultDesignToken,
-  isDark: false
+  isDark: false,
 });
 
-export const DesignTokenProvider: FC<PropsWithChildren<DesignTokenContextPorps>> = ({ children, ...rest }) => {
-
+export const DesignTokenProvider: FC<
+  PropsWithChildren<DesignTokenContextPorps>
+> = ({ children, ...rest }) => {
   return (
     <DesignTokenContext.Provider value={rest}>
       {children}
@@ -94,14 +91,12 @@ export const DesignTokenProvider: FC<PropsWithChildren<DesignTokenContextPorps>>
 };
 
 function useToken() {
-  const [theme, token, hashId, _, isDark] = useInternalToken();
+  const [theme, token, hashId, , isDark] = useInternalToken();
 
   return { theme, token, hashId, isDark };
 }
 
-export type {
-  DerivativeToken, DesignToken
-}
+export type { DerivativeToken, DesignToken };
 
 export default {
   LightThemeContext,

@@ -1,7 +1,6 @@
-import React from 'react';
-import { Space, Tag } from 'antd';
 import { Table } from 'rc-grid-table';
 import type { TableProps } from 'rc-grid-table/es/table/interface';
+import React from 'react';
 import ConfigActions from './_utils/components/ConfigActions';
 import useConfigActions from './_utils/hooks/useConfigActions';
 
@@ -75,14 +74,14 @@ const App: React.FC = () => {
   ];
 
   // 动态控制 bordered、stripe、resizableColumns、sortableColumns 属性
-  const { baseProps, state, onChange } = useConfigActions({bordered: true})
+  const { baseProps, state, onChange } = useConfigActions({ bordered: true });
 
   return (
     <>
       <ConfigActions value={state} onChange={onChange} />
       <Table {...baseProps} columns={columns} dataSource={data} />
     </>
-  )
+  );
 };
 
 export default App;

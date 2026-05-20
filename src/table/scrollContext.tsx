@@ -1,54 +1,88 @@
-import React, { createContext, FC, PropsWithChildren, SetStateAction, UIEventHandler, useContext, useEffect, useRef, useState } from "react";
-import { useDebounceEffect } from "ahooks";
+import { useDebounceEffect } from 'ahooks';
+import React, {
+  createContext,
+  FC,
+  PropsWithChildren,
+  SetStateAction,
+  UIEventHandler,
+  useContext,
+  useRef,
+  useState,
+} from 'react';
 
-import { TableScrollContextProps, TableScrollProviderProps } from "./interface";
-import { ScrollBarContainerRef } from "../scrollContainer/interface";
-import { useTableContext } from "./context";
+import { ScrollBarContainerRef } from '../scrollContainer/interface';
+import { useTableContext } from './context';
+import { TableScrollContextProps, TableScrollProviderProps } from './interface';
 
-const ScrollContext = createContext<TableScrollContextProps>({} as TableScrollContextProps);
+const ScrollContext = createContext<TableScrollContextProps>(
+  {} as TableScrollContextProps,
+);
 
-const ScrollProvider: FC<PropsWithChildren<TableScrollProviderProps>> = ({ children, onScroll }) => {
-  const { fixColumnsGapped, containerWidth, columnsWidthTotal } = useTableContext()
+const ScrollProvider: FC<PropsWithChildren<TableScrollProviderProps>> = ({
+  children,
+  onScroll,
+}) => {
+  const { fixColumnsGapped, containerWidth, columnsWidthTotal } =
+    useTableContext();
 
   const scrollRef = useRef<ScrollBarContainerRef>(null);
-  const [isStart, setIsStart] = useState(true)
-  const [isEnd, setIsEnd] = useState(false)
+  const [isStart, setIsStart] = useState(true);
+  const [isEnd, setIsEnd] = useState(false);
 
-  useDebounceEffect(() => {
-    if(containerWidth && columnsWidthTotal && (fixColumnsGapped || containerWidth >= columnsWidthTotal)) {
-      setIsStart(true)
-      setIsEnd(true)
-    }
-  }, [fixColumnsGapped, containerWidth, columnsWidthTotal], { wait: 0 })
+  useDebounceEffect(
+    () => {
+      if (
+        containerWidth &&
+        columnsWidthTotal &&
+        (fixColumnsGapped || containerWidth >= columnsWidthTotal)
+      ) {
+        setIsStart(true);
+        setIsEnd(true);
+      }
+    },
+    [fixColumnsGapped, containerWidth, columnsWidthTotal],
+    { wait: 0 },
+  );
 
   const handleScroll: UIEventHandler<HTMLDivElement> = (e) => {
-    onScroll?.(e)
+    onScroll?.(e);
 
-    if(fixColumnsGapped) return
+    if (fixColumnsGapped) return;
 
-    const scrollLeft = e.currentTarget.scrollLeft
-    const scrollWidth = e.currentTarget.scrollWidth
-    const clientWidth = e.currentTarget.clientWidth
-    
-    if(scrollLeft === 0) {
-      setIsStart(true)
-    } else if(scrollWidth - clientWidth - scrollLeft <= 1) {
-      setIsEnd(true)
+    const scrollLeft = e.currentTarget.scrollLeft;
+    const scrollWidth = e.currentTarget.scrollWidth;
+    const clientWidth = e.currentTarget.clientWidth;
+
+    if (scrollLeft === 0) {
+      setIsStart(true);
+    } else if (scrollWidth - clientWidth - scrollLeft <= 1) {
+      setIsEnd(true);
     } else {
-      setIsStart(false)
-      setIsEnd(false)
+      setIsStart(false);
+      setIsEnd(false);
     }
-  }
-  
+  };
+
   const updateScrollLeft = (dispatch: SetStateAction<number>) => {
     if (scrollRef.current!.nativeScrollElement) {
-      const scrollLeft = typeof dispatch === 'function' ? dispatch(scrollRef.current!.nativeScrollElement.scrollLeft) : dispatch
-      scrollRef.current!.nativeScrollElement.scrollLeft = scrollLeft
+      const scrollLeft =
+        typeof dispatch === 'function'
+          ? dispatch(scrollRef.current!.nativeScrollElement.scrollLeft)
+          : dispatch;
+      scrollRef.current!.nativeScrollElement.scrollLeft = scrollLeft;
     }
   };
 
   return (
-    <ScrollContext.Provider value={{ scrollRef, updateScrollLeft, isStart, isEnd, onScroll: handleScroll }}>
+    <ScrollContext.Provider
+      value={{
+        scrollRef,
+        updateScrollLeft,
+        isStart,
+        isEnd,
+        onScroll: handleScroll,
+      }}
+    >
       {children}
     </ScrollContext.Provider>
   );
@@ -56,7 +90,4 @@ const ScrollProvider: FC<PropsWithChildren<TableScrollProviderProps>> = ({ child
 
 const useScrollContext = () => useContext(ScrollContext);
 
-export {
-  ScrollProvider as default,
-  useScrollContext,
-}
+export { ScrollProvider as default, useScrollContext };

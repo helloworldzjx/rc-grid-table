@@ -1,8 +1,8 @@
 import { Table, Theme } from 'rc-grid-table';
 import { ColumnState, ColumnsType } from 'rc-grid-table/es/table/interface';
 import React, { useState } from 'react';
-import useConfigActions from './_utils/hooks/useConfigActions';
 import ConfigActions from './_utils/components/ConfigActions';
+import useConfigActions from './_utils/hooks/useConfigActions';
 
 interface DataType {
   key: string;
@@ -61,7 +61,7 @@ export default () => {
               dataIndex: 'test0-0-2',
               fixed: 'start',
             },
-          ]
+          ],
         },
         {
           title: 'test0-1',
@@ -136,11 +136,13 @@ export default () => {
       title: 'test3',
       key: 'test3',
       fixed: 'end',
-      children: [{dataIndex: 'test3', key: 'test3-0', fixed: 'end', title: 'test3-0'}]
+      children: [
+        { dataIndex: 'test3', key: 'test3-0', fixed: 'end', title: 'test3-0' },
+      ],
     },
   ];
 
-  const dataSource: DataType[] = Array.from({length: 10}).map((_, i) => ({
+  const dataSource: DataType[] = Array.from({ length: 10 }).map((_, i) => ({
     key: `${i}`,
     name: 'Jake White',
     age: 18,
@@ -154,50 +156,60 @@ export default () => {
     'test0-2': 'test0-2',
     test1: 'test1',
     test2: 'test2',
-    test3: 'test3'
-  }))
+    test3: 'test3',
+  }));
 
-  const bigDataSource: DataType[] = Array.from({length: 1000}).map((_, i) => ({
-    key: `${i}`,
-    name: 'Jake White',
-    age: 18,
-    tel: '0575-22098909',
-    phone: 18900010002,
-    address: 'Dublin No. 2 Lake Park',
-    'test0-0-0': 'test0-0',
-    'test0-0-1': 'test0-2',
-    'test0-0-2': 'test0-2',
-    'test0-1': 'test0-1',
-    'test0-2': 'test0-2',
-    test1: 'test1',
-    test2: 'test2',
-    test3: 'test3'
-  }))
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const bigDataSource: DataType[] = Array.from({ length: 1000 }).map(
+    (_, i) => ({
+      key: `${i}`,
+      name: 'Jake White',
+      age: 18,
+      tel: '0575-22098909',
+      phone: 18900010002,
+      address: 'Dublin No. 2 Lake Park',
+      'test0-0-0': 'test0-0',
+      'test0-0-1': 'test0-2',
+      'test0-0-2': 'test0-2',
+      'test0-1': 'test0-1',
+      'test0-2': 'test0-2',
+      test1: 'test1',
+      test2: 'test2',
+      test3: 'test3',
+    }),
+  );
 
-  const { token } = Theme.useToken()
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { token } = Theme.useToken();
   // 动态控制 bordered、stripe、resizableColumns、sortableColumns 属性
-  const { baseProps, state, onChange } = useConfigActions({bordered: true})
-  const tableKey = 'testTable'
-  const storageKey = `${tableKey}-columnsState`
-  const [columnsState, setColumnsState] = useState<ColumnState[]>(JSON.parse(localStorage.getItem(storageKey) || '[]'))
+  const { baseProps, state, onChange } = useConfigActions({ bordered: true });
+  const tableKey = 'testTable';
+  const storageKey = `${tableKey}-columnsState`;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [columnsState, setColumnsState] = useState<ColumnState[]>(
+    JSON.parse(localStorage.getItem(storageKey) || '[]'),
+  );
 
   return (
     <>
       <ConfigActions value={state} onChange={onChange} />
-      <Table 
+      <Table
         {...baseProps}
-        columns={columns} 
-        dataSource={dataSource} 
+        columns={columns}
+        dataSource={dataSource}
         // style={{height: 360}}
         sticky
         scrollY={400}
-        columnsConfig={{
-          // useStorage: true,
-          // columnsState: columnsState,
-          // onChange(columnsState) {
-          //   localStorage.setItem(storageKey, JSON.stringify(columnsState))
-          // },
-        }}
+        columnsConfig={
+          {
+            // useStorage: true,
+            // columnsState: columnsState,
+            // onChange(columnsState) {
+            //   if(!useStorage) return
+            //   localStorage.setItem(storageKey, JSON.stringify(columnsState))
+            // },
+          }
+        }
         // summary={(_, columnsLength) => ([
         //   [
         //     { children: '123213' },

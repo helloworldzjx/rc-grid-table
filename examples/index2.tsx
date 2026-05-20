@@ -72,45 +72,48 @@ export default () => {
     },
   ];
 
-  const dataSource: DataType[] = Array.from({length: 8}).map((_, i) => ({
+  const dataSource: DataType[] = Array.from({ length: 8 }).map((_, i) => ({
     key: `${i}`,
     name: 'Jake White',
     age: 18,
     tel: '0575-22098909',
     phone: 18900010002,
     address: 'Dublin No. 2 Lake Park',
-  }))
+  }));
 
-  const bigDataSource: DataType[] = Array.from({length: 1000}).map((_, i) => ({
-    key: `${i}`,
-    name: 'Jake White',
-    age: 18,
-    tel: '0575-22098909',
-    phone: 18900010002,
-    address: 'Dublin No. 2 Lake Park',
-  }))
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const bigDataSource: DataType[] = Array.from({ length: 1000 }).map(
+    (_, i) => ({
+      key: `${i}`,
+      name: 'Jake White',
+      age: 18,
+      tel: '0575-22098909',
+      phone: 18900010002,
+      address: 'Dublin No. 2 Lake Park',
+    }),
+  );
 
   return (
-    <Table 
-      columns={columns} 
-      dataSource={dataSource} 
+    <Table
+      columns={columns}
+      dataSource={dataSource}
       bordered
       // style={{height: 360}}
       resizableColumns
       sortableColumns
       sticky
       scrollY={400}
-      summary={() => ([
+      summary={() => [
         [
           { rowSpan: 2, children: 'aaaa' },
           { colSpan: columns.length - 3, children: 'a?."{&aaa' },
           { children: '123213' },
-          { children: '123213' }
+          { children: '123213' },
         ],
         [
           { children: 'a?."{&aaa' },
           { colSpan: columns.length - 3, children: '123213' },
-          { children: '123213', rowSpan: 2 }
+          { children: '123213', rowSpan: 2 },
         ],
         [
           { children: 'aaaa' },
@@ -126,9 +129,9 @@ export default () => {
         [
           { colSpan: columns.length - 2, children: '123213' },
           { children: 'aaaa' },
-          { children: '123213' }
+          { children: '123213' },
         ],
-      ])}
+      ]}
     />
   );
 };
