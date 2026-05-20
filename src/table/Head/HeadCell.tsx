@@ -10,11 +10,7 @@ import { useStyles } from '../style';
 import { getMergedSpanKeys } from '../utils/calc';
 import { isSelectionColumn } from '../utils/const';
 import { getCellFixedInfo } from '../utils/fixedColumns';
-import {
-  filterSpan,
-  getEllipsisTitle,
-  getKeysByClassify,
-} from '../utils/handle';
+import { filterSpan, getEllipsisTitle } from '../utils/handle';
 import Resizable from './Resizable';
 
 interface HeadCellProps<T = any> {
@@ -25,8 +21,8 @@ interface HeadCellProps<T = any> {
   prevRowLastCellKey?: Key;
   /** 当前行的最大index */
   currentRowLastIndex: number;
-  /** rows最大index */
-  rowsLastIndex: number;
+  /** 第一行最后一列的key */
+  firstRowLastCellKey?: Key;
 }
 
 function HeadCell({
@@ -35,7 +31,7 @@ function HeadCell({
   columnIndex: colIndex,
   prevRowLastCellKey,
   currentRowLastIndex,
-  rowsLastIndex,
+  firstRowLastCellKey,
 }: HeadCellProps) {
   const {
     flattenColumns = [],
@@ -68,33 +64,25 @@ function HeadCell({
     );
   }, [col.colStart, col.colEnd, flattenColumns, fixedOffset]);
 
-  /**
-   * 最后一列不显示右侧border
-   * 判断当前列是否为最后一列：
-   * 当前列是否为第一行的最后一列；
-   * 当前列是否是最后一行的列，且当前列的parentKey是否为上一行最后一列的key；
-   * 当前列非第一行和最后一行的列，则判断当前列的parentKey是否为上一行最后一列的key
-   */
+  // 最后一列不显示右侧border
   const hasHeadLastCellCls = useMemo(() => {
     if (rowIndex === 0) {
       return colIndex === currentRowLastIndex;
-    } else if (rowIndex === rowsLastIndex) {
-      return (
-        col.column?.parentKey === prevRowLastCellKey &&
-        col.column?.key === flattenColumns[flattenColumns.length - 1].key
-      );
     }
 
-    return col.column?.parentKey === prevRowLastCellKey;
+    return (
+      col.column?.parentKey === prevRowLastCellKey &&
+      colIndex === currentRowLastIndex &&
+      col.column?.ancestorKeys?.[0] === firstRowLastCellKey
+    );
   }, [
     rowIndex,
     colIndex,
     currentRowLastIndex,
-    rowsLastIndex,
     col.column?.parentKey,
     prevRowLastCellKey,
-    col.column?.key,
-    flattenColumns,
+    col.column?.ancestorKeys?.[0],
+    firstRowLastCellKey,
   ]);
 
   const mergedStyle = useMemo(() => {
@@ -140,24 +128,24 @@ function HeadCell({
     );
   }, [col, flattenColumns]);
 
-  const childrenKeys = useMemo(() => {
-    return getKeysByClassify(col.column?.children);
-  }, [col]);
-
   const keys = useMemo(() => {
     if (!resizableColumns && !sortableColumns) return [];
 
     if (col.hasSubColumns) {
-      return childrenKeys.reduce((result: Key[], column) => {
-        if (!column.hasChildren) {
-          result.push(column.key);
-        }
-        return result;
-      }, []);
+      return flattenColumns
+        .filter((column) => column.ancestorKeys.includes(col.key as Key))
+        .map((column) => column.key);
     }
 
     return mergedSpanKeys;
-  }, [resizableColumns, sortableColumns, mergedSpanKeys, childrenKeys]);
+  }, [
+    resizableColumns,
+    sortableColumns,
+    col.hasSubColumns,
+    flattenColumns,
+    col.key,
+    mergedSpanKeys,
+  ]);
 
   const resizeKeys = useMemo(() => {
     if (!resizableColumns || col.column?.resizeDisabled) return [];

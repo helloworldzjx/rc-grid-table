@@ -1,10 +1,14 @@
-import { Key } from "react";
+import { Key } from 'react';
 
-import { ColumnState } from "../interface";
+import { ColumnState } from '../interface';
 
-const getColumnKey = <T = any>(column: ColumnState<T>, index: number) => column.key || column.dataIndex || index
+const getColumnKey = <T = any>(column: ColumnState<T>, index: number) =>
+  column.key || column.dataIndex || index;
 
-function completeColumnState<T = any>(column: ColumnState<T>, children: ColumnState[] = column.children || []): ColumnState {
+function completeColumnState<T = any>(
+  column: ColumnState<T>,
+  children: ColumnState[] = column.children || [],
+): ColumnState {
   return {
     ...column,
     visible: column.visible ?? true,
@@ -15,7 +19,9 @@ function completeColumnState<T = any>(column: ColumnState<T>, children: ColumnSt
   } as ColumnState;
 }
 
-function createKeyMap<T = any>(columns: ColumnState<T>[]): Map<Key, ColumnState<T>> {
+function createKeyMap<T = any>(
+  columns: ColumnState<T>[],
+): Map<Key, ColumnState<T>> {
   const map = new Map<Key, ColumnState<T>>();
   const traverse = (cols: ColumnState<T>[]) => {
     cols.forEach((column, index) => {
@@ -27,33 +33,42 @@ function createKeyMap<T = any>(columns: ColumnState<T>[]): Map<Key, ColumnState<
   return map;
 }
 
-function normalizeColumnsOrder<T = any>(columns: ColumnState<T>[], storedColumns: ColumnState[] = []) {
-  const storedSiblingKeySet = new Set<Key>(storedColumns.map((column, index) => getColumnKey(column, index)));
+function normalizeColumnsOrder<T = any>(
+  columns: ColumnState<T>[],
+  storedColumns: ColumnState[] = [],
+) {
+  const storedSiblingKeySet = new Set<Key>(
+    storedColumns.map((column, index) => getColumnKey(column, index)),
+  );
   const placedColumns = columns
     .map((column, index) => ({ column, index }))
     .filter(({ column }) => storedSiblingKeySet.has(column.key as Key))
     .sort((a, b) => {
-      const orderDiff = (a.column.order ?? a.index) - (b.column.order ?? b.index);
+      const orderDiff =
+        (a.column.order ?? a.index) - (b.column.order ?? b.index);
       return orderDiff || a.index - b.index;
     })
     .map(({ column }) => column);
-  const placedKeySet = new Set<Key>(placedColumns.map((column) => column.key as Key));
+  const placedKeySet = new Set<Key>(
+    placedColumns.map((column) => column.key as Key),
+  );
 
   columns.forEach((column, index) => {
-    if(storedSiblingKeySet.has(column.key as Key)) return;
+    if (storedSiblingKeySet.has(column.key as Key)) return;
 
     let anchorKey: Key | undefined;
-    for(let i = index - 1; i >= 0; i--) {
+    for (let i = index - 1; i >= 0; i--) {
       const prevKey = columns[i].key as Key;
-      if(placedKeySet.has(prevKey)) {
+      if (placedKeySet.has(prevKey)) {
         anchorKey = prevKey;
         break;
       }
     }
 
-    const insertIndex = anchorKey === undefined
-      ? 0
-      : placedColumns.findIndex((item) => item.key === anchorKey) + 1;
+    const insertIndex =
+      anchorKey === undefined
+        ? 0
+        : placedColumns.findIndex((item) => item.key === anchorKey) + 1;
     placedColumns.splice(insertIndex, 0, column);
     placedKeySet.add(column.key as Key);
   });
@@ -69,12 +84,17 @@ function normalizeColumnsOrder<T = any>(columns: ColumnState<T>[], storedColumns
   });
 }
 
-function mergeColumnsStateInternal<T = any>(a: ColumnState<T>[], b: ColumnState[]): ColumnState[] {
+function mergeColumnsStateInternal<T = any>(
+  a: ColumnState<T>[],
+  b: ColumnState[],
+): ColumnState[] {
   const bKeyMap = createKeyMap(b);
   const mergeColumn = (column: ColumnState<T>): ColumnState => {
     const bColumn = bKeyMap.get(column.key as Key);
     if (!bColumn) {
-      const children = column.children?.length ? mergeColumnsStateInternal(column.children, []) : [];
+      const children = column.children?.length
+        ? mergeColumnsStateInternal(column.children, [])
+        : [];
       return completeColumnState(column, children);
     }
 
@@ -83,23 +103,28 @@ function mergeColumnsStateInternal<T = any>(a: ColumnState<T>[], b: ColumnState[
       ...JSON.parse(JSON.stringify(bColumn)), // 冲突时优先采用b的数据
       key: column.key,
       parentKey: column.parentKey,
+      ancestorKeys: column.ancestorKeys,
       title: column.title,
       resizeDisabled: column.resizeDisabled,
       dragSortDisabled: column.dragSortDisabled,
     };
 
-    if(column.resizeDisabled && !column.hasChildren) {
+    if (column.resizeDisabled && !column.hasChildren) {
       merged.width = column.width;
       merged.updatedWidth = false;
     }
 
-    const children = column.children?.length || bColumn.children?.length
-      ? mergeColumnsStateInternal(column.children || [], bColumn.children || [])
-      : [];
+    const children =
+      column.children?.length || bColumn.children?.length
+        ? mergeColumnsStateInternal(
+            column.children || [],
+            bColumn.children || [],
+          )
+        : [];
 
     return completeColumnState(merged, children);
-  }
-  const mergedColumns = a.map(column => mergeColumn(column));
+  };
+  const mergedColumns = a.map((column) => mergeColumn(column));
   return normalizeColumnsOrder(mergedColumns, b);
 }
 
@@ -109,6 +134,9 @@ function mergeColumnsStateInternal<T = any>(a: ColumnState<T>[], b: ColumnState[
  * @param b middleState
  * @returns a和b合并后的columnsState
  */
-export function mergeColumnsState<T = any>(a: ColumnState<T>[], b: ColumnState[]): ColumnState[] {
+export function mergeColumnsState<T = any>(
+  a: ColumnState<T>[],
+  b: ColumnState[],
+): ColumnState[] {
   return mergeColumnsStateInternal(a, b);
 }

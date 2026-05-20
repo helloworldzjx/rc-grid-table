@@ -224,6 +224,7 @@ export interface TableSticky {
 export type ColumnStateConfigType = {
   key: Key;
   parentKey: Key;
+  ancestorKeys: Key[];
   depth: number;
   order: number;
   distribute: boolean;

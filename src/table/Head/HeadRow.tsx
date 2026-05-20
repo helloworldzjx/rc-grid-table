@@ -47,6 +47,7 @@ function HeadRow({
 
   const { headRowCls, headDraggingOverlayCellCls } = useStyles();
 
+  const firstRow = headRows[0] || [];
   const previousRow = headRows[headRowIndex - 1] || [];
   const [activeKey, setActiveKey] = useState<Key | null>(null);
   const [dragOverlaySize] = useState({ width: 100, height: 40 });
@@ -241,7 +242,7 @@ function HeadRow({
                 previousRow[previousRow.length - 1]?.column?.key
               }
               currentRowLastIndex={columns.length - 1}
-              rowsLastIndex={headRows.length - 1}
+              firstRowLastCellKey={firstRow[firstRow.length - 1]?.column?.key}
             />
           ))}
         </SortableContext>

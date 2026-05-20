@@ -119,6 +119,7 @@ export function filterColumns<T = any>(
   size: SizeType,
   columns: ColumnsType<T>,
   parentKey: Key = '',
+  ancestorKeys: Key[] = [],
   depth = 0,
 ) {
   if (!Array.isArray(columns)) return [];
@@ -132,6 +133,7 @@ export function filterColumns<T = any>(
           title: column.title ?? '',
           width,
           parentKey,
+          ancestorKeys,
           depth,
           order: index,
           visible: true,
@@ -152,10 +154,22 @@ export function filterColumns<T = any>(
         return result;
       let children: ColumnsType<T> = [];
       if (column.children?.length) {
-        children = filterColumns(size, column.children, currentKey, depth + 1);
+        children = filterColumns(
+          size,
+          column.children,
+          currentKey,
+          [...ancestorKeys, currentKey],
+          depth + 1,
+        );
       }
 
-      const newNode = { ...column, key: currentKey, parentKey, depth };
+      const newNode = {
+        ...column,
+        key: currentKey,
+        parentKey,
+        ancestorKeys,
+        depth,
+      };
       if (children.length) newNode.children = children;
       result.push(newNode as ColumnState<T>);
       return result;
@@ -221,6 +235,7 @@ export function flattenColumnsWithTotalWidth<T>(
   function traverse(
     cols: FnColumnType<T>[],
     parentKey: Key = '',
+    ancestorKeys: Key[] = [],
     depth: number = 0,
   ) {
     cols.forEach((column, index) => {
@@ -238,6 +253,7 @@ export function flattenColumnsWithTotalWidth<T>(
           ...column,
           width,
           parentKey,
+          ancestorKeys,
           depth,
           order: index,
           visible: true,
@@ -262,7 +278,12 @@ export function flattenColumnsWithTotalWidth<T>(
       const currentKey = column?.key || column?.dataIndex || index;
 
       if (column.children?.length) {
-        traverse(column.children as FnColumnType<T>[], currentKey, depth + 1);
+        traverse(
+          column.children as FnColumnType<T>[],
+          currentKey,
+          [...ancestorKeys, currentKey],
+          depth + 1,
+        );
       }
 
       let width = undefined;
@@ -289,6 +310,7 @@ export function flattenColumnsWithTotalWidth<T>(
         width,
         key: currentKey,
         parentKey,
+        ancestorKeys,
         depth,
         order: column.order ?? index,
         visible: column.visible ?? true,
@@ -412,30 +434,6 @@ export function columnsSort<T>(columns: ColumnState<T>[]) {
   };
 
   return deepSort(columns);
-}
-
-export function getKeysByClassify<T = any>(columns?: ColumnState<T>[]) {
-  if (!Array.isArray(columns)) return [];
-
-  return columns.reduce(
-    (result: { key: Key; hasChildren: boolean }[], column: ColumnState<T>) => {
-      if (column.hasChildren) {
-        result.push({
-          key: column.key as Key,
-          hasChildren: column.hasChildren,
-        });
-        result.push(...getKeysByClassify(column.children));
-      } else {
-        result.push({
-          key: column.key as Key,
-          hasChildren: column.hasChildren,
-        });
-      }
-
-      return result;
-    },
-    [],
-  );
 }
 
 /**
