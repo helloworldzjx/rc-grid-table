@@ -34,7 +34,10 @@ type ComponentClsType = {
   hasSummaryCls: string;
   hasXScrollbarCls: string;
   hasYScrollbarCls: string;
+  hasStickyCls: string;
   headCls: string;
+  headStickyCls: string;
+  headInnerCls: string;
   headRowCls: string;
   bodyCls: string;
   bodyInnerCls: string;
@@ -62,9 +65,10 @@ type ComponentClsType = {
   expandedRowCellCls: string;
   expandedRowContentCls: string;
   headLastCellCls: string;
-  headCellResizableCls: string;
-  headCellResizeDisabledCls: string;
+  headCellResizeHandleCls: string;
+  headResizableCellDisabledCls: string;
   headSortableCellCls: string;
+  headSortableCellDisabledCls: string;
   headDraggingOverlayCellCls: string;
   cellFixedStartCls: string;
   cellFixedStartLastCls: string;
@@ -73,6 +77,8 @@ type ComponentClsType = {
   noDataCellCls: string;
   noDataCellContentCls: string;
   summaryCls: string;
+  summaryStickyCls: string;
+  summaryInnerCls: string;
   summaryRowCls: string;
 };
 
@@ -104,6 +110,7 @@ const genPlaceholderStyle = (
     backgroundColor: token.placeholderColorBg,
     transition: 'background-color 0.3s',
     userSelect: 'none',
+    zIndex: 4,
 
     '&:hover': {
       backgroundColor: token.cellColorHoverBg,
@@ -115,44 +122,104 @@ const genPlaceholderStyle = (
   },
 
   [`.${placeholderBorderedCls}`]: {
-    height: 'calc(100% - 2px)',
-    top: 1,
-    borderLeft: `1px solid ${token.colorBorder}`,
+    border: `1px solid ${token.colorBorder}`,
     borderTopRightRadius: token.borderRadius,
     borderBottomRightRadius: token.borderRadius,
   },
 });
 
+const genComponentStyle = ({
+  componentCls,
+}: ComponentClsType): CSSInterpolation => ({
+  [`.${componentCls}`]: {
+    position: 'relative',
+    boxSizing: 'border-box',
+  },
+});
+
 const genBorderedStyle = (
   {
-    componentCls,
     fixColumnsGappedCls,
-    cellFixedStartLastCls,
     borderedCls,
+    hasXScrollbarCls,
+    hasSummaryCls,
+    headCls,
+    headStickyCls,
+    headInnerCls,
+    bodyCls,
+    summaryCls,
+    summaryStickyCls,
+    summaryInnerCls,
     headRowCls,
+    summaryRowCls,
     cellCls,
+    pingStartCls,
+    pingEndCls,
+    cellFixedStartLastCls,
   }: ComponentClsType,
   token: ComponentToken,
 ): CSSInterpolation => ({
-  [`.${componentCls}::before`]: {
-    content: "' '",
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    height: '100%',
-    width: '100%',
-    boxSizing: 'border-box',
-    borderBottom: `1px solid ${token.colorBorder}`,
-    pointerEvents: 'none',
-    zIndex: 2,
-  },
-
   [`.${borderedCls}`]: {
-    borderRadius: token.borderRadius,
-
     '&::before': {
+      content: "' '",
+      position: 'absolute',
+      left: 0,
+      top: 0,
+      height: '100%',
+      width: '100%',
+      boxSizing: 'border-box',
       border: `1px solid ${token.colorBorder}`,
       borderRadius: token.borderRadius,
+      pointerEvents: 'none',
+      zIndex: 4,
+    },
+
+    [`&.${hasXScrollbarCls}`]: {
+      [`&.${pingStartCls}::after`]: {
+        borderTopLeftRadius: token.borderRadius,
+        borderBottomLeftRadius: token.borderRadius,
+      },
+      [`&.${pingEndCls}::after`]: {
+        borderTopRightRadius: token.borderRadius,
+        borderBottomRightRadius: token.borderRadius,
+      },
+      [`&.${pingStartCls}.${pingEndCls}::after`]: {
+        borderRadius: token.borderRadius,
+      },
+    },
+
+    [`.${headCls}`]: {
+      [`.${headInnerCls}`]: {
+        borderTopLeftRadius: token.borderRadius,
+        borderTopRightRadius: token.borderRadius,
+      },
+
+      [`&.${headStickyCls}::before`]: {
+        border: `1px solid ${token.colorBorder}`,
+        borderTopLeftRadius: token.borderRadius,
+        borderTopRightRadius: token.borderRadius,
+      },
+    },
+
+    [`&:not(.${hasSummaryCls}) .${bodyCls}`]: {
+      borderBottomLeftRadius: token.borderRadius,
+      borderBottomRightRadius: token.borderRadius,
+    },
+
+    [`.${summaryCls}`]: {
+      [`.${summaryInnerCls}`]: {
+        borderBottomLeftRadius: token.borderRadius,
+        borderBottomRightRadius: token.borderRadius,
+      },
+
+      [`.${summaryRowCls}:last-child .${cellCls}`]: {
+        borderBottomColor: 'transparent',
+      },
+
+      [`&.${summaryStickyCls} .${summaryInnerCls}`]: {
+        outline: `1px solid ${token.colorBorder}`,
+        outlineOffset: -1,
+      },
     },
 
     [`.${headRowCls} .${cellCls}::before`]: {
@@ -170,16 +237,96 @@ const genBorderedStyle = (
   },
 });
 
-const genHeadStyle = ({
-  componentCls,
-  headCls,
-  headRowCls,
-}: ComponentClsType): CSSInterpolation => ({
+const genStickyStyle = (
+  {
+    componentCls,
+    borderedCls,
+    hasSummaryCls,
+    hasStickyCls,
+    headCls,
+    headStickyCls,
+    bodyCls,
+    summaryCls,
+    summaryStickyCls,
+    summaryInnerCls,
+    headRowCls,
+    bodyRowCls,
+    cellCls,
+  }: ComponentClsType,
+  token: ComponentToken,
+): CSSInterpolation => ({
+  [`.${componentCls}`]: {
+    [`&.${hasStickyCls} .${headCls} .${headRowCls}:last-child .${cellCls}`]: {
+      borderBottomColor: 'transparent',
+    },
+
+    [`&.${hasSummaryCls}.${hasStickyCls}`]: {
+      [`.${bodyCls}`]: {
+        '&::before': {
+          display: 'none',
+        },
+
+        [`.${bodyRowCls}:last-child .${cellCls}`]: {
+          borderBottomColor: 'transparent',
+        },
+      },
+    },
+
+    [`&.${borderedCls}`]: {
+      [`.${headCls}`]: {
+        [`&.${headStickyCls}::before`]: {
+          border: `1px solid ${token.colorBorder}`,
+          borderTopLeftRadius: token.borderRadius,
+          borderTopRightRadius: token.borderRadius,
+        },
+      },
+
+      [`.${summaryCls}`]: {
+        [`&.${summaryStickyCls} .${summaryInnerCls}`]: {
+          outline: `1px solid ${token.colorBorder}`,
+          outlineOffset: -1,
+        },
+      },
+    },
+  },
+});
+
+const genHeadStyle = (
+  {
+    componentCls,
+    headCls,
+    headStickyCls,
+    headInnerCls,
+    headRowCls,
+  }: ComponentClsType,
+  token: ComponentToken,
+): CSSInterpolation => ({
   [`.${headCls}`]: {
-    display: 'grid',
-    gridTemplateColumns: `var(--${componentCls}-cols-width)`,
-    overflow: 'auto hidden',
-    scrollbarWidth: 'none',
+    [`&.${headStickyCls}`]: {
+      position: 'sticky',
+      zIndex: 3,
+
+      // 粘性表头单元格底部 border 会异常消失，这里做兜底
+      '&::before': {
+        content: "' '",
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        height: '100%',
+        width: '100%',
+        boxSizing: 'border-box',
+        borderBottom: `1px solid ${token.colorBorder}`,
+        pointerEvents: 'none',
+        zIndex: 2,
+      },
+    },
+
+    [`.${headInnerCls}`]: {
+      display: 'grid',
+      gridTemplateColumns: `var(--${componentCls}-cols-width)`,
+      overflow: 'auto hidden',
+      scrollbarWidth: 'none',
+    },
 
     [`.${headRowCls}`]: {
       display: 'contents',
@@ -197,7 +344,7 @@ const genBodyStyle = (
     left: 0,
     bottom: 0,
     height: 0,
-    width: `var(--${componentCls}-cols-width-total)`,
+    width: `max(100%, var(--${componentCls}-cols-width-total))`,
     boxSizing: 'border-box',
     borderBottom: `1px solid ${token.colorBorder}`,
     pointerEvents: 'none',
@@ -214,16 +361,41 @@ const genBodyStyle = (
   },
 });
 
-const genSummaryCls = ({
-  componentCls,
-  summaryCls,
-  summaryRowCls,
-}: ComponentClsType): CSSInterpolation => ({
+const genSummaryCls = (
+  {
+    componentCls,
+    summaryCls,
+    summaryStickyCls,
+    summaryInnerCls,
+    summaryRowCls,
+  }: ComponentClsType,
+  token: ComponentToken,
+): CSSInterpolation => ({
   [`.${summaryCls}`]: {
-    display: 'grid',
-    gridTemplateColumns: `var(--${componentCls}-cols-width)`,
-    overflow: 'auto hidden',
-    scrollbarWidth: 'none',
+    [`&.${summaryStickyCls}`]: {
+      position: 'sticky',
+      zIndex: 3,
+
+      '&::before': {
+        content: "' '",
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        height: '100%',
+        width: '100%',
+        boxSizing: 'border-box',
+        borderTop: `1px solid ${token.colorBorder}`,
+        pointerEvents: 'none',
+        zIndex: 2,
+      },
+    },
+
+    [`.${summaryInnerCls}`]: {
+      display: 'grid',
+      gridTemplateColumns: `var(--${componentCls}-cols-width)`,
+      overflow: 'auto hidden',
+      scrollbarWidth: 'none',
+    },
 
     [`.${summaryRowCls}`]: {
       display: 'contents',
@@ -257,8 +429,7 @@ const genCellStyle = (
     expandedRowCellCls,
     expandedRowContentCls,
     headLastCellCls,
-    headCellResizableCls,
-    headCellResizeDisabledCls,
+    headCellResizeHandleCls,
     headSortableCellCls,
     headDraggingOverlayCellCls,
   }: ComponentClsType,
@@ -279,7 +450,7 @@ const genCellStyle = (
       borderRight: `1px solid ${token.colorBorder}`,
     },
 
-    [`.${headCellResizableCls}`]: {
+    [`.${headCellResizeHandleCls}`]: {
       position: 'absolute',
       top: 0,
       right: 0,
@@ -287,8 +458,6 @@ const genCellStyle = (
       width: 10,
       height: 999,
       backgroundColor: 'transparent',
-    },
-    [`.${headCellResizableCls}:not(.${headCellResizeDisabledCls})`]: {
       cursor: 'e-resize',
     },
     [`.${headSortableCellCls}`]: {
@@ -593,7 +762,7 @@ const genFixedShadowStyle = ({
       height: '100%',
       width: `min(100%, var(--${componentCls}-cols-width-total))`,
       pointerEvents: 'none',
-      zIndex: 2,
+      zIndex: 5,
     },
     [`&.${hasFixStartColumnsCls}.${hasFixEndColumnsCls}::after`]: {
       display: 'none',
@@ -650,7 +819,7 @@ const genSizeClsStyle = (
     componentMDCls,
     headRowCls,
     headLastCellCls,
-    headCellResizableCls,
+    headCellResizeHandleCls,
     cellCls,
   }: ComponentClsType,
   token: ComponentToken,
@@ -660,7 +829,7 @@ const genSizeClsStyle = (
       insetBlock: unit(token.cellPaddingBlockSM),
     },
 
-    [`.${headCellResizableCls}`]: {
+    [`.${headCellResizeHandleCls}`]: {
       // insetBlock: unit(token.cellPaddingBlockSM), // 暂时不使用自动高度
     },
   },
@@ -669,7 +838,7 @@ const genSizeClsStyle = (
       insetBlock: unit(token.cellPaddingBlockMD),
     },
 
-    [`.${headCellResizableCls}`]: {
+    [`.${headCellResizeHandleCls}`]: {
       // insetBlock: unit(token.cellPaddingBlockMD), // 暂时不使用自动高度
     },
   },
@@ -722,15 +891,17 @@ const genNestStyles = (
 ): CSSInterpolation => [
   genInitialStyle(clsObj),
   genPlaceholderStyle(clsObj, mergedToken),
+  genComponentStyle(clsObj),
   genBorderedStyle(clsObj, mergedToken),
+  genStickyStyle(clsObj, mergedToken),
   genFixedShadowStyle(clsObj),
   genSizeClsStyle(clsObj, mergedToken),
   genStripeClsStyle(clsObj, mergedToken),
   genEmptyClsStyle(clsObj),
   // 避免对象属性冲突，分开来构建样式
-  { [`.${clsObj.componentCls}`]: genHeadStyle(clsObj) },
+  { [`.${clsObj.componentCls}`]: genHeadStyle(clsObj, mergedToken) },
   { [`.${clsObj.componentCls}`]: genBodyStyle(clsObj, mergedToken) },
-  { [`.${clsObj.componentCls}`]: genSummaryCls(clsObj) },
+  { [`.${clsObj.componentCls}`]: genSummaryCls(clsObj, mergedToken) },
   { [`.${clsObj.componentCls}`]: genCellStyle(clsObj, mergedToken) },
   { [`.${clsObj.componentCls}`]: genFixedCellStyle(clsObj, mergedToken) },
 ];
@@ -760,7 +931,10 @@ export const useStyles = () => {
     hasSummaryCls: `${prefixCls}-has-summary`,
     hasXScrollbarCls: `${prefixCls}-has-horizontal-scrollbar`,
     hasYScrollbarCls: `${prefixCls}-has-vertical-scrollbar`,
+    hasStickyCls: `${prefixCls}-has-sticky`,
     headCls: `${prefixCls}-head`,
+    headStickyCls: `${prefixCls}-head-sticky`,
+    headInnerCls: `${prefixCls}-head-inner`,
     headRowCls: `${prefixCls}-head-row`,
     bodyCls: `${prefixCls}-body`,
     bodyInnerCls: `${prefixCls}-body-inner`,
@@ -788,9 +962,10 @@ export const useStyles = () => {
     expandedRowCellCls: `${prefixCls}-expanded-row-cell`,
     expandedRowContentCls: `${prefixCls}-expanded-row-content`,
     headLastCellCls: `${prefixCls}-head-last-cell`,
-    headCellResizableCls: `${prefixCls}-head-cell-resizable`,
-    headCellResizeDisabledCls: `${prefixCls}-head-cell-resize-disabled`,
+    headCellResizeHandleCls: `${prefixCls}-head-cell-resize-handle`,
+    headResizableCellDisabledCls: `${prefixCls}-head-resizable-cell-disabled`,
     headSortableCellCls: `${prefixCls}-head-sortable-cell`,
+    headSortableCellDisabledCls: `${prefixCls}-head-sortable-cell-disabled`,
     headDraggingOverlayCellCls: `${prefixCls}-head-dragging-verlay-cell`,
     cellFixedStartCls: `${prefixCls}-cell-fixed-start`,
     cellFixedStartLastCls: `${prefixCls}-cell-fixed-start-last`,
@@ -799,6 +974,8 @@ export const useStyles = () => {
     noDataCellCls: `${prefixCls}-no-data-cell`,
     noDataCellContentCls: `${prefixCls}-no-data-cell-content`,
     summaryCls: `${prefixCls}-summary`,
+    summaryStickyCls: `${prefixCls}-summary-sticky`,
+    summaryInnerCls: `${prefixCls}-summary-inner`,
     summaryRowCls: `${prefixCls}-summary-row`,
   };
 

@@ -182,7 +182,7 @@ export default () => {
         columns={columns}
         dataSource={dataSource}
         rowSelection={{ fixed: 'start' }}
-        sticky
+        sticky={{ offsetHeader: 76 }}
         scrollY={1000}
         size={size}
       />

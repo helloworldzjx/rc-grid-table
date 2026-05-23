@@ -1,3 +1,4 @@
+import { useIsomorphicLayoutEffect } from 'ahooks';
 import clsx from 'classnames';
 import React, { forwardRef, useImperativeHandle } from 'react';
 
@@ -11,19 +12,14 @@ const ScrollContainer = forwardRef<
 >(
   (
     {
+      prefixCls,
       className,
       classNames,
       styles,
       children,
-      childrenNextSibling,
-      contentController,
-      horizontalThumbController,
-      stickyHorizontalController,
-      shouldHorizontalUpdate = [],
-      shouldVerticalUpdate = [],
-      showHorizontal,
       showVertical,
-      showStickyHorizontal,
+      updateDeps,
+      onVerticalVisibleChange,
       onScroll,
       ...rest
     },
@@ -34,24 +30,13 @@ const ScrollContainer = forwardRef<
       wrapperElement,
       contentRef,
       contentElement,
-      horizontalTrackRef,
-      horizontalTrackElement,
-      horizontalThumbRef,
-      horizontalThumbElement,
-      showStickyHorizontalScrollBar,
-      stickyHorizontalTrackRef,
-      stickyHorizontalThumbRef,
-      stickyHorizontalThumbElement,
       verticalTrackRef,
       verticalTrackElement,
       verticalThumbRef,
       verticalThumbElement,
-      hasHorizontal,
       hasVertical,
-      horizontalThumbWidth,
       verticalThumbHeight,
       handleContentScroll,
-      handleHorizontalDrag,
       handleVerticalDrag,
       scrollTo,
       scrollToTop,
@@ -59,14 +44,8 @@ const ScrollContainer = forwardRef<
       scrollToLeft,
       scrollToRight,
     } = useScroll({
-      contentController,
-      horizontalThumbController,
-      stickyHorizontalController,
-      shouldHorizontalUpdate,
-      shouldVerticalUpdate,
-      showHorizontal,
       showVertical,
-      showStickyHorizontal,
+      updateDeps,
       onScroll,
     });
 
@@ -74,23 +53,17 @@ const ScrollContainer = forwardRef<
       hashId,
       scrollbarCls,
       scrollbarInnerCls,
-      xScrollBarCls,
-      xScrollBarThumbCls,
-      xScrollBarShowCls,
       yScrollBarCls,
       yScrollBarThumbCls,
       yScrollBarShowCls,
-    } = useStyles();
+    } = useStyles(prefixCls);
+    const showVerticalScrollbar = !!showVertical && hasVertical;
 
-    // 暴露方法给外部
     useImperativeHandle(ref, () => ({
       nativeElement: wrapperElement!,
       nativeScrollElement: contentElement!,
-      nativeHorizontalThumbElement: horizontalThumbElement!,
-      nativeHorizontalTrackElement: horizontalTrackElement!,
-      nativeVeverticalTrackElement: verticalTrackElement!,
-      nativeVeverticalThumbElement: verticalThumbElement!,
-      nativeStickyHorizontalElement: stickyHorizontalThumbElement!,
+      nativeVerticalTrackElement: verticalTrackElement!,
+      nativeVerticalThumbElement: verticalThumbElement!,
       scrollTo,
       scrollToTop,
       scrollToBottom,
@@ -98,99 +71,52 @@ const ScrollContainer = forwardRef<
       scrollToRight,
     }));
 
+    useIsomorphicLayoutEffect(() => {
+      onVerticalVisibleChange?.(showVerticalScrollbar);
+    }, [onVerticalVisibleChange, showVerticalScrollbar]);
+
     return (
-      <>
+      <div
+        className={clsx(
+          className,
+          scrollbarCls,
+          hashId,
+          classNames?.hasYScrollbarCls && {
+            [classNames.hasYScrollbarCls]: showVerticalScrollbar,
+          },
+        )}
+        ref={wrapperRef}
+        {...rest}
+      >
         <div
-          className={clsx(
-            className,
-            scrollbarCls,
-            hashId,
-            classNames?.hasXScrollbarCls && {
-              [classNames.hasXScrollbarCls]: hasHorizontal,
-            },
-            classNames?.hasYScrollbarCls && {
-              [classNames.hasYScrollbarCls]: hasVertical,
-            },
-          )}
-          ref={wrapperRef}
-          {...rest}
+          className={clsx(classNames?.inner, scrollbarInnerCls)}
+          ref={contentRef}
+          onScroll={handleContentScroll}
+          style={styles?.content}
         >
-          <div
-            className={clsx(classNames.inner, scrollbarInnerCls)}
-            ref={contentRef}
-            onScroll={handleContentScroll}
-            style={styles?.content}
-          >
-            {children}
-          </div>
-
-          <div
-            className={clsx(xScrollBarCls, hashId, {
-              [xScrollBarShowCls]:
-                !!showHorizontal &&
-                hasHorizontal &&
-                !showStickyHorizontalScrollBar,
-            })}
-            ref={horizontalTrackRef}
-            onMouseDown={handleHorizontalDrag}
-            style={{
-              ...(typeof showHorizontal !== 'boolean' && {
-                top: showHorizontal?.offsetTop,
-                bottom: showHorizontal?.offsetBottom,
-              }),
-            }}
-          >
-            <div
-              className={xScrollBarThumbCls}
-              ref={horizontalThumbRef}
-              style={{ width: horizontalThumbWidth }}
-            />
-          </div>
-
-          <div
-            className={clsx(yScrollBarCls, hashId, {
-              [yScrollBarShowCls]: !!showVertical && hasVertical,
-            })}
-            ref={verticalTrackRef}
-            onMouseDown={handleVerticalDrag}
-            style={{
-              ...(typeof showVertical !== 'boolean' && {
-                left: showVertical?.offsetLeft,
-                right: showVertical?.offsetRight,
-              }),
-            }}
-          >
-            <div
-              className={yScrollBarThumbCls}
-              ref={verticalThumbRef}
-              style={{ height: verticalThumbHeight }}
-            />
-          </div>
+          {children}
         </div>
 
-        {childrenNextSibling}
-
         <div
-          className={clsx(xScrollBarCls, hashId, {
-            [xScrollBarShowCls]: showStickyHorizontalScrollBar,
+          className={clsx(yScrollBarCls, hashId, {
+            [yScrollBarShowCls]: showVerticalScrollbar,
           })}
-          ref={stickyHorizontalTrackRef}
-          onMouseDown={handleHorizontalDrag}
+          ref={verticalTrackRef}
+          onMouseDown={handleVerticalDrag}
           style={{
-            display: showStickyHorizontalScrollBar ? 'block' : 'none',
-            position: 'sticky',
-            ...(typeof showStickyHorizontal !== 'boolean' && {
-              bottom: showStickyHorizontal?.offsetStickyScroller,
+            ...(typeof showVertical !== 'boolean' && {
+              left: showVertical?.offsetLeft,
+              right: showVertical?.offsetRight,
             }),
           }}
         >
           <div
-            className={xScrollBarThumbCls}
-            ref={stickyHorizontalThumbRef}
-            style={{ width: horizontalThumbWidth }}
+            className={yScrollBarThumbCls}
+            ref={verticalThumbRef}
+            style={{ height: verticalThumbHeight }}
           />
         </div>
-      </>
+      </div>
     );
   },
 );

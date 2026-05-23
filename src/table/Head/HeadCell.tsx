@@ -37,6 +37,7 @@ function HeadCell({
     flattenColumns = [],
     resizableColumns,
     sortableColumns,
+    sortingColumns,
     fixedOffset,
     rowSelection,
     selection,
@@ -48,7 +49,9 @@ function HeadCell({
     cellEllipsisInnerCls,
     selectionCellCls,
     headLastCellCls,
+    headResizableCellDisabledCls,
     headSortableCellCls,
+    headSortableCellDisabledCls,
     cellFixedStartCls,
     cellFixedStartLastCls,
     cellFixedEndCls,
@@ -148,19 +151,27 @@ function HeadCell({
   ]);
 
   const resizeKeys = useMemo(() => {
-    if (!resizableColumns || col.column?.resizeDisabled) return [];
+    if (!resizableColumns || col.column?.resizeDisabled || sortingColumns)
+      return [];
 
     return keys.filter((key) => {
       const column = flattenColumns.find((item) => item.key === key);
       return column && !column.resizeDisabled;
     });
-  }, [resizableColumns, col.column?.resizeDisabled, keys, flattenColumns]);
+  }, [
+    resizableColumns,
+    col.column?.resizeDisabled,
+    sortingColumns,
+    keys,
+    flattenColumns,
+  ]);
 
   /** 列拖拽排序 start ***************************************************************************/
 
   const dragSortDisabled = !!col.column?.dragSortDisabled;
   const sortEnabled = !!sortableColumns;
   const dragEnabled = sortEnabled && !dragSortDisabled;
+  const sortDisabled = sortEnabled && dragSortDisabled;
 
   const { listeners, setNodeRef } = useSortable({
     id: `${col.key}`,
@@ -242,7 +253,10 @@ function HeadCell({
           [cellFixedEndCls]: fixedInfo.fixEnd !== null,
           [cellFixedEndFirstCls]: fixedInfo.fixedEndShadow,
           [selectionCellCls]: isInternalSelectionColumn,
+          [headResizableCellDisabledCls]:
+            !!resizableColumns && !!col.column?.resizeDisabled,
           [headSortableCellCls]: dragEnabled,
+          [headSortableCellDisabledCls]: sortDisabled,
         },
         col.column?.className,
       )}

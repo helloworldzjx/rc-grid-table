@@ -1,40 +1,31 @@
-import { CSSProperties, HTMLAttributes, ReactNode, RefAttributes } from "react";
-
-export type ScrollElementController = HTMLDivElement | (() => HTMLDivElement | undefined);
+import { CSSProperties, HTMLAttributes, RefAttributes } from 'react';
 
 export interface ScrollBarContainerProps
   extends RefAttributes<HTMLDivElement>,
     HTMLAttributes<HTMLDivElement> {
-  classNames: {
+  prefixCls: string;
+  classNames?: {
     inner?: string;
-    hasXScrollbarCls?: string
-    hasYScrollbarCls?: string
+    hasYScrollbarCls?: string;
   };
   styles?: {
     content?: CSSProperties;
   };
-  childrenNextSibling?: ReactNode
-  contentController?: ScrollElementController
-  horizontalThumbController?: ScrollElementController
-  stickyHorizontalController?: ScrollElementController
-  shouldHorizontalUpdate?: any[];
-  shouldVerticalUpdate?: any[];
-  showHorizontal?: boolean | { offsetTop?: number | string, offsetBottom?: number | string };
-  showVertical?: boolean | { offsetLeft?: number | string, offsetRight?: number | string };
-  showStickyHorizontal?: boolean | { offsetStickyScroller?: number, getContainer?: () => HTMLElement };
+  showVertical?:
+    | boolean
+    | { offsetLeft?: number | string; offsetRight?: number | string };
+  updateDeps?: unknown[];
+  onVerticalVisibleChange?: (visible: boolean) => void;
 }
 
 export interface ScrollBarContainerRef {
-  nativeElement: HTMLDivElement
-  nativeScrollElement: HTMLDivElement
-  nativeHorizontalTrackElement: HTMLDivElement
-  nativeHorizontalThumbElement: HTMLDivElement
-  nativeStickyHorizontalElement: HTMLDivElement
-  nativeVeverticalTrackElement: HTMLDivElement
-  nativeVeverticalThumbElement: HTMLDivElement
-  scrollTo: (options?: ScrollToOptions) => void
-  scrollToTop: () => void
-  scrollToBottom: () => void
-  scrollToLeft: () => void
-  scrollToRight: () => void
+  nativeElement: HTMLDivElement;
+  nativeScrollElement: HTMLDivElement;
+  nativeVerticalTrackElement: HTMLDivElement;
+  nativeVerticalThumbElement: HTMLDivElement;
+  scrollTo: (options?: ScrollToOptions) => void;
+  scrollToTop: () => void;
+  scrollToBottom: () => void;
+  scrollToLeft: () => void;
+  scrollToRight: () => void;
 }

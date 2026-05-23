@@ -22,7 +22,7 @@ const Resizable: FC<ResizableProps> = ({ id, keys }) => {
     columnsConfig,
   } = useTableContext();
 
-  const { headCellResizableCls } = useStyles();
+  const { headCellResizeHandleCls } = useStyles();
 
   const minWidth = 50;
   const [distance, setDistance] = useState(0);
@@ -124,7 +124,7 @@ const Resizable: FC<ResizableProps> = ({ id, keys }) => {
   });
 
   return (
-    <div className={headCellResizableCls} ref={setNodeRef} {...listeners} />
+    <div className={headCellResizeHandleCls} ref={setNodeRef} {...listeners} />
   );
 };
 

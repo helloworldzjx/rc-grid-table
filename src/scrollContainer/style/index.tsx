@@ -1,6 +1,5 @@
 import { type CSSInterpolation, useStyleRegister } from '@ant-design/cssinjs';
 
-import { useTableContext } from '../../table/context';
 import useToken from '../../theme/hooks/useToken';
 
 const genToggleShowStyle = (
@@ -22,6 +21,7 @@ const genScrollBarStyle = (
   scrollbarCls: string,
   scrollbarInnerCls: string,
   xScrollBarCls: string,
+  xScrollBarStickyCls: string,
   xScrollBarThumbCls: string,
   xScrollBarShowCls: string,
   yScrollBarCls: string,
@@ -45,7 +45,6 @@ const genScrollBarStyle = (
     position: 'absolute',
     width: '100%',
     height: 12,
-    bottom: 0,
     left: 0,
     backgroundColor: 'rgba(0, 0, 0, 0)',
     borderRadius: 12,
@@ -73,6 +72,12 @@ const genScrollBarStyle = (
         backgroundColor: 'rgba(0, 0, 0, 0.6)',
       },
     },
+  },
+
+  [`.${xScrollBarStickyCls}`]: {
+    position: 'sticky',
+    marginTop: -12,
+    zIndex: 4,
   },
 
   [`.${yScrollBarCls}`]: {
@@ -110,12 +115,13 @@ const genScrollBarStyle = (
   },
 });
 
-export const useStyles = () => {
-  const prefixCls = useTableContext().prefixCls as string;
+export const useStyles = (customPrefixCls: string) => {
+  const prefixCls = customPrefixCls;
   const [theme, token, hashId] = useToken();
   const scrollbarCls = `${prefixCls}-scrollbar-container`;
   const scrollbarInnerCls = `${prefixCls}-scrollbar-inner`;
   const xScrollBarCls = `${prefixCls}-horizontal-scrollbar`;
+  const xScrollBarStickyCls = `${prefixCls}-horizontal-scrollbar-sticky`;
   const xScrollBarThumbCls = `${prefixCls}-horizontal-scrollbar-thumb`;
   const xScrollBarShowCls = `${prefixCls}-horizontal-scrollbar-show`;
   const yScrollBarCls = `${prefixCls}-vertical-scrollbar`;
@@ -131,6 +137,7 @@ export const useStyles = () => {
         scrollbarCls,
         scrollbarInnerCls,
         xScrollBarCls,
+        xScrollBarStickyCls,
         xScrollBarThumbCls,
         xScrollBarShowCls,
         yScrollBarCls,
@@ -145,6 +152,7 @@ export const useStyles = () => {
     scrollbarCls,
     scrollbarInnerCls,
     xScrollBarCls,
+    xScrollBarStickyCls,
     xScrollBarThumbCls,
     xScrollBarShowCls,
     yScrollBarCls,

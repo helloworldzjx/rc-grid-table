@@ -44,7 +44,13 @@ const App: React.FC = () => {
   return (
     <>
       <ConfigActions value={state} onChange={onChange} />
-      <Table {...baseProps} columns={columns} dataSource={data} scrollY={350} />
+      <Table
+        {...baseProps}
+        columns={columns}
+        sticky={{ offsetHeader: 76 }}
+        dataSource={data}
+        scrollY={800}
+      />
     </>
   );
 };

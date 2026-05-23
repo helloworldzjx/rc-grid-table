@@ -69,7 +69,6 @@ const App: React.FC = () => {
     {
       title: 'Name',
       dataIndex: 'name',
-      fixed: 'start',
       width: 100,
     },
     {
@@ -108,6 +107,7 @@ const App: React.FC = () => {
         {...mdBaseProps}
         columns={columns}
         dataSource={data}
+        sticky={{ offsetHeader: 76 }}
         summary={(pageData) => {
           let totalBorrow = 0;
           let totalRepayment = 0;
@@ -142,6 +142,7 @@ const App: React.FC = () => {
         columns={fixedColumns}
         dataSource={fixedDataSource}
         scrollY={350}
+        sticky={{ offsetHeader: 76 }}
         summary={() => [
           [{ children: 'Summary' }, { children: 'This is a summary content' }],
         ]}

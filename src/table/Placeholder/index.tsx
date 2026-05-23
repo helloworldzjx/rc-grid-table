@@ -6,6 +6,8 @@ import { useStyles } from '../style';
 import { distribute } from '../utils/calc';
 import { batchUpdateColumns } from '../utils/handle';
 
+const PLACEHOLDER_VISIBLE_TOLERANCE = 1;
+
 const Placeholder: FC = () => {
   const {
     containerWidth = 0,
@@ -81,7 +83,8 @@ const Placeholder: FC = () => {
     if (sortableDraftState) return false;
 
     const remainingWidth = containerWidth - columnsWidthTotal;
-    if (remainingWidth < 0.5 || !middleState.length) return false;
+    if (remainingWidth <= PLACEHOLDER_VISIBLE_TOLERANCE || !middleState.length)
+      return false;
 
     const resizeEnabledLeafColumns = flattenColumns.reduce(
       (result: { index: number; width: number }[], column, index) => {
@@ -177,7 +180,10 @@ const Placeholder: FC = () => {
       })}
       style={{
         left: columnsWidthTotal,
-        display: containerWidth - columnsWidthTotal >= 0.5 ? 'block' : 'none',
+        display:
+          containerWidth - columnsWidthTotal > PLACEHOLDER_VISIBLE_TOLERANCE
+            ? 'block'
+            : 'none',
       }}
     />
   );

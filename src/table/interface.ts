@@ -5,10 +5,8 @@ import type {
   Key,
   MouseEvent,
   ReactNode,
-  RefObject,
   SetStateAction,
 } from 'react';
-import { ScrollBarContainerRef } from '../scrollContainer/interface';
 
 export interface CellType<T = any> {
   key?: Key;
@@ -212,13 +210,12 @@ export interface TableSummaryRowCell {
 }
 
 export interface TableSticky {
-  /** header磁吸效果，未实现 */
+  /** header磁吸顶部距离 */
   offsetHeader?: number;
-  /** summary磁吸效果，未实现 */
+  /** summary磁吸底部距离 */
   offsetSummary?: number;
+  /** 横向滚动条磁吸底部距离 */
   offsetStickyScroller?: number;
-  /** 目前仅对offsetStickyScroller生效 */
-  getContainer?: () => HTMLElement;
 }
 
 export type ColumnStateConfigType = {
@@ -243,7 +240,7 @@ export type ColumnsConfig<T> = {
   /** 启用storage后才会使用columnsState中的数据，且可以使用onChange事件 */
   useStorage?: boolean;
   columnsState?: ColumnState<T>[];
-  /** 当外部修改了宽度、顺序，以及修改了列显隐状态后会触发onChange */
+  /** 当外部修改了宽度、顺序、固定列，以及修改了列显隐状态后会触发onChange */
   onChange?: (columnsState: ColumnState<T>[]) => void;
 };
 
@@ -367,6 +364,9 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
 }
 
 export interface TableContextProps<T = any> extends TableProps<T> {
+  // base props
+  prefixCls: string;
+
   /** bug ref https://github.com/helloworldzjx/rc-grid-table/issues/1 */
   lockContainerWidth: boolean;
   updateLockContainerWidth: Dispatch<SetStateAction<boolean>>;
@@ -406,16 +406,3 @@ export interface TableSelectionContextProps<T = any> {
   ) => void;
   onSelectAll: (nativeEvent: MouseEvent<HTMLElement>) => void;
 }
-
-export interface TableScrollContextProps
-  extends Pick<HTMLAttributes<HTMLDivElement>, 'onScroll'> {
-  scrollRef: RefObject<ScrollBarContainerRef>;
-  updateScrollLeft: (dispatch: SetStateAction<number>) => void;
-  isStart?: boolean;
-  isEnd?: boolean;
-}
-
-export type TableScrollProviderProps = Omit<
-  TableScrollContextProps,
-  'scrollRef' | 'updateScrollLeft'
->;

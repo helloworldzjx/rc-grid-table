@@ -1,16 +1,15 @@
 import ResizeObserver, { OnResize } from '@rc-component/resize-observer';
+import { useDebounceFn, useIsomorphicLayoutEffect } from 'ahooks';
 import React, {
   FC,
   Key,
   SetStateAction,
   useCallback,
-  useEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
 
-import { useDebounceFn } from 'ahooks';
 import TableContext from './context';
 import useSelection from './hooks/useSelection';
 import useStickyOffsets from './hooks/useStickyOffsets';
@@ -21,7 +20,6 @@ import {
   TableContextProps,
   type TableProps,
 } from './interface';
-import ScrollProvider from './scrollContext';
 import GridTable from './Table';
 import { columnsWidthDistribute } from './utils/calc';
 import { EXPAND_COLUMN, SELECTION_COLUMN } from './utils/const';
@@ -178,7 +176,7 @@ const Table: TableComponent = ((props) => {
 
   /** 使用了列配置的处理 start ***************************************************************************/
 
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (
       ready &&
       enableColumnsConfig &&
@@ -190,7 +188,7 @@ const Table: TableComponent = ((props) => {
     }
   }, [ready, enableColumnsConfig, columnsConfig]);
 
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (
       !middleStateUpdated.current &&
       !lockContainerWidth.current &&
@@ -220,7 +218,7 @@ const Table: TableComponent = ((props) => {
     size,
   ]);
 
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (!lockContainerWidth.current && containerWidth && middleState.length) {
       const realColumns = filterColumns(size, mergedColumns);
       const mergedColumnsState = mergeColumnsState(realColumns, middleState);
@@ -238,7 +236,7 @@ const Table: TableComponent = ((props) => {
     }
   }, [containerWidth, mergedColumns, middleState, sortableDraftState, size]);
 
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (
       !lockContainerWidth.current &&
       containerWidth &&
@@ -270,7 +268,7 @@ const Table: TableComponent = ((props) => {
 
   /** 未使用列配置的处理 start ***************************************************************************/
 
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (containerWidth && ready && !enableColumnsConfig) {
       const { flattenColumns, treeColumns } = columnsWidthDistribute(
         containerWidth,
@@ -338,15 +336,14 @@ const Table: TableComponent = ((props) => {
     innerColumnsState,
     columnsConfig,
     selection,
+    onScroll,
   };
 
   return (
     <TableContext.Provider value={{ ...baseProps, ...rest }}>
-      <ScrollProvider onScroll={onScroll}>
-        <ResizeObserver onResize={onResize}>
-          <GridTable />
-        </ResizeObserver>
-      </ScrollProvider>
+      <ResizeObserver onResize={onResize}>
+        <GridTable />
+      </ResizeObserver>
     </TableContext.Provider>
   );
 }) as TableComponent;

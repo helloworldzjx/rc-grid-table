@@ -1,21 +1,31 @@
-import React, { forwardRef } from 'react';
+import classNames from 'classnames';
+import React, { CSSProperties, forwardRef } from 'react';
 
 import { useTableContext } from '../context';
 import { useStyles } from '../style';
 import SummaryRow from './SummaryRow';
 
-const Summary = forwardRef<HTMLDivElement>((_, ref) => {
-  const { dataSource = [], flattenColumns = [], summary } = useTableContext();
+interface SummaryProps {
+  className?: string;
+  style?: CSSProperties;
+}
 
-  const { summaryCls } = useStyles();
+const Summary = forwardRef<HTMLDivElement, SummaryProps>(
+  ({ className, style }, ref) => {
+    const { dataSource = [], flattenColumns = [], summary } = useTableContext();
 
-  return (
-    <div className={summaryCls} ref={ref}>
-      {summary?.(dataSource, flattenColumns)?.map((row, rowIndex) => (
-        <SummaryRow key={rowIndex} row={row} />
-      ))}
-    </div>
-  );
-});
+    const { summaryCls, summaryInnerCls } = useStyles();
+
+    return (
+      <div className={classNames(summaryCls, className)} style={style}>
+        <div className={summaryInnerCls} ref={ref}>
+          {summary?.(dataSource, flattenColumns)?.map((row, rowIndex) => (
+            <SummaryRow key={rowIndex} row={row} />
+          ))}
+        </div>
+      </div>
+    );
+  },
+);
 
 export default Summary;
