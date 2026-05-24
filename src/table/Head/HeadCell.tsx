@@ -1,7 +1,8 @@
 import { useSortable } from '@dnd-kit/sortable';
 import classNames from 'classnames';
-import React, { CSSProperties, Key, useMemo } from 'react';
+import React, { CSSProperties, Key, useMemo, useRef } from 'react';
 
+import { useDndMonitor } from '@dnd-kit/core';
 import CellContainer from '../CellContainer';
 import { useTableContext } from '../context';
 import { CellType } from '../interface';
@@ -37,7 +38,6 @@ function HeadCell({
     flattenColumns = [],
     resizableColumns,
     sortableColumns,
-    sortingColumns,
     fixedOffset,
     rowSelection,
     selection,
@@ -57,6 +57,8 @@ function HeadCell({
     cellFixedEndCls,
     cellFixedEndFirstCls,
   } = useStyles();
+
+  const resizableRef = useRef<HTMLDivElement | null>(null);
 
   const fixedInfo = useMemo(() => {
     return getCellFixedInfo(
@@ -151,20 +153,13 @@ function HeadCell({
   ]);
 
   const resizeKeys = useMemo(() => {
-    if (!resizableColumns || col.column?.resizeDisabled || sortingColumns)
-      return [];
+    if (!resizableColumns || col.column?.resizeDisabled) return [];
 
     return keys.filter((key) => {
       const column = flattenColumns.find((item) => item.key === key);
       return column && !column.resizeDisabled;
     });
-  }, [
-    resizableColumns,
-    col.column?.resizeDisabled,
-    sortingColumns,
-    keys,
-    flattenColumns,
-  ]);
+  }, [resizableColumns, col.column?.resizeDisabled, keys, flattenColumns]);
 
   /** 列拖拽排序 start ***************************************************************************/
 
@@ -194,6 +189,23 @@ function HeadCell({
   });
 
   /** 列拖拽排序 end */
+
+  /** bug ref https://github.com/helloworldzjx/rc-grid-table/issues/2 */
+  useDndMonitor({
+    onDragStart() {
+      if (!resizableRef.current) return;
+
+      const height = resizableRef.current.offsetHeight;
+      resizableRef.current.style.height = `${height}px`;
+      resizableRef.current.style.insetBlockEnd = 'unset';
+    },
+    onDragEnd() {
+      if (!resizableRef.current) return;
+
+      resizableRef.current.style.height = '';
+      resizableRef.current.style.insetBlockEnd = '';
+    },
+  });
 
   const isInternalSelectionColumn = isSelectionColumn(col.column);
   let childrenNode = col.children;
@@ -266,7 +278,11 @@ function HeadCell({
     >
       {childrenNode}
       {!!resizeKeys.length && (
-        <Resizable id={`${col.key}-resizable`} keys={resizeKeys} />
+        <Resizable
+          ref={resizableRef}
+          id={`${col.key}-resizable`}
+          keys={resizeKeys}
+        />
       )}
     </CellContainer>
   );

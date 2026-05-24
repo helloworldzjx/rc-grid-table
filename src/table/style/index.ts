@@ -454,9 +454,8 @@ const genCellStyle = (
       position: 'absolute',
       top: 0,
       right: 0,
-      // insetBlock: unit(token.cellPaddingBlock), // 暂时不使用自动高度
+      insetBlock: unit(token.cellPaddingBlock),
       width: 10,
-      height: 999,
       backgroundColor: 'transparent',
       cursor: 'e-resize',
     },
@@ -830,7 +829,7 @@ const genSizeClsStyle = (
     },
 
     [`.${headCellResizeHandleCls}`]: {
-      // insetBlock: unit(token.cellPaddingBlockSM), // 暂时不使用自动高度
+      insetBlock: unit(token.cellPaddingBlockSM),
     },
   },
   [`.${componentCls}.${componentMDCls} .${headRowCls}`]: {
@@ -839,7 +838,7 @@ const genSizeClsStyle = (
     },
 
     [`.${headCellResizeHandleCls}`]: {
-      // insetBlock: unit(token.cellPaddingBlockMD), // 暂时不使用自动高度
+      insetBlock: unit(token.cellPaddingBlockMD),
     },
   },
 

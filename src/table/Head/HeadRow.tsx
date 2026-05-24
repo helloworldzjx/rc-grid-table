@@ -166,7 +166,6 @@ function HeadRow({
 
   const handleDragStart = (event: DragStartEvent) => {
     if (event.active.data.current?.type === 'sortableColumns') {
-      /** bug ref https://github.com/helloworldzjx/rc-grid-table/issues/2 */
       onSortableStart?.();
 
       document.documentElement.style.cursor = 'move';
