@@ -7,7 +7,11 @@ import type {
   ColumnType,
   SizeType,
 } from '../interface';
-import { getDefaultInternalColumnWidth, isInternalColumn } from './const';
+import {
+  DEFAULT_RESIZE_MIN_WIDTH,
+  getDefaultInternalColumnWidth,
+  isInternalColumn,
+} from './const';
 
 export const getEllipsisTitle = (children: ReactNode) => {
   let title = children;
@@ -44,6 +48,21 @@ export const filterCellSpan = (span?: {
   const { rowSpan, colSpan } = span || {};
   return filterSpan(rowSpan) && filterSpan(colSpan);
 };
+
+const parseColumnWidth = (width: number | string, containerWidth: number) => {
+  if (typeof width === 'string') {
+    const parsedWidth =
+      (parseFloat(width.substring(0, width.length - 1)) / 100) * containerWidth;
+    return parseFloat(parsedWidth.toFixed(2));
+  }
+
+  return width;
+};
+
+const getEffectiveResizeMinWidth = (
+  resizeMinWidth: number | undefined,
+  width: number,
+) => Math.min(resizeMinWidth ?? DEFAULT_RESIZE_MIN_WIDTH, width);
 
 export function parseHeaderRows<T>(
   columns: ColumnState<T>[] = [],
@@ -241,17 +260,16 @@ export function flattenColumnsWithTotalWidth<T>(
     cols.forEach((column, index) => {
       if (isInternalColumn(column)) {
         let width = column.width ?? getDefaultInternalColumnWidth(size);
-        if (typeof width === 'string') {
-          width =
-            (parseFloat(width.substring(0, width.length - 1)) / 100) *
-            containerWidth;
-          width = parseFloat(width.toFixed(2));
-        }
+        width = parseColumnWidth(width, containerWidth);
         usedWidthTotal += width;
 
         result.push({
           ...column,
           width,
+          resizeMinWidth: getEffectiveResizeMinWidth(
+            column.resizeMinWidth,
+            width,
+          ),
           parentKey,
           ancestorKeys,
           depth,
@@ -296,18 +314,17 @@ export function flattenColumnsWithTotalWidth<T>(
           distribute = true;
           width = depth === 0 ? topMinWidth : leafMinWidth;
         }
-        if (typeof width === 'string') {
-          width =
-            (parseFloat(width.substring(0, width.length - 1)) / 100) *
-            containerWidth;
-          width = parseFloat(width.toFixed(2));
-        }
+        width = parseColumnWidth(width, containerWidth);
         usedWidthTotal += width;
       }
 
       result.push({
         ...column,
         width,
+        resizeMinWidth:
+          typeof width === 'number'
+            ? getEffectiveResizeMinWidth(column.resizeMinWidth, width)
+            : column.resizeMinWidth,
         key: currentKey,
         parentKey,
         ancestorKeys,

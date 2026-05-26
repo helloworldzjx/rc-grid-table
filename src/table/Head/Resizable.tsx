@@ -7,11 +7,11 @@ import React, {
   useEffect,
   useMemo,
   useRef,
-  useState,
 } from 'react';
 
 import { useTableContext } from '../context';
 import { useStyles } from '../style';
+import { DEFAULT_RESIZE_MIN_WIDTH } from '../utils/const';
 import { batchUpdateColumns } from '../utils/handle';
 
 interface ResizableProps {
@@ -33,10 +33,9 @@ const Resizable = forwardRef<HTMLDivElement, ResizableProps>(
 
     const { headCellResizeHandleCls } = useStyles();
 
-    const minWidth = 50;
-    const [distance, setDistance] = useState(0);
-    const [distanceTotal, setDistanceTotal] = useState(0);
     const updated = useRef(false);
+    const appliedDistanceTotal = useRef(0);
+    const latestWidths = useRef(flattenColumnsWidths);
     const { run: setFlattenColumnsWidths } = useDebounceFn(
       updateFlattenColumnsWidths,
       { wait: 0 },
@@ -74,35 +73,54 @@ const Resizable = forwardRef<HTMLDivElement, ResizableProps>(
     }, [flattenColumns, keys]);
 
     useEffect(() => {
-      if (!distance) return;
+      latestWidths.current = flattenColumnsWidths;
+    }, [flattenColumnsWidths]);
 
+    const getResizeMinWidth = (idx: number, width: number) => {
+      const minWidth =
+        flattenColumns[idx]?.resizeMinWidth ?? DEFAULT_RESIZE_MIN_WIDTH;
+      return Math.min(minWidth, width);
+    };
+
+    const applyResizeDistance = (distance: number) => {
+      if (!distance) return 0;
+
+      const widths = latestWidths.current;
       const resizeIdxs = idxs.filter((idx: number) => {
         if (distance >= 0) return true;
-        return (flattenColumnsWidths[idx] as number) > minWidth;
+        const width = widths[idx] as number;
+        return width > getResizeMinWidth(idx, width);
       });
-      if (resizeIdxs.length) {
-        const avg = distance / resizeIdxs.length;
-        const updatedWidths = flattenColumnsWidths.map((width, index) => {
-          if (resizeIdxs.includes(index)) {
-            let updatedWidth = parseFloat((width + avg).toFixed(2));
-            if (width > minWidth && updatedWidth < minWidth) {
-              updatedWidth = minWidth;
-            }
-            return updatedWidth;
-          }
+      if (!resizeIdxs.length) return 0;
 
-          return width;
-        });
-        setFlattenColumnsWidths(updatedWidths);
-        updated.current = true;
-      }
-    }, [distance, distanceTotal]);
+      const avg = distance / resizeIdxs.length;
+      let appliedDistance = 0;
+      const updatedWidths = widths.map((width, index) => {
+        if (resizeIdxs.includes(index)) {
+          const minWidth = getResizeMinWidth(index, width);
+          const nextWidth = parseFloat((width + avg).toFixed(2));
+          const updatedWidth = Math.max(nextWidth, minWidth);
+          appliedDistance += updatedWidth - width;
+          return updatedWidth;
+        }
+
+        return width;
+      });
+
+      if (!appliedDistance) return 0;
+
+      latestWidths.current = updatedWidths;
+      setFlattenColumnsWidths(updatedWidths);
+      updated.current = true;
+      return appliedDistance;
+    };
 
     const updateState = () => {
+      const widths = latestWidths.current;
       const updates = idxs.map((idx) => ({
         targetKey: flattenColumns[idx].key,
         prop: ['width' as const, 'updatedWidth' as const],
-        value: [flattenColumnsWidths[idx], true],
+        value: [widths[idx], true],
       }));
       const updatedMiddleState = batchUpdateColumns(middleState, updates);
       updateMiddleState(updatedMiddleState);
@@ -117,6 +135,8 @@ const Resizable = forwardRef<HTMLDivElement, ResizableProps>(
         )
           return;
         updateLockContainerWidth(true);
+        latestWidths.current = flattenColumnsWidths;
+        appliedDistanceTotal.current = 0;
         document.documentElement.style.cursor = 'e-resize';
       },
       onDragMove(event) {
@@ -125,9 +145,9 @@ const Resizable = forwardRef<HTMLDivElement, ResizableProps>(
           event.active.data.current?.type !== 'resizableColumns'
         )
           return;
-        const distance = event.delta.x - distanceTotal;
-        setDistance(distance);
-        setDistanceTotal((prev) => prev + distance);
+        const distance = event.delta.x - appliedDistanceTotal.current;
+        const appliedDistance = applyResizeDistance(distance);
+        appliedDistanceTotal.current += appliedDistance;
       },
       onDragEnd(event) {
         if (
@@ -138,9 +158,9 @@ const Resizable = forwardRef<HTMLDivElement, ResizableProps>(
         updateLockContainerWidth(false);
         document.documentElement.style.cursor = '';
         if (updated.current) {
+          updateFlattenColumnsWidths(latestWidths.current);
           updateState();
-          setDistance(0);
-          setDistanceTotal(0);
+          appliedDistanceTotal.current = 0;
           updated.current = false;
         }
       },

@@ -14,6 +14,7 @@ export const DEFAULT_INTERNAL_COLUMN_WIDTH_BY_SIZE: Record<SizeType, number> = {
   middle: 47,
   large: 55,
 };
+export const DEFAULT_RESIZE_MIN_WIDTH = 50;
 
 export const getDefaultInternalColumnWidth = (size: SizeType = 'large') => {
   return (

@@ -106,6 +106,7 @@ function mergeColumnsStateInternal<T = any>(
       ancestorKeys: column.ancestorKeys,
       title: column.title,
       resizeDisabled: column.resizeDisabled,
+      resizeMinWidth: column.resizeMinWidth,
       dragSortDisabled: column.dragSortDisabled,
     };
 

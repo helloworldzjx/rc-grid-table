@@ -88,6 +88,8 @@ export interface ExpandableConfig<T = any> {
   indentSize?: number;
   /** 禁止展开列重新调整宽度 */
   resizeDisabled?: boolean;
+  /** 拖拽调整列宽时的最小宽度 */
+  resizeMinWidth?: number;
   rowExpandable?: (record: T) => boolean;
   showExpandColumn?: boolean;
   onExpand?: (expanded: boolean, record: T) => void;
@@ -121,6 +123,8 @@ export interface RowSortableConfig<T = any> {
   columnTitle?: ReactNode;
   columnWidth?: PercentColumnWidthType | number;
   fixed?: FixedType;
+  /** 拖拽调整列宽时的最小宽度 */
+  resizeMinWidth?: number;
   allowCrossLevelSort?: boolean;
   sortIcon?: (props: RowSortIconProps<T>) => ReactNode;
   rowDraggable?: (record: T) => boolean;
@@ -146,6 +150,8 @@ export interface TableRowSelection<T = any> {
   fixed?: FixedType;
   /** 禁止选择列重新调整宽度 */
   resizeDisabled?: boolean;
+  /** 拖拽调整列宽时的最小宽度 */
+  resizeMinWidth?: number;
   getRadioProps?: (record: T) => SelectionControlProps;
   getCheckboxProps?: (record: T) => SelectionControlProps;
   getTitleCheckboxProps?: () => SelectionControlProps;
@@ -184,6 +190,8 @@ export interface ColumnProps<T = any> {
   width?: number | PercentColumnWidthType;
   /** 禁止表格重新调整叶子列宽度 */
   resizeDisabled?: boolean;
+  /** 拖拽调整列宽时的最小宽度 */
+  resizeMinWidth?: number;
   /** 禁止列拖拽排序 */
   dragSortDisabled?: boolean;
   align?: AlignType;
