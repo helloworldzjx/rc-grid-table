@@ -16,13 +16,18 @@ import useStickyOffsets from './hooks/useStickyOffsets';
 import {
   ColumnState,
   ExpandColumnType,
+  RowSortColumnType,
   SelectionColumnType,
   TableContextProps,
   type TableProps,
 } from './interface';
 import GridTable from './Table';
 import { columnsWidthDistribute } from './utils/calc';
-import { EXPAND_COLUMN, SELECTION_COLUMN } from './utils/const';
+import {
+  EXPAND_COLUMN,
+  ROW_SORT_COLUMN,
+  SELECTION_COLUMN,
+} from './utils/const';
 import {
   getColumnsWithInternalColumns,
   getDefaultExpandedRowKeys,
@@ -34,6 +39,7 @@ import { mergeColumnsState } from './utils/mergedColumnsState';
 type TableComponent = FC<TableProps> & {
   EXPAND_COLUMN: ExpandColumnType;
   SELECTION_COLUMN: SelectionColumnType;
+  ROW_SORT_COLUMN: RowSortColumnType;
 };
 
 const isColumnsOrderEqual = (
@@ -65,6 +71,7 @@ const Table: TableComponent = ((props) => {
     dataSource = [],
     expandable,
     rowSelection,
+    rowSortable,
     columnMinWidth = 100,
     leafColumnMinWidth = 80,
     resizableColumns,
@@ -121,9 +128,10 @@ const Table: TableComponent = ((props) => {
       columns,
       expandable,
       rowSelection,
+      rowSortable,
       size,
     );
-  }, [columns, expandable, rowSelection, size]);
+  }, [columns, expandable, rowSelection, rowSortable, size]);
 
   const renderedColumnsState = useMemo(() => {
     return sortableDraftState
@@ -307,6 +315,7 @@ const Table: TableComponent = ((props) => {
     dataSource,
     expandable,
     rowSelection,
+    rowSortable,
     mergedExpandedRowKeys,
     onTriggerExpand,
     columns: cols,
@@ -350,5 +359,6 @@ const Table: TableComponent = ((props) => {
 
 Table.EXPAND_COLUMN = EXPAND_COLUMN;
 Table.SELECTION_COLUMN = SELECTION_COLUMN;
+Table.ROW_SORT_COLUMN = ROW_SORT_COLUMN;
 
 export default Table;

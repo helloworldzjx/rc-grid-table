@@ -43,11 +43,18 @@ type ComponentClsType = {
   bodyInnerCls: string;
   bodyRowCls: string;
   bodyRowExpandableCls: string;
+  bodyRowSortDraggingCls: string;
   cellCls: string;
   cellEllipsisCls: string;
   cellEllipsisInnerCls: string;
   expandControlCellCls: string;
   expandControlCls: string;
+  rowSortCellCls: string;
+  rowSortCellOverCls: string;
+  rowSortControlCls: string;
+  rowSortHandleCls: string;
+  rowSortHandleDisabledCls: string;
+  rowSortHandleDraggingCls: string;
   selectionCellCls: string;
   selectionControlCls: string;
   selectionControlInputCls: string;
@@ -156,6 +163,7 @@ const genBorderedStyle = (
     pingStartCls,
     pingEndCls,
     cellFixedStartLastCls,
+    bodyRowSortDraggingCls,
   }: ComponentClsType,
   token: ComponentToken,
 ): CSSInterpolation => ({
@@ -224,6 +232,14 @@ const genBorderedStyle = (
 
     [`.${headRowCls} .${cellCls}::before`]: {
       display: 'none',
+    },
+
+    [`.${bodyRowSortDraggingCls} .${cellCls}`]: {
+      borderTop: `1px solid ${token.colorBorder}`,
+
+      '&:last-child': {
+        borderRight: `1px solid ${token.colorBorder}`,
+      },
     },
 
     [`.${cellCls}`]: {
@@ -408,11 +424,16 @@ const genCellStyle = (
     headRowCls,
     bodyRowCls,
     bodyRowExpandableCls,
+    bodyRowSortDraggingCls,
     summaryRowCls,
     cellCls,
     cellEllipsisCls,
     cellEllipsisInnerCls,
     expandControlCls,
+    rowSortHandleCls,
+    rowSortHandleDisabledCls,
+    rowSortHandleDraggingCls,
+    rowSortControlCls,
     selectionControlCls,
     selectionControlInputCls,
     selectionControlContentCls,
@@ -482,7 +503,7 @@ const genCellStyle = (
       borderBottom: `1px solid ${token.colorBorder}`,
     },
 
-    [`&:hover .${cellCls}`]: {
+    [`&:not(.${bodyRowSortDraggingCls}):hover .${cellCls}`]: {
       backgroundColor: token.cellColorHoverBg,
       transition: 'background-color 0.3s',
     },
@@ -615,11 +636,67 @@ const genCellStyle = (
     backgroundColor: token.colorBgLayout,
   },
 
-  [`.${selectionControlDisabledCls}.${selectionControlCheckedCls} .${selectionControlInputCls}, .${selectionControlDisabledCls}.${selectionControlIndeterminateCls} .${selectionControlInputCls}`]:
+  [`
+    .${selectionControlDisabledCls}.${selectionControlCheckedCls} .${selectionControlInputCls}, 
+    .${selectionControlDisabledCls}.${selectionControlIndeterminateCls} .${selectionControlInputCls}`]:
     {
       borderColor: token.colorBorder,
       backgroundColor: token.colorBorder,
     },
+
+  [`.${rowSortControlCls}`]: {
+    display: 'flex',
+    alignItems: 'center',
+  },
+
+  [`.${rowSortHandleCls}`]: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+    flex: '0 0 16px',
+    width: 16,
+    height: 16,
+    margin: 0,
+    padding: 0,
+    border: `1px solid ${token.colorBorder}`,
+    borderRadius: 2,
+    backgroundColor: token.colorBgContainer,
+    color: token.colorText,
+    cursor: 'grab',
+    boxSizing: 'border-box',
+    // transition: 'border-color 0.2s, color 0.2s, background-color 0.2s',
+
+    '&:hover': {
+      color: token.colorText,
+      backgroundColor: token.cellColorHoverBg,
+    },
+
+    '&:not(:disabled):active': {
+      cursor: 'grabbing',
+    },
+
+    span: {
+      width: 8,
+      height: 1,
+      backgroundColor: 'currentColor',
+    },
+  },
+
+  [`.${rowSortHandleDisabledCls}`]: {
+    cursor: 'not-allowed',
+    opacity: 0.4,
+
+    '&:hover': {
+      color: token.colorText,
+      backgroundColor: token.colorBgContainer,
+    },
+  },
+
+  [`.${rowSortHandleDraggingCls}`]: {
+    cursor: 'grabbing',
+  },
 
   [`.${expandControlCls}`]: {
     display: 'flex',
@@ -644,7 +721,6 @@ const genCellStyle = (
     backgroundColor: token.colorBgContainer,
     color: token.colorText,
     cursor: 'pointer',
-    verticalAlign: 'middle',
     boxSizing: 'border-box',
   },
 
@@ -939,11 +1015,18 @@ export const useStyles = () => {
     bodyInnerCls: `${prefixCls}-body-inner`,
     bodyRowCls: `${prefixCls}-body-row`,
     bodyRowExpandableCls: `${prefixCls}-body-row-expandable`,
+    bodyRowSortDraggingCls: `${prefixCls}-body-row-sort-dragging`,
     cellCls: `${prefixCls}-cell`,
     cellEllipsisCls: `${prefixCls}-cell-ellipsis`,
     cellEllipsisInnerCls: `${prefixCls}-cell-ellipsis-inner`,
     expandControlCellCls: `${prefixCls}-expand-control-cell`,
     expandControlCls: `${prefixCls}-expand-control`,
+    rowSortCellCls: `${prefixCls}-row-sort-cell`,
+    rowSortCellOverCls: `${prefixCls}-row-sort-cell-over`,
+    rowSortControlCls: `${prefixCls}-row-sort-control`,
+    rowSortHandleCls: `${prefixCls}-row-sort-handle`,
+    rowSortHandleDisabledCls: `${prefixCls}-row-sort-handle-disabled`,
+    rowSortHandleDraggingCls: `${prefixCls}-row-sort-handle-dragging`,
     selectionCellCls: `${prefixCls}-selection-cell`,
     selectionControlCls: `${prefixCls}-selection-control`,
     selectionControlInputCls: `${prefixCls}-selection-control-input`,

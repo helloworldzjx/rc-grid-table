@@ -1,6 +1,11 @@
+import type {
+  DraggableAttributes,
+  DraggableSyntheticListeners,
+} from '@dnd-kit/core';
 import classNames from 'classnames';
 import React, {
   CSSProperties,
+  Key,
   memo,
   MouseEvent,
   ReactNode,
@@ -12,9 +17,14 @@ import { useTableContext } from '../context';
 import { ColumnState } from '../interface';
 import { SelectionCheckbox, SelectionRadio } from '../Selection';
 import { useStyles } from '../style';
-import { isExpandColumn, isSelectionColumn } from '../utils/const';
+import {
+  isExpandColumn,
+  isRowSortColumn,
+  isSelectionColumn,
+} from '../utils/const';
 import { FixedInfo } from '../utils/fixedColumns';
 import { getEllipsisTitle } from '../utils/handle';
+import RowSortBodyCell from './RowSortBodyCell';
 
 interface BodyRowProps<T = any> {
   column: ColumnState<T>;
@@ -26,6 +36,15 @@ interface BodyRowProps<T = any> {
   expandable?: boolean;
   rowSupportExpand?: boolean;
   isFirstDataColumn?: boolean;
+  rowSortKey?: Key;
+  rowSortDragDisabled?: boolean;
+  rowSortDragging?: boolean;
+  rowSortIsOver?: boolean;
+  rowSortCellStyle?: CSSProperties;
+  rowSortAttributes?: DraggableAttributes;
+  rowSortListeners?: DraggableSyntheticListeners;
+  setRowSortActivatorNodeRef?: (element: HTMLElement | null) => void;
+  setRowSortNodeRef?: (element: HTMLElement | null) => void;
 }
 
 function BodyCell({
@@ -38,6 +57,15 @@ function BodyCell({
   expandable = false,
   rowSupportExpand = false,
   isFirstDataColumn = false,
+  rowSortKey,
+  rowSortDragDisabled = false,
+  rowSortDragging = false,
+  rowSortIsOver = false,
+  rowSortCellStyle,
+  rowSortAttributes,
+  rowSortListeners,
+  setRowSortActivatorNodeRef,
+  setRowSortNodeRef,
 }: BodyRowProps) {
   const {
     expandable: expandableConfig,
@@ -84,7 +112,7 @@ function BodyCell({
       style.textAlign = align || column.align;
     }
 
-    return { ...style, ...column.style, ...cellStyle };
+    return { ...style, ...column.style, ...cellStyle, ...rowSortCellStyle };
   }, [
     column.onCell,
     rowData,
@@ -92,10 +120,13 @@ function BodyCell({
     fixedInfo.fixStart,
     fixedInfo.fixEnd,
     column.style,
+    rowSortCellStyle,
   ]);
 
   const isInternalExpandColumn = isExpandColumn(column);
   const isInternalSelectionColumn = isSelectionColumn(column);
+  const isInternalRowSortColumn = isRowSortColumn(column);
+
   const cellProps = useMemo(() => {
     const restProps = { ...column.onCell?.(rowData, rowIndex) };
     delete restProps.rowSpan;
@@ -204,6 +235,7 @@ function BodyCell({
   if (
     !isInternalExpandColumn &&
     !isInternalSelectionColumn &&
+    !isInternalRowSortColumn &&
     column.dataIndex &&
     typeof column.dataIndex === 'string'
   ) {
@@ -212,6 +244,7 @@ function BodyCell({
   if (
     !isInternalExpandColumn &&
     !isInternalSelectionColumn &&
+    !isInternalRowSortColumn &&
     column.render &&
     typeof column.render === 'function'
   ) {
@@ -242,6 +275,7 @@ function BodyCell({
   if (
     !isInternalExpandColumn &&
     !isInternalSelectionColumn &&
+    !isInternalRowSortColumn &&
     isFirstDataColumn &&
     expandable &&
     !expandableConfig?.expandedRowRender
@@ -256,6 +290,29 @@ function BodyCell({
         {renderExpandIcon(true)}
         <span>{childrenNode}</span>
       </div>
+    );
+  }
+
+  if (isInternalRowSortColumn) {
+    return (
+      <RowSortBodyCell
+        cellClassName={cellClassName}
+        cellProps={cellProps}
+        column={column}
+        fixedInfo={fixedInfo}
+        indent={indent}
+        mergedStyle={mergedStyle}
+        rowData={rowData}
+        rowIndex={rowIndex}
+        rowSortDragDisabled={rowSortDragDisabled}
+        rowSortDragging={rowSortDragging}
+        rowSortIsOver={rowSortIsOver}
+        rowSortKey={rowSortKey}
+        rowSortAttributes={rowSortAttributes}
+        rowSortListeners={rowSortListeners}
+        setRowSortActivatorNodeRef={setRowSortActivatorNodeRef}
+        setRowSortNodeRef={setRowSortNodeRef}
+      />
     );
   }
 

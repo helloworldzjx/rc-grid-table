@@ -94,6 +94,39 @@ export interface ExpandableConfig<T = any> {
   onExpandedRowsChange?: (expandedRows: Key[]) => void;
 }
 
+export type RowSortPlacement = 'before' | 'after';
+
+export interface RowSortIconProps<T = any> {
+  disabled: boolean;
+  dragging: boolean;
+  record: T;
+  index: number;
+  indent: number;
+}
+
+export interface RowSortChangeInfo<T = any> {
+  activeKey: Key;
+  overKey: Key;
+  activeRecord: T;
+  overRecord: T;
+  fromParentKey?: Key;
+  toParentKey?: Key;
+  fromIndex: number;
+  toIndex: number;
+  placement: RowSortPlacement;
+}
+
+export interface RowSortableConfig<T = any> {
+  align?: 'start' | 'end' | 'center';
+  columnTitle?: ReactNode;
+  columnWidth?: PercentColumnWidthType | number;
+  fixed?: FixedType;
+  allowCrossLevelSort?: boolean;
+  sortIcon?: (props: RowSortIconProps<T>) => ReactNode;
+  rowDraggable?: (record: T) => boolean;
+  onChange?: (dataSource: T[], info: RowSortChangeInfo<T>) => void;
+}
+
 export type SelectionType = 'checkbox' | 'radio';
 export type SelectionSelectAllMode = 'all' | 'enabled';
 export type SelectionInfoType = 'single' | 'all' | 'none';
@@ -144,6 +177,7 @@ export interface TableRowSelection<T = any> {
 export interface ColumnProps<T = any> {
   __RC_GRID_TABLE_EXPAND_COLUMN?: true;
   __RC_GRID_TABLE_SELECTION_COLUMN?: true;
+  __RC_GRID_TABLE_ROW_SORT_COLUMN?: true;
   title?: ReactNode;
   render?: (value: any, record: T, rowIndex: number) => ReactNode;
   /** 列宽，仅支持数字和百分比数字，不支持px的字符串写法 */
@@ -180,6 +214,13 @@ export type SelectionColumnType = ColumnProps<any> & {
   dataIndex?: Key;
   children?: never;
   __RC_GRID_TABLE_SELECTION_COLUMN: true;
+};
+
+export type RowSortColumnType = ColumnProps<any> & {
+  key: Key;
+  dataIndex?: Key;
+  children?: never;
+  __RC_GRID_TABLE_ROW_SORT_COLUMN: true;
 };
 
 export type ColumnType<T> = ColumnProps<T> & { children?: ColumnType<T>[] } & (
@@ -339,6 +380,10 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
    * @description 行选择配置
    */
   rowSelection?: TableRowSelection<T>;
+  /**
+   * @description 行拖拽配置
+   */
+  rowSortable?: RowSortableConfig<T>;
   /**
    * @description 横向滚动条可磁吸
    */

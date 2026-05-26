@@ -1,15 +1,25 @@
-import type { Key } from "react";
+import type { Key } from 'react';
 
-import type { ColumnType, ColumnsType, ExpandableConfig, SizeType, TableRowSelection } from "../interface";
+import type {
+  ColumnType,
+  ColumnsType,
+  ExpandableConfig,
+  RowSortableConfig,
+  SizeType,
+  TableRowSelection,
+} from '../interface';
 import {
   EXPAND_COLUMN,
   INTERNAL_EXPAND_COLUMN_KEY,
+  INTERNAL_ROW_SORT_COLUMN_KEY,
   INTERNAL_SELECTION_COLUMN_KEY,
+  ROW_SORT_COLUMN,
   SELECTION_COLUMN,
   getDefaultInternalColumnWidth,
   isExpandColumn,
+  isRowSortColumn,
   isSelectionColumn,
-} from "./const";
+} from './const';
 
 export interface FlattenRecord<T = any> {
   record: T;
@@ -22,15 +32,23 @@ export const getRecordKey = <T = any>(record: T, rowKey: string): Key => {
   return record?.[rowKey as keyof T] as Key;
 };
 
-export const getRecordChildren = <T = any>(record: T, childrenColumnName = 'children'): T[] => {
+export const getRecordChildren = <T = any>(
+  record: T,
+  childrenColumnName = 'children',
+): T[] => {
   const children = record?.[childrenColumnName as keyof T];
-  return Array.isArray(children) ? children as T[] : [];
+  return Array.isArray(children) ? (children as T[]) : [];
 };
 
-export const hasChildrenInData = <T = any>(dataSource: T[] = [], childrenColumnName = 'children'): boolean => {
+export const hasChildrenInData = <T = any>(
+  dataSource: T[] = [],
+  childrenColumnName = 'children',
+): boolean => {
   return dataSource.some((record) => {
     const children = getRecordChildren(record, childrenColumnName);
-    return children.length > 0 || hasChildrenInData(children, childrenColumnName);
+    return (
+      children.length > 0 || hasChildrenInData(children, childrenColumnName)
+    );
   });
 };
 
@@ -101,9 +119,15 @@ export const getDefaultExpandedRowKeys = <T = any>(
   return keys;
 };
 
-const removeInternalColumns = <T = any>(columns: ColumnsType<T>): ColumnsType<T> => {
+const removeInternalColumns = <T = any>(
+  columns: ColumnsType<T>,
+): ColumnsType<T> => {
   return columns.reduce((result: ColumnsType<T>, column) => {
-    if (isExpandColumn(column) || isSelectionColumn(column)) {
+    if (
+      isExpandColumn(column) ||
+      isSelectionColumn(column) ||
+      isRowSortColumn(column)
+    ) {
       return result;
     }
 
@@ -137,7 +161,9 @@ export const getColumnsWithExpandColumn = <T = any>(
   const hasExpandedRowRender = typeof expandedRowRender === 'function';
 
   if (!hasExpandedRowRender || !showExpandColumn) {
-    return removeInternalColumns(columns).filter((column) => !isSelectionColumn(column));
+    return removeInternalColumns(columns).filter(
+      (column) => !isSelectionColumn(column),
+    );
   }
 
   const expandColumn = {
@@ -171,6 +197,7 @@ export const getColumnsWithInternalColumns = <T = any>(
   columns: ColumnsType<T> = [],
   expandable: ExpandableConfig<T> = {},
   rowSelection?: TableRowSelection<T>,
+  rowSortable?: RowSortableConfig<T>,
   size?: SizeType,
 ): ColumnsType<T> => {
   const {
@@ -184,32 +211,60 @@ export const getColumnsWithInternalColumns = <T = any>(
   const hasExpandedRowRender = typeof expandedRowRender === 'function';
   const shouldShowExpandColumn = hasExpandedRowRender && showExpandColumn;
   const shouldShowSelectionColumn = !!rowSelection;
+  const shouldShowRowSortColumn = !!rowSortable;
 
-  if (!shouldShowExpandColumn && !shouldShowSelectionColumn) {
+  if (
+    !shouldShowExpandColumn &&
+    !shouldShowSelectionColumn &&
+    !shouldShowRowSortColumn
+  ) {
     return removeInternalColumns(columns);
   }
 
-  const expandColumn = shouldShowExpandColumn ? {
-    ...EXPAND_COLUMN,
-    key: INTERNAL_EXPAND_COLUMN_KEY,
-    title: columnTitle,
-    width: columnWidth ?? getDefaultInternalColumnWidth(size),
-    fixed,
-    resizeDisabled,
-  } as ColumnType<T> : null;
-  const selectionColumn = shouldShowSelectionColumn ? {
-    ...SELECTION_COLUMN,
-    key: INTERNAL_SELECTION_COLUMN_KEY,
-    title: '',
-    width: rowSelection?.columnWidth ?? getDefaultInternalColumnWidth(size),
-    fixed: rowSelection?.fixed,
-    resizeDisabled: rowSelection?.resizeDisabled ?? true,
-    onCell: rowSelection?.onCell,
-  } as ColumnType<T> : null;
+  const expandColumn = shouldShowExpandColumn
+    ? ({
+        ...EXPAND_COLUMN,
+        key: INTERNAL_EXPAND_COLUMN_KEY,
+        title: columnTitle,
+        width: columnWidth ?? getDefaultInternalColumnWidth(size),
+        fixed,
+        resizeDisabled,
+      } as ColumnType<T>)
+    : null;
+  const selectionColumn = shouldShowSelectionColumn
+    ? ({
+        ...SELECTION_COLUMN,
+        key: INTERNAL_SELECTION_COLUMN_KEY,
+        title: '',
+        width: rowSelection?.columnWidth ?? getDefaultInternalColumnWidth(size),
+        fixed: rowSelection?.fixed,
+        resizeDisabled: rowSelection?.resizeDisabled ?? true,
+        onCell: rowSelection?.onCell,
+      } as ColumnType<T>)
+    : null;
+  const rowSortColumn = shouldShowRowSortColumn
+    ? ({
+        ...ROW_SORT_COLUMN,
+        key: INTERNAL_ROW_SORT_COLUMN_KEY,
+        title: rowSortable?.columnTitle,
+        width: rowSortable?.columnWidth ?? getDefaultInternalColumnWidth(size),
+        fixed: rowSortable?.fixed,
+        resizeDisabled: true,
+      } as ColumnType<T>)
+    : null;
 
   let expandInserted = false;
   let selectionInserted = false;
+  let rowSortInserted = false;
   const nextColumns = columns.reduce((result: ColumnsType<T>, column) => {
+    if (isRowSortColumn(column)) {
+      if (rowSortColumn) {
+        result.push(rowSortColumn);
+        rowSortInserted = true;
+      }
+      return result;
+    }
+
     if (isExpandColumn(column)) {
       if (expandColumn) {
         result.push(expandColumn);
@@ -243,6 +298,10 @@ export const getColumnsWithInternalColumns = <T = any>(
     } else {
       nextColumns.unshift(selectionColumn);
     }
+  }
+
+  if (rowSortColumn && !rowSortInserted) {
+    nextColumns.unshift(rowSortColumn);
   }
 
   return nextColumns;

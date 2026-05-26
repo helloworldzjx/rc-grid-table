@@ -52,6 +52,7 @@ const Head = forwardRef<HeadRef, HeadProps>(
               headRows={rows}
               row={row}
               headRowIndex={rowIndex}
+              getScrollElement={() => innerRef.current}
               onSortableStart={() => handleResizeDragStart(true)}
               onSortableEnd={() => handleResizeDragEnd(true)}
               onResizeStart={handleResizeDragStart}

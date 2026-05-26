@@ -1,7 +1,28 @@
+import {
+  closestCenter,
+  DndContext,
+  DragEndEvent,
+  DragStartEvent,
+  PointerSensor,
+  UniqueIdentifier,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import warning from '@rc-component/util/lib/warning';
 import { Empty, Spin } from 'antd';
 import classNames from 'classnames';
-import React, { CSSProperties, forwardRef, useMemo } from 'react';
+import React, {
+  CSSProperties,
+  forwardRef,
+  Key,
+  useCallback,
+  useMemo,
+  useState,
+} from 'react';
 
 import ScrollBarContainer from '../scrollContainer';
 import BodyRow from './Body/BodyRow';
@@ -20,6 +41,7 @@ import {
   hasChildrenInData,
 } from './utils/expand';
 import { parseHeaderRows } from './utils/handle';
+import { getRowSortEntities, reorderDataSource } from './utils/rowSortable';
 
 const getStickyOffset = (
   sticky: TableProps['sticky'],
@@ -27,6 +49,16 @@ const getStickyOffset = (
 ) => {
   return typeof sticky === 'object' ? sticky[key] || 0 : 0;
 };
+
+const isValidRowSortId = (key: Key | undefined): key is UniqueIdentifier =>
+  typeof key === 'string' || typeof key === 'number';
+
+const isDescendantOrSelfPath = (
+  parentPath: number[],
+  maybeDescendantPath: number[],
+) =>
+  parentPath.length <= maybeDescendantPath.length &&
+  parentPath.every((value, index) => value === maybeDescendantPath[index]);
 
 const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
   const {
@@ -37,6 +69,7 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
     className,
     rowClassName,
     expandable,
+    rowSortable,
     mergedExpandedRowKeys = [],
     dataSource,
     columns,
@@ -96,6 +129,9 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
   const hasExpandedRowRender =
     typeof expandable?.expandedRowRender === 'function';
   const childrenColumnName = expandable?.childrenColumnName ?? 'children';
+  const allowCrossLevelSort = !!rowSortable?.allowCrossLevelSort;
+  const [activeRowSortKey, setActiveRowSortKey] = useState<Key | null>(null);
+
   const isTreeMode = !hasExpandedRowRender;
   const hasTreeData = useMemo(() => {
     return isTreeMode && hasChildrenInData(dataSource, childrenColumnName);
@@ -108,7 +144,7 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
   const flattenData = useMemo(() => {
     return isTreeMode
       ? flattenDataSource(
-          dataSource,
+          dataSource || [],
           rowKey as string,
           childrenColumnName,
           mergedExpandedRowKeys,
@@ -126,6 +162,127 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
     childrenColumnName,
     mergedExpandedRowKeys,
   ]);
+
+  const rowSortSensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 4,
+      },
+    }),
+  );
+
+  const rowSortEntities = useMemo(
+    () => getRowSortEntities(dataSource, rowKey as string, childrenColumnName),
+    [childrenColumnName, dataSource, rowKey],
+  );
+
+  const rowSortItems = useMemo(
+    () =>
+      flattenData
+        .map(({ key }) => key)
+        .filter((key): key is UniqueIdentifier => isValidRowSortId(key)),
+    [flattenData],
+  );
+
+  const lastRowSortItem = useMemo(
+    () => rowSortItems[rowSortItems.length - 1],
+    [rowSortItems],
+  );
+
+  const getRowSortDropDisabled = useCallback(
+    (key: Key | undefined) => {
+      if (!rowSortable || key === undefined) {
+        return true;
+      }
+      if (activeRowSortKey === null || key === activeRowSortKey) {
+        return false;
+      }
+      const activeEntity = rowSortEntities.get(activeRowSortKey);
+      const overEntity = rowSortEntities.get(key);
+      if (!activeEntity || !overEntity) {
+        return true;
+      }
+
+      if (allowCrossLevelSort) {
+        return isDescendantOrSelfPath(
+          [...activeEntity.parentPath, activeEntity.index],
+          overEntity.parentPath,
+        );
+      }
+
+      return activeEntity.parentKey !== overEntity.parentKey;
+    },
+    [activeRowSortKey, allowCrossLevelSort, rowSortEntities, rowSortable],
+  );
+
+  const getRowSortDragDisabled = useCallback(
+    (record: any, key: Key | undefined) => {
+      if (!rowSortable || key === undefined) {
+        return true;
+      }
+      const disabledByRecord = rowSortable?.rowDraggable?.(record) === false;
+      return disabledByRecord;
+    },
+    [rowSortable],
+  );
+
+  const handleRowSortStart = useCallback((event: DragStartEvent) => {
+    if (event.active.data.current?.type !== 'rowSortable') {
+      return;
+    }
+
+    const activeEntity = event.active.data?.current;
+    if (!activeEntity) return;
+
+    document.documentElement.style.cursor = 'move';
+    setActiveRowSortKey(activeEntity.key);
+  }, []);
+
+  const cleanupRowSort = useCallback(() => {
+    document.documentElement.style.cursor = '';
+    setActiveRowSortKey(null);
+  }, []);
+
+  const handleRowSortEnd = useCallback(
+    (event: DragEndEvent) => {
+      if (event.active.data.current?.type !== 'rowSortable') {
+        return;
+      }
+
+      const activeEntity = event.active.data?.current;
+      const overEntity = event.over?.data?.current;
+      if (!activeEntity || !overEntity) return;
+
+      if (activeEntity.key !== overEntity.key) {
+        const placement =
+          activeEntity.index > overEntity.index ? 'before' : 'after';
+        const result = reorderDataSource({
+          dataSource: dataSource || [],
+          rowKey: rowKey as string,
+          childrenColumnName,
+          activeKey: activeEntity.key,
+          overKey: overEntity.key,
+          placement,
+          allowCrossLevelSort,
+        });
+
+        if (result) {
+          rowSortable?.onChange?.(result.dataSource, result.info);
+        }
+      }
+
+      cleanupRowSort();
+    },
+    [
+      allowCrossLevelSort,
+      childrenColumnName,
+      cleanupRowSort,
+      dataSource,
+      rowKey,
+      rowSortable,
+    ],
+  );
+
   const {
     tableHeadRef,
     tableSummaryRef,
@@ -133,6 +290,7 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
     horizontalTrackRef,
     horizontalThumbRef,
     horizontalThumbWidth,
+    bodyScrollElement,
     hasHorizontal,
     hasVertical,
     isStart,
@@ -153,6 +311,14 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
       scrollY,
     ],
   });
+
+  const rowSortAutoScroll = useMemo(
+    () => ({
+      canScroll: (element: Element) =>
+        element === bodyScrollElement && !lastRowSortItem,
+    }),
+    [bodyScrollElement],
+  );
 
   const tableHeight = useMemo(() => {
     let y: number | string = 'auto';
@@ -270,48 +436,81 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
                 </div>
               </div>
             )}
-            {flattenData?.map(({ record: rowData, rowIndex, indent, key }) => {
-              warning(
-                key !== undefined,
-                'Each record in table should have a unique `key` prop, or set `rowKey` to an unique primary key.',
-              );
-              const expanded = mergedExpandedRowKeys.includes(key);
-              const children = getRecordChildren(rowData, childrenColumnName);
-              const treeExpandable = isTreeMode && children.length > 0;
-              const rowExpandable = hasExpandedRowRender
-                ? expandable?.rowExpandable?.(rowData) !== false
-                : treeExpandable;
-              const expandedRowClassName =
-                typeof expandable?.expandedRowClassName === 'function'
-                  ? expandable.expandedRowClassName(rowData, rowIndex, indent)
-                  : expandable?.expandedRowClassName;
 
-              return (
-                <React.Fragment key={key}>
-                  <BodyRow
-                    flattenColumns={flattenColumns}
-                    fixedOffset={fixedOffset}
-                    rowData={rowData}
-                    rowIndex={rowIndex}
-                    indent={indent}
-                    expanded={expanded}
-                    expandable={hasTreeData || treeExpandable}
-                    rowSupportExpand={rowExpandable}
-                    className={rowClassName?.(rowData, rowIndex)}
-                  />
-                  {hasExpandedRowRender && expanded && rowExpandable && (
-                    <ExpandedRow className={expandedRowClassName} indent={1}>
-                      {expandable?.expandedRowRender?.(
-                        rowData,
-                        rowIndex,
-                        indent,
-                        expanded,
-                      )}
-                    </ExpandedRow>
-                  )}
-                </React.Fragment>
-              );
-            })}
+            <DndContext
+              sensors={rowSortSensors}
+              collisionDetection={closestCenter}
+              autoScroll={rowSortAutoScroll}
+              onDragStart={handleRowSortStart}
+              onDragEnd={handleRowSortEnd}
+              onDragCancel={cleanupRowSort}
+            >
+              <SortableContext
+                items={rowSortItems}
+                strategy={verticalListSortingStrategy}
+              >
+                {flattenData?.map(
+                  ({ record: rowData, rowIndex, indent, key }) => {
+                    warning(
+                      key !== undefined,
+                      'Each record in table should have a unique `key` prop, or set `rowKey` to an unique primary key.',
+                    );
+                    const expanded = mergedExpandedRowKeys.includes(key);
+                    const children = getRecordChildren(
+                      rowData,
+                      childrenColumnName,
+                    );
+                    const treeExpandable = isTreeMode && children.length > 0;
+                    const rowExpandable = hasExpandedRowRender
+                      ? expandable?.rowExpandable?.(rowData) !== false
+                      : treeExpandable;
+                    const expandedRowClassName =
+                      typeof expandable?.expandedRowClassName === 'function'
+                        ? expandable.expandedRowClassName(
+                            rowData,
+                            rowIndex,
+                            indent,
+                          )
+                        : expandable?.expandedRowClassName;
+                    const dragDisabled = getRowSortDragDisabled(rowData, key);
+                    const dropDisabled = getRowSortDropDisabled(key);
+
+                    return (
+                      <React.Fragment key={key}>
+                        <BodyRow
+                          flattenColumns={flattenColumns}
+                          fixedOffset={fixedOffset}
+                          rowData={rowData}
+                          rowIndex={rowIndex}
+                          rowKeyValue={key}
+                          indent={indent}
+                          expanded={expanded}
+                          expandable={hasTreeData || treeExpandable}
+                          rowSupportExpand={rowExpandable}
+                          className={rowClassName?.(rowData, rowIndex)}
+                          rowSortDragDisabled={dragDisabled}
+                          rowSortDropDisabled={dropDisabled}
+                          rowSortDragging={activeRowSortKey === key}
+                        />
+                        {hasExpandedRowRender && expanded && rowExpandable && (
+                          <ExpandedRow
+                            className={expandedRowClassName}
+                            indent={1}
+                          >
+                            {expandable?.expandedRowRender?.(
+                              rowData,
+                              rowIndex,
+                              indent,
+                              expanded,
+                            )}
+                          </ExpandedRow>
+                        )}
+                      </React.Fragment>
+                    );
+                  },
+                )}
+              </SortableContext>
+            </DndContext>
           </ScrollBarContainer>
 
           {showSummary && (

@@ -1,8 +1,8 @@
+import { useDndMonitor } from '@dnd-kit/core';
 import { useSortable } from '@dnd-kit/sortable';
 import classNames from 'classnames';
 import React, { CSSProperties, Key, useMemo, useRef } from 'react';
 
-import { useDndMonitor } from '@dnd-kit/core';
 import CellContainer from '../CellContainer';
 import { useTableContext } from '../context';
 import { CellType } from '../interface';
@@ -182,6 +182,7 @@ function HeadCell({
         colSpan: col.column?.colSpan,
         order: col.column?.order,
         hasChildren: col.column?.hasChildren,
+        fixed: col.column?.fixed,
         dragSortDisabled,
       },
       sortKeys: sortEnabled ? mergedSpanKeys : [],
