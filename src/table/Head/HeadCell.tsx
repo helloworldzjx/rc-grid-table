@@ -196,8 +196,7 @@ function HeadCell({
     onDragStart() {
       if (!resizableRef.current) return;
 
-      const height = resizableRef.current.offsetHeight;
-      resizableRef.current.style.height = `${height}px`;
+      resizableRef.current.style.height = '1px';
       resizableRef.current.style.insetBlockEnd = 'unset';
     },
     onDragEnd() {
