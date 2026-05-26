@@ -7,6 +7,7 @@ import {
   DragStartEvent,
 } from '@dnd-kit/core';
 import { SortableContext } from '@dnd-kit/sortable';
+import { useDebounceFn } from 'ahooks';
 import React, { Key, useMemo, useRef, useState } from 'react';
 
 import { useTableContext } from '../context';
@@ -20,6 +21,7 @@ interface HeadRowProps<T = any> {
   headRows: CellType<T>[][];
   row: CellType<T>[];
   headRowIndex: number;
+  getScrollElement?: () => HTMLDivElement | null;
   onSortableStart?: () => void;
   onSortableEnd?: () => void;
   onResizeStart?: () => void;
@@ -192,6 +194,8 @@ function HeadRow({
     }
   };
 
+  const { run: debounceDragOver } = useDebounceFn(handleDragOver, { wait: 50 });
+
   const handleDragEnd = (event: DragEndEvent) => {
     if (event.active.data.current?.type === 'sortableColumns') {
       onSortableEnd?.();
@@ -226,7 +230,7 @@ function HeadRow({
     <div className={headRowCls}>
       <DndContext
         onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
+        onDragOver={debounceDragOver}
         onDragEnd={handleDragEnd}
         onDragCancel={handleDragCancel}
       >
