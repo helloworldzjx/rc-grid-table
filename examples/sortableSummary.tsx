@@ -1,6 +1,6 @@
 import { Divider, Space, Tag, Typography } from 'antd';
 import { Table } from 'rc-grid-table';
-import type { ColumnState, TableProps } from 'rc-grid-table/es/table/interface';
+import { ColumnState, ColumnsType } from 'rc-grid-table/es/table/interface';
 import React from 'react';
 import ConfigActions from './_utils/components/ConfigActions';
 import useConfigActions from './_utils/hooks/useConfigActions';
@@ -16,7 +16,7 @@ interface DataType {
   status: 'stable' | 'growth';
 }
 
-const columns: TableProps<DataType>['columns'] = [
+const columns: ColumnsType<DataType> = [
   {
     title: 'Name',
     dataIndex: 'name',

@@ -1,7 +1,7 @@
-import React from 'react';
 import { Descriptions, Space, Tag, Typography } from 'antd';
 import { Table } from 'rc-grid-table';
-import type { TableProps } from 'rc-grid-table/es/table/interface';
+import { ColumnsType } from 'rc-grid-table/es/table/interface';
+import React from 'react';
 import ConfigActions from './_utils/components/ConfigActions';
 import useConfigActions from './_utils/hooks/useConfigActions';
 
@@ -19,7 +19,7 @@ interface DataType {
 
 const App: React.FC = () => {
   // 列数组
-  const columns: TableProps<DataType>['columns'] = [
+  const columns: ColumnsType<DataType> = [
     {
       title: 'Name',
       dataIndex: 'name',
@@ -43,7 +43,15 @@ const App: React.FC = () => {
       dataIndex: 'status',
       key: 'status',
       render: (status) => (
-        <Tag color={status === 'Active' ? 'green' : status === 'Pending' ? 'gold' : 'default'}>
+        <Tag
+          color={
+            status === 'Active'
+              ? 'green'
+              : status === 'Pending'
+              ? 'gold'
+              : 'default'
+          }
+        >
           {status}
         </Tag>
       ),
@@ -69,7 +77,8 @@ const App: React.FC = () => {
       department: 'Operations',
       status: 'Active',
       owner: 'Lucy',
-      description: 'Responsible for daily scheduling and cross-team delivery checks.',
+      description:
+        'Responsible for daily scheduling and cross-team delivery checks.',
     },
     {
       key: '2',
@@ -78,7 +87,8 @@ const App: React.FC = () => {
       department: 'Support',
       status: 'Pending',
       owner: 'Lily',
-      description: 'Preparing onboarding materials for the new support process.',
+      description:
+        'Preparing onboarding materials for the new support process.',
     },
     {
       key: '3',
@@ -105,8 +115,12 @@ const App: React.FC = () => {
           fixed: 'start',
           expandedRowRender: (record) => (
             <Descriptions size="small" column={2}>
-              <Descriptions.Item label="Owner">{record.owner}</Descriptions.Item>
-              <Descriptions.Item label="Department">{record.department}</Descriptions.Item>
+              <Descriptions.Item label="Owner">
+                {record.owner}
+              </Descriptions.Item>
+              <Descriptions.Item label="Department">
+                {record.department}
+              </Descriptions.Item>
               <Descriptions.Item label="Description" span={2}>
                 <Text type={record.description ? undefined : 'secondary'}>
                   {record.description || 'No extra information.'}

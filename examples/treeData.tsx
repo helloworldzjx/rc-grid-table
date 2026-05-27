@@ -1,6 +1,6 @@
 import { Space, Switch, Tag } from 'antd';
 import { Table } from 'rc-grid-table';
-import type { TableProps } from 'rc-grid-table/es/table/interface';
+import { ColumnsType } from 'rc-grid-table/es/table/interface';
 import React, { useState } from 'react';
 import ConfigActions from './_utils/components/ConfigActions';
 import useConfigActions from './_utils/hooks/useConfigActions';
@@ -24,7 +24,7 @@ const App: React.FC = () => {
   const [checkStrictly, setCheckStrictly] = useState(false);
 
   // 列数组
-  const columns: TableProps<DataType>['columns'] = [
+  const columns: ColumnsType<DataType> = [
     {
       title: 'Name',
       dataIndex: 'name',

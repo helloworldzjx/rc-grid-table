@@ -1,6 +1,6 @@
 import { Form, Input, InputNumber, Popconfirm, Space, Typography } from 'antd';
 import { Table } from 'rc-grid-table';
-import type { ColumnType, TableProps } from 'rc-grid-table/es/table/interface';
+import { ColumnType, ColumnsType } from 'rc-grid-table/es/table/interface';
 import React, { forwardRef, useState } from 'react';
 import ConfigActions from './_utils/components/ConfigActions';
 import useConfigActions from './_utils/hooks/useConfigActions';
@@ -152,25 +152,23 @@ const App: React.FC = () => {
     },
   ];
 
-  const mergedColumns: TableProps<DataType>['columns'] = columns.map(
-    (column) => {
-      if (!column.editable) {
-        return column;
-      }
+  const mergedColumns: ColumnsType<DataType> = columns.map((column) => {
+    if (!column.editable) {
+      return column;
+    }
 
-      return {
-        ...column,
-        onCell: (record) =>
-          ({
-            record,
-            inputType: column.dataIndex === 'age' ? 'number' : 'text',
-            dataIndex: column.dataIndex,
-            title: column.title,
-            editing: isEditing(record),
-          } as React.HTMLAttributes<any>),
-      };
-    },
-  );
+    return {
+      ...column,
+      onCell: (record) =>
+        ({
+          record,
+          inputType: column.dataIndex === 'age' ? 'number' : 'text',
+          dataIndex: column.dataIndex,
+          title: column.title,
+          editing: isEditing(record),
+        } as React.HTMLAttributes<any>),
+    };
+  });
 
   // 动态控制 bordered、stripe、resizableColumns、sortableColumns 属性
   const { baseProps, state, onChange } = useConfigActions({ bordered: true });

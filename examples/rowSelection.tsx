@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
 import { Space, Tag, Typography } from 'antd';
 import { Table } from 'rc-grid-table';
-import type { TableProps } from 'rc-grid-table/es/table/interface';
+import { ColumnsType } from 'rc-grid-table/es/table/interface';
+import React, { useState } from 'react';
 import ConfigActions from './_utils/components/ConfigActions';
 import useConfigActions from './_utils/hooks/useConfigActions';
 
@@ -18,9 +18,11 @@ interface DataType {
 
 const App: React.FC = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>(['1']);
-  const [radioSelectedRowKeys, setRadioSelectedRowKeys] = useState<React.Key[]>(['2']);
+  const [radioSelectedRowKeys, setRadioSelectedRowKeys] = useState<React.Key[]>(
+    ['2'],
+  );
 
-  const columns: TableProps<DataType>['columns'] = [
+  const columns: ColumnsType<DataType> = [
     {
       title: 'Name',
       dataIndex: 'name',
@@ -44,7 +46,15 @@ const App: React.FC = () => {
       dataIndex: 'status',
       key: 'status',
       render: (status) => (
-        <Tag color={status === 'Active' ? 'green' : status === 'Pending' ? 'gold' : 'default'}>
+        <Tag
+          color={
+            status === 'Active'
+              ? 'green'
+              : status === 'Pending'
+              ? 'gold'
+              : 'default'
+          }
+        >
           {status}
         </Tag>
       ),
@@ -124,7 +134,8 @@ const App: React.FC = () => {
             fixed: 'start',
             getCheckboxProps: (record) => ({
               disabled: record.status === 'Disabled',
-              title: record.status === 'Disabled' ? 'Disabled record' : undefined,
+              title:
+                record.status === 'Disabled' ? 'Disabled record' : undefined,
             }),
             onChange: (keys) => setSelectedRowKeys(keys),
           }}
@@ -143,22 +154,47 @@ const App: React.FC = () => {
             selectedRowKeys: radioSelectedRowKeys,
             getRadioProps: (record) => ({
               disabled: record.status === 'Disabled',
-              title: record.status === 'Disabled' ? 'Disabled record' : undefined,
+              title:
+                record.status === 'Disabled' ? 'Disabled record' : undefined,
             }),
             onChange: (keys) => setRadioSelectedRowKeys(keys),
           }}
           summary={(pageData) => {
-            const disabledCount = pageData.filter((record) => record.status === 'Disabled').length;
-            const selectedRecord = pageData.find((record) => radioSelectedRowKeys.includes(record.key));
+            const disabledCount = pageData.filter(
+              (record) => record.status === 'Disabled',
+            ).length;
+            const selectedRecord = pageData.find((record) =>
+              radioSelectedRowKeys.includes(record.key),
+            );
 
             return [
               [
                 // 设置了 rowSelection 会多出选择列，可以用来显示 '总计'
                 { children: '总计' },
-                { children: <Text type="danger">Total: {pageData.length}</Text>, },
-                { children: <Text type="danger">Available: {pageData.length - disabledCount}</Text> },
-                { children: <Text type="danger">Disabled: {disabledCount}</Text> },
-                { children: <Text type="danger">{selectedRecord ? `Selected: ${selectedRecord.name}` : 'Selected: -'}</Text> },
+                {
+                  children: <Text type="danger">Total: {pageData.length}</Text>,
+                },
+                {
+                  children: (
+                    <Text type="danger">
+                      Available: {pageData.length - disabledCount}
+                    </Text>
+                  ),
+                },
+                {
+                  children: (
+                    <Text type="danger">Disabled: {disabledCount}</Text>
+                  ),
+                },
+                {
+                  children: (
+                    <Text type="danger">
+                      {selectedRecord
+                        ? `Selected: ${selectedRecord.name}`
+                        : 'Selected: -'}
+                    </Text>
+                  ),
+                },
               ],
             ];
           }}

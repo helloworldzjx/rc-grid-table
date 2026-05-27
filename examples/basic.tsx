@@ -1,7 +1,7 @@
-import React from 'react';
 import { Space, Tag } from 'antd';
-import { Table } from 'rc-grid-table';
-import type { TableProps } from 'rc-grid-table/es/table/interface';
+import { Table, TableRef } from 'rc-grid-table';
+import { ColumnsType } from 'rc-grid-table/es/table/interface';
+import React, { useEffect, useRef } from 'react';
 import ConfigActions from './_utils/components/ConfigActions';
 import useConfigActions from './_utils/hooks/useConfigActions';
 
@@ -15,7 +15,7 @@ interface DataType {
 
 const App: React.FC = () => {
   // 列数组
-  const columns: TableProps<DataType>['columns'] = [
+  const columns: ColumnsType<DataType> = [
     {
       title: 'Name',
       dataIndex: 'name',
@@ -90,14 +90,20 @@ const App: React.FC = () => {
   ];
 
   // 动态控制 bordered、stripe、resizableColumns、sortableColumns 属性
-  const { baseProps, state, onChange } = useConfigActions()
+  const { baseProps, state, onChange } = useConfigActions();
+
+  const ref = useRef<TableRef>(null);
+
+  useEffect(() => {
+    console.log(ref);
+  }, []);
 
   return (
     <>
       <ConfigActions value={state} onChange={onChange} />
-      <Table {...baseProps} columns={columns} dataSource={data} />
+      <Table {...baseProps} columns={columns} dataSource={data} ref={ref} />
     </>
-  )
+  );
 };
 
 export default App;

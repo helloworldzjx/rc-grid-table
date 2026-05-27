@@ -1,5 +1,5 @@
 import { Table } from 'rc-grid-table';
-import type { TableProps } from 'rc-grid-table/es/table/interface';
+import { ColumnsType } from 'rc-grid-table/es/table/interface';
 import React from 'react';
 import ConfigActions from './_utils/components/ConfigActions';
 import useConfigActions from './_utils/hooks/useConfigActions';
@@ -13,7 +13,7 @@ interface DataType {
 
 const App: React.FC = () => {
   // 列数组
-  const columns: TableProps<DataType>['columns'] = [
+  const columns: ColumnsType<DataType> = [
     {
       title: 'Name',
       dataIndex: 'name',
