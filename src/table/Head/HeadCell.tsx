@@ -41,6 +41,7 @@ function HeadCell({
     fixedOffset,
     rowSelection,
     selection,
+    getComponent,
   } = useTableContext();
 
   const {
@@ -59,6 +60,7 @@ function HeadCell({
   } = useStyles();
 
   const resizableRef = useRef<HTMLDivElement | null>(null);
+  const CellComponent = getComponent(['header', 'cell'], 'div');
 
   const fixedInfo = useMemo(() => {
     return getCellFixedInfo(
@@ -255,6 +257,7 @@ function HeadCell({
 
   return (
     <CellContainer
+      component={CellComponent}
       className={classNames(
         cellCls,
         {

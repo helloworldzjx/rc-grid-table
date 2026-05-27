@@ -51,7 +51,7 @@ function RowSortBodyCell<T = any>({
   setRowSortActivatorNodeRef,
   setRowSortNodeRef,
 }: RowSortBodyCellProps<T>) {
-  const { rowSortable } = useTableContext();
+  const { getComponent, rowSortable } = useTableContext();
   const {
     cellCls,
     cellFixedStartCls,
@@ -65,6 +65,7 @@ function RowSortBodyCell<T = any>({
     rowSortHandleDisabledCls,
     rowSortHandleDraggingCls,
   } = useStyles();
+  const CellComponent = getComponent(['body', 'cell'], 'div');
 
   const rowSortDisabled =
     rowSortDragDisabled || !rowSortable || rowSortKey === undefined;
@@ -96,6 +97,7 @@ function RowSortBodyCell<T = any>({
 
   return (
     <CellContainer
+      component={CellComponent}
       className={classNames(
         cellCls,
         {

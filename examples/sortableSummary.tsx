@@ -1,7 +1,9 @@
-import { Divider, Tag, Typography } from 'antd';
+import { Divider, Space, Tag, Typography } from 'antd';
 import { Table } from 'rc-grid-table';
 import type { ColumnState, TableProps } from 'rc-grid-table/es/table/interface';
 import React from 'react';
+import ConfigActions from './_utils/components/ConfigActions';
+import useConfigActions from './_utils/hooks/useConfigActions';
 
 const { Text } = Typography;
 
@@ -185,42 +187,49 @@ const renderFullWidthSummary = (
 };
 
 const App: React.FC = () => {
+  // 动态控制 bordered、stripe、resizableColumns、sortableColumns 属性
+  const { baseProps, state, onChange } = useConfigActions({
+    bordered: true,
+    sortableColumns: true,
+  });
+
   return (
-    <>
-      <Divider>Column based summary</Divider>
-      <Table
-        bordered
-        resizableColumns
-        sortableColumns
-        columns={columns}
-        dataSource={dataSource}
-        summary={(pageData, flattenColumns) =>
-          renderColumnSummary(pageData, flattenColumns)
-        }
-      />
+    <Space direction="vertical" size={20} style={{ width: '100%' }}>
+      <ConfigActions value={state} onChange={onChange} />
+      <div>
+        <Divider>Column based summary</Divider>
+        <Table
+          {...baseProps}
+          columns={columns}
+          dataSource={dataSource}
+          summary={(pageData, flattenColumns) =>
+            renderColumnSummary(pageData, flattenColumns)
+          }
+        />
+      </div>
 
-      <Divider>Custom merged summary</Divider>
-      <Table
-        bordered
-        resizableColumns
-        sortableColumns
-        columns={columns}
-        dataSource={dataSource}
-        summary={(pageData, flattenColumns) =>
-          renderMergedMetricSummary(pageData, flattenColumns)
-        }
-      />
+      <div>
+        <Divider>Custom merged summary</Divider>
+        <Table
+          {...baseProps}
+          columns={columns}
+          dataSource={dataSource}
+          summary={(pageData, flattenColumns) =>
+            renderMergedMetricSummary(pageData, flattenColumns)
+          }
+        />
+      </div>
 
-      <Divider>Full width summary</Divider>
-      <Table
-        bordered
-        resizableColumns
-        sortableColumns
-        columns={columns}
-        dataSource={dataSource}
-        summary={renderFullWidthSummary}
-      />
-    </>
+      <div>
+        <Divider>Full width summary</Divider>
+        <Table
+          {...baseProps}
+          columns={columns}
+          dataSource={dataSource}
+          summary={renderFullWidthSummary}
+        />
+      </div>
+    </Space>
   );
 };
 

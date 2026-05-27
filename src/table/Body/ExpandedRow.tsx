@@ -1,8 +1,8 @@
-import React, { FC, ReactNode } from "react";
-import classNames from "classnames";
+import classNames from 'classnames';
+import React, { FC, ReactNode } from 'react';
 
-import { useTableContext } from "../context";
-import { useStyles } from "../style";
+import { useTableContext } from '../context';
+import { useStyles } from '../style';
 
 interface ExpandedRowProps {
   children?: ReactNode;
@@ -10,12 +10,17 @@ interface ExpandedRowProps {
   indent?: number;
 }
 
-const ExpandedRow: FC<ExpandedRowProps> = ({ children, className, indent = 0 }) => {
+const ExpandedRow: FC<ExpandedRowProps> = ({
+  children,
+  className,
+  indent = 0,
+}) => {
   const {
     columnsWidthTotal,
     containerWidth = 0,
     flattenColumns = [],
     expandable,
+    getComponent,
   } = useTableContext();
   const {
     bodyRowCls,
@@ -24,11 +29,16 @@ const ExpandedRow: FC<ExpandedRowProps> = ({ children, className, indent = 0 }) 
     expandedRowCellCls,
     expandedRowContentCls,
   } = useStyles();
-  const expandedRowCellWidth = Math.min(columnsWidthTotal, containerWidth || columnsWidthTotal);
+  const RowComponent = getComponent(['body', 'row'], 'div');
+  const CellComponent = getComponent(['body', 'cell'], 'div');
+  const expandedRowCellWidth = Math.min(
+    columnsWidthTotal,
+    containerWidth || columnsWidthTotal,
+  );
 
   return (
-    <div className={classNames(bodyRowCls, expandedRowCls, className)}>
-      <div
+    <RowComponent className={classNames(bodyRowCls, expandedRowCls, className)}>
+      <CellComponent
         className={classNames(cellCls, expandedRowCellCls)}
         style={{
           gridColumn: `span ${flattenColumns.length || 1}`,
@@ -37,13 +47,15 @@ const ExpandedRow: FC<ExpandedRowProps> = ({ children, className, indent = 0 }) 
       >
         <div
           className={expandedRowContentCls}
-          style={{paddingInlineStart: indent * (expandable?.indentSize ?? 15)}}
+          style={{
+            paddingInlineStart: indent * (expandable?.indentSize ?? 15),
+          }}
         >
           {children}
         </div>
-      </div>
-    </div>
-  )
-}
+      </CellComponent>
+    </RowComponent>
+  );
+};
 
 export default ExpandedRow;

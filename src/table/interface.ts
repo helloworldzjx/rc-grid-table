@@ -1,6 +1,7 @@
 import type {
   CSSProperties,
   Dispatch,
+  ElementType,
   HTMLAttributes,
   Key,
   MouseEvent,
@@ -21,6 +22,29 @@ export interface CellType<T = any> {
   colStart?: number;
   colEnd?: number;
 }
+
+// ================= Customized =================
+
+export type CustomizeComponent = ElementType<any>;
+
+export interface TableComponents {
+  table?: CustomizeComponent;
+  header?: {
+    wrapper?: CustomizeComponent;
+    row?: CustomizeComponent;
+    cell?: CustomizeComponent;
+  };
+  body?: {
+    wrapper?: CustomizeComponent;
+    row?: CustomizeComponent;
+    cell?: CustomizeComponent;
+  };
+}
+
+export type GetComponent = (
+  path: readonly string[],
+  defaultComponent?: CustomizeComponent,
+) => CustomizeComponent;
 
 // ================= Fixed Column =================
 export interface StickyOffsets {
@@ -399,14 +423,13 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
   sticky?: boolean | TableSticky;
   /**
    * @description 开启虚拟列表(未实现)
-   * @default false
+   * @default true
    */
   virtual?: boolean;
   /**
-   * @description 行的高度，在开启虚拟模式时有效(未实现)
-   * @default 40
+   * @description 覆盖默认的元素
    */
-  itemHeight?: number;
+  components?: TableComponents;
   /**
    * 滚动条自动隐藏(未实现)
    */
@@ -444,6 +467,7 @@ export interface TableContextProps<T = any> extends TableProps<T> {
   sortingColumns: boolean;
   updateSortingColumns: Dispatch<SetStateAction<boolean>>;
   innerColumnsState: ColumnState<T>[];
+  getComponent: GetComponent;
   selection?: TableSelectionContextProps<T>;
 }
 

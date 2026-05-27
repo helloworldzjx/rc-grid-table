@@ -45,9 +45,11 @@ function HeadRow({
     updateMiddleState,
     updateSortableDraftState,
     columnsConfig,
+    getComponent,
   } = useTableContext();
 
   const { headRowCls, headDraggingOverlayCellCls } = useStyles();
+  const RowComponent = getComponent(['header', 'row'], 'div');
 
   const firstRow = headRows[0] || [];
   const previousRow = headRows[headRowIndex - 1] || [];
@@ -227,7 +229,7 @@ function HeadRow({
   };
 
   return (
-    <div className={headRowCls}>
+    <RowComponent className={headRowCls}>
       <DndContext
         onDragStart={handleDragStart}
         onDragOver={debounceDragOver}
@@ -266,7 +268,7 @@ function HeadRow({
           </DragOverlay>
         )}
       </DndContext>
-    </div>
+    </RowComponent>
   );
 }
 

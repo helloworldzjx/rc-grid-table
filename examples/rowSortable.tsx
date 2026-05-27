@@ -127,7 +127,7 @@ const App: React.FC = () => {
     <>
       <ConfigActions value={state} onChange={onChange} />
       <Space direction="vertical" size={16} style={{ width: '100%' }}>
-        <Space>
+        <Space style={{ width: '100%' }}>
           <span>allowCrossLevelSort</span>
           <Switch
             checked={allowCrossLevelSort}

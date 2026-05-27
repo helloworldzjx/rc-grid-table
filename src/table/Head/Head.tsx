@@ -24,8 +24,9 @@ interface HeadProps<T = any> {
 const Head = forwardRef<HeadRef, HeadProps>(
   ({ rows, className, style }, ref) => {
     const { headCls, headInnerCls } = useStyles();
-    const { updateSortingColumns } = useTableContext();
+    const { getComponent, updateSortingColumns } = useTableContext();
     const innerRef = useRef<HTMLDivElement>(null);
+    const WrapperComponent = getComponent(['header', 'wrapper'], 'div');
 
     const handleResizeDragStart = (sorting?: boolean) => {
       if (sorting) {
@@ -45,7 +46,7 @@ const Head = forwardRef<HeadRef, HeadProps>(
 
     return (
       <div className={classNames(headCls, className)} style={style}>
-        <div className={headInnerCls} ref={innerRef}>
+        <WrapperComponent className={headInnerCls} ref={innerRef}>
           {rows.map((row, rowIndex) => (
             <HeadRow
               key={rowIndex}
@@ -59,7 +60,7 @@ const Head = forwardRef<HeadRef, HeadProps>(
               onResizeEnd={handleResizeDragEnd}
             />
           ))}
-        </div>
+        </WrapperComponent>
       </div>
     );
   },

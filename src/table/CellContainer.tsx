@@ -1,9 +1,11 @@
 import { motion } from 'motion/react';
-import React, { forwardRef, HTMLAttributes } from 'react';
+import React, { ElementType, forwardRef, HTMLAttributes, useMemo } from 'react';
 
 import { useTableContext } from './context';
 
-type CellContainerProps = HTMLAttributes<HTMLDivElement>;
+type CellContainerProps = HTMLAttributes<HTMLDivElement> & {
+  component?: ElementType;
+};
 type MotionCellContainerProps = CellContainerProps & {
   ref: React.ForwardedRef<HTMLDivElement>;
   initial: false;
@@ -15,8 +17,12 @@ type MotionCellContainerProps = CellContainerProps & {
 };
 
 const CellContainer = forwardRef<HTMLDivElement, CellContainerProps>(
-  (props, ref) => {
+  ({ component: Component = 'div', ...props }, ref) => {
     const { sortingColumns } = useTableContext();
+    const MotionComponent = useMemo(
+      () => (Component === 'div' ? motion.div : motion.create(Component)),
+      [Component],
+    );
 
     if (sortingColumns) {
       const motionProps: MotionCellContainerProps = {
@@ -30,13 +36,10 @@ const CellContainer = forwardRef<HTMLDivElement, CellContainerProps>(
         },
       };
 
-      return React.createElement(
-        motion.div as React.ElementType<MotionCellContainerProps>,
-        motionProps,
-      );
+      return React.createElement(MotionComponent, motionProps);
     }
 
-    return <div {...props} ref={ref} />;
+    return <Component {...props} ref={ref} />;
   },
 );
 

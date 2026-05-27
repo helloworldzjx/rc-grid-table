@@ -16,6 +16,7 @@ import useStickyOffsets from './hooks/useStickyOffsets';
 import {
   ColumnState,
   ExpandColumnType,
+  GetComponent,
   RowSortColumnType,
   SelectionColumnType,
   TableContextProps,
@@ -80,6 +81,7 @@ const Table: TableComponent = ((props) => {
     visibleColumns,
     columnsConfig,
     size = 'large',
+    components,
     onScroll,
     ...rest
   } = props;
@@ -147,6 +149,22 @@ const Table: TableComponent = ((props) => {
     rowSelection,
     childrenColumnName: expandable?.childrenColumnName,
   });
+
+  const getComponent: GetComponent = useCallback(
+    (path, defaultComponent = 'div') => {
+      let component: any = components;
+
+      for (let i = 0; i < path.length; i += 1) {
+        component = component?.[path[i]];
+        if (component === undefined) {
+          return defaultComponent;
+        }
+      }
+
+      return component || defaultComponent;
+    },
+    [components],
+  );
 
   const onTriggerExpand = useCallback(
     (record: any) => {
@@ -344,6 +362,8 @@ const Table: TableComponent = ((props) => {
     updateSortingColumns: setSortingColumns,
     innerColumnsState,
     columnsConfig,
+    components,
+    getComponent,
     selection,
     onScroll,
   };

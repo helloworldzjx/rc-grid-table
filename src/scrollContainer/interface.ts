@@ -1,4 +1,9 @@
-import { CSSProperties, HTMLAttributes, RefAttributes } from 'react';
+import {
+  CSSProperties,
+  ElementType,
+  HTMLAttributes,
+  RefAttributes,
+} from 'react';
 
 export interface ScrollBarContainerProps
   extends RefAttributes<HTMLDivElement>,
@@ -11,6 +16,7 @@ export interface ScrollBarContainerProps
   styles?: {
     content?: CSSProperties;
   };
+  contentComponent?: ElementType;
   showVertical?:
     | boolean
     | { offsetLeft?: number | string; offsetRight?: number | string };

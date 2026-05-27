@@ -72,6 +72,7 @@ function BodyCell({
     rowSelection,
     selection,
     onTriggerExpand,
+    getComponent,
   } = useTableContext();
 
   const {
@@ -90,6 +91,7 @@ function BodyCell({
     expandIconExpandedCls,
     expandIconSpacedCls,
   } = useStyles();
+  const CellComponent = getComponent(['body', 'cell'], 'div');
 
   const mergedStyle = useMemo(() => {
     const cellProps = column.onCell?.(rowData, rowIndex) || {};
@@ -318,6 +320,7 @@ function BodyCell({
 
   return (
     <CellContainer
+      component={CellComponent}
       className={classNames(
         cellCls,
         {

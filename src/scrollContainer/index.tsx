@@ -17,6 +17,7 @@ const ScrollContainer = forwardRef<
       classNames,
       styles,
       children,
+      contentComponent: ContentComponent = 'div',
       showVertical,
       updateDeps,
       onVerticalVisibleChange,
@@ -88,14 +89,14 @@ const ScrollContainer = forwardRef<
         ref={wrapperRef}
         {...rest}
       >
-        <div
+        <ContentComponent
           className={clsx(classNames?.inner, scrollbarInnerCls)}
           ref={contentRef}
           onScroll={handleContentScroll}
           style={styles?.content}
         >
           {children}
-        </div>
+        </ContentComponent>
 
         <div
           className={clsx(yScrollBarCls, hashId, {

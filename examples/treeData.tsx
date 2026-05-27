@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
 import { Space, Switch, Tag } from 'antd';
 import { Table } from 'rc-grid-table';
 import type { TableProps } from 'rc-grid-table/es/table/interface';
+import React, { useState } from 'react';
 import ConfigActions from './_utils/components/ConfigActions';
 import useConfigActions from './_utils/hooks/useConfigActions';
 
@@ -15,7 +15,12 @@ interface DataType {
 }
 
 const App: React.FC = () => {
-  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>(['1', '1-1', '1-1-1', '1-2']);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([
+    '1',
+    '1-1',
+    '1-1-1',
+    '1-2',
+  ]);
   const [checkStrictly, setCheckStrictly] = useState(false);
 
   // 列数组
@@ -39,7 +44,9 @@ const App: React.FC = () => {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
-      render: (status) => <Tag color={status === 'Active' ? 'green' : 'gold'}>{status}</Tag>,
+      render: (status) => (
+        <Tag color={status === 'Active' ? 'green' : 'gold'}>{status}</Tag>
+      ),
     },
   ];
 
@@ -109,7 +116,7 @@ const App: React.FC = () => {
     <>
       <ConfigActions value={state} onChange={onChange} />
       <Space direction="vertical" size={16} style={{ width: '100%' }}>
-        <Space>
+        <Space style={{ width: '100%' }}>
           <span>checkStrictly</span>
           <Switch checked={checkStrictly} onChange={setCheckStrictly} />
         </Space>

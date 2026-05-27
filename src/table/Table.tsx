@@ -84,11 +84,12 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
     scrollY,
     summary,
     sticky,
-    // scroll, virtual, itemHeight,
+    // scroll, virtual,
     loading = false,
     style,
     columnsWidthTotal,
     onScroll,
+    getComponent,
   } = useTableContext();
 
   const {
@@ -335,6 +336,11 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
     return { [prop]: y };
   }, [scrollY]);
 
+  const TableComponent = getComponent(['table'], 'div');
+  const BodyWrapperComponent = getComponent(['body', 'wrapper'], 'div');
+  const BodyRowComponent = getComponent(['body', 'row'], 'div');
+  const BodyCellComponent = getComponent(['body', 'cell'], 'div');
+
   const stickyHeaderStyle = useMemo<CSSProperties | undefined>(() => {
     if (!sticky) return undefined;
 
@@ -359,7 +365,7 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
       ref={ref}
     >
       <Spin prefixCls={`${prefixCls}-spin`} spinning={loading}>
-        <div
+        <TableComponent
           className={classNames(
             prefixCls,
             hashId,
@@ -399,6 +405,7 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
             prefixCls={prefixCls}
             className={bodyCls}
             classNames={{ inner: bodyInnerCls }}
+            contentComponent={BodyWrapperComponent}
             style={tableHeight}
             showVertical={
               !!scrollY
@@ -418,8 +425,8 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
             ]}
           >
             {!dataSource?.length && (
-              <div className={bodyRowCls}>
-                <div
+              <BodyRowComponent className={bodyRowCls}>
+                <BodyCellComponent
                   className={classNames(cellCls, noDataCellCls)}
                   style={{
                     gridColumn: `span ${flattenColumns.length || 1}`,
@@ -433,8 +440,8 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
                   >
                     <Empty prefixCls={`${prefixCls}-empty`} />
                   </div>
-                </div>
-              </div>
+                </BodyCellComponent>
+              </BodyRowComponent>
             )}
 
             <DndContext
@@ -532,7 +539,7 @@ const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
           />
 
           <Placeholder />
-        </div>
+        </TableComponent>
       </Spin>
     </div>
   );

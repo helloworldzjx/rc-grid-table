@@ -47,6 +47,7 @@ function BodyRow({
 }: BodyRowProps) {
   const {
     expandable: expandableConfig,
+    getComponent,
     onTriggerExpand,
     rowSortable,
   } = useTableContext();
@@ -54,6 +55,7 @@ function BodyRow({
     useStyles();
 
   const fixedInfoList = useFixedInfo(flattenColumns, fixedOffset);
+  const RowComponent = getComponent(['body', 'row'], 'div');
 
   const expandByClick =
     !!expandableConfig?.expandRowByClick && rowSupportExpand;
@@ -132,7 +134,7 @@ function BodyRow({
   };
 
   return (
-    <div
+    <RowComponent
       className={classNames(
         bodyRowCls,
         {
@@ -173,7 +175,7 @@ function BodyRow({
           />
         );
       })}
-    </div>
+    </RowComponent>
   );
 }
 
