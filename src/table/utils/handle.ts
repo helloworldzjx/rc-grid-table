@@ -5,6 +5,7 @@ import type {
   ColumnState,
   ColumnsType,
   ColumnType,
+  PercentColumnWidthType,
   SizeType,
 } from '../interface';
 import {
@@ -60,9 +61,17 @@ const parseColumnWidth = (width: number | string, containerWidth: number) => {
 };
 
 const getEffectiveResizeMinWidth = (
-  resizeMinWidth: number | undefined,
+  resizeMinWidth: PercentColumnWidthType | number | undefined,
   width: number,
-) => Math.min(resizeMinWidth ?? DEFAULT_RESIZE_MIN_WIDTH, width);
+  containerWidth: number,
+) => {
+  const minWidth =
+    resizeMinWidth === undefined
+      ? DEFAULT_RESIZE_MIN_WIDTH
+      : parseColumnWidth(resizeMinWidth, containerWidth);
+
+  return Math.min(minWidth, width);
+};
 
 export function parseHeaderRows<T>(
   columns: ColumnState<T>[] = [],
@@ -269,6 +278,7 @@ export function flattenColumnsWithTotalWidth<T>(
           resizeMinWidth: getEffectiveResizeMinWidth(
             column.resizeMinWidth,
             width,
+            containerWidth,
           ),
           parentKey,
           ancestorKeys,
@@ -323,7 +333,11 @@ export function flattenColumnsWithTotalWidth<T>(
         width,
         resizeMinWidth:
           typeof width === 'number'
-            ? getEffectiveResizeMinWidth(column.resizeMinWidth, width)
+            ? getEffectiveResizeMinWidth(
+                column.resizeMinWidth,
+                width,
+                containerWidth,
+              )
             : column.resizeMinWidth,
         key: currentKey,
         parentKey,
