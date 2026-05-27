@@ -224,6 +224,26 @@ export const useTableScroll = ({
     ],
   );
 
+  const scrollTo = useCallback((options?: ScrollToOptions) => {
+    tableBodyRef.current?.scrollTo(options);
+  }, []);
+
+  const scrollToTop = useCallback(() => {
+    tableBodyRef.current?.scrollToTop();
+  }, []);
+
+  const scrollToBottom = useCallback(() => {
+    tableBodyRef.current?.scrollToBottom();
+  }, []);
+
+  const scrollToLeft = useCallback(() => {
+    tableBodyRef.current?.scrollToLeft();
+  }, []);
+
+  const scrollToRight = useCallback(() => {
+    tableBodyRef.current?.scrollToRight();
+  }, []);
+
   useIsomorphicLayoutEffect(() => {
     updateHorizontalScrollbar();
     syncScrollLeft(bodyScrollElement);
@@ -281,8 +301,11 @@ export const useTableScroll = ({
     handleHorizontalDrag,
     syncScrollLeft,
     syncScrollState,
-    scrollToLeft: tableBodyRef.current?.scrollToLeft,
-    scrollToRight: tableBodyRef.current?.scrollToRight,
+    scrollTo,
+    scrollToTop,
+    scrollToBottom,
+    scrollToLeft,
+    scrollToRight,
   };
 };
 

@@ -12,6 +12,7 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
+import { composeRef } from '@rc-component/util/lib/ref';
 import warning from '@rc-component/util/lib/warning';
 import { Empty, Spin } from 'antd';
 import classNames from 'classnames';
@@ -20,7 +21,9 @@ import React, {
   forwardRef,
   Key,
   useCallback,
+  useImperativeHandle,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 
@@ -33,7 +36,7 @@ import Placeholder from './Placeholder';
 import Summary from './Summary/Summary';
 import { useTableContext } from './context';
 import useTableScroll from './hooks/useTableScroll';
-import type { TableProps } from './interface';
+import type { TableProps, TableRef } from './interface';
 import { useStyles } from './style';
 import {
   flattenDataSource,
@@ -60,489 +63,510 @@ const isDescendantOrSelfPath = (
   parentPath.length <= maybeDescendantPath.length &&
   parentPath.every((value, index) => value === maybeDescendantPath[index]);
 
-const Table = forwardRef<HTMLDivElement, TableProps>((_, ref) => {
-  const {
-    prefixCls,
-    initialized,
-    containerWidth = 0,
-    rowKey,
-    className,
-    rowClassName,
-    expandable,
-    rowSortable,
-    mergedExpandedRowKeys = [],
-    dataSource,
-    columns,
-    flattenColumns = [],
-    flattenColumnsWidths = [],
-    fixedOffset,
-    hasFixedColumns,
-    fixColumnsGapped,
-    size,
-    bordered,
-    stripe,
-    scrollY,
-    summary,
-    sticky,
-    // scroll, virtual,
-    loading = false,
-    style,
-    columnsWidthTotal,
-    onScroll,
-    getComponent,
-  } = useTableContext();
+interface GridTableProps {
+  tableRef?: React.Ref<TableRef>;
+}
 
-  const {
-    hashId,
-    wrapperCls,
-    cssVarCls,
-    wrapperInitializedCls,
-    componentSMCls,
-    componentMDCls,
-    borderedCls,
-    stripeCls,
-    hasSummaryCls,
-    noDataCls,
-    hasXScrollbarCls,
-    hasYScrollbarCls,
-    hasStickyCls,
-    hasFixColumnsCls,
-    hasFixStartColumnsCls,
-    hasFixEndColumnsCls,
-    fixColumnsGappedCls,
-    pingStartCls,
-    pingEndCls,
-    headStickyCls,
-    bodyCls,
-    bodyInnerCls,
-    bodyRowCls,
-    summaryStickyCls,
-    cellCls,
-    noDataCellCls,
-    noDataCellContentCls,
-  } = useStyles();
+const Table = forwardRef<HTMLDivElement, GridTableProps>(
+  ({ tableRef }, ref) => {
+    const {
+      prefixCls,
+      initialized,
+      containerWidth = 0,
+      rowKey,
+      className,
+      rowClassName,
+      expandable,
+      rowSortable,
+      mergedExpandedRowKeys = [],
+      dataSource,
+      columns,
+      flattenColumns = [],
+      flattenColumnsWidths = [],
+      fixedOffset,
+      hasFixedColumns,
+      fixColumnsGapped,
+      size,
+      bordered,
+      stripe,
+      scrollY,
+      summary,
+      sticky,
+      // scroll, virtual,
+      loading = false,
+      style,
+      columnsWidthTotal,
+      onScroll,
+      getComponent,
+    } = useTableContext();
 
-  const hasSummary = typeof summary === 'function';
-  const showSummary = hasSummary && !!dataSource?.length;
-  const gridTemplateColumns = flattenColumnsWidths?.length
-    ? `${flattenColumnsWidths?.join('px ')}px`
-    : '';
-  const hasExpandedRowRender =
-    typeof expandable?.expandedRowRender === 'function';
-  const childrenColumnName = expandable?.childrenColumnName ?? 'children';
-  const allowCrossLevelSort = !!rowSortable?.allowCrossLevelSort;
-  const [activeRowSortKey, setActiveRowSortKey] = useState<Key | null>(null);
+    const {
+      hashId,
+      wrapperCls,
+      cssVarCls,
+      wrapperInitializedCls,
+      componentSMCls,
+      componentMDCls,
+      borderedCls,
+      stripeCls,
+      hasSummaryCls,
+      noDataCls,
+      hasXScrollbarCls,
+      hasYScrollbarCls,
+      hasStickyCls,
+      hasFixColumnsCls,
+      hasFixStartColumnsCls,
+      hasFixEndColumnsCls,
+      fixColumnsGappedCls,
+      pingStartCls,
+      pingEndCls,
+      headStickyCls,
+      bodyCls,
+      bodyInnerCls,
+      bodyRowCls,
+      summaryStickyCls,
+      cellCls,
+      noDataCellCls,
+      noDataCellContentCls,
+    } = useStyles();
 
-  const isTreeMode = !hasExpandedRowRender;
-  const hasTreeData = useMemo(() => {
-    return isTreeMode && hasChildrenInData(dataSource, childrenColumnName);
-  }, [isTreeMode, dataSource, childrenColumnName]);
+    const wrapperRef = useRef<HTMLDivElement>(null);
 
-  const headRows = useMemo(() => {
-    return parseHeaderRows(columns);
-  }, [columns]);
+    const hasSummary = typeof summary === 'function';
+    const showSummary = hasSummary && !!dataSource?.length;
+    const gridTemplateColumns = flattenColumnsWidths?.length
+      ? `${flattenColumnsWidths?.join('px ')}px`
+      : '';
+    const hasExpandedRowRender =
+      typeof expandable?.expandedRowRender === 'function';
+    const childrenColumnName = expandable?.childrenColumnName ?? 'children';
+    const allowCrossLevelSort = !!rowSortable?.allowCrossLevelSort;
+    const [activeRowSortKey, setActiveRowSortKey] = useState<Key | null>(null);
 
-  const flattenData = useMemo(() => {
-    return isTreeMode
-      ? flattenDataSource(
-          dataSource || [],
-          rowKey as string,
-          childrenColumnName,
-          mergedExpandedRowKeys,
-        )
-      : (dataSource || []).map((record, rowIndex) => ({
-          record,
-          rowIndex,
-          indent: 0,
-          key: record?.[rowKey as string],
-        }));
-  }, [
-    isTreeMode,
-    dataSource,
-    rowKey,
-    childrenColumnName,
-    mergedExpandedRowKeys,
-  ]);
+    const isTreeMode = !hasExpandedRowRender;
+    const hasTreeData = useMemo(() => {
+      return isTreeMode && hasChildrenInData(dataSource, childrenColumnName);
+    }, [isTreeMode, dataSource, childrenColumnName]);
 
-  const rowSortSensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 4,
+    const headRows = useMemo(() => {
+      return parseHeaderRows(columns);
+    }, [columns]);
+
+    const flattenData = useMemo(() => {
+      return isTreeMode
+        ? flattenDataSource(
+            dataSource || [],
+            rowKey as string,
+            childrenColumnName,
+            mergedExpandedRowKeys,
+          )
+        : (dataSource || []).map((record, rowIndex) => ({
+            record,
+            rowIndex,
+            indent: 0,
+            key: record?.[rowKey as string],
+          }));
+    }, [
+      isTreeMode,
+      dataSource,
+      rowKey,
+      childrenColumnName,
+      mergedExpandedRowKeys,
+    ]);
+
+    const rowSortSensors = useSensors(
+      useSensor(PointerSensor, {
+        activationConstraint: {
+          distance: 4,
+        },
+      }),
+    );
+
+    const rowSortEntities = useMemo(
+      () =>
+        getRowSortEntities(dataSource, rowKey as string, childrenColumnName),
+      [childrenColumnName, dataSource, rowKey],
+    );
+
+    const rowSortItems = useMemo(
+      () =>
+        flattenData
+          .map(({ key }) => key)
+          .filter((key): key is UniqueIdentifier => isValidRowSortId(key)),
+      [flattenData],
+    );
+
+    const lastRowSortItem = useMemo(
+      () => rowSortItems[rowSortItems.length - 1],
+      [rowSortItems],
+    );
+
+    const getRowSortDropDisabled = useCallback(
+      (key: Key | undefined) => {
+        if (!rowSortable || key === undefined) {
+          return true;
+        }
+        if (activeRowSortKey === null || key === activeRowSortKey) {
+          return false;
+        }
+        const activeEntity = rowSortEntities.get(activeRowSortKey);
+        const overEntity = rowSortEntities.get(key);
+        if (!activeEntity || !overEntity) {
+          return true;
+        }
+
+        if (allowCrossLevelSort) {
+          return isDescendantOrSelfPath(
+            [...activeEntity.parentPath, activeEntity.index],
+            overEntity.parentPath,
+          );
+        }
+
+        return activeEntity.parentKey !== overEntity.parentKey;
       },
-    }),
-  );
+      [activeRowSortKey, allowCrossLevelSort, rowSortEntities, rowSortable],
+    );
 
-  const rowSortEntities = useMemo(
-    () => getRowSortEntities(dataSource, rowKey as string, childrenColumnName),
-    [childrenColumnName, dataSource, rowKey],
-  );
+    const getRowSortDragDisabled = useCallback(
+      (record: any, key: Key | undefined) => {
+        if (!rowSortable || key === undefined) {
+          return true;
+        }
+        const disabledByRecord = rowSortable?.rowDraggable?.(record) === false;
+        return disabledByRecord;
+      },
+      [rowSortable],
+    );
 
-  const rowSortItems = useMemo(
-    () =>
-      flattenData
-        .map(({ key }) => key)
-        .filter((key): key is UniqueIdentifier => isValidRowSortId(key)),
-    [flattenData],
-  );
-
-  const lastRowSortItem = useMemo(
-    () => rowSortItems[rowSortItems.length - 1],
-    [rowSortItems],
-  );
-
-  const getRowSortDropDisabled = useCallback(
-    (key: Key | undefined) => {
-      if (!rowSortable || key === undefined) {
-        return true;
-      }
-      if (activeRowSortKey === null || key === activeRowSortKey) {
-        return false;
-      }
-      const activeEntity = rowSortEntities.get(activeRowSortKey);
-      const overEntity = rowSortEntities.get(key);
-      if (!activeEntity || !overEntity) {
-        return true;
-      }
-
-      if (allowCrossLevelSort) {
-        return isDescendantOrSelfPath(
-          [...activeEntity.parentPath, activeEntity.index],
-          overEntity.parentPath,
-        );
-      }
-
-      return activeEntity.parentKey !== overEntity.parentKey;
-    },
-    [activeRowSortKey, allowCrossLevelSort, rowSortEntities, rowSortable],
-  );
-
-  const getRowSortDragDisabled = useCallback(
-    (record: any, key: Key | undefined) => {
-      if (!rowSortable || key === undefined) {
-        return true;
-      }
-      const disabledByRecord = rowSortable?.rowDraggable?.(record) === false;
-      return disabledByRecord;
-    },
-    [rowSortable],
-  );
-
-  const handleRowSortStart = useCallback((event: DragStartEvent) => {
-    if (event.active.data.current?.type !== 'rowSortable') {
-      return;
-    }
-
-    const activeEntity = event.active.data?.current;
-    if (!activeEntity) return;
-
-    document.documentElement.style.cursor = 'move';
-    setActiveRowSortKey(activeEntity.key);
-  }, []);
-
-  const cleanupRowSort = useCallback(() => {
-    document.documentElement.style.cursor = '';
-    setActiveRowSortKey(null);
-  }, []);
-
-  const handleRowSortEnd = useCallback(
-    (event: DragEndEvent) => {
+    const handleRowSortStart = useCallback((event: DragStartEvent) => {
       if (event.active.data.current?.type !== 'rowSortable') {
         return;
       }
 
       const activeEntity = event.active.data?.current;
-      const overEntity = event.over?.data?.current;
-      if (!activeEntity || !overEntity) return;
+      if (!activeEntity) return;
 
-      if (activeEntity.key !== overEntity.key) {
-        const placement =
-          activeEntity.index > overEntity.index ? 'before' : 'after';
-        const result = reorderDataSource({
-          dataSource: dataSource || [],
-          rowKey: rowKey as string,
-          childrenColumnName,
-          activeKey: activeEntity.key,
-          overKey: overEntity.key,
-          placement,
-          allowCrossLevelSort,
-        });
+      document.documentElement.style.cursor = 'move';
+      setActiveRowSortKey(activeEntity.key);
+    }, []);
 
-        if (result) {
-          rowSortable?.onChange?.(result.dataSource, result.info);
+    const cleanupRowSort = useCallback(() => {
+      document.documentElement.style.cursor = '';
+      setActiveRowSortKey(null);
+    }, []);
+
+    const handleRowSortEnd = useCallback(
+      (event: DragEndEvent) => {
+        if (event.active.data.current?.type !== 'rowSortable') {
+          return;
         }
+
+        const activeEntity = event.active.data?.current;
+        const overEntity = event.over?.data?.current;
+        if (!activeEntity || !overEntity) return;
+
+        if (activeEntity.key !== overEntity.key) {
+          const placement =
+            activeEntity.index > overEntity.index ? 'before' : 'after';
+          const result = reorderDataSource({
+            dataSource: dataSource || [],
+            rowKey: rowKey as string,
+            childrenColumnName,
+            activeKey: activeEntity.key,
+            overKey: overEntity.key,
+            placement,
+            allowCrossLevelSort,
+          });
+
+          if (result) {
+            rowSortable?.onChange?.(result.dataSource, result.info);
+          }
+        }
+
+        cleanupRowSort();
+      },
+      [
+        allowCrossLevelSort,
+        childrenColumnName,
+        cleanupRowSort,
+        dataSource,
+        rowKey,
+        rowSortable,
+      ],
+    );
+
+    const {
+      tableHeadRef,
+      tableSummaryRef,
+      setTableBodyRef,
+      horizontalTrackRef,
+      horizontalThumbRef,
+      horizontalThumbWidth,
+      bodyScrollElement,
+      hasHorizontal,
+      hasVertical,
+      isStart,
+      isEnd,
+      setHasVertical,
+      handleBodyScroll,
+      handleHorizontalDrag,
+      scrollTo,
+      scrollToTop,
+      scrollToLeft,
+    } = useTableScroll({
+      containerWidth,
+      columnsWidthTotal,
+      fixColumnsGapped,
+      showSummary,
+      onScroll,
+      deps: [
+        flattenData.length,
+        mergedExpandedRowKeys,
+        flattenColumnsWidths,
+        scrollY,
+      ],
+    });
+
+    useImperativeHandle(tableRef, () => ({
+      nativeElement: wrapperRef.current!,
+      scrollTo,
+      scrollToTop,
+      scrollToLeft,
+    }));
+
+    const rowSortAutoScroll = useMemo(
+      () => ({
+        canScroll: (element: Element) =>
+          element === bodyScrollElement && !lastRowSortItem,
+      }),
+      [bodyScrollElement],
+    );
+
+    const tableHeight = useMemo(() => {
+      let y: number | string = 'auto';
+      let prop = 'height';
+
+      if (typeof scrollY === 'number') {
+        y = scrollY || 'auto';
+        prop = 'height';
+      } else if (typeof scrollY === 'object') {
+        y = scrollY.y || 'auto';
+        prop = scrollY.fullHeight ? 'height' : 'max-height';
       }
 
-      cleanupRowSort();
-    },
-    [
-      allowCrossLevelSort,
-      childrenColumnName,
-      cleanupRowSort,
-      dataSource,
-      rowKey,
-      rowSortable,
-    ],
-  );
+      return { [prop]: y };
+    }, [scrollY]);
 
-  const {
-    tableHeadRef,
-    tableSummaryRef,
-    setTableBodyRef,
-    horizontalTrackRef,
-    horizontalThumbRef,
-    horizontalThumbWidth,
-    bodyScrollElement,
-    hasHorizontal,
-    hasVertical,
-    isStart,
-    isEnd,
-    setHasVertical,
-    handleBodyScroll,
-    handleHorizontalDrag,
-  } = useTableScroll({
-    containerWidth,
-    columnsWidthTotal,
-    fixColumnsGapped,
-    showSummary,
-    onScroll,
-    deps: [
-      flattenData.length,
-      mergedExpandedRowKeys,
-      flattenColumnsWidths,
-      scrollY,
-    ],
-  });
+    const TableComponent = getComponent(['table'], 'div');
+    const BodyWrapperComponent = getComponent(['body', 'wrapper'], 'div');
+    const BodyRowComponent = getComponent(['body', 'row'], 'div');
+    const BodyCellComponent = getComponent(['body', 'cell'], 'div');
 
-  const rowSortAutoScroll = useMemo(
-    () => ({
-      canScroll: (element: Element) =>
-        element === bodyScrollElement && !lastRowSortItem,
-    }),
-    [bodyScrollElement],
-  );
+    const stickyHeaderStyle = useMemo<CSSProperties | undefined>(() => {
+      if (!sticky) return undefined;
 
-  const tableHeight = useMemo(() => {
-    let y: number | string = 'auto';
-    let prop = 'height';
+      return {
+        top: getStickyOffset(sticky, 'offsetHeader'),
+      };
+    }, [sticky]);
 
-    if (typeof scrollY === 'number') {
-      y = scrollY || 'auto';
-      prop = 'height';
-    } else if (typeof scrollY === 'object') {
-      y = scrollY.y || 'auto';
-      prop = scrollY.fullHeight ? 'height' : 'max-height';
-    }
+    const stickySummaryStyle = useMemo<CSSProperties | undefined>(() => {
+      if (!sticky) return undefined;
 
-    return { [prop]: y };
-  }, [scrollY]);
+      return {
+        bottom: getStickyOffset(sticky, 'offsetSummary'),
+      };
+    }, [sticky]);
 
-  const TableComponent = getComponent(['table'], 'div');
-  const BodyWrapperComponent = getComponent(['body', 'wrapper'], 'div');
-  const BodyRowComponent = getComponent(['body', 'row'], 'div');
-  const BodyCellComponent = getComponent(['body', 'cell'], 'div');
-
-  const stickyHeaderStyle = useMemo<CSSProperties | undefined>(() => {
-    if (!sticky) return undefined;
-
-    return {
-      top: getStickyOffset(sticky, 'offsetHeader'),
-    };
-  }, [sticky]);
-
-  const stickySummaryStyle = useMemo<CSSProperties | undefined>(() => {
-    if (!sticky) return undefined;
-
-    return {
-      bottom: getStickyOffset(sticky, 'offsetSummary'),
-    };
-  }, [sticky]);
-
-  return (
-    <div
-      className={classNames(wrapperCls, hashId, cssVarCls, {
-        [wrapperInitializedCls]: initialized,
-      })}
-      ref={ref}
-    >
-      <Spin prefixCls={`${prefixCls}-spin`} spinning={loading}>
-        <TableComponent
-          className={classNames(
-            prefixCls,
-            hashId,
-            {
-              [componentSMCls]: size === 'small',
-              [componentMDCls]: size === 'middle',
-              [borderedCls]: bordered,
-              [stripeCls]: stripe,
-              [noDataCls]: !dataSource?.length,
-              [hasSummaryCls]: showSummary,
-              [hasXScrollbarCls]: hasHorizontal,
-              [hasYScrollbarCls]: hasVertical,
-              [hasFixColumnsCls]: hasFixedColumns,
-              [hasFixStartColumnsCls]: fixedOffset.hasFixStartColumns,
-              [hasFixEndColumnsCls]: fixedOffset.hasFixEndColumns,
-              [fixColumnsGappedCls]: fixColumnsGapped,
-              [pingStartCls]: !isStart,
-              [pingEndCls]: !isEnd,
-              [hasStickyCls]: sticky,
-            },
-            className,
-          )}
-          style={{
-            [`--${prefixCls}-cols-width`]: gridTemplateColumns,
-            [`--${prefixCls}-cols-width-total`]: `${columnsWidthTotal}px`,
-            ...style,
-          }}
-        >
-          <Head
-            ref={tableHeadRef}
-            rows={headRows}
-            className={classNames({ [headStickyCls]: sticky })}
-            style={stickyHeaderStyle}
-          />
-
-          <ScrollBarContainer
-            prefixCls={prefixCls}
-            className={bodyCls}
-            classNames={{ inner: bodyInnerCls }}
-            contentComponent={BodyWrapperComponent}
-            style={tableHeight}
-            showVertical={
-              !!scrollY
-                ? {
-                    offsetLeft: `max(0px, min(calc(var(--${prefixCls}-cols-width-total) - 12px), calc(100% - 12px)))`,
-                  }
-                : undefined
-            }
-            ref={setTableBodyRef}
-            onScroll={handleBodyScroll}
-            onVerticalVisibleChange={setHasVertical}
-            updateDeps={[
-              flattenData.length,
-              mergedExpandedRowKeys,
-              columnsWidthTotal,
-              scrollY,
-            ]}
+    return (
+      <div
+        className={classNames(wrapperCls, hashId, cssVarCls, {
+          [wrapperInitializedCls]: initialized,
+        })}
+        ref={composeRef(ref, wrapperRef)}
+      >
+        <Spin prefixCls={`${prefixCls}-spin`} spinning={loading}>
+          <TableComponent
+            className={classNames(
+              prefixCls,
+              hashId,
+              {
+                [componentSMCls]: size === 'small',
+                [componentMDCls]: size === 'middle',
+                [borderedCls]: bordered,
+                [stripeCls]: stripe,
+                [noDataCls]: !dataSource?.length,
+                [hasSummaryCls]: showSummary,
+                [hasXScrollbarCls]: hasHorizontal,
+                [hasYScrollbarCls]: hasVertical,
+                [hasFixColumnsCls]: hasFixedColumns,
+                [hasFixStartColumnsCls]: fixedOffset.hasFixStartColumns,
+                [hasFixEndColumnsCls]: fixedOffset.hasFixEndColumns,
+                [fixColumnsGappedCls]: fixColumnsGapped,
+                [pingStartCls]: !isStart,
+                [pingEndCls]: !isEnd,
+                [hasStickyCls]: sticky,
+              },
+              className,
+            )}
+            style={{
+              [`--${prefixCls}-cols-width`]: gridTemplateColumns,
+              [`--${prefixCls}-cols-width-total`]: `${columnsWidthTotal}px`,
+              ...style,
+            }}
           >
-            {!dataSource?.length && (
-              <BodyRowComponent className={bodyRowCls}>
-                <BodyCellComponent
-                  className={classNames(cellCls, noDataCellCls)}
-                  style={{
-                    gridColumn: `span ${flattenColumns.length || 1}`,
-                  }}
-                >
-                  <div
-                    className={noDataCellContentCls}
+            <Head
+              ref={tableHeadRef}
+              rows={headRows}
+              className={classNames({ [headStickyCls]: sticky })}
+              style={stickyHeaderStyle}
+            />
+
+            <ScrollBarContainer
+              prefixCls={prefixCls}
+              className={bodyCls}
+              classNames={{ inner: bodyInnerCls }}
+              contentComponent={BodyWrapperComponent}
+              style={tableHeight}
+              showVertical={
+                !!scrollY
+                  ? {
+                      offsetLeft: `max(0px, min(calc(var(--${prefixCls}-cols-width-total) - 12px), calc(100% - 12px)))`,
+                    }
+                  : undefined
+              }
+              ref={setTableBodyRef}
+              onScroll={handleBodyScroll}
+              onVerticalVisibleChange={setHasVertical}
+              updateDeps={[
+                flattenData.length,
+                mergedExpandedRowKeys,
+                columnsWidthTotal,
+                scrollY,
+              ]}
+            >
+              {!dataSource?.length && (
+                <BodyRowComponent className={bodyRowCls}>
+                  <BodyCellComponent
+                    className={classNames(cellCls, noDataCellCls)}
                     style={{
-                      width: `min(${columnsWidthTotal}px, ${containerWidth}px)`,
+                      gridColumn: `span ${flattenColumns.length || 1}`,
                     }}
                   >
-                    <Empty prefixCls={`${prefixCls}-empty`} />
-                  </div>
-                </BodyCellComponent>
-              </BodyRowComponent>
-            )}
+                    <div
+                      className={noDataCellContentCls}
+                      style={{
+                        width: `min(${columnsWidthTotal}px, ${containerWidth}px)`,
+                      }}
+                    >
+                      <Empty prefixCls={`${prefixCls}-empty`} />
+                    </div>
+                  </BodyCellComponent>
+                </BodyRowComponent>
+              )}
 
-            <DndContext
-              sensors={rowSortSensors}
-              collisionDetection={closestCenter}
-              autoScroll={rowSortAutoScroll}
-              onDragStart={handleRowSortStart}
-              onDragEnd={handleRowSortEnd}
-              onDragCancel={cleanupRowSort}
-            >
-              <SortableContext
-                items={rowSortItems}
-                strategy={verticalListSortingStrategy}
+              <DndContext
+                sensors={rowSortSensors}
+                collisionDetection={closestCenter}
+                autoScroll={rowSortAutoScroll}
+                onDragStart={handleRowSortStart}
+                onDragEnd={handleRowSortEnd}
+                onDragCancel={cleanupRowSort}
               >
-                {flattenData?.map(
-                  ({ record: rowData, rowIndex, indent, key }) => {
-                    warning(
-                      key !== undefined,
-                      'Each record in table should have a unique `key` prop, or set `rowKey` to an unique primary key.',
-                    );
-                    const expanded = mergedExpandedRowKeys.includes(key);
-                    const children = getRecordChildren(
-                      rowData,
-                      childrenColumnName,
-                    );
-                    const treeExpandable = isTreeMode && children.length > 0;
-                    const rowExpandable = hasExpandedRowRender
-                      ? expandable?.rowExpandable?.(rowData) !== false
-                      : treeExpandable;
-                    const expandedRowClassName =
-                      typeof expandable?.expandedRowClassName === 'function'
-                        ? expandable.expandedRowClassName(
-                            rowData,
-                            rowIndex,
-                            indent,
-                          )
-                        : expandable?.expandedRowClassName;
-                    const dragDisabled = getRowSortDragDisabled(rowData, key);
-                    const dropDisabled = getRowSortDropDisabled(key);
-
-                    return (
-                      <React.Fragment key={key}>
-                        <BodyRow
-                          flattenColumns={flattenColumns}
-                          fixedOffset={fixedOffset}
-                          rowData={rowData}
-                          rowIndex={rowIndex}
-                          rowKeyValue={key}
-                          indent={indent}
-                          expanded={expanded}
-                          expandable={hasTreeData || treeExpandable}
-                          rowSupportExpand={rowExpandable}
-                          className={rowClassName?.(rowData, rowIndex)}
-                          rowSortDragDisabled={dragDisabled}
-                          rowSortDropDisabled={dropDisabled}
-                          rowSortDragging={activeRowSortKey === key}
-                        />
-                        {hasExpandedRowRender && expanded && rowExpandable && (
-                          <ExpandedRow
-                            className={expandedRowClassName}
-                            indent={1}
-                          >
-                            {expandable?.expandedRowRender?.(
+                <SortableContext
+                  items={rowSortItems}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {flattenData?.map(
+                    ({ record: rowData, rowIndex, indent, key }) => {
+                      warning(
+                        key !== undefined,
+                        'Each record in table should have a unique `key` prop, or set `rowKey` to an unique primary key.',
+                      );
+                      const expanded = mergedExpandedRowKeys.includes(key);
+                      const children = getRecordChildren(
+                        rowData,
+                        childrenColumnName,
+                      );
+                      const treeExpandable = isTreeMode && children.length > 0;
+                      const rowExpandable = hasExpandedRowRender
+                        ? expandable?.rowExpandable?.(rowData) !== false
+                        : treeExpandable;
+                      const expandedRowClassName =
+                        typeof expandable?.expandedRowClassName === 'function'
+                          ? expandable.expandedRowClassName(
                               rowData,
                               rowIndex,
                               indent,
-                              expanded,
+                            )
+                          : expandable?.expandedRowClassName;
+                      const dragDisabled = getRowSortDragDisabled(rowData, key);
+                      const dropDisabled = getRowSortDropDisabled(key);
+
+                      return (
+                        <React.Fragment key={key}>
+                          <BodyRow
+                            flattenColumns={flattenColumns}
+                            fixedOffset={fixedOffset}
+                            rowData={rowData}
+                            rowIndex={rowIndex}
+                            rowKeyValue={key}
+                            indent={indent}
+                            expanded={expanded}
+                            expandable={hasTreeData || treeExpandable}
+                            rowSupportExpand={rowExpandable}
+                            className={rowClassName?.(rowData, rowIndex)}
+                            rowSortDragDisabled={dragDisabled}
+                            rowSortDropDisabled={dropDisabled}
+                            rowSortDragging={activeRowSortKey === key}
+                          />
+                          {hasExpandedRowRender &&
+                            expanded &&
+                            rowExpandable && (
+                              <ExpandedRow
+                                className={expandedRowClassName}
+                                indent={1}
+                              >
+                                {expandable?.expandedRowRender?.(
+                                  rowData,
+                                  rowIndex,
+                                  indent,
+                                  expanded,
+                                )}
+                              </ExpandedRow>
                             )}
-                          </ExpandedRow>
-                        )}
-                      </React.Fragment>
-                    );
-                  },
-                )}
-              </SortableContext>
-            </DndContext>
-          </ScrollBarContainer>
+                        </React.Fragment>
+                      );
+                    },
+                  )}
+                </SortableContext>
+              </DndContext>
+            </ScrollBarContainer>
 
-          {showSummary && (
-            <Summary
-              ref={tableSummaryRef}
-              className={classNames({ [summaryStickyCls]: sticky })}
-              style={stickySummaryStyle}
+            {showSummary && (
+              <Summary
+                ref={tableSummaryRef}
+                className={classNames({ [summaryStickyCls]: sticky })}
+                style={stickySummaryStyle}
+              />
+            )}
+
+            <HorizontalScrollbar
+              prefixCls={prefixCls}
+              visible={hasHorizontal}
+              sticky={sticky}
+              trackRef={horizontalTrackRef}
+              thumbRef={horizontalThumbRef}
+              thumbWidth={horizontalThumbWidth}
+              onMouseDown={handleHorizontalDrag}
             />
-          )}
 
-          <HorizontalScrollbar
-            prefixCls={prefixCls}
-            visible={hasHorizontal}
-            sticky={sticky}
-            trackRef={horizontalTrackRef}
-            thumbRef={horizontalThumbRef}
-            thumbWidth={horizontalThumbWidth}
-            onMouseDown={handleHorizontalDrag}
-          />
-
-          <Placeholder />
-        </TableComponent>
-      </Spin>
-    </div>
-  );
-});
+            <Placeholder />
+          </TableComponent>
+        </Spin>
+      </div>
+    );
+  },
+);
 
 export default Table;

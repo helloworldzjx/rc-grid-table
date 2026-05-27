@@ -9,6 +9,15 @@ import type {
   SetStateAction,
 } from 'react';
 
+import type { ScrollBarContainerRef } from '../scrollContainer/interface';
+
+export interface TableRef {
+  nativeElement: HTMLDivElement;
+  scrollTo: ScrollBarContainerRef['scrollTo'];
+  scrollToTop: ScrollBarContainerRef['scrollToTop'];
+  scrollToLeft: ScrollBarContainerRef['scrollToLeft'];
+}
+
 export interface CellType<T = any> {
   key?: Key;
   className?: string;
@@ -437,7 +446,7 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
   //   autoHide?: boolean | { delay?: number }
   //   immediatelyShowOnAutoHide?: boolean
   // }
-  rowClassName?: (dataSource?: T[], rowIndex?: number) => string;
+  rowClassName?: (record?: T, rowIndex?: number) => string;
 }
 
 export interface TableContextProps<T = any> extends TableProps<T> {
@@ -452,8 +461,8 @@ export interface TableContextProps<T = any> extends TableProps<T> {
   containerWidth?: number;
   containerHeight?: number;
   initialized?: boolean;
-  columns?: ColumnState[];
-  flattenColumns?: ColumnState[];
+  columns?: ColumnState<T>[];
+  flattenColumns?: ColumnState<T>[];
   flattenColumnsWidths?: number[];
   columnsWidthTotal: number;
   updateFlattenColumnsWidths: Dispatch<SetStateAction<number[]>>;

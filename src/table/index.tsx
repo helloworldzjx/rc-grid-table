@@ -1,9 +1,11 @@
 import ResizeObserver, { OnResize } from '@rc-component/resize-observer';
 import { useDebounceFn, useIsomorphicLayoutEffect } from 'ahooks';
 import React, {
-  FC,
+  ForwardedRef,
   Key,
+  ReactElement,
   SetStateAction,
+  forwardRef,
   useCallback,
   useMemo,
   useRef,
@@ -21,8 +23,9 @@ import {
   SelectionColumnType,
   TableContextProps,
   type TableProps,
+  type TableRef,
 } from './interface';
-import GridTable from './Table';
+import InternalTable from './Table';
 import { columnsWidthDistribute } from './utils/calc';
 import {
   EXPAND_COLUMN,
@@ -37,7 +40,11 @@ import {
 import { columnsSort, filterColumns } from './utils/handle';
 import { mergeColumnsState } from './utils/mergedColumnsState';
 
-type TableComponent = FC<TableProps> & {
+export type { TableProps, TableRef } from './interface';
+
+type TableComponent = (<T = any>(
+  props: TableProps<T> & React.RefAttributes<TableRef>,
+) => ReactElement) & {
   EXPAND_COLUMN: ExpandColumnType;
   SELECTION_COLUMN: SelectionColumnType;
   ROW_SORT_COLUMN: RowSortColumnType;
@@ -63,7 +70,7 @@ const isColumnsOrderEqual = (
   });
 };
 
-const Table: TableComponent = ((props) => {
+function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
   const {
     ready = true,
     rowKey = 'key',
@@ -91,18 +98,20 @@ const Table: TableComponent = ((props) => {
   const [containerHeight, setContainerHeight] = useState(0);
   const [initialized, setInitialized] = useState(false);
   /** 列 */
-  const [cols, setCols] = useState<ColumnState[]>([]);
+  const [cols, setCols] = useState<ColumnState<T>[]>([]);
   /** 列宽数组 */
   const [flattenColumnsWidths, setFlattenColumnsWidths] = useState<number[]>(
     [],
   );
   /** 展平后的列 */
-  const [flattenCols, setFlattenCols] = useState<ColumnState[]>([]);
+  const [flattenCols, setFlattenCols] = useState<ColumnState<T>[]>([]);
   /** 列隐藏，列拖拽排序，列宽拖拽 */
-  const [innerColumnsState, setInnerColumnsState] = useState<ColumnState[]>([]);
-  const [middleState, setMiddleState] = useState<ColumnState[]>([]);
+  const [innerColumnsState, setInnerColumnsState] = useState<ColumnState<T>[]>(
+    [],
+  );
+  const [middleState, setMiddleState] = useState<ColumnState<T>[]>([]);
   const [sortableDraftState, setSortableDraftState] = useState<
-    ColumnState[] | null
+    ColumnState<T>[] | null
   >(null);
   const [sortingColumns, setSortingColumns] = useState(false);
   const [innerExpandedRowKeys, setInnerExpandedRowKeys] = useState<Key[]>(
@@ -322,7 +331,7 @@ const Table: TableComponent = ((props) => {
 
   /** 未使用列配置的处理 end */
 
-  const baseProps: TableContextProps = {
+  const baseProps: TableContextProps<T> = {
     prefixCls,
     initialized,
     lockContainerWidth: lockContainerWidth.current,
@@ -371,11 +380,13 @@ const Table: TableComponent = ((props) => {
   return (
     <TableContext.Provider value={{ ...baseProps, ...rest }}>
       <ResizeObserver onResize={onResize}>
-        <GridTable />
+        <InternalTable tableRef={ref} />
       </ResizeObserver>
     </TableContext.Provider>
   );
-}) as TableComponent;
+}
+
+const Table = forwardRef(GridTable) as unknown as TableComponent;
 
 Table.EXPAND_COLUMN = EXPAND_COLUMN;
 Table.SELECTION_COLUMN = SELECTION_COLUMN;
