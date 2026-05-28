@@ -27,6 +27,12 @@ import React, {
   useState,
 } from 'react';
 
+import {
+  isNum,
+  isObject,
+  isValidKey,
+  warningInvalidRecordKey,
+} from '../_utils/validate';
 import ScrollBarContainer from '../scrollContainer';
 import BodyRow from './Body/BodyRow';
 import ExpandedRow from './Body/ExpandedRow';
@@ -41,6 +47,7 @@ import { useStyles } from './style';
 import {
   flattenDataSource,
   getRecordChildren,
+  getRecordKey,
   hasChildrenInData,
 } from './utils/expand';
 import { parseHeaderRows } from './utils/handle';
@@ -50,11 +57,14 @@ const getStickyOffset = (
   sticky: TableProps['sticky'],
   key: 'offsetHeader' | 'offsetSummary' | 'offsetStickyScroller',
 ) => {
-  return typeof sticky === 'object' ? sticky[key] || 0 : 0;
+  if (!isObject(sticky)) return 0;
+
+  const offset = sticky[key];
+  return isNum(offset) ? offset : 0;
 };
 
 const isValidRowSortId = (key: Key | undefined): key is UniqueIdentifier =>
-  typeof key === 'string' || typeof key === 'number';
+  isValidKey(key);
 
 const isDescendantOrSelfPath = (
   parentPath: number[],
@@ -164,7 +174,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
             record,
             rowIndex,
             indent: 0,
-            key: record?.[rowKey as string],
+            key: getRecordKey(record, rowKey as string),
           }));
     }, [
       isTreeMode,
@@ -203,7 +213,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
 
     const getRowSortDropDisabled = useCallback(
       (key: Key | undefined) => {
-        if (!rowSortable || key === undefined) {
+        if (!rowSortable || !isValidKey(key)) {
           return true;
         }
         if (activeRowSortKey === null || key === activeRowSortKey) {
@@ -229,7 +239,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
 
     const getRowSortDragDisabled = useCallback(
       (record: any, key: Key | undefined) => {
-        if (!rowSortable || key === undefined) {
+        if (!rowSortable || !isValidKey(key)) {
           return true;
         }
         const disabledByRecord = rowSortable?.rowDraggable?.(record) === false;
@@ -337,24 +347,24 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
     const rowSortAutoScroll = useMemo(
       () => ({
         canScroll: (element: Element) =>
-          element === bodyScrollElement && !lastRowSortItem,
+          element === bodyScrollElement && lastRowSortItem === undefined,
       }),
-      [bodyScrollElement],
+      [bodyScrollElement, lastRowSortItem],
     );
 
-    const tableHeight = useMemo(() => {
-      let y: number | string = 'auto';
+    const tableHeightStyle = useMemo(() => {
       let prop = 'height';
+      let value: number | string = 'auto';
 
       if (typeof scrollY === 'number') {
-        y = scrollY || 'auto';
+        value = isNum(scrollY) ? scrollY : 'auto';
         prop = 'height';
-      } else if (typeof scrollY === 'object') {
-        y = scrollY.y || 'auto';
+      } else if (isObject(scrollY)) {
+        value = isNum(scrollY.y) ? scrollY.y : 'auto';
         prop = scrollY.fullHeight ? 'height' : 'max-height';
       }
 
-      return { [prop]: y };
+      return { [prop]: value };
     }, [scrollY]);
 
     const TableComponent = getComponent(['table'], 'div');
@@ -427,7 +437,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
               className={bodyCls}
               classNames={{ inner: bodyInnerCls }}
               contentComponent={BodyWrapperComponent}
-              style={tableHeight}
+              style={tableHeightStyle}
               showVertical={
                 !!scrollY
                   ? {
@@ -479,11 +489,22 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
                 >
                   {flattenData?.map(
                     ({ record: rowData, rowIndex, indent, key }) => {
+                      const hasValidKey = isValidKey(key);
                       warning(
-                        key !== undefined,
-                        'Each record in table should have a unique `key` prop, or set `rowKey` to an unique primary key.',
+                        hasValidKey,
+                        'Each record in table should have a unique `key` prop, or set `rowKey` to a unique string or finite number.',
                       );
-                      const expanded = mergedExpandedRowKeys.includes(key);
+                      if (!hasValidKey) {
+                        warningInvalidRecordKey(
+                          rowData,
+                          rowKey as string,
+                          'row rendering',
+                        );
+                      }
+                      const rowReactKey = hasValidKey ? key : rowIndex;
+                      const expanded = hasValidKey
+                        ? mergedExpandedRowKeys.includes(key)
+                        : false;
                       const children = getRecordChildren(
                         rowData,
                         childrenColumnName,
@@ -504,7 +525,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
                       const dropDisabled = getRowSortDropDisabled(key);
 
                       return (
-                        <React.Fragment key={key}>
+                        <React.Fragment key={rowReactKey}>
                           <BodyRow
                             flattenColumns={flattenColumns}
                             fixedOffset={fixedOffset}

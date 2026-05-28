@@ -1,5 +1,6 @@
 import type { Key } from 'react';
 
+import { isValidKey, warningInvalidRecordKey } from '../../_utils/validate';
 import type {
   ColumnType,
   ColumnsType,
@@ -25,11 +26,15 @@ export interface FlattenRecord<T = any> {
   record: T;
   rowIndex: number;
   indent: number;
-  key: Key;
+  key?: Key;
 }
 
-export const getRecordKey = <T = any>(record: T, rowKey: string): Key => {
-  return record?.[rowKey as keyof T] as Key;
+export const getRecordKey = <T = any>(
+  record: T,
+  rowKey: string,
+): Key | undefined => {
+  const key = record?.[rowKey as keyof T];
+  return isValidKey(key) ? key : undefined;
 };
 
 export const getRecordChildren = <T = any>(
@@ -73,7 +78,11 @@ export const flattenDataSource = <T = any>(
         key,
       });
 
-      if (children.length && expandedRowKeys.includes(key)) {
+      if (!isValidKey(key)) {
+        warningInvalidRecordKey(record, rowKey, 'row rendering');
+      }
+
+      if (isValidKey(key) && children.length && expandedRowKeys.includes(key)) {
         traverse(children, indent + 1);
       }
     });
@@ -100,15 +109,22 @@ export const getDefaultExpandedRowKeys = <T = any>(
     records.forEach((record) => {
       const key = getRecordKey(record, rowKey);
       const children = getRecordChildren(record, childrenColumnName);
+      const validKey = isValidKey(key);
 
       if (hasExpandedRowRender) {
-        if (rowExpandable?.(record) !== false) {
+        if (!validKey && rowExpandable?.(record) !== false) {
+          warningInvalidRecordKey(record, rowKey, 'default expanded rows');
+        }
+        if (validKey && rowExpandable?.(record) !== false) {
           keys.push(key);
         }
         return;
       }
 
-      if (children.length) {
+      if (!validKey && children.length) {
+        warningInvalidRecordKey(record, rowKey, 'default expanded rows');
+      }
+      if (validKey && children.length) {
         keys.push(key);
         traverse(children);
       }

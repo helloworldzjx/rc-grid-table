@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 
+import { isNum } from '../../_utils/validate';
 import type { ColumnType, StickyOffsets } from '../interface';
 
 /**
@@ -12,7 +13,15 @@ function useStickyOffsets<RecordType>(
   const stickyOffsets: StickyOffsets = useMemo(() => {
     const columnCount = flattenColumns.length;
 
-    const getOffsets = (startIndex: number, endIndex: number, offset: number): [offsets: number[], hasFixedColumns: boolean, fixColumnsGapped: boolean] => {
+    const getOffsets = (
+      startIndex: number,
+      endIndex: number,
+      offset: number,
+    ): [
+      offsets: number[],
+      hasFixedColumns: boolean,
+      fixColumnsGapped: boolean,
+    ] => {
       const offsets: number[] = [];
       let total = 0;
       let hasFixedColumns = false;
@@ -22,28 +31,34 @@ function useStickyOffsets<RecordType>(
         offsets.push(total);
 
         if (flattenColumns[i].fixed) {
-          total += colWidths[i] || 0;
+          const width = colWidths[i];
+          total += isNum(width) ? width : 0;
 
-          const fixed = offset === 1 ? 'start' : 'end'
-          if(flattenColumns[i].fixed === fixed) {
-            hasFixedColumns = true
+          const fixed = offset === 1 ? 'start' : 'end';
+          if (flattenColumns[i].fixed === fixed) {
+            hasFixedColumns = true;
           }
-          const prevIndex = i - offset
-          if(flattenColumns[prevIndex] && flattenColumns[i].fixed === fixed && !flattenColumns[prevIndex].fixed) {
-            fixColumnsGapped = true
+          const prevIndex = i - offset;
+          if (
+            flattenColumns[prevIndex] &&
+            flattenColumns[i].fixed === fixed &&
+            !flattenColumns[prevIndex].fixed
+          ) {
+            fixColumnsGapped = true;
           }
         }
       }
 
-      return [
-        offsets,
-        hasFixedColumns,
-        fixColumnsGapped,
-      ];
+      return [offsets, hasFixedColumns, fixColumnsGapped];
     };
 
-    const [startOffsets, hasStartFixedColumns, startFixColumnsGapped] = getOffsets(0, columnCount, 1);
-    const [endOffsets, hasEndFixedColumns, endFixColumnsGapped] = getOffsets(columnCount - 1, -1, -1);
+    const [startOffsets, hasStartFixedColumns, startFixColumnsGapped] =
+      getOffsets(0, columnCount, 1);
+    const [endOffsets, hasEndFixedColumns, endFixColumnsGapped] = getOffsets(
+      columnCount - 1,
+      -1,
+      -1,
+    );
 
     return {
       start: startOffsets,
@@ -52,7 +67,7 @@ function useStickyOffsets<RecordType>(
       hasFixColumns: hasStartFixedColumns || hasEndFixedColumns,
       hasFixStartColumns: hasStartFixedColumns,
       hasFixEndColumns: hasEndFixedColumns,
-      fixColumnsGapped: startFixColumnsGapped || endFixColumnsGapped
+      fixColumnsGapped: startFixColumnsGapped || endFixColumnsGapped,
     };
   }, [colWidths, flattenColumns]);
 

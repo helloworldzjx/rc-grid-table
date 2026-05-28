@@ -1,6 +1,7 @@
 import classNames from 'classnames';
 import React, { MouseEventHandler, RefCallback } from 'react';
 
+import { isNum, isObject } from '../_utils/validate';
 import { useStyles as useScrollStyles } from '../scrollContainer/style';
 import type { TableSticky } from './interface';
 
@@ -15,7 +16,10 @@ interface HorizontalScrollbarProps {
 }
 
 const getStickyOffset = (sticky?: boolean | TableSticky) => {
-  return typeof sticky === 'object' ? sticky.offsetStickyScroller || 0 : 0;
+  if (!isObject(sticky)) return 0;
+
+  const offset = sticky.offsetStickyScroller;
+  return isNum(offset) ? offset : 0;
 };
 
 const HorizontalScrollbar: React.FC<HorizontalScrollbarProps> = ({

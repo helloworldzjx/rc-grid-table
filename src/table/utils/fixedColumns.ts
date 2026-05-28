@@ -1,3 +1,4 @@
+import { isNum } from '../../_utils/validate';
 import type { FixedType, StickyOffsets } from '../interface';
 
 export interface FixedInfo {
@@ -59,12 +60,14 @@ export function getCellFixedInfo(
   let zIndexReverse = 0;
 
   if (fixStart !== null) {
-    fixedStartShadow = !columns[colEnd + 1] || !isFixedStart(columns[colEnd + 1]);
+    fixedStartShadow =
+      !columns[colEnd + 1] || !isFixedStart(columns[colEnd + 1]);
     zIndex = columns.length * 2 - colStart; // Fix start always overlay fix end
     zIndexReverse = columns.length + colStart;
   }
   if (fixEnd !== null) {
-    fixedEndShadow = !columns[colStart - 1] || !isFixedEnd(columns[colStart - 1]);
+    fixedEndShadow =
+      !columns[colStart - 1] || !isFixedEnd(columns[colStart - 1]);
     zIndex = colEnd;
     zIndexReverse = columns.length - colEnd; // Fix end always overlay fix start
   }
@@ -76,14 +79,16 @@ export function getCellFixedInfo(
   if (fixedStartShadow) {
     for (let i = 0; i < colStart; i += 1) {
       if (!isFixedStart(columns[i])) {
-        offsetFixedStartShadow += stickyOffsets.widths[i] || 0;
+        const width = stickyOffsets.widths[i];
+        offsetFixedStartShadow += isNum(width) ? width : 0;
       }
     }
   }
   if (fixedEndShadow) {
     for (let i = columns.length - 1; i > colEnd; i -= 1) {
       if (!isFixedEnd(columns[i])) {
-        offsetFixedEndShadow += stickyOffsets.widths[i] || 0;
+        const width = stickyOffsets.widths[i];
+        offsetFixedEndShadow += isNum(width) ? width : 0;
       }
     }
   }

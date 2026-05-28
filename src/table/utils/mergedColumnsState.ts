@@ -1,9 +1,8 @@
 import { Key } from 'react';
 
+import { isNum } from '../../_utils/validate';
 import { ColumnState } from '../interface';
-
-const getColumnKey = <T = any>(column: ColumnState<T>, index: number) =>
-  column.key || column.dataIndex || index;
+import { getColumnKey } from './handle';
 
 function completeColumnState<T = any>(
   column: ColumnState<T>,
@@ -57,7 +56,8 @@ function normalizeColumnsOrder<T = any>(
     .filter(({ column }) => storedSiblingKeySet.has(column.key as Key))
     .sort((a, b) => {
       const orderDiff =
-        (a.column.order ?? a.index) - (b.column.order ?? b.index);
+        (isNum(a.column.order) ? a.column.order : a.index) -
+        (isNum(b.column.order) ? b.column.order : b.index);
       return orderDiff || a.index - b.index;
     })
     .map(({ column }) => column);

@@ -4,6 +4,7 @@ import { CSS } from '@dnd-kit/utilities';
 import classNames from 'classnames';
 import React, { CSSProperties, memo, useMemo } from 'react';
 
+import { isValidKey } from '../../_utils/validate';
 import { useTableContext } from '../context';
 import useFixedInfo from '../hooks/useFixedInfo';
 import { ColumnState, StickyOffsets } from '../interface';
@@ -15,7 +16,7 @@ import BodyCell from './BodyCell';
 interface BodyRowProps<T = any> {
   rowData: T;
   rowIndex: number;
-  rowKeyValue: React.Key;
+  rowKeyValue?: React.Key;
   flattenColumns: ColumnState<T>[];
   fixedOffset: StickyOffsets;
   className?: string;
@@ -62,11 +63,9 @@ function BodyRow({
   const firstDataColumnIndex = flattenColumns.findIndex(
     (column) => !isInternalColumn(column),
   );
-  const sortableDisabled = !rowSortable || rowKeyValue === undefined;
+  const sortableDisabled = !rowSortable || !isValidKey(rowKeyValue);
   const sortableId = (
-    typeof rowKeyValue === 'string' || typeof rowKeyValue === 'number'
-      ? rowKeyValue
-      : `row-sort-${rowIndex}`
+    isValidKey(rowKeyValue) ? rowKeyValue : `row-sort-${rowIndex}`
   ) as UniqueIdentifier;
 
   const {

@@ -12,6 +12,7 @@ import React, {
   useState,
 } from 'react';
 
+import { isNum, isValidKey, warningInvalidRecordKey } from '../_utils/validate';
 import TableContext from './context';
 import useSelection from './hooks/useSelection';
 import useStickyOffsets from './hooks/useStickyOffsets';
@@ -56,8 +57,16 @@ const isColumnsOrderEqual = (
 ): boolean => {
   if (a.length !== b.length) return false;
 
-  const orderedA = [...a].sort((prev, next) => prev.order - next.order);
-  const orderedB = [...b].sort((prev, next) => prev.order - next.order);
+  const orderedA = [...a].sort(
+    (prev, next) =>
+      (isNum(prev.order) ? prev.order : 0) -
+      (isNum(next.order) ? next.order : 0),
+  );
+  const orderedB = [...b].sort(
+    (prev, next) =>
+      (isNum(prev.order) ? prev.order : 0) -
+      (isNum(next.order) ? next.order : 0),
+  );
 
   return orderedA.every((column, index) => {
     const target = orderedB[index];
@@ -134,6 +143,13 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     );
   }, [resizableColumns, sortableColumns, fixableColumns, visibleColumns]);
 
+  const columnsWidthTotal = useMemo(() => {
+    return flattenColumnsWidths?.reduce(
+      (sum, num) => sum + (isNum(num) ? num : 0),
+      0,
+    );
+  }, [flattenColumnsWidths]);
+
   const mergedColumns = useMemo(() => {
     return getColumnsWithInternalColumns(
       columns,
@@ -178,6 +194,10 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
   const onTriggerExpand = useCallback(
     (record: any) => {
       const key = getRecordKey(record, rowKey);
+      if (!isValidKey(key)) {
+        warningInvalidRecordKey(record, rowKey, 'row expansion');
+        return;
+      }
       const expanded = mergedExpandedRowKeys.includes(key);
       const nextExpandedRowKeys = expanded
         ? mergedExpandedRowKeys.filter((item) => item !== key)
@@ -347,7 +367,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     onTriggerExpand,
     columns: cols,
     flattenColumnsWidths,
-    columnsWidthTotal: flattenColumnsWidths?.reduce((sum, num) => sum + num, 0),
+    columnsWidthTotal,
     updateFlattenColumnsWidths: setFlattenColumnsWidths,
     flattenColumns: flattenCols,
     columnMinWidth,

@@ -1,6 +1,7 @@
 import classNames from 'classnames';
 import React, { FC, useEffect, useRef } from 'react';
 
+import { isNum } from '../../_utils/validate';
 import { useTableContext } from '../context';
 import { useStyles } from '../style';
 import { distribute } from '../utils/calc';
@@ -99,11 +100,7 @@ const Placeholder: FC = () => {
       ) => {
         const width = flattenColumnsWidths[index] ?? column.width;
 
-        if (
-          !column.hasChildren &&
-          !column.resizeDisabled &&
-          Number.isFinite(width)
-        ) {
+        if (!column.hasChildren && !column.resizeDisabled && isNum(width)) {
           result.push({
             index,
             width,
@@ -149,7 +146,10 @@ const Placeholder: FC = () => {
     // 立即更新 ref，防止下一帧在 React render 前基于旧 columnsWidthTotal 重复累加。
     latestAutoFillStateRef.current = {
       ...latestAutoFillStateRef.current,
-      columnsWidthTotal: nextWidths.reduce((sum, num) => sum + num, 0),
+      columnsWidthTotal: nextWidths.reduce(
+        (sum, num) => sum + (isNum(num) ? num : 0),
+        0,
+      ),
       flattenColumnsWidths: nextWidths,
       middleState: updatedMiddleState,
     };

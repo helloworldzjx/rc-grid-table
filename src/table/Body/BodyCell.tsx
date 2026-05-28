@@ -12,6 +12,7 @@ import React, {
   useMemo,
 } from 'react';
 
+import { isNum, isValidKey } from '../../_utils/validate';
 import CellContainer from '../CellContainer';
 import { useTableContext } from '../context';
 import { ColumnState } from '../interface';
@@ -97,10 +98,10 @@ function BodyCell({
     const cellProps = column.onCell?.(rowData, rowIndex) || {};
     const { rowSpan, colSpan, style: cellStyle, align } = cellProps;
     const style: CSSProperties = {};
-    if (rowSpan && rowSpan > 1) {
+    if (isNum(rowSpan) && rowSpan > 1) {
       style.gridRow = `span ${rowSpan}`;
     }
-    if (colSpan && colSpan > 1) {
+    if (isNum(colSpan) && colSpan > 1) {
       style.gridColumn = `span ${colSpan}`;
     }
 
@@ -110,8 +111,8 @@ function BodyCell({
     if (fixedInfo.fixEnd !== null) {
       style.right = fixedInfo.fixEnd as number;
     }
-    if (align || column.align) {
-      style.textAlign = align || column.align;
+    if (align ?? column.align) {
+      style.textAlign = align ?? column.align;
     }
 
     return { ...style, ...column.style, ...cellStyle, ...rowSortCellStyle };
@@ -238,7 +239,7 @@ function BodyCell({
     !isInternalExpandColumn &&
     !isInternalSelectionColumn &&
     !isInternalRowSortColumn &&
-    column.dataIndex &&
+    isValidKey(column.dataIndex) &&
     typeof column.dataIndex === 'string'
   ) {
     cellValue = rowData?.[column.dataIndex];

@@ -1,5 +1,6 @@
 import type { Key } from 'react';
 
+import { isValidKey, warningInvalidRecordKey } from '../../_utils/validate';
 import type { RowSortChangeInfo, RowSortPlacement } from '../interface';
 import { getRecordChildren, getRecordKey } from './expand';
 
@@ -38,6 +39,10 @@ export const getRowSortEntities = <T = any>(
   ) => {
     records.forEach((record, index) => {
       const key = getRecordKey(record, rowKey);
+      if (!isValidKey(key)) {
+        warningInvalidRecordKey(record, rowKey, 'row sorting');
+        return;
+      }
       const entity = {
         key,
         record,

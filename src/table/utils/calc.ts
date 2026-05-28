@@ -1,5 +1,6 @@
 import { Key } from 'react';
 
+import { isNum } from '../../_utils/validate';
 import type { ColumnState, ColumnsType, SizeType } from '../interface';
 import {
   filterSpan,
@@ -148,11 +149,14 @@ export const getMergedSpanKeys = (
   let colSpan = col.colSpan;
   if (
     !col.hasChildren &&
+    isNum(colSpan) &&
     filterSpan(colSpan) &&
-    Math.floor(colSpan as number) >= 2
+    Math.floor(colSpan) >= 2
   ) {
-    colSpan = Math.floor(colSpan as number);
+    colSpan = Math.floor(colSpan);
     const index = flattenColumns.findIndex((column) => column.key === ks[0]);
+    if (index === -1) return ks;
+
     for (let i = index + 1; i < index + 1 + colSpan - 1; i++) {
       ks.push(flattenColumns[i].key);
     }

@@ -1,5 +1,11 @@
 import { isValidElement, Key, type ReactNode } from 'react';
 
+import {
+  isNum,
+  isValidColumnKey,
+  warningFallbackColumnKey,
+  warningInvalidColumnKey,
+} from '../../_utils/validate';
 import type {
   CellType,
   ColumnState,
@@ -28,12 +34,23 @@ export const getEllipsisTitle = (children: ReactNode) => {
   return title;
 };
 
-export const isNum = (input?: any) =>
-  typeof input === 'number' && !Number.isNaN(input);
+export const getColumnKey = (
+  column: { key?: unknown; dataIndex?: unknown },
+  index: number,
+): Key => {
+  warningInvalidColumnKey(column);
+
+  if (isValidColumnKey(column.key)) return column.key;
+  if (isValidColumnKey(column.dataIndex)) return column.dataIndex;
+
+  warningFallbackColumnKey(column);
+
+  return index;
+};
 
 export const filterSpan = (span?: number) => {
   if (isNum(span)) {
-    const realSpan = Math.floor(span as number);
+    const realSpan = Math.floor(span);
     if (realSpan === 0) {
       return false;
     }
@@ -50,14 +67,25 @@ export const filterCellSpan = (span?: {
   return filterSpan(rowSpan) && filterSpan(colSpan);
 };
 
-const parseColumnWidth = (width: number | string, containerWidth: number) => {
+const parseColumnWidth = (
+  width: number | string | undefined,
+  containerWidth: number,
+) => {
+  if (isNum(width)) {
+    return width;
+  }
+
   if (typeof width === 'string') {
-    const parsedWidth =
-      (parseFloat(width.substring(0, width.length - 1)) / 100) * containerWidth;
+    if (!width.endsWith('%')) return undefined;
+
+    const percent = Number.parseFloat(width.slice(0, -1));
+    if (!isNum(percent)) return undefined;
+
+    const parsedWidth = (percent / 100) * containerWidth;
     return parseFloat(parsedWidth.toFixed(2));
   }
 
-  return width;
+  return undefined;
 };
 
 const getEffectiveResizeMinWidth = (
@@ -66,9 +94,8 @@ const getEffectiveResizeMinWidth = (
   containerWidth: number,
 ) => {
   const minWidth =
-    resizeMinWidth === undefined
-      ? DEFAULT_RESIZE_MIN_WIDTH
-      : parseColumnWidth(resizeMinWidth, containerWidth);
+    parseColumnWidth(resizeMinWidth, containerWidth) ??
+    DEFAULT_RESIZE_MIN_WIDTH;
 
   return Math.min(minWidth, width);
 };
@@ -174,7 +201,7 @@ export function filterColumns<T = any>(
         return result;
       }
 
-      const currentKey = column.key || column.dataIndex || index;
+      const currentKey = getColumnKey(column, index);
       if (
         column.hidden === true ||
         (column.children?.length &&
@@ -269,8 +296,9 @@ export function flattenColumnsWithTotalWidth<T>(
   ) {
     cols.forEach((column, index) => {
       if (isInternalColumn(column)) {
-        let width = column.width ?? getDefaultInternalColumnWidth(size);
-        width = parseColumnWidth(width, containerWidth);
+        const defaultWidth = getDefaultInternalColumnWidth(size);
+        const width =
+          parseColumnWidth(column.width, containerWidth) ?? defaultWidth;
         usedWidthTotal += width;
 
         result.push({
@@ -305,7 +333,7 @@ export function flattenColumnsWithTotalWidth<T>(
       )
         return;
 
-      const currentKey = column?.key || column?.dataIndex || index;
+      const currentKey = getColumnKey(column, index);
 
       if (column.children?.length) {
         traverse(
@@ -316,17 +344,16 @@ export function flattenColumnsWithTotalWidth<T>(
         );
       }
 
-      let width = undefined;
+      let width: number | undefined = undefined;
       let distribute = false;
 
       if (!column.children?.length) {
-        width = column.width;
+        width = parseColumnWidth(column.width, containerWidth);
 
-        if (!width) {
+        if (!isNum(width)) {
           distribute = true;
           width = depth === 0 ? topMinWidth : leafMinWidth;
         }
-        width = parseColumnWidth(width, containerWidth);
         usedWidthTotal += width;
       }
 
@@ -352,7 +379,7 @@ export function flattenColumnsWithTotalWidth<T>(
         parentKey,
         ancestorKeys,
         depth,
-        order: column.order ?? index,
+        order: isNum(column.order) ? column.order : index,
         visible: column.visible ?? true,
         distribute: column.resizeDisabled
           ? false

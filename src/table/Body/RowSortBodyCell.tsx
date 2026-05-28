@@ -5,6 +5,7 @@ import type {
 import classNames from 'classnames';
 import React, { CSSProperties, Key, memo } from 'react';
 
+import { isValidKey } from '../../_utils/validate';
 import CellContainer from '../CellContainer';
 import { useTableContext } from '../context';
 import { ColumnState } from '../interface';
@@ -68,7 +69,7 @@ function RowSortBodyCell<T = any>({
   const CellComponent = getComponent(['body', 'cell'], 'div');
 
   const rowSortDisabled =
-    rowSortDragDisabled || !rowSortable || rowSortKey === undefined;
+    rowSortDragDisabled || !rowSortable || !isValidKey(rowSortKey);
   const disabled = rowSortDisabled;
   const dragging = rowSortDragging;
   const activatorProps = disabled
