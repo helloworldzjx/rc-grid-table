@@ -166,7 +166,8 @@ export function filterColumns<T = any>(
           order: index,
           visible: true,
           distribute: false,
-          updatedWidth: false,
+          widthManuallyChanged: false,
+          autoWidthLocked: false,
           hasChildren: false,
           children: [],
         } as ColumnState<T>);
@@ -286,7 +287,8 @@ export function flattenColumnsWithTotalWidth<T>(
           order: index,
           visible: true,
           distribute: false,
-          updatedWidth: false,
+          widthManuallyChanged: false,
+          autoWidthLocked: false,
           hasChildren: false,
           children: [],
         } as ColumnState<T>);
@@ -328,6 +330,13 @@ export function flattenColumnsWithTotalWidth<T>(
         usedWidthTotal += width;
       }
 
+      const widthManuallyChanged = column.resizeDisabled
+        ? false
+        : !!column.widthManuallyChanged;
+      const autoWidthLocked = column.resizeDisabled
+        ? false
+        : !!column.autoWidthLocked || widthManuallyChanged;
+
       result.push({
         ...column,
         width,
@@ -347,10 +356,11 @@ export function flattenColumnsWithTotalWidth<T>(
         visible: column.visible ?? true,
         distribute: column.resizeDisabled
           ? false
-          : column.updatedWidth
+          : autoWidthLocked
           ? false
           : distribute,
-        updatedWidth: column.resizeDisabled ? false : !!column.updatedWidth,
+        widthManuallyChanged,
+        autoWidthLocked,
         hasChildren: !!column.children?.length,
         children: [],
       });

@@ -95,13 +95,13 @@ const Resizable = forwardRef<HTMLDivElement, ResizableProps>(
 
       const avg = distance / resizeIdxs.length;
       let appliedDistance = 0;
-      const updatedWidths = widths.map((width, index) => {
+      const nextWidths = widths.map((width, index) => {
         if (resizeIdxs.includes(index)) {
           const minWidth = getResizeMinWidth(index, width);
           const nextWidth = parseFloat((width + avg).toFixed(2));
-          const updatedWidth = Math.max(nextWidth, minWidth);
-          appliedDistance += updatedWidth - width;
-          return updatedWidth;
+          const appliedWidth = Math.max(nextWidth, minWidth);
+          appliedDistance += appliedWidth - width;
+          return appliedWidth;
         }
 
         return width;
@@ -109,8 +109,8 @@ const Resizable = forwardRef<HTMLDivElement, ResizableProps>(
 
       if (!appliedDistance) return 0;
 
-      latestWidths.current = updatedWidths;
-      setFlattenColumnsWidths(updatedWidths);
+      latestWidths.current = nextWidths;
+      setFlattenColumnsWidths(nextWidths);
       updated.current = true;
       return appliedDistance;
     };
@@ -119,8 +119,12 @@ const Resizable = forwardRef<HTMLDivElement, ResizableProps>(
       const widths = latestWidths.current;
       const updates = idxs.map((idx) => ({
         targetKey: flattenColumns[idx].key,
-        prop: ['width' as const, 'updatedWidth' as const],
-        value: [widths[idx], true],
+        prop: [
+          'width' as const,
+          'widthManuallyChanged' as const,
+          'autoWidthLocked' as const,
+        ],
+        value: [widths[idx], true, true],
       }));
       const updatedMiddleState = batchUpdateColumns(middleState, updates);
       updateMiddleState(updatedMiddleState);

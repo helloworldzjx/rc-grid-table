@@ -83,15 +83,28 @@ const Placeholder: FC = () => {
     if (sortableDraftState) return false;
 
     const remainingWidth = containerWidth - columnsWidthTotal;
-    if (remainingWidth <= PLACEHOLDER_VISIBLE_TOLERANCE || !middleState.length)
+    if (
+      remainingWidth <= PLACEHOLDER_VISIBLE_TOLERANCE ||
+      !middleState.length
+    ) {
       return false;
+    }
+
+    const manuallyUnchangedColumns = flattenColumns.filter(
+      (column) => !column.widthManuallyChanged,
+    );
+    const allManuallyChanged = manuallyUnchangedColumns.length === 0;
 
     const resizeEnabledLeafColumns = flattenColumns.reduce(
       (result: { index: number; width: number }[], column, index) => {
+        const distributeCondition = allManuallyChanged
+          ? true
+          : !column.widthManuallyChanged;
         const width = flattenColumnsWidths[index] ?? column.width;
         if (
           !column.hasChildren &&
           !column.resizeDisabled &&
+          distributeCondition &&
           typeof width === 'number'
         ) {
           result.push({ index, width });
@@ -106,17 +119,17 @@ const Placeholder: FC = () => {
       remainingWidth,
       resizeEnabledLeafColumns.length,
     );
-    const updatedWidths = [...flattenColumnsWidths];
+    const nextWidths = [...flattenColumnsWidths];
 
     const updates = resizeEnabledLeafColumns.map(
       ({ index, width }, leafIndex) => {
         const column = flattenColumns[index];
         const newWidth = width + (leafIndex === 0 ? first : avg);
-        updatedWidths[index] = newWidth;
+        nextWidths[index] = newWidth;
 
         return {
           targetKey: column.key,
-          prop: ['width' as const, 'updatedWidth' as const],
+          prop: ['width' as const, 'autoWidthLocked' as const],
           value: [newWidth, true],
         };
       },
@@ -125,7 +138,7 @@ const Placeholder: FC = () => {
     updateSortableDraftState((state) =>
       state ? batchUpdateColumns(state, updates) : state,
     );
-    updateFlattenColumnsWidths(updatedWidths);
+    updateFlattenColumnsWidths(nextWidths);
 
     const updatedMiddleState = batchUpdateColumns(middleState, updates);
     updateMiddleState(updatedMiddleState);
@@ -133,8 +146,8 @@ const Placeholder: FC = () => {
     // 立即更新 ref，防止下一帧在 React render 前基于旧 columnsWidthTotal 重复累加。
     latestAutoFillStateRef.current = {
       ...latestAutoFillStateRef.current,
-      columnsWidthTotal: updatedWidths.reduce((sum, num) => sum + num, 0),
-      flattenColumnsWidths: updatedWidths,
+      columnsWidthTotal: nextWidths.reduce((sum, num) => sum + num, 0),
+      flattenColumnsWidths: nextWidths,
       middleState: updatedMiddleState,
     };
 

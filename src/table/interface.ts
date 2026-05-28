@@ -309,7 +309,8 @@ export type ColumnStateConfigType = {
   distribute: boolean;
   visible: boolean;
   hasChildren: boolean;
-  updatedWidth: boolean;
+  widthManuallyChanged: boolean;
+  autoWidthLocked: boolean;
 };
 
 export type ColumnState<T = any> = Omit<ColumnType<T>, 'children'> &

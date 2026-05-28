@@ -9,11 +9,23 @@ function completeColumnState<T = any>(
   column: ColumnState<T>,
   children: ColumnState[] = column.children || [],
 ): ColumnState {
+  const widthManuallyChanged = column.resizeDisabled
+    ? false
+    : !!column.widthManuallyChanged;
+  const autoWidthLocked = column.resizeDisabled
+    ? false
+    : !!column.autoWidthLocked || widthManuallyChanged;
+
   return {
     ...column,
     visible: column.visible ?? true,
-    distribute: column.resizeDisabled ? false : column.distribute ?? false,
-    updatedWidth: column.resizeDisabled ? false : !!column.updatedWidth,
+    distribute: column.resizeDisabled
+      ? false
+      : autoWidthLocked
+      ? false
+      : column.distribute ?? false,
+    widthManuallyChanged,
+    autoWidthLocked,
     hasChildren: children.length > 0,
     children,
   } as ColumnState;
@@ -112,7 +124,8 @@ function mergeColumnsStateInternal<T = any>(
 
     if (column.resizeDisabled && !column.hasChildren) {
       merged.width = column.width;
-      merged.updatedWidth = false;
+      merged.widthManuallyChanged = false;
+      merged.autoWidthLocked = false;
     }
 
     const children =
