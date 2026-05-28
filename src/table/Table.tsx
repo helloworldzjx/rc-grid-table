@@ -166,7 +166,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       return isTreeMode
         ? flattenDataSource(
             dataSource || [],
-            rowKey as string,
+            rowKey,
             childrenColumnName,
             mergedExpandedRowKeys,
           )
@@ -174,7 +174,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
             record,
             rowIndex,
             indent: 0,
-            key: getRecordKey(record, rowKey as string),
+            key: getRecordKey(record, rowKey),
           }));
     }, [
       isTreeMode,
@@ -193,8 +193,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
     );
 
     const rowSortEntities = useMemo(
-      () =>
-        getRowSortEntities(dataSource, rowKey as string, childrenColumnName),
+      () => getRowSortEntities(dataSource, rowKey, childrenColumnName),
       [childrenColumnName, dataSource, rowKey],
     );
 
@@ -280,7 +279,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
             activeEntity.index > overEntity.index ? 'before' : 'after';
           const result = reorderDataSource({
             dataSource: dataSource || [],
-            rowKey: rowKey as string,
+            rowKey,
             childrenColumnName,
             activeKey: activeEntity.key,
             overKey: overEntity.key,
@@ -492,14 +491,10 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
                       const hasValidKey = isValidKey(key);
                       warning(
                         hasValidKey,
-                        'Each record in table should have a unique `key` prop, or set `rowKey` to a unique string or finite number.',
+                        'Each record in table should have a unique row key, or set `rowKey` to a string field name or a function that returns a string or finite number.',
                       );
                       if (!hasValidKey) {
-                        warningInvalidRecordKey(
-                          rowData,
-                          rowKey as string,
-                          'row rendering',
-                        );
+                        warningInvalidRecordKey(rowKey, 'row rendering', key);
                       }
                       const rowReactKey = hasValidKey ? key : rowIndex;
                       const expanded = hasValidKey

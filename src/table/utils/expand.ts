@@ -5,6 +5,7 @@ import type {
   ColumnType,
   ColumnsType,
   ExpandableConfig,
+  RowKey,
   RowSortableConfig,
   SizeType,
   TableRowSelection,
@@ -31,9 +32,10 @@ export interface FlattenRecord<T = any> {
 
 export const getRecordKey = <T = any>(
   record: T,
-  rowKey: string,
+  rowKey: RowKey<T>,
 ): Key | undefined => {
-  const key = record?.[rowKey as keyof T];
+  const key =
+    typeof rowKey === 'function' ? rowKey(record) : record?.[rowKey as keyof T];
   return isValidKey(key) ? key : undefined;
 };
 
@@ -59,7 +61,7 @@ export const hasChildrenInData = <T = any>(
 
 export const flattenDataSource = <T = any>(
   dataSource: T[] = [],
-  rowKey: string,
+  rowKey: RowKey<T>,
   childrenColumnName = 'children',
   expandedRowKeys: Key[] = [],
 ): FlattenRecord<T>[] => {
@@ -79,7 +81,7 @@ export const flattenDataSource = <T = any>(
       });
 
       if (!isValidKey(key)) {
-        warningInvalidRecordKey(record, rowKey, 'row rendering');
+        warningInvalidRecordKey(rowKey, 'row rendering', key);
       }
 
       if (isValidKey(key) && children.length && expandedRowKeys.includes(key)) {
@@ -94,7 +96,7 @@ export const flattenDataSource = <T = any>(
 
 export const getDefaultExpandedRowKeys = <T = any>(
   dataSource: T[] = [],
-  rowKey: string,
+  rowKey: RowKey<T>,
   expandable: ExpandableConfig<T> = {},
 ): Key[] => {
   const {
@@ -113,7 +115,7 @@ export const getDefaultExpandedRowKeys = <T = any>(
 
       if (hasExpandedRowRender) {
         if (!validKey && rowExpandable?.(record) !== false) {
-          warningInvalidRecordKey(record, rowKey, 'default expanded rows');
+          warningInvalidRecordKey(rowKey, 'default expanded rows', key);
         }
         if (validKey && rowExpandable?.(record) !== false) {
           keys.push(key);
@@ -122,7 +124,7 @@ export const getDefaultExpandedRowKeys = <T = any>(
       }
 
       if (!validKey && children.length) {
-        warningInvalidRecordKey(record, rowKey, 'default expanded rows');
+        warningInvalidRecordKey(rowKey, 'default expanded rows', key);
       }
       if (validKey && children.length) {
         keys.push(key);

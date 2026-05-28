@@ -1,6 +1,8 @@
 import warning from '@rc-component/util/lib/warning';
 import type { Key } from 'react';
 
+import type { RowKey } from '../table/interface';
+
 export const isNum = (input?: unknown): input is number =>
   typeof input === 'number' && Number.isFinite(input);
 
@@ -40,14 +42,15 @@ export const warningFallbackColumnKey = (column: {
 };
 
 export const warningInvalidRecordKey = <T = any>(
-  record: T,
-  rowKey: string,
+  rowKey: RowKey<T>,
   usage: string,
+  key?: unknown,
 ) => {
-  const key = record?.[rowKey as keyof T];
+  const rowKeyText =
+    typeof rowKey === 'function' ? 'rowKey' : `record \`${rowKey}\``;
 
   warning(
     isValidKey(key),
-    `Table record \`${rowKey}\` should be a string or finite number for ${usage}.`,
+    `Table ${rowKeyText} should be a string or finite number for ${usage}.`,
   );
 };

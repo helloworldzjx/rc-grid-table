@@ -69,6 +69,7 @@ export interface StickyOffsets {
 
 export type SizeType = 'small' | 'middle' | 'large';
 export type FixedType = 'start' | 'end';
+export type RowKey<T = any> = string | ((record: T) => Key);
 export type AlignType =
   | 'start'
   | 'end'
@@ -348,7 +349,7 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
    * @description 行的唯一标识符
    * @default "key"
    */
-  rowKey?: string;
+  rowKey?: RowKey<T>;
   /**
    * @description 列数组
    */
@@ -453,6 +454,7 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
 export interface TableContextProps<T = any> extends TableProps<T> {
   // base props
   prefixCls: string;
+  rowKey: RowKey<T>;
 
   /** bug ref https://github.com/helloworldzjx/rc-grid-table/issues/1 */
   lockContainerWidth: boolean;

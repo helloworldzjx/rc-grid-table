@@ -8,11 +8,15 @@ import {
 } from 'react';
 
 import { isValidKey, warningInvalidRecordKey } from '../../_utils/validate';
-import type { TableProps, TableSelectionContextProps } from '../interface';
+import type {
+  RowKey,
+  TableProps,
+  TableSelectionContextProps,
+} from '../interface';
 import { getRecordChildren, getRecordKey } from '../utils/expand';
 
 interface UseSelectionProps<T = any> {
-  rowKey: string;
+  rowKey: RowKey<T>;
   dataSource: T[];
   rowSelection?: TableProps<T>['rowSelection'];
   childrenColumnName?: string;
@@ -66,7 +70,7 @@ function useSelection<T = any>({
       records.forEach((record) => {
         const key = getRecordKey(record, rowKey);
         if (!isValidKey(key)) {
-          warningInvalidRecordKey(record, rowKey, 'row selection');
+          warningInvalidRecordKey(rowKey, 'row selection', key);
           return;
         }
         const children = getRecordChildren(record, childrenColumnName);
@@ -159,7 +163,7 @@ function useSelection<T = any>({
     (record: T, selected: boolean) => {
       const key = getRecordKey(record, rowKey);
       if (!isValidKey(key)) {
-        warningInvalidRecordKey(record, rowKey, 'row selection');
+        warningInvalidRecordKey(rowKey, 'row selection', key);
         return selectedRowKeys;
       }
       const targetKeys = checkStrictly
@@ -208,7 +212,7 @@ function useSelection<T = any>({
     (record: T) => {
       const key = getRecordKey(record, rowKey);
       if (!isValidKey(key)) {
-        warningInvalidRecordKey(record, rowKey, 'row selection');
+        warningInvalidRecordKey(rowKey, 'row selection', key);
         return false;
       }
       if (selectedKeySet.has(key)) {
@@ -236,7 +240,7 @@ function useSelection<T = any>({
 
       const key = getRecordKey(record, rowKey);
       if (!isValidKey(key)) {
-        warningInvalidRecordKey(record, rowKey, 'row selection');
+        warningInvalidRecordKey(rowKey, 'row selection', key);
         return false;
       }
       const descendantKeys = collectDescendantKeys(key);
@@ -297,7 +301,7 @@ function useSelection<T = any>({
     (record: T, rowIndex: number, nativeEvent: MouseEvent<HTMLElement>) => {
       const key = getRecordKey(record, rowKey);
       if (!isValidKey(key)) {
-        warningInvalidRecordKey(record, rowKey, 'row selection');
+        warningInvalidRecordKey(rowKey, 'row selection', key);
         return;
       }
       const disabled =

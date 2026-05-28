@@ -195,7 +195,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     (record: any) => {
       const key = getRecordKey(record, rowKey);
       if (!isValidKey(key)) {
-        warningInvalidRecordKey(record, rowKey, 'row expansion');
+        warningInvalidRecordKey(rowKey, 'row expansion', key);
         return;
       }
       const expanded = mergedExpandedRowKeys.includes(key);

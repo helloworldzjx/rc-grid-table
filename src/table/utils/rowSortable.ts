@@ -1,7 +1,7 @@
 import type { Key } from 'react';
 
 import { isValidKey, warningInvalidRecordKey } from '../../_utils/validate';
-import type { RowSortChangeInfo, RowSortPlacement } from '../interface';
+import type { RowKey, RowSortChangeInfo, RowSortPlacement } from '../interface';
 import { getRecordChildren, getRecordKey } from './expand';
 
 export interface RowSortEntity<T = any> {
@@ -27,7 +27,7 @@ const cloneRecords = <T>(records: T[], childrenColumnName: string): T[] =>
 
 export const getRowSortEntities = <T = any>(
   dataSource: T[] = [],
-  rowKey: string,
+  rowKey: RowKey<T>,
   childrenColumnName = 'children',
 ) => {
   const keyEntities = new Map<Key, RowSortEntity<T>>();
@@ -40,7 +40,7 @@ export const getRowSortEntities = <T = any>(
     records.forEach((record, index) => {
       const key = getRecordKey(record, rowKey);
       if (!isValidKey(key)) {
-        warningInvalidRecordKey(record, rowKey, 'row sorting');
+        warningInvalidRecordKey(rowKey, 'row sorting', key);
         return;
       }
       const entity = {
@@ -100,7 +100,7 @@ export const reorderDataSource = <T = any>({
   allowCrossLevelSort = false,
 }: {
   dataSource: T[];
-  rowKey: string;
+  rowKey: RowKey<T>;
   childrenColumnName?: string;
   activeKey: Key;
   overKey: Key;
