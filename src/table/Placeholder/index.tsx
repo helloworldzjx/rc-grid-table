@@ -7,6 +7,7 @@ import { distribute } from '../utils/calc';
 import { batchUpdateColumns } from '../utils/handle';
 
 const PLACEHOLDER_VISIBLE_TOLERANCE = 1;
+const AUTO_FILL_CHECK_FRAMES = 4;
 
 const Placeholder: FC = () => {
   const {
@@ -19,7 +20,6 @@ const Placeholder: FC = () => {
     middleState,
     updateFlattenColumnsWidths,
     updateMiddleState,
-    updateSortableDraftState,
     columnsConfig,
   } = useTableContext();
 
@@ -36,7 +36,6 @@ const Placeholder: FC = () => {
     middleState,
     updateFlattenColumnsWidths,
     updateMiddleState,
-    updateSortableDraftState,
     columnsConfig,
   });
 
@@ -49,7 +48,6 @@ const Placeholder: FC = () => {
     middleState,
     updateFlattenColumnsWidths,
     updateMiddleState,
-    updateSortableDraftState,
     columnsConfig,
   };
 
@@ -75,7 +73,6 @@ const Placeholder: FC = () => {
       middleState,
       updateFlattenColumnsWidths,
       updateMiddleState,
-      updateSortableDraftState,
       columnsConfig,
     } = latestAutoFillStateRef.current;
 
@@ -90,54 +87,60 @@ const Placeholder: FC = () => {
       return false;
     }
 
-    const manuallyUnchangedColumns = flattenColumns.filter(
-      (column) => !column.widthManuallyChanged,
-    );
-    const allManuallyChanged = manuallyUnchangedColumns.length === 0;
-
     const resizeEnabledLeafColumns = flattenColumns.reduce(
-      (result: { index: number; width: number }[], column, index) => {
-        const distributeCondition = allManuallyChanged
-          ? true
-          : !column.widthManuallyChanged;
+      (
+        result: {
+          index: number;
+          width: number;
+          widthManuallyChanged: boolean;
+        }[],
+        column,
+        index,
+      ) => {
         const width = flattenColumnsWidths[index] ?? column.width;
+
         if (
           !column.hasChildren &&
           !column.resizeDisabled &&
-          distributeCondition &&
-          typeof width === 'number'
+          Number.isFinite(width)
         ) {
-          result.push({ index, width });
+          result.push({
+            index,
+            width,
+            widthManuallyChanged: column.widthManuallyChanged,
+          });
         }
+
         return result;
       },
       [],
     );
-    if (!resizeEnabledLeafColumns.length) return false;
 
-    const { first, avg } = distribute(
-      remainingWidth,
-      resizeEnabledLeafColumns.length,
+    const hasManuallyUnchangedColumn = resizeEnabledLeafColumns.some(
+      (column) => !column.widthManuallyChanged,
     );
+
+    const autoFillColumns = resizeEnabledLeafColumns.filter((column) =>
+      hasManuallyUnchangedColumn ? !column.widthManuallyChanged : true,
+    );
+
+    if (!autoFillColumns.length) return false;
+
+    const { first, avg } = distribute(remainingWidth, autoFillColumns.length);
     const nextWidths = [...flattenColumnsWidths];
 
-    const updates = resizeEnabledLeafColumns.map(
-      ({ index, width }, leafIndex) => {
-        const column = flattenColumns[index];
-        const newWidth = width + (leafIndex === 0 ? first : avg);
-        nextWidths[index] = newWidth;
+    const updates = autoFillColumns.map(({ index, width }, leafIndex) => {
+      const column = flattenColumns[index];
+      const newWidth = width + (leafIndex === 0 ? first : avg);
+      nextWidths[index] = newWidth;
 
-        return {
-          targetKey: column.key,
-          prop: ['width' as const, 'autoWidthLocked' as const],
-          value: [newWidth, true],
-        };
-      },
-    );
+      return {
+        targetKey: column.key,
+        prop: ['width' as const, 'autoWidthLocked' as const],
+        value: [newWidth, true],
+      };
+    });
 
-    updateSortableDraftState((state) =>
-      state ? batchUpdateColumns(state, updates) : state,
-    );
     updateFlattenColumnsWidths(nextWidths);
 
     const updatedMiddleState = batchUpdateColumns(middleState, updates);
@@ -179,7 +182,7 @@ const Placeholder: FC = () => {
 
   const autoFill = () => {
     if (applyAutoFill()) {
-      autoFillCheckCountRef.current = 4;
+      autoFillCheckCountRef.current = AUTO_FILL_CHECK_FRAMES;
       scheduleAutoFillCheck();
     }
   };
