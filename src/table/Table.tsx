@@ -27,12 +27,7 @@ import React, {
   useState,
 } from 'react';
 
-import {
-  isNum,
-  isObject,
-  isValidKey,
-  warningInvalidRecordKey,
-} from '../_utils/validate';
+import { isNum, isObject, isValidKey } from '../_utils/validate';
 import ScrollBarContainer from '../scrollContainer';
 import BodyRow from './Body/BodyRow';
 import ExpandedRow from './Body/ExpandedRow';
@@ -52,6 +47,7 @@ import {
 } from './utils/expand';
 import { parseHeaderRows } from './utils/handle';
 import { getRowSortEntities, reorderDataSource } from './utils/rowSortable';
+import { warningInvalidRecordKey } from './utils/warning';
 
 const getStickyOffset = (
   sticky: TableProps['sticky'],

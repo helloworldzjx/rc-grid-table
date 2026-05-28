@@ -12,7 +12,7 @@ import React, {
   useState,
 } from 'react';
 
-import { isNum, isValidKey, warningInvalidRecordKey } from '../_utils/validate';
+import { isNum, isValidKey } from '../_utils/validate';
 import TableContext from './context';
 import useSelection from './hooks/useSelection';
 import useStickyOffsets from './hooks/useStickyOffsets';
@@ -40,6 +40,7 @@ import {
 } from './utils/expand';
 import { columnsSort, filterColumns } from './utils/handle';
 import { mergeColumnsState } from './utils/mergedColumnsState';
+import { warningInvalidRecordKey } from './utils/warning';
 
 export type { TableProps, TableRef } from './interface';
 

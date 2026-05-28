@@ -1,8 +1,9 @@
 import type { Key } from 'react';
 
-import { isValidKey, warningInvalidRecordKey } from '../../_utils/validate';
+import { isValidKey } from '../../_utils/validate';
 import type { RowKey, RowSortChangeInfo, RowSortPlacement } from '../interface';
 import { getRecordChildren, getRecordKey } from './expand';
+import { warningInvalidRecordKey } from './warning';
 
 export interface RowSortEntity<T = any> {
   key: Key;

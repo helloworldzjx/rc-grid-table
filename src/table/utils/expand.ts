@@ -1,6 +1,6 @@
 import type { Key } from 'react';
 
-import { isValidKey, warningInvalidRecordKey } from '../../_utils/validate';
+import { isValidKey } from '../../_utils/validate';
 import type {
   ColumnType,
   ColumnsType,
@@ -22,6 +22,7 @@ import {
   isRowSortColumn,
   isSelectionColumn,
 } from './const';
+import { warningInvalidRecordKey } from './warning';
 
 export interface FlattenRecord<T = any> {
   record: T;

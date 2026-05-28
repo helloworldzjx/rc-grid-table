@@ -7,13 +7,14 @@ import {
   useState,
 } from 'react';
 
-import { isValidKey, warningInvalidRecordKey } from '../../_utils/validate';
+import { isValidKey } from '../../_utils/validate';
 import type {
   RowKey,
   TableProps,
   TableSelectionContextProps,
 } from '../interface';
 import { getRecordChildren, getRecordKey } from '../utils/expand';
+import { warningInvalidRecordKey } from '../utils/warning';
 
 interface UseSelectionProps<T = any> {
   rowKey: RowKey<T>;

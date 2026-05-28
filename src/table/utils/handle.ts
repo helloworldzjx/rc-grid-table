@@ -1,11 +1,6 @@
 import { isValidElement, Key, type ReactNode } from 'react';
 
-import {
-  isNum,
-  isValidColumnKey,
-  warningFallbackColumnKey,
-  warningInvalidColumnKey,
-} from '../../_utils/validate';
+import { isNum, isValidColumnKey } from '../../_utils/validate';
 import type {
   CellType,
   ColumnState,
@@ -19,6 +14,7 @@ import {
   getDefaultInternalColumnWidth,
   isInternalColumn,
 } from './const';
+import { warningFallbackColumnKey, warningInvalidColumnKey } from './warning';
 
 export const getEllipsisTitle = (children: ReactNode) => {
   let title = children;
