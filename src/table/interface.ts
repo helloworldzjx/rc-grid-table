@@ -13,9 +13,23 @@ import type { ScrollBarContainerRef } from '../scrollContainer/interface';
 
 export interface TableRef {
   nativeElement: HTMLDivElement;
-  scrollTo: ScrollBarContainerRef['scrollTo'];
+  scrollTo: (options?: TableScrollToOptions | number | null) => void;
   scrollToTop: ScrollBarContainerRef['scrollToTop'];
   scrollToLeft: ScrollBarContainerRef['scrollToLeft'];
+}
+
+export type TableScrollAlign = 'top' | 'bottom' | 'auto';
+
+export type TableScrollToOptions = ScrollToOptions & {
+  index?: number;
+  key?: Key;
+  align?: TableScrollAlign;
+  offset?: number;
+};
+
+export interface TableVirtualConfig {
+  itemHeight?: number;
+  overscan?: number;
 }
 
 export interface CellType<T = any> {
@@ -446,7 +460,7 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
    * @description 开启虚拟列表(未实现)
    * @default true
    */
-  virtual?: boolean;
+  virtual?: boolean | TableVirtualConfig;
   /**
    * @description 覆盖默认的元素
    */

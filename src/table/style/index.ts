@@ -42,6 +42,9 @@ type ComponentClsType = {
   bodyCls: string;
   bodyInnerCls: string;
   bodyRowCls: string;
+  bodyGridRowCls: string;
+  bodyVirtualFillerCls: string;
+  bodyVirtualInnerCls: string;
   bodyRowExpandableCls: string;
   bodyRowSortDraggingCls: string;
   cellCls: string;
@@ -351,7 +354,15 @@ const genHeadStyle = (
 });
 
 const genBodyStyle = (
-  { componentCls, bodyCls, bodyInnerCls, bodyRowCls }: ComponentClsType,
+  {
+    componentCls,
+    bodyCls,
+    bodyInnerCls,
+    bodyRowCls,
+    bodyGridRowCls,
+    bodyVirtualFillerCls,
+    bodyVirtualInnerCls,
+  }: ComponentClsType,
   token: ComponentToken,
 ): CSSInterpolation => ({
   [`.${bodyCls}::before`]: {
@@ -374,6 +385,27 @@ const genBodyStyle = (
     [`.${bodyRowCls}`]: {
       display: 'contents',
     },
+
+    [`.${bodyGridRowCls}`]: {
+      display: 'grid',
+      gridTemplateColumns: `var(--${componentCls}-cols-width)`,
+      gridColumn: '1 / -1',
+    },
+  },
+
+  [`.${bodyVirtualFillerCls}`]: {
+    position: 'relative',
+    gridColumn: '1 / -1',
+    width: `max(100%, var(--${componentCls}-cols-width-total))`,
+    minHeight: '100%',
+  },
+
+  [`.${bodyVirtualInnerCls}`]: {
+    position: 'absolute',
+    insetInline: 0,
+    top: 0,
+    display: 'grid',
+    gridTemplateColumns: `var(--${componentCls}-cols-width)`,
   },
 });
 
@@ -1014,6 +1046,9 @@ export const useStyles = () => {
     bodyCls: `${prefixCls}-body`,
     bodyInnerCls: `${prefixCls}-body-inner`,
     bodyRowCls: `${prefixCls}-body-row`,
+    bodyGridRowCls: `${prefixCls}-body-grid-row`,
+    bodyVirtualFillerCls: `${prefixCls}-body-virtual-filler`,
+    bodyVirtualInnerCls: `${prefixCls}-body-virtual-inner`,
     bodyRowExpandableCls: `${prefixCls}-body-row-expandable`,
     bodyRowSortDraggingCls: `${prefixCls}-body-row-sort-dragging`,
     cellCls: `${prefixCls}-cell`,

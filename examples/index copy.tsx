@@ -197,6 +197,7 @@ export default () => {
         {...baseProps}
         columns={columns}
         dataSource={dataSource}
+        virtual={false}
         // style={{height: 360}}
         sticky
         scrollY={400}

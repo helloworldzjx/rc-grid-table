@@ -1,5 +1,6 @@
+import ResizeObserver from '@rc-component/resize-observer';
 import classNames from 'classnames';
-import React, { FC, ReactNode } from 'react';
+import React, { CSSProperties, FC, ReactNode, Ref } from 'react';
 
 import { useTableContext } from '../context';
 import { useStyles } from '../style';
@@ -7,12 +8,20 @@ import { useStyles } from '../style';
 interface ExpandedRowProps {
   children?: ReactNode;
   className?: string;
+  style?: CSSProperties;
+  rowRef?: Ref<HTMLDivElement>;
+  onRowResize?: () => void;
+  virtual?: boolean;
   indent?: number;
 }
 
 const ExpandedRow: FC<ExpandedRowProps> = ({
   children,
   className,
+  style,
+  rowRef,
+  onRowResize,
+  virtual = false,
   indent = 0,
 }) => {
   const {
@@ -28,6 +37,7 @@ const ExpandedRow: FC<ExpandedRowProps> = ({
     cellCls,
     expandedRowCellCls,
     expandedRowContentCls,
+    bodyGridRowCls,
   } = useStyles();
   const RowComponent = getComponent(['body', 'row'], 'div');
   const CellComponent = getComponent(['body', 'cell'], 'div');
@@ -36,8 +46,17 @@ const ExpandedRow: FC<ExpandedRowProps> = ({
     containerWidth || columnsWidthTotal,
   );
 
-  return (
-    <RowComponent className={classNames(bodyRowCls, expandedRowCls, className)}>
+  const rowNode = (
+    <RowComponent
+      className={classNames(
+        bodyRowCls,
+        expandedRowCls,
+        { [bodyGridRowCls]: virtual },
+        className,
+      )}
+      style={style}
+      ref={rowRef}
+    >
       <CellComponent
         className={classNames(cellCls, expandedRowCellCls)}
         style={{
@@ -56,6 +75,12 @@ const ExpandedRow: FC<ExpandedRowProps> = ({
       </CellComponent>
     </RowComponent>
   );
+
+  if (virtual) {
+    return <ResizeObserver onResize={onRowResize}>{rowNode}</ResizeObserver>;
+  }
+
+  return rowNode;
 };
 
 export default ExpandedRow;

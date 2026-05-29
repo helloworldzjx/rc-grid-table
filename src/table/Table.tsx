@@ -37,7 +37,8 @@ import Placeholder from './Placeholder';
 import Summary from './Summary/Summary';
 import { useTableContext } from './context';
 import useTableScroll from './hooks/useTableScroll';
-import type { TableProps, TableRef } from './interface';
+import useVirtualBody from './hooks/useVirtualBody';
+import type { TableProps, TableRef, TableScrollToOptions } from './interface';
 import { useStyles } from './style';
 import {
   flattenDataSource,
@@ -73,6 +74,31 @@ interface GridTableProps {
   tableRef?: React.Ref<TableRef>;
 }
 
+type BodyItem<T = any> =
+  | {
+      type: 'row';
+      key: Key;
+      reactKey: Key;
+      record: T;
+      rowIndex: number;
+      indent: number;
+      rowKeyValue?: Key;
+      expanded: boolean;
+      treeExpandable: boolean;
+      rowExpandable: boolean;
+      invalidRowKey: boolean;
+    }
+  | {
+      type: 'expanded';
+      key: Key;
+      reactKey: Key;
+      record: T;
+      rowIndex: number;
+      indent: number;
+      expanded: boolean;
+      className?: string;
+    };
+
 const Table = forwardRef<HTMLDivElement, GridTableProps>(
   ({ tableRef }, ref) => {
     const {
@@ -98,7 +124,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       scrollY,
       summary,
       sticky,
-      // scroll, virtual,
+      virtual = true,
       loading = false,
       style,
       columnsWidthTotal,
@@ -129,6 +155,8 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       headStickyCls,
       bodyCls,
       bodyInnerCls,
+      bodyVirtualFillerCls,
+      bodyVirtualInnerCls,
       bodyRowCls,
       summaryStickyCls,
       cellCls,
@@ -199,6 +227,74 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
           .map(({ key }) => key)
           .filter((key): key is UniqueIdentifier => isValidRowSortId(key)),
       [flattenData],
+    );
+
+    const bodyItems = useMemo<BodyItem[]>(() => {
+      return flattenData.reduce<BodyItem[]>(
+        (items, { record: rowData, rowIndex, indent, key }) => {
+          const hasValidKey = isValidKey(key);
+          const rowReactKey = hasValidKey ? key : rowIndex;
+          const expanded = hasValidKey
+            ? mergedExpandedRowKeys.includes(key)
+            : false;
+          const children = getRecordChildren(rowData, childrenColumnName);
+          const treeExpandable = isTreeMode && children.length > 0;
+          const rowExpandable = hasExpandedRowRender
+            ? expandable?.rowExpandable?.(rowData) !== false
+            : treeExpandable;
+
+          items.push({
+            type: 'row',
+            key: `row-${rowReactKey}`,
+            reactKey: rowReactKey,
+            record: rowData,
+            rowIndex,
+            indent,
+            rowKeyValue: key,
+            expanded,
+            treeExpandable,
+            rowExpandable,
+            invalidRowKey: !hasValidKey,
+          });
+
+          if (hasExpandedRowRender && expanded && rowExpandable) {
+            const expandedRowClassName =
+              typeof expandable?.expandedRowClassName === 'function'
+                ? expandable.expandedRowClassName(rowData, rowIndex, indent)
+                : expandable?.expandedRowClassName;
+
+            items.push({
+              type: 'expanded',
+              key: `expanded-${rowReactKey}`,
+              reactKey: `${rowReactKey}-expanded`,
+              record: rowData,
+              rowIndex,
+              indent,
+              expanded,
+              className: expandedRowClassName,
+            });
+          }
+
+          return items;
+        },
+        [],
+      );
+    }, [
+      childrenColumnName,
+      expandable,
+      flattenData,
+      hasExpandedRowRender,
+      isTreeMode,
+      mergedExpandedRowKeys,
+    ]);
+
+    const virtualData = useMemo(
+      () =>
+        bodyItems.map((item) => ({
+          key: item.key,
+          item,
+        })),
+      [bodyItems],
     );
 
     const lastRowSortItem = useMemo(
@@ -315,8 +411,8 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       setHasVertical,
       handleBodyScroll,
       handleHorizontalDrag,
-      scrollTo,
-      scrollToTop,
+      scrollTo: scrollBodyTo,
+      scrollToTop: scrollBodyToTop,
       scrollToLeft,
     } = useTableScroll({
       containerWidth,
@@ -331,6 +427,83 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
         scrollY,
       ],
     });
+
+    const {
+      inVirtual,
+      scrollHeight: virtualScrollHeight,
+      offsetY: virtualOffsetY,
+      visibleItems,
+      setItemRef,
+      collectHeight,
+      handleScroll: handleVirtualScroll,
+      scrollTo: scrollVirtualTo,
+    } = useVirtualBody({
+      data: virtualData,
+      scrollElement: bodyScrollElement,
+      scrollY,
+      virtual,
+      size,
+    });
+
+    const handleBodyMergedScroll: React.UIEventHandler<HTMLDivElement> =
+      useCallback(
+        (event) => {
+          handleBodyScroll(event);
+          handleVirtualScroll(event.currentTarget.scrollTop);
+        },
+        [handleBodyScroll, handleVirtualScroll],
+      );
+
+    const scrollTo = useCallback(
+      (options?: TableScrollToOptions | number | null) => {
+        if (
+          inVirtual &&
+          options &&
+          typeof options === 'object' &&
+          (options.top !== undefined ||
+            options.index !== undefined ||
+            options.key !== undefined)
+        ) {
+          const virtualOptions = { ...options };
+          if (options.key !== undefined) {
+            virtualOptions.key = `row-${options.key}`;
+          }
+          if (options.index !== undefined) {
+            const targetRowIndex = Math.floor(options.index);
+            const targetItemIndex = bodyItems.findIndex(
+              (item) => item.type === 'row' && item.rowIndex === targetRowIndex,
+            );
+            if (targetItemIndex >= 0) {
+              virtualOptions.index = targetItemIndex;
+            }
+          }
+
+          if (scrollVirtualTo(virtualOptions)) {
+            if (options.left !== undefined) {
+              scrollBodyTo({ left: options.left });
+            }
+            return;
+          }
+        }
+
+        if (inVirtual && typeof options === 'number') {
+          scrollVirtualTo(options);
+          return;
+        }
+
+        scrollBodyTo((options || undefined) as ScrollToOptions | undefined);
+      },
+      [bodyItems, inVirtual, scrollBodyTo, scrollVirtualTo],
+    );
+
+    const scrollToTop = useCallback(() => {
+      if (inVirtual) {
+        scrollVirtualTo(0);
+        return;
+      }
+
+      scrollBodyToTop();
+    }, [inVirtual, scrollBodyToTop, scrollVirtualTo]);
 
     useImperativeHandle(tableRef, () => ({
       nativeElement: wrapperRef.current!,
@@ -349,11 +522,13 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
 
     const tbodyHeightStyle = useMemo(() => {
       if (isNum(scrollY) && scrollY > 0) {
-        return { maxHeight: scrollY };
+        return inVirtual
+          ? { height: scrollY, maxHeight: scrollY }
+          : { maxHeight: scrollY };
       }
 
       return undefined;
-    }, [scrollY]);
+    }, [inVirtual, scrollY]);
 
     const TableComponent = getComponent(['table'], 'div');
     const BodyWrapperComponent = getComponent(['body', 'wrapper'], 'div');
@@ -375,6 +550,81 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
         bottom: getStickyOffset(sticky, 'offsetSummary'),
       };
     }, [sticky]);
+
+    const renderBodyItem = (
+      bodyItem: BodyItem,
+      options: {
+        virtual?: boolean;
+        style?: CSSProperties;
+        rowRef?: (element: HTMLDivElement | null) => void;
+      } = {},
+    ) => {
+      if (bodyItem.type === 'expanded') {
+        return (
+          <ExpandedRow
+            key={bodyItem.reactKey}
+            className={bodyItem.className}
+            indent={1}
+            style={options.style}
+            rowRef={options.rowRef}
+            onRowResize={collectHeight}
+            virtual={options.virtual}
+          >
+            {expandable?.expandedRowRender?.(
+              bodyItem.record,
+              bodyItem.rowIndex,
+              bodyItem.indent,
+              bodyItem.expanded,
+            )}
+          </ExpandedRow>
+        );
+      }
+
+      const {
+        record: rowData,
+        rowIndex,
+        indent,
+        rowKeyValue: key,
+        expanded,
+        treeExpandable,
+        rowExpandable,
+        invalidRowKey,
+      } = bodyItem;
+
+      warning(
+        !invalidRowKey,
+        'Each record in table should have a unique row key, or set `rowKey` to a string field name or a function that returns a string or finite number.',
+      );
+      if (invalidRowKey) {
+        warningInvalidRecordKey(rowKey, 'row rendering', key);
+      }
+
+      const dragDisabled = getRowSortDragDisabled(rowData, key);
+      const dropDisabled = getRowSortDropDisabled(key);
+
+      return (
+        <BodyRow
+          key={bodyItem.reactKey}
+          flattenColumns={flattenColumns}
+          fixedOffset={fixedOffset}
+          rowData={rowData}
+          rowIndex={rowIndex}
+          rowKeyValue={key}
+          indent={indent}
+          expanded={expanded}
+          expandable={hasTreeData || treeExpandable}
+          rowSupportExpand={rowExpandable}
+          className={rowClassName?.(rowData, rowIndex)}
+          style={options.style}
+          rowRef={options.rowRef}
+          onRowResize={collectHeight}
+          virtual={options.virtual}
+          rowSortDragDisabled={dragDisabled}
+          rowSortDropDisabled={dropDisabled}
+          rowSortDragging={activeRowSortKey === key}
+        />
+      );
+    };
 
     return (
       <div
@@ -434,13 +684,15 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
                   : undefined
               }
               ref={setTableBodyRef}
-              onScroll={handleBodyScroll}
+              onScroll={handleBodyMergedScroll}
               onVerticalVisibleChange={setHasVertical}
               updateDeps={[
-                flattenData.length,
+                bodyItems.length,
                 mergedExpandedRowKeys,
                 columnsWidthTotal,
                 scrollY,
+                inVirtual,
+                virtualScrollHeight,
               ]}
             >
               {!dataSource?.length && (
@@ -475,75 +727,29 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
                   items={rowSortItems}
                   strategy={verticalListSortingStrategy}
                 >
-                  {flattenData?.map(
-                    ({ record: rowData, rowIndex, indent, key }) => {
-                      const hasValidKey = isValidKey(key);
-                      warning(
-                        hasValidKey,
-                        'Each record in table should have a unique row key, or set `rowKey` to a string field name or a function that returns a string or finite number.',
-                      );
-                      if (!hasValidKey) {
-                        warningInvalidRecordKey(rowKey, 'row rendering', key);
-                      }
-                      const rowReactKey = hasValidKey ? key : rowIndex;
-                      const expanded = hasValidKey
-                        ? mergedExpandedRowKeys.includes(key)
-                        : false;
-                      const children = getRecordChildren(
-                        rowData,
-                        childrenColumnName,
-                      );
-                      const treeExpandable = isTreeMode && children.length > 0;
-                      const rowExpandable = hasExpandedRowRender
-                        ? expandable?.rowExpandable?.(rowData) !== false
-                        : treeExpandable;
-                      const expandedRowClassName =
-                        typeof expandable?.expandedRowClassName === 'function'
-                          ? expandable.expandedRowClassName(
-                              rowData,
-                              rowIndex,
-                              indent,
-                            )
-                          : expandable?.expandedRowClassName;
-                      const dragDisabled = getRowSortDragDisabled(rowData, key);
-                      const dropDisabled = getRowSortDropDisabled(key);
-
-                      return (
-                        <React.Fragment key={rowReactKey}>
-                          <BodyRow
-                            flattenColumns={flattenColumns}
-                            fixedOffset={fixedOffset}
-                            rowData={rowData}
-                            rowIndex={rowIndex}
-                            rowKeyValue={key}
-                            indent={indent}
-                            expanded={expanded}
-                            expandable={hasTreeData || treeExpandable}
-                            rowSupportExpand={rowExpandable}
-                            className={rowClassName?.(rowData, rowIndex)}
-                            rowSortDragDisabled={dragDisabled}
-                            rowSortDropDisabled={dropDisabled}
-                            rowSortDragging={activeRowSortKey === key}
-                          />
-                          {hasExpandedRowRender &&
-                            expanded &&
-                            rowExpandable && (
-                              <ExpandedRow
-                                className={expandedRowClassName}
-                                indent={1}
-                              >
-                                {expandable?.expandedRowRender?.(
-                                  rowData,
-                                  rowIndex,
-                                  indent,
-                                  expanded,
-                                )}
-                              </ExpandedRow>
-                            )}
-                        </React.Fragment>
-                      );
-                    },
-                  )}
+                  {!!dataSource?.length &&
+                    (inVirtual ? (
+                      <div
+                        className={bodyVirtualFillerCls}
+                        style={{ height: virtualScrollHeight }}
+                      >
+                        <div
+                          className={bodyVirtualInnerCls}
+                          style={{
+                            transform: `translateY(${virtualOffsetY}px)`,
+                          }}
+                        >
+                          {visibleItems.map(({ key, item }) =>
+                            renderBodyItem(item, {
+                              virtual: true,
+                              rowRef: (element) => setItemRef(key, element),
+                            }),
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      bodyItems.map((item) => renderBodyItem(item))
+                    ))}
                 </SortableContext>
               </DndContext>
             </ScrollBarContainer>

@@ -1,8 +1,9 @@
 import type { UniqueIdentifier } from '@dnd-kit/core';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import ResizeObserver from '@rc-component/resize-observer';
 import classNames from 'classnames';
-import React, { CSSProperties, memo, useMemo } from 'react';
+import React, { CSSProperties, Ref, memo, useMemo } from 'react';
 
 import { isValidKey } from '../../_utils/validate';
 import { useTableContext } from '../context';
@@ -21,6 +22,9 @@ interface BodyRowProps<T = any> {
   fixedOffset: StickyOffsets;
   className?: string;
   style?: CSSProperties;
+  rowRef?: Ref<HTMLDivElement>;
+  onRowResize?: () => void;
+  virtual?: boolean;
   indent?: number;
   expanded?: boolean;
   expandable?: boolean;
@@ -38,6 +42,9 @@ function BodyRow({
   fixedOffset,
   className,
   style,
+  rowRef,
+  onRowResize,
+  virtual = false,
   indent = 0,
   expanded = false,
   expandable = false,
@@ -52,8 +59,12 @@ function BodyRow({
     onTriggerExpand,
     rowSortable,
   } = useTableContext();
-  const { bodyRowCls, bodyRowExpandableCls, bodyRowSortDraggingCls } =
-    useStyles();
+  const {
+    bodyRowCls,
+    bodyGridRowCls,
+    bodyRowExpandableCls,
+    bodyRowSortDraggingCls,
+  } = useStyles();
 
   const fixedInfoList = useFixedInfo(flattenColumns, fixedOffset);
   const RowComponent = getComponent(['body', 'row'], 'div');
@@ -132,11 +143,12 @@ function BodyRow({
     }
   };
 
-  return (
+  const rowNode = (
     <RowComponent
       className={classNames(
         bodyRowCls,
         {
+          [bodyGridRowCls]: virtual,
           [bodyRowExpandableCls]: expandByClick,
           [bodyRowSortDraggingCls]: rowSortActive,
         },
@@ -144,6 +156,7 @@ function BodyRow({
       )}
       style={mergedStyle}
       onClick={handleClick}
+      ref={rowRef}
     >
       {flattenColumns?.map((column, colIndex) => {
         if (!filterCellSpan(column.onCell?.(rowData, rowIndex))) return null;
@@ -176,6 +189,12 @@ function BodyRow({
       })}
     </RowComponent>
   );
+
+  if (virtual) {
+    return <ResizeObserver onResize={onRowResize}>{rowNode}</ResizeObserver>;
+  }
+
+  return rowNode;
 }
 
 export default memo(BodyRow);
