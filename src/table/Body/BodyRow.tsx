@@ -11,8 +11,8 @@ import useFixedInfo from '../hooks/useFixedInfo';
 import { ColumnState, StickyOffsets } from '../interface';
 import { useStyles } from '../style';
 import { isInternalColumn, isRowSortColumn } from '../utils/const';
-import { filterCellSpan } from '../utils/handle';
-import BodyCell from './BodyCell';
+import { getCellSpan } from '../utils/handle';
+import BodyCell, { BodyCellVirtualRenderMode } from './BodyCell';
 
 interface BodyRowProps<T = any> {
   rowData: T;
@@ -25,6 +25,8 @@ interface BodyRowProps<T = any> {
   rowRef?: Ref<HTMLDivElement>;
   onRowResize?: () => void;
   virtual?: boolean;
+  virtualRenderMode?: BodyCellVirtualRenderMode;
+  getVirtualRowSpanHeight?: (rowSpan: number) => number;
   indent?: number;
   expanded?: boolean;
   expandable?: boolean;
@@ -45,6 +47,8 @@ function BodyRow({
   rowRef,
   onRowResize,
   virtual = false,
+  virtualRenderMode = 'normal',
+  getVirtualRowSpanHeight,
   indent = 0,
   expanded = false,
   expandable = false,
@@ -159,7 +163,15 @@ function BodyRow({
       ref={rowRef}
     >
       {flattenColumns?.map((column, colIndex) => {
-        if (!filterCellSpan(column.onCell?.(rowData, rowIndex))) return null;
+        if (!virtual) {
+          const cellProps = column.onCell?.(rowData, rowIndex);
+          if (
+            getCellSpan(cellProps?.rowSpan) === 0 ||
+            getCellSpan(cellProps?.colSpan) === 0
+          ) {
+            return null;
+          }
+        }
 
         return (
           <BodyCell
@@ -168,6 +180,10 @@ function BodyRow({
             rowIndex={rowIndex}
             column={column}
             fixedInfo={fixedInfoList[colIndex]}
+            virtual={virtual}
+            colIndex={colIndex}
+            virtualRenderMode={virtualRenderMode}
+            getVirtualRowSpanHeight={getVirtualRowSpanHeight}
             indent={indent}
             expanded={expanded}
             expandable={expandable}

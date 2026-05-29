@@ -125,7 +125,7 @@ const App: React.FC = () => {
   return (
     <>
       <ConfigActions value={state} onChange={onChange} />
-      <Table {...baseProps} columns={columns} dataSource={data} virtual={false} />
+      <Table {...baseProps} columns={columns} dataSource={data} />
     </>
   );
 };

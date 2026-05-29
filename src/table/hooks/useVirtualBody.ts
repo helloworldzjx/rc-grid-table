@@ -244,6 +244,31 @@ export default function useVirtualBody<ItemType>({
     [data, end, inVirtual, start],
   );
 
+  const getItemSize = useCallback(
+    (startKey: Key, endKey: Key = startKey) => {
+      const startIndex = keyIndexMap.get(startKey);
+      const endIndex = keyIndexMap.get(endKey);
+
+      if (startIndex === undefined || endIndex === undefined) {
+        return {
+          top: 0,
+          bottom: 0,
+        };
+      }
+
+      const realStartIndex = Math.min(startIndex, endIndex);
+      const realEndIndex = Math.max(startIndex, endIndex);
+
+      return {
+        top: prefixHeights[realStartIndex] || 0,
+        bottom:
+          prefixHeights[realEndIndex + 1] ??
+          (prefixHeights[realEndIndex] || 0) + itemHeight,
+      };
+    },
+    [itemHeight, keyIndexMap, prefixHeights],
+  );
+
   useIsomorphicLayoutEffect(() => {
     const changedRecord = changedHeightsRef.current;
     if (changedRecord.size === 1 && inVirtual) {
@@ -334,6 +359,7 @@ export default function useVirtualBody<ItemType>({
     visibleStart,
     visibleEnd,
     visibleItems,
+    getItemSize,
     setItemRef,
     collectHeight,
     handleScroll,

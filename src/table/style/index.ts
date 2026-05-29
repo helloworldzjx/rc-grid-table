@@ -45,6 +45,7 @@ type ComponentClsType = {
   bodyGridRowCls: string;
   bodyVirtualFillerCls: string;
   bodyVirtualInnerCls: string;
+  bodyVirtualRowSpanCls: string;
   bodyRowExpandableCls: string;
   bodyRowSortDraggingCls: string;
   cellCls: string;
@@ -362,6 +363,8 @@ const genBodyStyle = (
     bodyGridRowCls,
     bodyVirtualFillerCls,
     bodyVirtualInnerCls,
+    bodyVirtualRowSpanCls,
+    cellCls,
   }: ComponentClsType,
   token: ComponentToken,
 ): CSSInterpolation => ({
@@ -406,6 +409,17 @@ const genBodyStyle = (
     top: 0,
     display: 'grid',
     gridTemplateColumns: `var(--${componentCls}-cols-width)`,
+  },
+
+  [`.${bodyVirtualRowSpanCls}`]: {
+    position: 'absolute',
+    insetInline: 0,
+    top: 0,
+    pointerEvents: 'none',
+
+    [`.${cellCls}`]: {
+      pointerEvents: 'auto',
+    },
   },
 });
 
@@ -1049,6 +1063,7 @@ export const useStyles = () => {
     bodyGridRowCls: `${prefixCls}-body-grid-row`,
     bodyVirtualFillerCls: `${prefixCls}-body-virtual-filler`,
     bodyVirtualInnerCls: `${prefixCls}-body-virtual-inner`,
+    bodyVirtualRowSpanCls: `${prefixCls}-body-virtual-row-span`,
     bodyRowExpandableCls: `${prefixCls}-body-row-expandable`,
     bodyRowSortDraggingCls: `${prefixCls}-body-row-sort-dragging`,
     cellCls: `${prefixCls}-cell`,

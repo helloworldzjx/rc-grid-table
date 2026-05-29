@@ -56,6 +56,15 @@ export const filterSpan = (span?: number) => {
   return true;
 };
 
+export const getCellSpan = (span?: number) => {
+  if (!isNum(span)) return 1;
+
+  const realSpan = Math.floor(span);
+  if (realSpan === 0) return 0;
+
+  return Math.max(realSpan, 1);
+};
+
 export const filterCellSpan = (span?: {
   rowSpan?: number;
   colSpan?: number;

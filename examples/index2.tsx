@@ -97,7 +97,6 @@ export default () => {
     <Table
       columns={columns}
       dataSource={dataSource}
-      virtual={false}
       bordered
       // style={{height: 360}}
       resizableColumns

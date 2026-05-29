@@ -24,14 +24,20 @@ import {
   isSelectionColumn,
 } from '../utils/const';
 import { FixedInfo } from '../utils/fixedColumns';
-import { getEllipsisTitle } from '../utils/handle';
+import { getCellSpan, getEllipsisTitle } from '../utils/handle';
 import RowSortBodyCell from './RowSortBodyCell';
+
+export type BodyCellVirtualRenderMode = 'normal' | 'rowSpan';
 
 interface BodyRowProps<T = any> {
   column: ColumnState<T>;
   rowData: T;
   rowIndex: number;
   fixedInfo: FixedInfo;
+  virtual?: boolean;
+  colIndex?: number;
+  virtualRenderMode?: BodyCellVirtualRenderMode;
+  getVirtualRowSpanHeight?: (rowSpan: number) => number;
   indent?: number;
   expanded?: boolean;
   expandable?: boolean;
@@ -53,6 +59,10 @@ function BodyCell({
   column,
   rowIndex,
   fixedInfo,
+  virtual = false,
+  colIndex,
+  virtualRenderMode = 'normal',
+  getVirtualRowSpanHeight,
   indent = 0,
   expanded = false,
   expandable = false,
@@ -98,15 +108,30 @@ function BodyCell({
     () => column.onCell?.(rowData, rowIndex) || {},
     [column.onCell, rowData, rowIndex],
   );
+  const rowSpan = getCellSpan(cellProps.rowSpan);
+  const colSpan = getCellSpan(cellProps.colSpan);
+  const hiddenByVirtual =
+    virtual &&
+    (virtualRenderMode === 'rowSpan'
+      ? rowSpan <= 1 || colSpan === 0
+      : rowSpan === 0 || colSpan === 0 || rowSpan > 1);
 
   const mergedStyle = useMemo(() => {
-    const { rowSpan, colSpan } = cellProps;
     const style: CSSProperties = {};
-    if (isNum(rowSpan) && rowSpan > 1) {
-      style.gridRow = `span ${rowSpan}`;
-    }
-    if (isNum(colSpan) && colSpan > 1) {
-      style.gridColumn = `span ${colSpan}`;
+    const virtualRowSpanStyle: CSSProperties = {};
+
+    if (virtual && colIndex !== undefined) {
+      style.gridColumn = `${colIndex + 1} / span ${colSpan || 1}`;
+      if (virtualRenderMode === 'rowSpan') {
+        virtualRowSpanStyle.height = getVirtualRowSpanHeight?.(rowSpan);
+      }
+    } else {
+      if (isNum(rowSpan) && rowSpan > 1) {
+        style.gridRow = `span ${rowSpan}`;
+      }
+      if (isNum(colSpan) && colSpan > 1) {
+        style.gridColumn = `span ${colSpan}`;
+      }
     }
 
     if (fixedInfo.fixStart !== null) {
@@ -125,13 +150,21 @@ function BodyCell({
       ...column.style,
       ...cellProps.style,
       ...rowSortCellStyle,
+      ...virtualRowSpanStyle,
     };
   }, [
     cellProps,
     fixedInfo.fixStart,
     fixedInfo.fixEnd,
+    column.align,
     column.style,
     rowSortCellStyle,
+    virtual,
+    colIndex,
+    virtualRenderMode,
+    getVirtualRowSpanHeight,
+    rowSpan,
+    colSpan,
   ]);
 
   const restCellProps = useMemo(() => {
@@ -143,6 +176,10 @@ function BodyCell({
     delete restProps.className;
     return restProps;
   }, [column.onCell, rowData, rowIndex]);
+
+  if (hiddenByVirtual) {
+    return null;
+  }
 
   const isInternalExpandColumn = isExpandColumn(column);
   const isInternalSelectionColumn = isSelectionColumn(column);
