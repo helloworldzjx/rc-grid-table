@@ -5,6 +5,8 @@ import type {
   SizeType,
 } from '../interface';
 
+/** 特殊列默认配置 start */
+
 export const INTERNAL_EXPAND_COLUMN_KEY = '__RC_GRID_TABLE_EXPAND_COLUMN__';
 export const INTERNAL_SELECTION_COLUMN_KEY =
   '__RC_GRID_TABLE_SELECTION_COLUMN__';
@@ -14,7 +16,6 @@ export const DEFAULT_INTERNAL_COLUMN_WIDTH_BY_SIZE: Record<SizeType, number> = {
   middle: 47,
   large: 55,
 };
-export const DEFAULT_RESIZE_MIN_WIDTH = 50;
 
 export const getDefaultInternalColumnWidth = (size: SizeType = 'large') => {
   return (
@@ -67,3 +68,28 @@ export const isInternalColumn = (column: unknown) =>
   isExpandColumn(column) ||
   isSelectionColumn(column) ||
   isRowSortColumn(column);
+
+/** 特殊列默认配置 end */
+
+export const DEFAULT_RESIZE_MIN_WIDTH = 50;
+
+export const storageKeys = [
+  '__RC_GRID_TABLE_EXPAND_COLUMN',
+  '__RC_GRID_TABLE_SELECTION_COLUMN',
+  '__RC_GRID_TABLE_ROW_SORT_COLUMN',
+  'width',
+  'resizeMinWidth',
+  'key',
+  'dataIndex',
+  'parentKey',
+  'ancestorKeys',
+  'depth',
+  'order',
+  'distribute',
+  'visible',
+  'hasChildren',
+  'widthManuallyChanged',
+  'autoWidthLocked',
+  'fixed',
+  'children',
+];

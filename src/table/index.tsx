@@ -38,7 +38,7 @@ import {
   getDefaultExpandedRowKeys,
   getRecordKey,
 } from './utils/expand';
-import { columnsSort, filterColumns } from './utils/handle';
+import { columnsSort, filterColumns, parseMiddleState } from './utils/handle';
 import { mergeColumnsState } from './utils/mergedColumnsState';
 import { warningInvalidRecordKey } from './utils/warning';
 
@@ -230,19 +230,46 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     { wait: 5 },
   );
 
+  // 统一处理
+  const parseUpdateMiddleState = useCallback((input: ColumnState[]) => {
+    const state = parseMiddleState(input);
+    setMiddleState(state);
+  }, []);
+
+  const updateMiddleState = useCallback(
+    (dispatch: SetStateAction<ColumnState<T>[]>) => {
+      middleStateUpdated.current = true;
+      const state =
+        typeof dispatch === 'function' ? dispatch(middleState) : dispatch;
+      parseUpdateMiddleState(state);
+    },
+    [parseUpdateMiddleState],
+  );
+
+  // 统一处理
+  const mergedColumnsConfig = useMemo(() => {
+    return {
+      ...columnsConfig,
+      onChange: (columnsState: ColumnState<T>[]) => {
+        const state = parseMiddleState(columnsState);
+        columnsConfig?.onChange?.(state);
+      },
+    };
+  }, [columnsConfig]);
+
   /** 使用了列配置的处理 start ***************************************************************************/
 
   useIsomorphicLayoutEffect(() => {
     if (
       ready &&
       enableColumnsConfig &&
-      columnsConfig?.useStorage &&
-      columnsConfig?.columnsState?.length
+      mergedColumnsConfig?.useStorage &&
+      mergedColumnsConfig?.columnsState?.length
     ) {
-      setMiddleState(columnsConfig.columnsState);
+      parseUpdateMiddleState(mergedColumnsConfig.columnsState);
       middleStateUpdated.current = true;
     }
-  }, [ready, enableColumnsConfig, columnsConfig]);
+  }, [ready, enableColumnsConfig, mergedColumnsConfig, parseUpdateMiddleState]);
 
   useIsomorphicLayoutEffect(() => {
     if (
@@ -251,8 +278,9 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
       containerWidth &&
       ready &&
       enableColumnsConfig &&
-      (!columnsConfig?.useStorage ||
-        (columnsConfig?.useStorage && !columnsConfig?.columnsState?.length))
+      (!mergedColumnsConfig?.useStorage ||
+        (mergedColumnsConfig?.useStorage &&
+          !mergedColumnsConfig?.columnsState?.length))
     ) {
       const { treeColumns } = columnsWidthDistribute(
         containerWidth,
@@ -261,17 +289,18 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
         leafColumnMinWidth,
         size,
       );
-      setMiddleState(treeColumns);
+      parseUpdateMiddleState(treeColumns);
     }
   }, [
     containerWidth,
     ready,
     enableColumnsConfig,
-    columnsConfig,
+    mergedColumnsConfig,
     mergedColumns,
     columnMinWidth,
     leafColumnMinWidth,
     size,
+    parseUpdateMiddleState,
   ]);
 
   useIsomorphicLayoutEffect(() => {
@@ -280,7 +309,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
       const mergedColumnsState = mergeColumnsState(realColumns, middleState);
 
       if (!isColumnsOrderEqual(mergedColumnsState, middleState)) {
-        setMiddleState(mergedColumnsState);
+        parseUpdateMiddleState(mergedColumnsState);
       }
       setInnerColumnsState(columnsSort(mergedColumnsState));
       if (
@@ -290,7 +319,14 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
         setSortableDraftState(null);
       }
     }
-  }, [containerWidth, mergedColumns, middleState, sortableDraftState, size]);
+  }, [
+    containerWidth,
+    mergedColumns,
+    middleState,
+    sortableDraftState,
+    size,
+    parseUpdateMiddleState,
+  ]);
 
   useIsomorphicLayoutEffect(() => {
     if (
@@ -382,16 +418,13 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     fixableColumns,
     visibleColumns,
     middleState,
-    updateMiddleState: (state) => {
-      middleStateUpdated.current = true;
-      setMiddleState(state);
-    },
+    updateMiddleState,
     sortableDraftState,
     updateSortableDraftState: setSortableDraftState,
     sortingColumns,
     updateSortingColumns: setSortingColumns,
     innerColumnsState,
-    columnsConfig,
+    columnsConfig: mergedColumnsConfig,
     components,
     getComponent,
     selection,

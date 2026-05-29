@@ -13,6 +13,7 @@ import {
   DEFAULT_RESIZE_MIN_WIDTH,
   getDefaultInternalColumnWidth,
   isInternalColumn,
+  storageKeys,
 } from './const';
 import { warningFallbackColumnKey, warningInvalidColumnKey } from './warning';
 
@@ -228,6 +229,10 @@ export function filterColumns<T = any>(
     },
     [],
   );
+}
+
+export function parseMiddleState(input: ColumnState[]) {
+  return JSON.parse(JSON.stringify(input, storageKeys));
 }
 
 /**

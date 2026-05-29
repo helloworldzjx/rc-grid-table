@@ -29,7 +29,11 @@ const App: React.FC = () => {
       width: 80,
     },
     {
-      title: 'Address',
+      title: (
+        <Tooltip placement="topLeft" title="Address">
+          Address
+        </Tooltip>
+      ),
       dataIndex: 'address',
       key: 'address 1',
       ellipsis: {
@@ -42,7 +46,14 @@ const App: React.FC = () => {
       ),
     },
     {
-      title: 'Long Column Long Column Long Column',
+      title: (
+        <Tooltip
+          placement="topLeft"
+          title="Long Column Long Column Long Column"
+        >
+          Long Column Long Column Long Column
+        </Tooltip>
+      ),
       dataIndex: 'address',
       key: 'address 2',
       ellipsis: {
@@ -55,7 +66,11 @@ const App: React.FC = () => {
       ),
     },
     {
-      title: 'Long Column Long Column',
+      title: (
+        <Tooltip placement="topLeft" title="Long Column Long Column">
+          Long Column Long Column
+        </Tooltip>
+      ),
       dataIndex: 'address',
       key: 'address 3',
       ellipsis: {
@@ -68,7 +83,11 @@ const App: React.FC = () => {
       ),
     },
     {
-      title: 'Long Column',
+      title: (
+        <Tooltip placement="topLeft" title="Long Column">
+          Long Column
+        </Tooltip>
+      ),
       dataIndex: 'address',
       key: 'address 4',
       ellipsis: {
@@ -110,7 +129,16 @@ const App: React.FC = () => {
   return (
     <>
       <ConfigActions value={state} onChange={onChange} />
-      <Table {...baseProps} columns={columns} dataSource={data} />
+      <Table
+        {...baseProps}
+        columns={columns}
+        dataSource={data}
+        columnsConfig={{
+          onChange(columnsState) {
+            console.log(columnsState);
+          },
+        }}
+      />
     </>
   );
 };
