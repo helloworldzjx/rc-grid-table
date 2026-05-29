@@ -418,7 +418,7 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
   /**
    * @description table body高度
    */
-  scrollY?: number | { fullHeight?: boolean; y?: number };
+  scrollY?: number;
   /**
    * @description 总结栏
    */

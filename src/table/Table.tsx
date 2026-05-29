@@ -347,19 +347,12 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       [bodyScrollElement, lastRowSortItem],
     );
 
-    const tableHeightStyle = useMemo(() => {
-      let prop = 'height';
-      let value: number | string = 'auto';
-
-      if (typeof scrollY === 'number') {
-        value = isNum(scrollY) ? scrollY : 'auto';
-        prop = 'height';
-      } else if (isObject(scrollY)) {
-        value = isNum(scrollY.y) ? scrollY.y : 'auto';
-        prop = scrollY.fullHeight ? 'height' : 'max-height';
+    const tbodyHeightStyle = useMemo(() => {
+      if (isNum(scrollY) && scrollY > 0) {
+        return { maxHeight: scrollY };
       }
 
-      return { [prop]: value };
+      return undefined;
     }, [scrollY]);
 
     const TableComponent = getComponent(['table'], 'div');
@@ -432,7 +425,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
               className={bodyCls}
               classNames={{ inner: bodyInnerCls }}
               contentComponent={BodyWrapperComponent}
-              style={tableHeightStyle}
+              styles={{ content: tbodyHeightStyle }}
               showVertical={
                 !!scrollY
                   ? {
