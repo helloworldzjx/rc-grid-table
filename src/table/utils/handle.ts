@@ -326,12 +326,15 @@ export function flattenColumnsWithTotalWidth<T>(
           column.children.every(
             (subColumn) => subColumn.hidden || !(subColumn.visible ?? true),
           ))
-      )
+      ) {
         return;
+      }
 
       const currentKey = getColumnKey(column, index);
 
-      if (column.children?.length) {
+      const hasChildren = !!column.children?.length;
+
+      if (hasChildren) {
         traverse(
           column.children as FnColumnType<T>[],
           currentKey,
@@ -341,50 +344,57 @@ export function flattenColumnsWithTotalWidth<T>(
       }
 
       let width: number | undefined = undefined;
+      let resizeMinWidth: number | undefined = undefined;
       let distribute = false;
+      let widthManuallyChanged = false;
+      let autoWidthLocked = false;
 
-      if (!column.children?.length) {
+      if (!hasChildren) {
         width = parseColumnWidth(column.width, containerWidth);
-
         if (!isNum(width)) {
           distribute = true;
           width = depth === 0 ? topMinWidth : leafMinWidth;
         }
         usedWidthTotal += width;
-      }
 
-      const widthManuallyChanged = column.resizeDisabled
-        ? false
-        : !!column.widthManuallyChanged;
-      const autoWidthLocked = column.resizeDisabled
-        ? false
-        : !!column.autoWidthLocked || widthManuallyChanged;
-
-      result.push({
-        ...column,
-        width,
-        resizeMinWidth:
+        resizeMinWidth =
           typeof width === 'number'
             ? getEffectiveResizeMinWidth(
                 column.resizeMinWidth,
                 width,
                 containerWidth,
               )
-            : column.resizeMinWidth,
+            : column.resizeMinWidth;
+
+        widthManuallyChanged = column.resizeDisabled
+          ? false
+          : !!column.widthManuallyChanged;
+
+        autoWidthLocked = column.resizeDisabled
+          ? false
+          : !!column.autoWidthLocked || widthManuallyChanged;
+
+        distribute = column.resizeDisabled
+          ? false
+          : autoWidthLocked
+          ? false
+          : distribute;
+      }
+
+      result.push({
+        ...column,
+        width,
+        resizeMinWidth,
         key: currentKey,
         parentKey,
         ancestorKeys,
         depth,
         order: isNum(column.order) ? column.order : index,
         visible: column.visible ?? true,
-        distribute: column.resizeDisabled
-          ? false
-          : autoWidthLocked
-          ? false
-          : distribute,
+        distribute,
         widthManuallyChanged,
         autoWidthLocked,
-        hasChildren: !!column.children?.length,
+        hasChildren,
         children: [],
       });
     });

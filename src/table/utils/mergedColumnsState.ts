@@ -8,24 +8,41 @@ function completeColumnState<T = any>(
   column: ColumnState<T>,
   children: ColumnState[] = column.children || [],
 ): ColumnState {
-  const widthManuallyChanged = column.resizeDisabled
-    ? false
-    : !!column.widthManuallyChanged;
-  const autoWidthLocked = column.resizeDisabled
-    ? false
-    : !!column.autoWidthLocked || widthManuallyChanged;
+  const hasChildren = children.length > 0;
 
-  return {
-    ...column,
-    visible: column.visible ?? true,
-    distribute: column.resizeDisabled
+  const width = hasChildren ? undefined : column.width;
+
+  let widthManuallyChanged = false;
+  if (!hasChildren) {
+    widthManuallyChanged = column.resizeDisabled
+      ? false
+      : !!column.widthManuallyChanged;
+  }
+
+  let autoWidthLocked = false;
+  if (!hasChildren) {
+    autoWidthLocked = column.resizeDisabled
+      ? false
+      : !!column.autoWidthLocked || widthManuallyChanged;
+  }
+
+  let distribute = false;
+  if (!hasChildren) {
+    distribute = column.resizeDisabled
       ? false
       : autoWidthLocked
       ? false
-      : column.distribute ?? false,
+      : column.distribute ?? false;
+  }
+
+  return {
+    ...column,
+    width,
+    visible: column.visible ?? true,
+    distribute,
     widthManuallyChanged,
     autoWidthLocked,
-    hasChildren: children.length > 0,
+    hasChildren,
     children,
   } as ColumnState;
 }
@@ -114,6 +131,7 @@ function mergeColumnsStateInternal<T = any>(
       ...column,
       ...JSON.parse(JSON.stringify(bColumn)), // 冲突时优先采用b的数据
       key: column.key,
+      depth: column.depth,
       parentKey: column.parentKey,
       ancestorKeys: column.ancestorKeys,
       title: column.title,
