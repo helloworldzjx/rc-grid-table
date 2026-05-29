@@ -270,7 +270,7 @@ export function flattenColumnsWithFilterChildren<T>(
   return result;
 }
 
-export type FnColumnType<T> = Partial<Omit<ColumnState, 'width'>> & {
+export type FnColumnType<T> = Partial<Omit<ColumnState<T>, 'width'>> & {
   width?: ColumnType<T>['width'];
 };
 

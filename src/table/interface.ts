@@ -79,9 +79,18 @@ export type AlignType =
   | 'justify'
   | 'match-parent';
 
-export type GetComponentProps<DataType> = (
+export type GetBodyCellProps<DataType> = (
   data: DataType,
   rowIndex?: number,
+) => React.HTMLAttributes<any> & {
+  rowSpan?: number;
+  colSpan?: number;
+  align?: AlignType;
+};
+
+export type GetHeaderCellProps<T> = (
+  column: ColumnType<T>,
+  columnIndex?: number,
 ) => React.HTMLAttributes<any> & {
   rowSpan?: number;
   colSpan?: number;
@@ -199,7 +208,7 @@ export interface TableRowSelection<T = any> {
   selectedRowKeys?: Key[];
   defaultSelectedRowKeys?: Key[];
   type?: SelectionType;
-  onCell?: GetComponentProps<T>;
+  onCell?: GetBodyCellProps<T>;
   onChange?: (
     selectedRowKeys: Key[],
     selectedRows: T[],
@@ -241,7 +250,8 @@ export interface ColumnProps<T = any> {
       };
   rowSpan?: number;
   colSpan?: number;
-  onCell?: GetComponentProps<T>;
+  onCell?: GetBodyCellProps<T>;
+  onHeaderCell?: GetHeaderCellProps<T>;
 }
 
 export type ExpandColumnType = ColumnProps<any> & {

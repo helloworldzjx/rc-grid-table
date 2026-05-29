@@ -90,11 +90,11 @@ const Placeholder: FC = () => {
 
     const resizeEnabledLeafColumns = flattenColumns.reduce(
       (
-        result: {
+        result: Array<{
           index: number;
           width: number;
           widthManuallyChanged: boolean;
-        }[],
+        }>,
         column,
         index,
       ) => {
@@ -113,13 +113,15 @@ const Placeholder: FC = () => {
       [],
     );
 
-    const hasManuallyUnchangedColumn = resizeEnabledLeafColumns.some(
-      (column) => !column.widthManuallyChanged,
+    const allManuallyChanged = resizeEnabledLeafColumns.every(
+      (column) => column.widthManuallyChanged,
     );
-
-    const autoFillColumns = resizeEnabledLeafColumns.filter((column) =>
-      hasManuallyUnchangedColumn ? !column.widthManuallyChanged : true,
-    );
+    let autoFillColumns = resizeEnabledLeafColumns;
+    if (!allManuallyChanged) {
+      autoFillColumns = resizeEnabledLeafColumns.filter(
+        (column) => !column.widthManuallyChanged,
+      );
+    }
 
     if (!autoFillColumns.length) return false;
 

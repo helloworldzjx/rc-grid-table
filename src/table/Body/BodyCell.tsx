@@ -94,9 +94,13 @@ function BodyCell({
   } = useStyles();
   const CellComponent = getComponent(['body', 'cell'], 'div');
 
+  const cellProps = useMemo(
+    () => column.onCell?.(rowData, rowIndex) || {},
+    [column.onCell, rowData, rowIndex],
+  );
+
   const mergedStyle = useMemo(() => {
-    const cellProps = column.onCell?.(rowData, rowIndex) || {};
-    const { rowSpan, colSpan, style: cellStyle, align } = cellProps;
+    const { rowSpan, colSpan } = cellProps;
     const style: CSSProperties = {};
     if (isNum(rowSpan) && rowSpan > 1) {
       style.gridRow = `span ${rowSpan}`;
@@ -111,26 +115,26 @@ function BodyCell({
     if (fixedInfo.fixEnd !== null) {
       style.right = fixedInfo.fixEnd as number;
     }
-    if (align ?? column.align) {
-      style.textAlign = align ?? column.align;
+    const align = cellProps.align ?? column.align;
+    if (align) {
+      style.textAlign = align;
     }
 
-    return { ...style, ...column.style, ...cellStyle, ...rowSortCellStyle };
+    return {
+      ...style,
+      ...column.style,
+      ...cellProps.style,
+      ...rowSortCellStyle,
+    };
   }, [
-    column.onCell,
-    rowData,
-    rowIndex,
+    cellProps,
     fixedInfo.fixStart,
     fixedInfo.fixEnd,
     column.style,
     rowSortCellStyle,
   ]);
 
-  const isInternalExpandColumn = isExpandColumn(column);
-  const isInternalSelectionColumn = isSelectionColumn(column);
-  const isInternalRowSortColumn = isRowSortColumn(column);
-
-  const cellProps = useMemo(() => {
+  const restCellProps = useMemo(() => {
     const restProps = { ...column.onCell?.(rowData, rowIndex) };
     delete restProps.rowSpan;
     delete restProps.colSpan;
@@ -139,10 +143,10 @@ function BodyCell({
     delete restProps.className;
     return restProps;
   }, [column.onCell, rowData, rowIndex]);
-  const cellClassName = useMemo(
-    () => column.onCell?.(rowData, rowIndex)?.className,
-    [column.onCell, rowData, rowIndex],
-  );
+
+  const isInternalExpandColumn = isExpandColumn(column);
+  const isInternalSelectionColumn = isSelectionColumn(column);
+  const isInternalRowSortColumn = isRowSortColumn(column);
 
   const handleExpand = (event: MouseEvent<HTMLElement>) => {
     event.stopPropagation();
@@ -299,8 +303,8 @@ function BodyCell({
   if (isInternalRowSortColumn) {
     return (
       <RowSortBodyCell
-        cellClassName={cellClassName}
-        cellProps={cellProps}
+        cellClassName={cellProps.className}
+        restCellProps={restCellProps}
         column={column}
         fixedInfo={fixedInfo}
         indent={indent}
@@ -334,10 +338,10 @@ function BodyCell({
           [selectionCellCls]: isInternalSelectionColumn,
         },
         column.className,
-        cellClassName,
+        cellProps.className,
       )}
       style={mergedStyle}
-      {...cellProps}
+      {...restCellProps}
     >
       {childrenNode}
     </CellContainer>

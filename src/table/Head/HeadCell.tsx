@@ -92,16 +92,23 @@ function HeadCell({
     firstRowLastCellKey,
   ]);
 
+  const cellProps = useMemo(
+    () => col.column?.onHeaderCell?.(col.column, colIndex) || {},
+    [col.column?.onHeaderCell, colIndex],
+  );
+
   const mergedStyle = useMemo(() => {
     const style: CSSProperties = {};
-    if (col.rowSpan && col.rowSpan > 1) {
-      style.gridRow = `span ${col.rowSpan}`;
+    const rowSpan = cellProps?.rowSpan ?? col.rowSpan;
+    if (rowSpan && rowSpan > 1) {
+      style.gridRow = `span ${rowSpan}`;
     }
-    if (col.colSpan && col.colSpan > 1) {
-      style.gridColumn = `span ${col.colSpan}`;
+    const colSpan = cellProps?.colSpan ?? col.colSpan;
+    if (colSpan && colSpan > 1) {
+      style.gridColumn = `span ${colSpan}`;
       style.textAlign = 'center';
     }
-    if (!filterSpan(col.colSpan)) {
+    if (!filterSpan(colSpan)) {
       style.display = 'none';
     }
     if (fixedInfo.fixStart !== null) {
@@ -110,19 +117,31 @@ function HeadCell({
     if (fixedInfo.fixEnd !== null) {
       style.right = fixedInfo.fixEnd as number;
     }
-    if (col.column?.align) {
-      style.textAlign = col.column.align;
+    const align = cellProps?.align ?? col.column?.align;
+    if (align) {
+      style.textAlign = align;
     }
 
-    return { ...style, ...col.column?.style };
+    return { ...style, ...col.column?.style, ...cellProps.style };
   }, [
     col.rowSpan,
     col.colSpan,
+    cellProps,
     fixedInfo.fixStart,
     fixedInfo.fixEnd,
     col.column?.align,
     col.column?.style,
   ]);
+
+  const restCellProps = useMemo(() => {
+    const restProps = { ...cellProps };
+    delete restProps.rowSpan;
+    delete restProps.colSpan;
+    delete restProps.style;
+    delete restProps.align;
+    delete restProps.className;
+    return restProps;
+  }, [cellProps]);
 
   const mergedSpanKeys = useMemo(() => {
     return getMergedSpanKeys(
@@ -210,6 +229,7 @@ function HeadCell({
   });
 
   const isInternalSelectionColumn = isSelectionColumn(col.column);
+
   let childrenNode = col.children;
   if (isInternalSelectionColumn) {
     if (
@@ -274,8 +294,10 @@ function HeadCell({
           [headSortableCellDisabledCls]: sortDisabled,
         },
         col.column?.className,
+        cellProps.className,
       )}
       style={mergedStyle}
+      {...restCellProps}
       {...listeners}
       ref={setNodeRef}
     >

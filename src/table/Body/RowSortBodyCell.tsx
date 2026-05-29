@@ -14,7 +14,7 @@ import { FixedInfo } from '../utils/fixedColumns';
 
 type BodyCellBaseProps<T = any> = {
   cellClassName?: string;
-  cellProps: React.HTMLAttributes<any>;
+  restCellProps: React.HTMLAttributes<any>;
   column: ColumnState<T>;
   fixedInfo: FixedInfo;
   mergedStyle: CSSProperties;
@@ -36,7 +36,7 @@ type RowSortBodyCellProps<T = any> = BodyCellBaseProps<T> & {
 
 function RowSortBodyCell<T = any>({
   cellClassName,
-  cellProps,
+  restCellProps,
   column,
   fixedInfo,
   indent,
@@ -113,7 +113,7 @@ function RowSortBodyCell<T = any>({
         cellClassName,
       )}
       style={mergedStyle}
-      {...cellProps}
+      {...restCellProps}
       ref={setRowSortNodeRef}
     >
       <div
