@@ -7,7 +7,7 @@ import {
   DragStartEvent,
 } from '@dnd-kit/core';
 import { SortableContext } from '@dnd-kit/sortable';
-import React, { Key, useMemo, useState } from 'react';
+import React, { Key, useCallback, useMemo, useRef, useState } from 'react';
 
 import { useTableContext } from '../context';
 import { CellType, ColumnState } from '../interface';
@@ -30,6 +30,7 @@ function HeadRow({
   headRows,
   row: columns,
   headRowIndex,
+  getScrollElement,
   onSortableStart,
   onSortableEnd,
   onResizeStart,
@@ -54,6 +55,9 @@ function HeadRow({
   const [activeKey, setActiveKey] = useState<Key | null>(null);
   const [dragOverlaySize] = useState({ width: 100, height: 40 });
   const [translate, setTranslate] = useState({ x: 0, y: 0 });
+  const scrollListenerCleanupRef = useRef<(() => void) | null>(null);
+  const scrollLeftRef = useRef(0);
+  const scrollingRef = useRef(false);
 
   const activeColumn = useMemo(() => {
     return columns.find((column) => column.key === activeKey);
@@ -71,7 +75,36 @@ function HeadRow({
     updateDraftState: updateSortableDraftState,
   });
 
+  const cleanupSortableScrollListener = useCallback(() => {
+    scrollingRef.current = false;
+    scrollListenerCleanupRef.current?.();
+    scrollListenerCleanupRef.current = null;
+  }, []);
+
+  const startSortableScrollListener = () => {
+    cleanupSortableScrollListener();
+
+    const scrollElement = getScrollElement?.();
+    if (!scrollElement) return;
+
+    scrollLeftRef.current = scrollElement.scrollLeft;
+
+    const handleScroll = () => {
+      const scrollLeft = scrollElement.scrollLeft;
+      if (scrollLeft === scrollLeftRef.current) return;
+
+      scrollLeftRef.current = scrollLeft;
+      scrollingRef.current = true;
+    };
+
+    scrollElement.addEventListener('scroll', handleScroll, { passive: true });
+    scrollListenerCleanupRef.current = () => {
+      scrollElement.removeEventListener('scroll', handleScroll);
+    };
+  };
+
   const cleanupSortable = (clearDraft = true) => {
+    cleanupSortableScrollListener();
     document.documentElement.style.cursor = '';
     setActiveKey(null);
     setTranslate({ x: 0, y: 0 });
@@ -84,6 +117,7 @@ function HeadRow({
 
       document.documentElement.style.cursor = 'move';
       sortablePreview.start();
+      startSortableScrollListener();
       const x =
         (event.activatorEvent as MouseEvent).offsetX -
         dragOverlaySize.width / 2;
@@ -116,6 +150,9 @@ function HeadRow({
     const activeKeys = (activeData?.sortKeys || []) as Key[];
     const overKeys = (overData?.sortKeys || []) as Key[];
 
+    // 滚动过程中禁止与固定列交换顺序
+    if (scrollingRef.current && overColumn?.fixed) return;
+
     if (
       !activeColumn ||
       !overColumn ||
@@ -135,6 +172,8 @@ function HeadRow({
     if (!activeData?.sortable || !overData?.sortable) {
       return;
     }
+
+    scrollingRef.current = false;
 
     // 获取当前的index，sortable数据由插件提供
     const activeIndex = activeData.sortable.index;
