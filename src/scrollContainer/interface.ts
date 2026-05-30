@@ -22,6 +22,7 @@ export interface ScrollBarContainerProps
     | { offsetLeft?: number | string; offsetRight?: number | string };
   updateDeps?: unknown[];
   onVerticalVisibleChange?: (visible: boolean) => void;
+  onVerticalScroll?: (scrollTop: number) => boolean | void;
 }
 
 export interface ScrollBarContainerRef {

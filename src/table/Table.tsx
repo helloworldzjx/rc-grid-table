@@ -614,6 +614,18 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
         [handleBodyScroll, handleVirtualScroll],
       );
 
+    const handleVerticalVirtualScroll = useCallback(
+      (scrollTop: number) => {
+        if (!inVirtual) {
+          return undefined;
+        }
+
+        handleVirtualScroll(scrollTop, false);
+        return true;
+      },
+      [handleVirtualScroll, inVirtual],
+    );
+
     const scrollTo = useCallback(
       (options?: TableScrollToOptions | number | null) => {
         if (
@@ -680,7 +692,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       [bodyScrollElement, lastRowSortItem],
     );
 
-    const tbodyHeightStyle = useMemo(() => {
+    const tbodyHeightStyle = useMemo<CSSProperties | undefined>(() => {
       if (isNum(scrollY) && scrollY > 0) {
         return inVirtual
           ? { height: scrollY, maxHeight: scrollY }
@@ -778,7 +790,10 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
           expanded={expanded}
           expandable={hasTreeData || treeExpandable}
           rowSupportExpand={rowExpandable}
-          className={classNames(rowClassName?.(rowData, rowIndex), options.className)}
+          className={classNames(
+            rowClassName?.(rowData, rowIndex),
+            options.className,
+          )}
           style={options.style}
           rowRef={options.rowRef}
           onRowResize={collectHeight}
@@ -851,6 +866,9 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
               }
               ref={setTableBodyRef}
               onScroll={handleBodyMergedScroll}
+              onVerticalScroll={
+                inVirtual ? handleVerticalVirtualScroll : undefined
+              }
               onVerticalVisibleChange={setHasVertical}
               updateDeps={[
                 bodyItems.length,

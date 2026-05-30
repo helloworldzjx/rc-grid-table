@@ -21,6 +21,7 @@ const ScrollContainer = forwardRef<
       showVertical,
       updateDeps,
       onVerticalVisibleChange,
+      onVerticalScroll,
       onScroll,
       ...rest
     },
@@ -48,6 +49,7 @@ const ScrollContainer = forwardRef<
       showVertical,
       updateDeps,
       onScroll,
+      onVerticalScroll,
     });
 
     const {

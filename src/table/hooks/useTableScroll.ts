@@ -51,6 +51,9 @@ export const useTableScroll = ({
   const tableBodyRef = useRef<ScrollBarContainerRef | null>(null);
   const tableHeadRef = useRef<HeadRef>(null);
   const tableSummaryRef = useRef<HTMLDivElement>(null);
+  const syncingScrollLeftRef = useRef(false);
+  const horizontalDraggingRef = useRef(false);
+  const lastBodyScrollLeftRef = useRef(0);
   const [bodyScrollElement, setBodyScrollElement] = useState<
     HTMLDivElement | undefined
   >();
@@ -74,7 +77,9 @@ export const useTableScroll = ({
 
   const setTableBodyRef = useCallback((node: ScrollBarContainerRef | null) => {
     tableBodyRef.current = node;
-    setBodyScrollElement(node?.nativeScrollElement);
+    const scrollElement = node?.nativeScrollElement;
+    lastBodyScrollLeftRef.current = scrollElement?.scrollLeft ?? 0;
+    setBodyScrollElement(scrollElement);
   }, []);
 
   const syncScrollState = useCallback(
@@ -99,6 +104,7 @@ export const useTableScroll = ({
   const syncHorizontalThumb = useCallback(
     (sourceElement?: HTMLDivElement | null) => {
       if (!horizontalThumbElement || !sourceElement) return;
+      if (horizontalDraggingRef.current) return;
 
       const track = horizontalThumbElement.parentElement;
       if (!track) return;
@@ -133,11 +139,16 @@ export const useTableScroll = ({
           : body || elements[0];
       const scrollLeft = source.scrollLeft;
 
+      syncingScrollLeftRef.current = true;
       elements.forEach((element) => {
         if (element !== source) {
           setElementScrollLeft(element, scrollLeft);
         }
       });
+      if (body) {
+        lastBodyScrollLeftRef.current = scrollLeft;
+      }
+      syncingScrollLeftRef.current = false;
       syncScrollState(source);
       syncHorizontalThumb(source);
     },
@@ -168,6 +179,11 @@ export const useTableScroll = ({
   const handleBodyScroll: UIEventHandler<HTMLDivElement> = useCallback(
     (event) => {
       onScroll?.(event);
+      if (syncingScrollLeftRef.current) return;
+      if (event.currentTarget.scrollLeft === lastBodyScrollLeftRef.current) {
+        return;
+      }
+      lastBodyScrollLeftRef.current = event.currentTarget.scrollLeft;
       syncScrollLeft(event.currentTarget);
     },
     [onScroll, syncScrollLeft],
@@ -182,6 +198,7 @@ export const useTableScroll = ({
 
       event.preventDefault();
       document.documentElement.style.userSelect = 'none';
+      horizontalDraggingRef.current = true;
 
       const trackRect = track.getBoundingClientRect();
       const thumbRect = thumb.getBoundingClientRect();
@@ -202,12 +219,15 @@ export const useTableScroll = ({
           maxTranslateX,
         );
         const percent = nextTranslateX / maxTranslateX;
+        thumb.style.transform = `translateX(${nextTranslateX}px)`;
         content.scrollLeft = percent * maxScrollLeft;
         syncScrollLeft(content);
       };
 
       const upHandler = () => {
+        horizontalDraggingRef.current = false;
         document.documentElement.style.userSelect = '';
+        syncHorizontalThumb(content);
         document.documentElement.removeEventListener('mousemove', moveHandler);
         document.documentElement.removeEventListener('mouseup', upHandler);
       };
@@ -221,6 +241,7 @@ export const useTableScroll = ({
       horizontalThumbElement,
       horizontalThumbWidth,
       syncScrollLeft,
+      syncHorizontalThumb,
     ],
   );
 
@@ -269,6 +290,7 @@ export const useTableScroll = ({
 
     const handlers = elements.map((element) => {
       const handleScroll = () => {
+        if (syncingScrollLeftRef.current) return;
         syncScrollLeft(element);
       };
       element.addEventListener('scroll', handleScroll);
