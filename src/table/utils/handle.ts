@@ -584,3 +584,96 @@ export function findNodeByKey(
   }
   return null;
 }
+
+export const isColumnsOrderEqual = (
+  a: ColumnState[] = [],
+  b: ColumnState[] = [],
+): boolean => {
+  if (a.length !== b.length) return false;
+
+  const orderedA = [...a].sort(
+    (prev, next) =>
+      (isNum(prev.order) ? prev.order : 0) -
+      (isNum(next.order) ? next.order : 0),
+  );
+  const orderedB = [...b].sort(
+    (prev, next) =>
+      (isNum(prev.order) ? prev.order : 0) -
+      (isNum(next.order) ? next.order : 0),
+  );
+
+  return orderedA.every((column, index) => {
+    const target = orderedB[index];
+    return (
+      !!target &&
+      column.key === target.key &&
+      column.order === target.order &&
+      isColumnsOrderEqual(column.children || [], target.children || [])
+    );
+  });
+};
+
+export const getSortablePreviewColumns = <T>(
+  columnsState: ColumnState<T>[],
+  sourceFlattenColumns: ColumnState<T>[],
+  sourceWidths: number[],
+) => {
+  const sourceColumnMap = new Map<Key, ColumnState<T>>();
+  const sourceWidthMap = new Map<Key, number>();
+
+  sourceFlattenColumns.forEach((column, index) => {
+    sourceColumnMap.set(column.key, column);
+
+    const width = sourceWidths[index] ?? column.width;
+    if (isNum(width)) {
+      sourceWidthMap.set(column.key, width);
+    }
+  });
+
+  const flattenColumns: ColumnState<T>[] = [];
+
+  const cloneColumns = (columns: ColumnState<T>[]): ColumnState<T>[] =>
+    columns.map((column) => {
+      const children = column.children?.length
+        ? cloneColumns(column.children)
+        : [];
+
+      if (children.length) {
+        return {
+          ...column,
+          width: undefined,
+          hasChildren: true,
+          children,
+        };
+      }
+
+      const sourceColumn = sourceColumnMap.get(column.key);
+      const width =
+        sourceWidthMap.get(column.key) ?? sourceColumn?.width ?? column.width;
+      const nextColumn = {
+        ...column,
+        width,
+        resizeMinWidth: sourceColumn?.resizeMinWidth ?? column.resizeMinWidth,
+        distribute: sourceColumn?.distribute ?? column.distribute,
+        widthManuallyChanged:
+          sourceColumn?.widthManuallyChanged ?? column.widthManuallyChanged,
+        autoWidthLocked:
+          sourceColumn?.autoWidthLocked ?? column.autoWidthLocked,
+        hasChildren: false,
+        children: [],
+      };
+
+      flattenColumns.push(nextColumn);
+      return nextColumn;
+    });
+
+  const treeColumns = cloneColumns(columnsState);
+
+  return {
+    treeColumns,
+    flattenColumns,
+    flattenColumnsWidths: flattenColumns.map(
+      (column) => column.width as number,
+    ),
+  };
+};

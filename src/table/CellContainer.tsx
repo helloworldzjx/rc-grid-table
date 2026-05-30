@@ -1,7 +1,7 @@
 import { motion } from 'motion/react';
 import React, { ElementType, forwardRef, HTMLAttributes, useMemo } from 'react';
 
-import { useTableContext } from './context';
+import { useSortingColumnsContext } from './sortingContext';
 
 type CellContainerProps = HTMLAttributes<HTMLDivElement> & {
   component?: ElementType;
@@ -18,7 +18,7 @@ type MotionCellContainerProps = CellContainerProps & {
 
 const CellContainer = forwardRef<HTMLDivElement, CellContainerProps>(
   ({ component: Component = 'div', ...props }, ref) => {
-    const { sortingColumns } = useTableContext();
+    const { sortingColumns } = useSortingColumnsContext();
     const MotionComponent = useMemo(
       () => (Component === 'div' ? motion.div : motion.create(Component)),
       [Component],

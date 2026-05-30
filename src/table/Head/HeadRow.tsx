@@ -7,15 +7,13 @@ import {
   DragStartEvent,
 } from '@dnd-kit/core';
 import { SortableContext } from '@dnd-kit/sortable';
-import { useDebounceFn } from 'ahooks';
-import React, { Key, useMemo, useRef, useState } from 'react';
+import React, { Key, useMemo, useState } from 'react';
 
 import { useTableContext } from '../context';
 import { CellType, ColumnState } from '../interface';
 import { useStyles } from '../style';
-import { findNodeByKey } from '../utils/handle';
-import { reorderColumnsState, SortablePlacement } from '../utils/sortable';
 import HeadCell from './HeadCell';
+import useSortablePreview from './useSortablePreview';
 
 interface HeadRowProps<T = any> {
   headRows: CellType<T>[][];
@@ -56,12 +54,10 @@ function HeadRow({
   const [activeKey, setActiveKey] = useState<Key | null>(null);
   const [dragOverlaySize] = useState({ width: 100, height: 40 });
   const [translate, setTranslate] = useState({ x: 0, y: 0 });
-  const draftStateRef = useRef<ColumnState[] | null>(null);
-  const draftChangedRef = useRef(false);
 
   const activeColumn = useMemo(() => {
     return columns.find((column) => column.key === activeKey);
-  }, [activeKey]);
+  }, [activeKey, columns]);
 
   const getSortableBaseState = () => {
     return (
@@ -70,102 +66,16 @@ function HeadRow({
     );
   };
 
-  const getColumnStartIndex = (
-    state: ColumnState[],
-    parentKey: Key,
-    keys: Key[],
-  ) => {
-    const parent =
-      parentKey === '' ? { children: state } : findNodeByKey(state, parentKey);
-    const keySet = new Set(keys);
-    const sortedChildren = [...(parent?.children || [])].sort(
-      (a, b) => a.order - b.order,
-    );
-    const index = sortedChildren.findIndex((column) => keySet.has(column.key));
-
-    return index === -1 ? null : index;
-  };
-
-  const getPlacement = (
-    state: ColumnState[],
-    activeColumn: ColumnState,
-    overColumn: ColumnState,
-    activeKeys: Key[],
-    overKeys: Key[],
-  ): SortablePlacement => {
-    const activeIndex = getColumnStartIndex(
-      state,
-      activeColumn.parentKey,
-      activeKeys,
-    );
-    const overIndex = getColumnStartIndex(
-      state,
-      overColumn.parentKey,
-      overKeys,
-    );
-
-    if (activeIndex !== null && overIndex !== null) {
-      return activeIndex > overIndex ? 'start' : 'end';
-    }
-
-    return activeColumn.order > overColumn.order ? 'start' : 'end';
-  };
-
-  const updateSortablePreview = (event: DragOverEvent) => {
-    const activeData = event.active.data.current;
-    const overData = event.over?.data.current;
-    const activeColumn = activeData?.column as ColumnState | undefined;
-    const overColumn = overData?.column as ColumnState | undefined;
-    const activeKeys = (activeData?.sortKeys || []) as Key[];
-    const overKeys = (overData?.sortKeys || []) as Key[];
-
-    if (
-      activeData?.type !== 'sortableColumns' ||
-      event.over?.id === event.active.id ||
-      !activeColumn ||
-      !overColumn ||
-      activeColumn.parentKey !== overColumn.parentKey ||
-      activeColumn.dragSortDisabled ||
-      !activeKeys.length ||
-      !overKeys.length
-    ) {
-      return false;
-    }
-    const baseState = draftStateRef.current || getSortableBaseState();
-    const placement = getPlacement(
-      baseState,
-      activeColumn,
-      overColumn,
-      activeKeys,
-      overKeys,
-    );
-    const nextState = reorderColumnsState(
-      baseState,
-      activeColumn.parentKey,
-      activeKeys,
-      overKeys,
-      placement,
-    );
-    if (nextState) {
-      draftChangedRef.current = true;
-      draftStateRef.current = nextState;
-      updateSortableDraftState(nextState);
-    }
-
-    // A null nextState can simply mean the current draft is already in this
-    // over position. The drop target is still valid and should be committable.
-    return true;
-  };
+  const sortablePreview = useSortablePreview({
+    getBaseState: getSortableBaseState,
+    updateDraftState: updateSortableDraftState,
+  });
 
   const cleanupSortable = (clearDraft = true) => {
     document.documentElement.style.cursor = '';
     setActiveKey(null);
     setTranslate({ x: 0, y: 0 });
-    draftStateRef.current = null;
-    draftChangedRef.current = false;
-    if (clearDraft) {
-      updateSortableDraftState(null);
-    }
+    sortablePreview.cleanup(clearDraft);
   };
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -173,8 +83,7 @@ function HeadRow({
       onSortableStart?.();
 
       document.documentElement.style.cursor = 'move';
-      draftStateRef.current = getSortableBaseState();
-      draftChangedRef.current = false;
+      sortablePreview.start();
       const x =
         (event.activatorEvent as MouseEvent).offsetX -
         dragOverlaySize.width / 2;
@@ -191,19 +100,63 @@ function HeadRow({
   };
 
   const handleDragOver = (event: DragOverEvent) => {
-    if (event.active.data.current?.type === 'sortableColumns') {
-      updateSortablePreview(event);
+    const activeData = event.active?.data.current;
+    const overData = event.over?.data.current;
+    if (!activeData || !overData) return;
+    if (
+      activeData.type !== 'sortableColumns' ||
+      overData.type !== 'sortableColumns'
+    ) {
+      return;
     }
-  };
+    if (event.active?.id === event.over?.id) return;
 
-  const { run: debounceDragOver } = useDebounceFn(handleDragOver, { wait: 50 });
+    const activeColumn = activeData?.column as ColumnState | undefined;
+    const overColumn = overData?.column as ColumnState | undefined;
+    const activeKeys = (activeData?.sortKeys || []) as Key[];
+    const overKeys = (overData?.sortKeys || []) as Key[];
+
+    if (
+      !activeColumn ||
+      !overColumn ||
+      !activeKeys.length ||
+      !overKeys.length
+    ) {
+      return;
+    }
+
+    if (
+      activeColumn.parentKey !== overColumn.parentKey ||
+      activeColumn.dragSortDisabled
+    ) {
+      return;
+    }
+
+    if (!activeData?.sortable || !overData?.sortable) {
+      return;
+    }
+
+    // 获取当前的index，sortable数据由插件提供
+    const activeIndex = activeData.sortable.index;
+    const overIndex = overData.sortable.index;
+
+    sortablePreview.schedule({
+      activeIndex,
+      overIndex,
+      activeColumn,
+      overColumn,
+      activeKeys,
+      overKeys,
+    });
+  };
 
   const handleDragEnd = (event: DragEndEvent) => {
     if (event.active.data.current?.type === 'sortableColumns') {
+      sortablePreview.flush();
       onSortableEnd?.();
-      const finalDraftState = draftStateRef.current;
+      const finalDraftState = sortablePreview.getDraftState();
 
-      if (draftChangedRef.current && finalDraftState) {
+      if (sortablePreview.hasDraftChanged() && finalDraftState) {
         updateMiddleState(finalDraftState);
         columnsConfig?.onChange?.(finalDraftState);
         cleanupSortable(false);
@@ -219,6 +172,7 @@ function HeadRow({
 
   const handleDragCancel = (event: DragCancelEvent) => {
     if (event.active.data.current?.type === 'sortableColumns') {
+      sortablePreview.cancel();
       onSortableEnd?.();
       cleanupSortable(true);
     }
@@ -232,7 +186,7 @@ function HeadRow({
     <RowComponent className={headRowCls}>
       <DndContext
         onDragStart={handleDragStart}
-        onDragOver={debounceDragOver}
+        onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
         onDragCancel={handleDragCancel}
       >

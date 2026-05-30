@@ -500,8 +500,6 @@ export interface TableContextProps<T = any> extends TableProps<T> {
   updateMiddleState: Dispatch<SetStateAction<ColumnState<T>[]>>;
   sortableDraftState?: ColumnState<T>[] | null;
   updateSortableDraftState: Dispatch<SetStateAction<ColumnState<T>[] | null>>;
-  sortingColumns: boolean;
-  updateSortingColumns: Dispatch<SetStateAction<boolean>>;
   innerColumnsState: ColumnState<T>[];
   getComponent: GetComponent;
   selection?: TableSelectionContextProps<T>;

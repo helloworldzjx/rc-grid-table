@@ -26,6 +26,7 @@ import {
   type TableProps,
   type TableRef,
 } from './interface';
+import { SortingColumnsProvider } from './sortingContext';
 import InternalTable from './Table';
 import { columnsWidthDistribute } from './utils/calc';
 import {
@@ -38,7 +39,13 @@ import {
   getDefaultExpandedRowKeys,
   getRecordKey,
 } from './utils/expand';
-import { columnsSort, filterColumns, parseMiddleState } from './utils/handle';
+import {
+  columnsSort,
+  filterColumns,
+  getSortablePreviewColumns,
+  isColumnsOrderEqual,
+  parseMiddleState,
+} from './utils/handle';
 import { mergeColumnsState } from './utils/mergedColumnsState';
 import { warningInvalidRecordKey } from './utils/warning';
 
@@ -50,34 +57,6 @@ type TableComponent = (<T = any>(
   EXPAND_COLUMN: ExpandColumnType;
   SELECTION_COLUMN: SelectionColumnType;
   ROW_SORT_COLUMN: RowSortColumnType;
-};
-
-const isColumnsOrderEqual = (
-  a: ColumnState[] = [],
-  b: ColumnState[] = [],
-): boolean => {
-  if (a.length !== b.length) return false;
-
-  const orderedA = [...a].sort(
-    (prev, next) =>
-      (isNum(prev.order) ? prev.order : 0) -
-      (isNum(next.order) ? next.order : 0),
-  );
-  const orderedB = [...b].sort(
-    (prev, next) =>
-      (isNum(prev.order) ? prev.order : 0) -
-      (isNum(next.order) ? next.order : 0),
-  );
-
-  return orderedA.every((column, index) => {
-    const target = orderedB[index];
-    return (
-      !!target &&
-      column.key === target.key &&
-      column.order === target.order &&
-      isColumnsOrderEqual(column.children || [], target.children || [])
-    );
-  });
 };
 
 function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
@@ -115,7 +94,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
   );
   /** 展平后的列 */
   const [flattenCols, setFlattenCols] = useState<ColumnState<T>[]>([]);
-  /** 列隐藏，列拖拽排序，列宽拖拽 */
+  /** 列隐藏，列拖拽排序，列宽拖拽、固定列 */
   const [innerColumnsState, setInnerColumnsState] = useState<ColumnState<T>[]>(
     [],
   );
@@ -123,7 +102,6 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
   const [sortableDraftState, setSortableDraftState] = useState<
     ColumnState<T>[] | null
   >(null);
-  const [sortingColumns, setSortingColumns] = useState(false);
   const [innerExpandedRowKeys, setInnerExpandedRowKeys] = useState<Key[]>(
     () => {
       if (expandable?.expandedRowKeys) return expandable.expandedRowKeys;
@@ -136,7 +114,23 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
   );
   /** 是否进行了修改表格外观的操作，操作后不再允许通过原columns修改middleState */
   const middleStateUpdated = useRef(false);
+  const sortablePreviewSourceRef = useRef<{
+    flattenColumns: ColumnState<T>[];
+    flattenColumnsWidths: number[];
+  } | null>(null);
+  const latestRenderedColumnsRef = useRef<{
+    flattenColumns: ColumnState<T>[];
+    flattenColumnsWidths: number[];
+  }>({
+    flattenColumns: [],
+    flattenColumnsWidths: [],
+  });
   const fixedOffset = useStickyOffsets(flattenColumnsWidths, flattenCols);
+
+  latestRenderedColumnsRef.current = {
+    flattenColumns: flattenCols,
+    flattenColumnsWidths,
+  };
 
   const enableColumnsConfig = useMemo(() => {
     return (
@@ -224,7 +218,9 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
 
   const { run: onResize } = useDebounceFn<OnResize>(
     ({ width, height }) => {
-      setContainerWidth(width);
+      if (!lockContainerWidth.current) {
+        setContainerWidth(width);
+      }
       setContainerHeight(height);
     },
     { wait: 5 },
@@ -274,7 +270,6 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
   useIsomorphicLayoutEffect(() => {
     if (
       !middleStateUpdated.current &&
-      !lockContainerWidth.current &&
       containerWidth &&
       ready &&
       enableColumnsConfig &&
@@ -304,7 +299,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
   ]);
 
   useIsomorphicLayoutEffect(() => {
-    if (!lockContainerWidth.current && containerWidth && middleState.length) {
+    if (containerWidth && middleState.length) {
       const realColumns = filterColumns(size, mergedColumns);
       const mergedColumnsState = mergeColumnsState(realColumns, middleState);
 
@@ -329,11 +324,23 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
   ]);
 
   useIsomorphicLayoutEffect(() => {
-    if (
-      !lockContainerWidth.current &&
-      containerWidth &&
-      renderedColumnsState.length
-    ) {
+    if (containerWidth && renderedColumnsState.length) {
+      if (sortableDraftState) {
+        const previewSource =
+          sortablePreviewSourceRef.current ?? latestRenderedColumnsRef.current;
+        const previewColumns = getSortablePreviewColumns(
+          renderedColumnsState,
+          previewSource.flattenColumns,
+          previewSource.flattenColumnsWidths,
+        );
+
+        setCols(previewColumns.treeColumns);
+        setFlattenCols(previewColumns.flattenColumns);
+        setFlattenColumnsWidths(previewColumns.flattenColumnsWidths);
+        setInitialized(true);
+        return;
+      }
+
       const { flattenColumns, treeColumns } = columnsWidthDistribute(
         containerWidth,
         renderedColumnsState,
@@ -341,11 +348,20 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
         leafColumnMinWidth,
         size,
       );
+      const nextFlattenColumnsWidths = flattenColumns.map(
+        (column) => column.width as number,
+      );
+
+      if (!sortableDraftState) {
+        sortablePreviewSourceRef.current = {
+          flattenColumns,
+          flattenColumnsWidths: nextFlattenColumnsWidths,
+        };
+      }
+
       setCols(treeColumns);
       setFlattenCols(flattenColumns);
-      setFlattenColumnsWidths(
-        flattenColumns.map((column) => column.width as number),
-      );
+      setFlattenColumnsWidths(nextFlattenColumnsWidths);
       setInitialized(true);
     }
   }, [
@@ -354,6 +370,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     columnMinWidth,
     leafColumnMinWidth,
     size,
+    sortableDraftState,
   ]);
 
   /** 使用了列配置的处理 end */
@@ -421,8 +438,6 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     updateMiddleState,
     sortableDraftState,
     updateSortableDraftState: setSortableDraftState,
-    sortingColumns,
-    updateSortingColumns: setSortingColumns,
     innerColumnsState,
     columnsConfig: mergedColumnsConfig,
     components,
@@ -433,9 +448,11 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
 
   return (
     <TableContext.Provider value={{ ...baseProps, ...rest }}>
-      <ResizeObserver onResize={onResize}>
-        <InternalTable tableRef={ref} />
-      </ResizeObserver>
+      <SortingColumnsProvider>
+        <ResizeObserver onResize={onResize}>
+          <InternalTable tableRef={ref} />
+        </ResizeObserver>
+      </SortingColumnsProvider>
     </TableContext.Provider>
   );
 }

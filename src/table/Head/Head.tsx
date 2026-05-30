@@ -8,6 +8,7 @@ import React, {
 
 import { useTableContext } from '../context';
 import { CellType } from '../interface';
+import { useSortingColumnsContext } from '../sortingContext';
 import { useStyles } from '../style';
 import HeadRow from './HeadRow';
 
@@ -24,7 +25,8 @@ interface HeadProps<T = any> {
 const Head = forwardRef<HeadRef, HeadProps>(
   ({ rows, className, style }, ref) => {
     const { headCls, headInnerCls } = useStyles();
-    const { getComponent, updateSortingColumns } = useTableContext();
+    const { getComponent } = useTableContext();
+    const { updateSortingColumns } = useSortingColumnsContext();
     const innerRef = useRef<HTMLDivElement>(null);
     const WrapperComponent = getComponent(['header', 'wrapper'], 'div');
 
