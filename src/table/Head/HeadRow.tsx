@@ -15,6 +15,8 @@ import { useStyles } from '../style';
 import HeadCell from './HeadCell';
 import useSortablePreview from './useSortablePreview';
 
+const SORTABLE_SCROLL_IDLE_DELAY = 120;
+
 interface HeadRowProps<T = any> {
   headRows: CellType<T>[][];
   row: CellType<T>[];
@@ -56,6 +58,7 @@ function HeadRow({
   const [dragOverlaySize] = useState({ width: 100, height: 40 });
   const [translate, setTranslate] = useState({ x: 0, y: 0 });
   const scrollListenerCleanupRef = useRef<(() => void) | null>(null);
+  const scrollEndTimerRef = useRef<NodeJS.Timeout | null>(null);
   const scrollLeftRef = useRef(0);
   const scrollingRef = useRef(false);
 
@@ -76,6 +79,7 @@ function HeadRow({
   });
 
   const cleanupSortableScrollListener = useCallback(() => {
+    clearTimeout(scrollEndTimerRef.current!);
     scrollingRef.current = false;
     scrollListenerCleanupRef.current?.();
     scrollListenerCleanupRef.current = null;
@@ -95,6 +99,10 @@ function HeadRow({
 
       scrollLeftRef.current = scrollLeft;
       scrollingRef.current = true;
+      clearTimeout(scrollEndTimerRef.current!);
+      scrollEndTimerRef.current = setTimeout(() => {
+        scrollingRef.current = false;
+      }, SORTABLE_SCROLL_IDLE_DELAY);
     };
 
     scrollElement.addEventListener('scroll', handleScroll, { passive: true });
@@ -150,15 +158,17 @@ function HeadRow({
     const activeKeys = (activeData?.sortKeys || []) as Key[];
     const overKeys = (overData?.sortKeys || []) as Key[];
 
-    // 滚动过程中禁止与固定列交换顺序
-    if (scrollingRef.current && overColumn?.fixed) return;
-
     if (
       !activeColumn ||
       !overColumn ||
       !activeKeys.length ||
       !overKeys.length
     ) {
+      return;
+    }
+
+    // 滚动过程中禁止与固定列交换顺序，等滚动空闲后再允许正常拖拽排序。
+    if (scrollingRef.current && overColumn.fixed) {
       return;
     }
 
@@ -172,8 +182,6 @@ function HeadRow({
     if (!activeData?.sortable || !overData?.sortable) {
       return;
     }
-
-    scrollingRef.current = false;
 
     // 获取当前的index，sortable数据由插件提供
     const activeIndex = activeData.sortable.index;
