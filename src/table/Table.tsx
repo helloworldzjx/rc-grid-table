@@ -30,6 +30,8 @@ import React, {
 import { isNum, isObject, isValidKey } from '../_utils/validate';
 import BodyRow from './Body/BodyRow';
 import ExpandedRow from './Body/ExpandedRow';
+import type { BodyItem, BodyRenderOptions } from './Body/interface';
+import useTableVirtualBody from './Body/virtual/useTableVirtualBody';
 import Head from './Head/Head';
 import HorizontalScrollbar from './HorizontalScrollbar';
 import Placeholder from './Placeholder';
@@ -39,8 +41,7 @@ import { useComponentsContext } from './componentsContext';
 import { useTableContext } from './context';
 import { useExpandableContext } from './expandableContext';
 import useTableScroll from './hooks/useTableScroll';
-import useVirtualBody from './hooks/useVirtualBody';
-import type { TableProps, TableRef, TableScrollToOptions } from './interface';
+import type { TableProps, TableRef } from './interface';
 import { usePrefixClsContext } from './prefixClsContext';
 import { useRowSortableContext } from './rowSortableContext';
 import { useStyles } from './style';
@@ -51,7 +52,7 @@ import {
   getRecordKey,
   hasChildrenInData,
 } from './utils/expand';
-import { getCellSpan, parseHeaderRows } from './utils/handle';
+import { parseHeaderRows } from './utils/handle';
 import { getRowSortEntities, reorderDataSource } from './utils/rowSortable';
 import { warningInvalidRecordKey } from './utils/warning';
 
@@ -78,31 +79,6 @@ const isDescendantOrSelfPath = (
 interface GridTableProps {
   tableRef?: React.Ref<TableRef>;
 }
-
-type BodyItem<T = any> =
-  | {
-      type: 'row';
-      key: Key;
-      reactKey: Key;
-      record: T;
-      rowIndex: number;
-      indent: number;
-      rowKeyValue?: Key;
-      expanded: boolean;
-      treeExpandable: boolean;
-      rowExpandable: boolean;
-      invalidRowKey: boolean;
-    }
-  | {
-      type: 'expanded';
-      key: Key;
-      reactKey: Key;
-      record: T;
-      rowIndex: number;
-      indent: number;
-      expanded: boolean;
-      className?: string;
-    };
 
 const Table = forwardRef<HTMLDivElement, GridTableProps>(
   ({ tableRef }, ref) => {
@@ -161,9 +137,6 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       bodyCls,
       bodyInnerCls,
       bodyRowCls,
-      bodyVirtualFillerCls,
-      bodyVirtualInnerCls,
-      bodyVirtualRowSpanCls,
       cellCls,
       noDataCellCls,
       noDataCellContentCls,
@@ -293,33 +266,6 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       isTreeMode,
       mergedExpandedRowKeys,
     ]);
-
-    const virtualData = useMemo(
-      () =>
-        bodyItems.map((item) => ({
-          key: item.key,
-          item,
-        })),
-      [bodyItems],
-    );
-
-    const rowItemIndexMap = useMemo(() => {
-      const map = new Map<number, number>();
-      bodyItems.forEach((item, index) => {
-        if (item.type === 'row') {
-          map.set(item.rowIndex, index);
-        }
-      });
-      return map;
-    }, [bodyItems]);
-
-    const rowLastItemIndexMap = useMemo(() => {
-      const map = new Map<number, number>();
-      bodyItems.forEach((item, index) => {
-        map.set(item.rowIndex, index);
-      });
-      return map;
-    }, [bodyItems]);
 
     const lastRowSortItem = useMemo(
       () => rowSortItems[rowSortItems.length - 1],
@@ -452,240 +398,29 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       ],
     });
 
-    const {
-      inVirtual,
-      scrollHeight: virtualScrollHeight,
-      offsetY: virtualOffsetY,
-      visibleStart: virtualVisibleStart,
-      visibleEnd: virtualVisibleEnd,
-      visibleItems,
-      getItemSize,
-      setItemRef,
-      collectHeight,
-      handleScroll: handleVirtualScroll,
-      scrollTo: scrollVirtualTo,
-    } = useVirtualBody({
-      data: virtualData,
+    const virtualBodyUpdateDeps = useMemo(
+      () => [mergedExpandedRowKeys, columnsWidthTotal],
+      [columnsWidthTotal, mergedExpandedRowKeys],
+    );
+
+    const virtualBody = useTableVirtualBody({
+      bodyItems,
+      flattenDataLength: flattenData.length,
+      flattenColumns,
       scrollElement: bodyScrollElement,
       scrollY,
       virtual,
       size,
+      onBodyScroll: handleBodyScroll,
+      scrollBodyTo,
+      scrollBodyToTop,
+      extraUpdateDeps: virtualBodyUpdateDeps,
     });
-
-    const getRowSpan = useCallback(
-      (columnIndex: number, rowIndex: number) => {
-        const bodyItemIndex = rowItemIndexMap.get(rowIndex);
-        const bodyItem =
-          bodyItemIndex === undefined ? undefined : bodyItems[bodyItemIndex];
-
-        if (!bodyItem || bodyItem.type !== 'row') {
-          return 1;
-        }
-
-        return getCellSpan(
-          flattenColumns[columnIndex]?.onCell?.(
-            bodyItem.record,
-            bodyItem.rowIndex,
-          )?.rowSpan,
-        );
-      },
-      [bodyItems, flattenColumns, rowItemIndexMap],
-    );
-
-    const virtualRowSpanItems = useMemo(() => {
-      if (!inVirtual || !bodyItems.length || !flattenColumns.length) {
-        return [];
-      }
-
-      const columnIndexes = flattenColumns.map((_, columnIndex) => columnIndex);
-
-      const visibleRowIndexes = bodyItems
-        .slice(virtualVisibleStart, virtualVisibleEnd + 1)
-        .filter(
-          (item): item is Extract<BodyItem, { type: 'row' }> =>
-            item.type === 'row',
-        )
-        .map((item) => item.rowIndex);
-
-      if (!visibleRowIndexes.length) {
-        return [];
-      }
-
-      let startRowIndex = Math.min(...visibleRowIndexes);
-      let endRowIndex = Math.max(...visibleRowIndexes);
-
-      let firstRowSpanColumns = columnIndexes.filter(
-        (columnIndex) => getRowSpan(columnIndex, startRowIndex) === 0,
-      );
-
-      for (let rowIndex = startRowIndex; rowIndex >= 0; rowIndex -= 1) {
-        firstRowSpanColumns = firstRowSpanColumns.filter(
-          (columnIndex) => getRowSpan(columnIndex, rowIndex) === 0,
-        );
-        if (!firstRowSpanColumns.length) {
-          startRowIndex = rowIndex;
-          break;
-        }
-      }
-
-      let lastRowSpanColumns = columnIndexes.filter(
-        (columnIndex) => getRowSpan(columnIndex, endRowIndex) !== 1,
-      );
-
-      for (
-        let rowIndex = endRowIndex;
-        rowIndex < flattenData.length;
-        rowIndex += 1
-      ) {
-        lastRowSpanColumns = lastRowSpanColumns.filter(
-          (columnIndex) => getRowSpan(columnIndex, rowIndex) !== 1,
-        );
-        if (!lastRowSpanColumns.length) {
-          endRowIndex = Math.max(rowIndex - 1, endRowIndex);
-          break;
-        }
-      }
-
-      const rowSpanItems: {
-        bodyItem: Extract<BodyItem, { type: 'row' }>;
-        top: number;
-        getHeight: (rowSpan: number) => number;
-      }[] = [];
-
-      for (
-        let rowIndex = startRowIndex;
-        rowIndex <= endRowIndex;
-        rowIndex += 1
-      ) {
-        const bodyItemIndex = rowItemIndexMap.get(rowIndex);
-        const bodyItem =
-          bodyItemIndex === undefined ? undefined : bodyItems[bodyItemIndex];
-
-        if (
-          !bodyItem ||
-          bodyItem.type !== 'row' ||
-          !columnIndexes.some(
-            (columnIndex) => getRowSpan(columnIndex, rowIndex) > 1,
-          )
-        ) {
-          continue;
-        }
-
-        const sourceSize = getItemSize(bodyItem.key);
-        rowSpanItems.push({
-          bodyItem,
-          top: sourceSize.top,
-          getHeight: (rowSpan: number) => {
-            const endRowIndex = Math.min(
-              bodyItem.rowIndex + rowSpan - 1,
-              flattenData.length - 1,
-            );
-            const endBodyItemIndex = rowLastItemIndexMap.get(endRowIndex);
-            const endBodyItem =
-              endBodyItemIndex === undefined
-                ? undefined
-                : bodyItems[endBodyItemIndex];
-
-            if (!endBodyItem) {
-              return sourceSize.bottom - sourceSize.top;
-            }
-
-            const size = getItemSize(bodyItem.key, endBodyItem.key);
-            return size.bottom - size.top;
-          },
-        });
-      }
-
-      return rowSpanItems;
-    }, [
-      bodyItems,
-      flattenColumns,
-      flattenData.length,
-      getItemSize,
-      getRowSpan,
-      inVirtual,
-      rowItemIndexMap,
-      rowLastItemIndexMap,
-      virtualVisibleEnd,
-      virtualVisibleStart,
-    ]);
-
-    const handleBodyMergedScroll: React.UIEventHandler<HTMLDivElement> =
-      useCallback(
-        (event) => {
-          handleBodyScroll(event);
-          handleVirtualScroll(event.currentTarget.scrollTop);
-        },
-        [handleBodyScroll, handleVirtualScroll],
-      );
-
-    const handleVerticalVirtualScroll = useCallback(
-      (scrollTop: number) => {
-        if (!inVirtual) {
-          return undefined;
-        }
-
-        handleVirtualScroll(scrollTop, false);
-        return true;
-      },
-      [handleVirtualScroll, inVirtual],
-    );
-
-    const scrollTo = useCallback(
-      (options?: TableScrollToOptions | number | null) => {
-        if (
-          inVirtual &&
-          options &&
-          typeof options === 'object' &&
-          (options.top !== undefined ||
-            options.index !== undefined ||
-            options.key !== undefined)
-        ) {
-          const virtualOptions = { ...options };
-          if (options.key !== undefined) {
-            virtualOptions.key = `row-${options.key}`;
-          }
-          if (options.index !== undefined) {
-            const targetRowIndex = Math.floor(options.index);
-            const targetItemIndex = bodyItems.findIndex(
-              (item) => item.type === 'row' && item.rowIndex === targetRowIndex,
-            );
-            if (targetItemIndex >= 0) {
-              virtualOptions.index = targetItemIndex;
-            }
-          }
-
-          if (scrollVirtualTo(virtualOptions)) {
-            if (options.left !== undefined) {
-              scrollBodyTo({ left: options.left });
-            }
-            return;
-          }
-        }
-
-        if (inVirtual && typeof options === 'number') {
-          scrollVirtualTo(options);
-          return;
-        }
-
-        scrollBodyTo((options || undefined) as ScrollToOptions | undefined);
-      },
-      [bodyItems, inVirtual, scrollBodyTo, scrollVirtualTo],
-    );
-
-    const scrollToTop = useCallback(() => {
-      if (inVirtual) {
-        scrollVirtualTo(0);
-        return;
-      }
-
-      scrollBodyToTop();
-    }, [inVirtual, scrollBodyToTop, scrollVirtualTo]);
 
     useImperativeHandle(tableRef, () => ({
       nativeElement: wrapperRef.current!,
-      scrollTo,
-      scrollToTop,
+      scrollTo: virtualBody.scrollTo,
+      scrollToTop: virtualBody.scrollToTop,
       scrollToLeft,
     }));
 
@@ -696,16 +431,6 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       }),
       [bodyScrollElement, lastRowSortItem],
     );
-
-    const tbodyHeightStyle = useMemo<CSSProperties | undefined>(() => {
-      if (isNum(scrollY) && scrollY > 0) {
-        return inVirtual
-          ? { height: scrollY, maxHeight: scrollY }
-          : { maxHeight: scrollY };
-      }
-
-      return undefined;
-    }, [inVirtual, scrollY]);
 
     const TableComponent = getComponent(['table'], 'div');
     const BodyWrapperComponent = getComponent(['body', 'wrapper'], 'div');
@@ -730,15 +455,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
 
     const renderBodyItem = (
       bodyItem: BodyItem,
-      options: {
-        virtual?: boolean;
-        style?: CSSProperties;
-        rowRef?: (element: HTMLDivElement | null) => void;
-        renderKey?: Key;
-        className?: string;
-        virtualRenderMode?: 'normal' | 'rowSpan';
-        getVirtualRowSpanHeight?: (rowSpan: number) => number;
-      } = {},
+      options: BodyRenderOptions = {},
     ) => {
       if (bodyItem.type === 'expanded') {
         return (
@@ -748,8 +465,8 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
             indent={1}
             style={options.style}
             rowRef={options.rowRef}
-            onRowResize={collectHeight}
-            virtual={options.virtual}
+            onRowResize={options.onRowResize}
+            renderMode={options.renderMode}
           >
             {expandable?.expandedRowRender?.(
               bodyItem.record,
@@ -801,10 +518,9 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
           )}
           style={options.style}
           rowRef={options.rowRef}
-          onRowResize={collectHeight}
-          virtual={options.virtual}
-          virtualRenderMode={options.virtualRenderMode}
-          getVirtualRowSpanHeight={options.getVirtualRowSpanHeight}
+          onRowResize={options.onRowResize}
+          renderMode={options.renderMode}
+          getRowSpanHeight={options.getRowSpanHeight}
           rowSortDragDisabled={dragDisabled}
           rowSortDropDisabled={dropDisabled}
           rowSortDragging={activeRowSortKey === key}
@@ -860,7 +576,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
               className={bodyCls}
               classNames={{ inner: bodyInnerCls }}
               contentComponent={BodyWrapperComponent}
-              styles={{ content: tbodyHeightStyle }}
+              styles={{ content: virtualBody.bodyStyle }}
               showVertical={
                 !!scrollY
                   ? {
@@ -869,19 +585,10 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
                   : undefined
               }
               ref={setTableBodyRef}
-              onScroll={handleBodyMergedScroll}
-              onVerticalScroll={
-                inVirtual ? handleVerticalVirtualScroll : undefined
-              }
+              onScroll={virtualBody.handleBodyScroll}
+              onVerticalScroll={virtualBody.handleVerticalScroll}
               onVerticalVisibleChange={setHasVertical}
-              updateDeps={[
-                bodyItems.length,
-                mergedExpandedRowKeys,
-                columnsWidthTotal,
-                scrollY,
-                inVirtual,
-                virtualScrollHeight,
-              ]}
+              updateDeps={virtualBody.updateDeps}
             >
               {!dataSource?.length && (
                 <BodyRowComponent className={bodyRowCls}>
@@ -915,40 +622,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
                   items={rowSortItems}
                   strategy={verticalListSortingStrategy}
                 >
-                  {!!dataSource?.length &&
-                    (inVirtual ? (
-                      <div
-                        className={bodyVirtualFillerCls}
-                        style={{ height: virtualScrollHeight }}
-                      >
-                        <div
-                          className={bodyVirtualInnerCls}
-                          style={{
-                            transform: `translateY(${virtualOffsetY}px)`,
-                          }}
-                        >
-                          {visibleItems.map(({ key, item }) =>
-                            renderBodyItem(item, {
-                              virtual: true,
-                              rowRef: (element) => setItemRef(key, element),
-                            }),
-                          )}
-                          {virtualRowSpanItems.map(
-                            ({ bodyItem, top, getHeight }) =>
-                              renderBodyItem(bodyItem, {
-                                virtual: true,
-                                renderKey: `rowspan-${bodyItem.reactKey}`,
-                                className: bodyVirtualRowSpanCls,
-                                style: { top: top - virtualOffsetY },
-                                virtualRenderMode: 'rowSpan',
-                                getVirtualRowSpanHeight: getHeight,
-                              }),
-                          )}
-                        </div>
-                      </div>
-                    ) : (
-                      bodyItems.map((item) => renderBodyItem(item))
-                    ))}
+                  {!!dataSource?.length && virtualBody.render(renderBodyItem)}
                 </SortableContext>
               </DndContext>
             </ScrollBarContainer>

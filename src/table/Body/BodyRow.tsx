@@ -14,8 +14,9 @@ import { usePrefixClsContext } from '../prefixClsContext';
 import { useRowSortableContext } from '../rowSortableContext';
 import { getComponentCls } from '../style/classNames';
 import { isInternalColumn, isRowSortColumn } from '../utils/const';
-import { getCellSpan } from '../utils/handle';
-import BodyCell, { BodyCellVirtualRenderMode } from './BodyCell';
+import BodyCell from './BodyCell';
+import { getBodyCellSpanInfo, isVirtualBodyRenderMode } from './cellSpan';
+import type { BodyRenderMode } from './interface';
 
 interface BodyRowProps<T = any> {
   rowData: T;
@@ -27,9 +28,8 @@ interface BodyRowProps<T = any> {
   style?: CSSProperties;
   rowRef?: Ref<HTMLDivElement>;
   onRowResize?: () => void;
-  virtual?: boolean;
-  virtualRenderMode?: BodyCellVirtualRenderMode;
-  getVirtualRowSpanHeight?: (rowSpan: number) => number;
+  renderMode?: BodyRenderMode;
+  getRowSpanHeight?: (rowSpan: number) => number;
   indent?: number;
   expanded?: boolean;
   expandable?: boolean;
@@ -49,9 +49,8 @@ function BodyRow({
   style,
   rowRef,
   onRowResize,
-  virtual = false,
-  virtualRenderMode = 'normal',
-  getVirtualRowSpanHeight,
+  renderMode = 'normal',
+  getRowSpanHeight,
   indent = 0,
   expanded = false,
   expandable = false,
@@ -82,6 +81,7 @@ function BodyRow({
 
   const expandByClick =
     !!expandableConfig?.expandRowByClick && rowSupportExpand;
+  const virtual = isVirtualBodyRenderMode(renderMode);
   const firstDataColumnIndex = flattenColumns.findIndex(
     (column) => !isInternalColumn(column),
   );
@@ -170,11 +170,14 @@ function BodyRow({
       ref={rowRef}
     >
       {flattenColumns?.map((column, colIndex) => {
-        if (!virtual) {
+        if (renderMode === 'normal') {
           const cellProps = column.onCell?.(rowData, rowIndex);
           if (
-            getCellSpan(cellProps?.rowSpan) === 0 ||
-            getCellSpan(cellProps?.colSpan) === 0
+            getBodyCellSpanInfo({
+              renderMode,
+              rowSpan: cellProps?.rowSpan,
+              colSpan: cellProps?.colSpan,
+            }).hidden
           ) {
             return null;
           }
@@ -187,10 +190,9 @@ function BodyRow({
             rowIndex={rowIndex}
             column={column}
             fixedInfo={fixedInfoList[colIndex]}
-            virtual={virtual}
+            renderMode={renderMode}
             colIndex={colIndex}
-            virtualRenderMode={virtualRenderMode}
-            getVirtualRowSpanHeight={getVirtualRowSpanHeight}
+            getRowSpanHeight={getRowSpanHeight}
             indent={indent}
             expanded={expanded}
             expandable={expandable}

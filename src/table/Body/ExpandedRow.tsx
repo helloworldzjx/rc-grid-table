@@ -7,6 +7,8 @@ import { useTableContext } from '../context';
 import { useExpandableContext } from '../expandableContext';
 import { usePrefixClsContext } from '../prefixClsContext';
 import { getComponentCls } from '../style/classNames';
+import { isVirtualBodyRenderMode } from './cellSpan';
+import type { BodyRenderMode } from './interface';
 
 interface ExpandedRowProps {
   children?: ReactNode;
@@ -14,7 +16,7 @@ interface ExpandedRowProps {
   style?: CSSProperties;
   rowRef?: Ref<HTMLDivElement>;
   onRowResize?: () => void;
-  virtual?: boolean;
+  renderMode?: BodyRenderMode;
   indent?: number;
 }
 
@@ -24,7 +26,7 @@ const ExpandedRow: FC<ExpandedRowProps> = ({
   style,
   rowRef,
   onRowResize,
-  virtual = false,
+  renderMode = 'normal',
   indent = 0,
 }) => {
   const {
@@ -46,6 +48,7 @@ const ExpandedRow: FC<ExpandedRowProps> = ({
   } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
   const RowComponent = getComponent(['body', 'row'], 'div');
   const CellComponent = getComponent(['body', 'cell'], 'div');
+  const virtual = isVirtualBodyRenderMode(renderMode);
   const expandedRowCellWidth = Math.min(
     columnsWidthTotal,
     containerWidth || columnsWidthTotal,

@@ -6,8 +6,8 @@ import {
   MIN_THUMB_SIZE,
   SCROLLBAR_VISIBLE_TOLERANCE,
 } from '../../_utils/const';
-import type { ScrollBarContainerRef } from '../../scrollContainer/interface';
 import type { HeadRef } from '../Head/Head';
+import type { ScrollBarContainerRef } from '../ScrollContainer/interface';
 
 interface UseTableScrollProps {
   containerWidth: number;

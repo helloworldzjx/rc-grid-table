@@ -12,7 +12,7 @@ import React, {
   useMemo,
 } from 'react';
 
-import { isNum, isValidKey } from '../../_utils/validate';
+import { isValidKey } from '../../_utils/validate';
 import CellContainer from '../CellContainer';
 import { useComponentsContext } from '../componentsContext';
 import { useExpandableContext } from '../expandableContext';
@@ -27,20 +27,19 @@ import {
   isSelectionColumn,
 } from '../utils/const';
 import { FixedInfo } from '../utils/fixedColumns';
-import { getCellSpan, getEllipsisTitle } from '../utils/handle';
+import { getEllipsisTitle } from '../utils/handle';
+import { getBodyCellSpanInfo } from './cellSpan';
+import type { BodyRenderMode } from './interface';
 import RowSortBodyCell from './RowSortBodyCell';
-
-export type BodyCellVirtualRenderMode = 'normal' | 'rowSpan';
 
 interface BodyRowProps<T = any> {
   column: ColumnState<T>;
   rowData: T;
   rowIndex: number;
   fixedInfo: FixedInfo;
-  virtual?: boolean;
+  renderMode?: BodyRenderMode;
   colIndex?: number;
-  virtualRenderMode?: BodyCellVirtualRenderMode;
-  getVirtualRowSpanHeight?: (rowSpan: number) => number;
+  getRowSpanHeight?: (rowSpan: number) => number;
   indent?: number;
   expanded?: boolean;
   expandable?: boolean;
@@ -62,10 +61,9 @@ function BodyCell({
   column,
   rowIndex,
   fixedInfo,
-  virtual = false,
+  renderMode = 'normal',
   colIndex,
-  virtualRenderMode = 'normal',
-  getVirtualRowSpanHeight,
+  getRowSpanHeight,
   indent = 0,
   expanded = false,
   expandable = false,
@@ -114,31 +112,26 @@ function BodyCell({
     () => column.onCell?.(rowData, rowIndex) || {},
     [column.onCell, rowData, rowIndex],
   );
-  const rowSpan = getCellSpan(cellProps.rowSpan);
-  const colSpan = getCellSpan(cellProps.colSpan);
-  const hiddenByVirtual =
-    virtual &&
-    (virtualRenderMode === 'rowSpan'
-      ? rowSpan <= 1 || colSpan === 0
-      : rowSpan === 0 || colSpan === 0 || rowSpan > 1);
+  const spanInfo = useMemo(
+    () =>
+      getBodyCellSpanInfo({
+        renderMode,
+        rowSpan: cellProps.rowSpan,
+        colSpan: cellProps.colSpan,
+        colIndex,
+        getRowSpanHeight,
+      }),
+    [
+      cellProps.colSpan,
+      cellProps.rowSpan,
+      colIndex,
+      getRowSpanHeight,
+      renderMode,
+    ],
+  );
 
   const mergedStyle = useMemo(() => {
-    const style: CSSProperties = {};
-    const virtualRowSpanStyle: CSSProperties = {};
-
-    if (virtual && colIndex !== undefined) {
-      style.gridColumn = `${colIndex + 1} / span ${colSpan || 1}`;
-      if (virtualRenderMode === 'rowSpan') {
-        virtualRowSpanStyle.height = getVirtualRowSpanHeight?.(rowSpan);
-      }
-    } else {
-      if (isNum(rowSpan) && rowSpan > 1) {
-        style.gridRow = `span ${rowSpan}`;
-      }
-      if (isNum(colSpan) && colSpan > 1) {
-        style.gridColumn = `span ${colSpan}`;
-      }
-    }
+    const style: CSSProperties = { ...spanInfo.style };
 
     if (fixedInfo.fixStart !== null) {
       style.left = fixedInfo.fixStart as number;
@@ -156,7 +149,6 @@ function BodyCell({
       ...column.style,
       ...cellProps.style,
       ...rowSortCellStyle,
-      ...virtualRowSpanStyle,
     };
   }, [
     cellProps,
@@ -165,12 +157,7 @@ function BodyCell({
     column.align,
     column.style,
     rowSortCellStyle,
-    virtual,
-    colIndex,
-    virtualRenderMode,
-    getVirtualRowSpanHeight,
-    rowSpan,
-    colSpan,
+    spanInfo.style,
   ]);
 
   const restCellProps = useMemo(() => {
@@ -183,7 +170,7 @@ function BodyCell({
     return restProps;
   }, [column.onCell, rowData, rowIndex]);
 
-  if (hiddenByVirtual) {
+  if (spanInfo.hidden) {
     return null;
   }
 

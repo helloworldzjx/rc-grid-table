@@ -2,9 +2,9 @@ import { useIsomorphicLayoutEffect } from 'ahooks';
 import { Key, useCallback, useMemo, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 
-import { isNum } from '../../_utils/validate';
-import type { SizeType, TableScrollToOptions } from '../interface';
-import { getDefaultInternalColumnWidth } from '../utils/const';
+import { isNum } from '../../../_utils/validate';
+import type { SizeType, TableScrollToOptions } from '../../interface';
+import { getDefaultInternalColumnWidth } from '../../utils/const';
 
 type VirtualWheelEvent = WheelEvent & {
   _virtualHandled?: boolean;
