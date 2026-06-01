@@ -3,13 +3,15 @@ import type {
   DraggableSyntheticListeners,
 } from '@dnd-kit/core';
 import classNames from 'classnames';
-import React, { CSSProperties, Key, memo } from 'react';
+import React, { CSSProperties, Key, memo, useMemo } from 'react';
 
 import { isValidKey } from '../../_utils/validate';
 import CellContainer from '../CellContainer';
-import { useTableContext } from '../context';
+import { useComponentsContext } from '../componentsContext';
 import { ColumnState } from '../interface';
-import { useStyles } from '../style';
+import { usePrefixClsContext } from '../prefixClsContext';
+import { useRowSortableContext } from '../rowSortableContext';
+import { getComponentCls } from '../style/classNames';
 import { FixedInfo } from '../utils/fixedColumns';
 
 type BodyCellBaseProps<T = any> = {
@@ -52,7 +54,8 @@ function RowSortBodyCell<T = any>({
   setRowSortActivatorNodeRef,
   setRowSortNodeRef,
 }: RowSortBodyCellProps<T>) {
-  const { getComponent, rowSortable } = useTableContext();
+  const prefixCls = usePrefixClsContext();
+
   const {
     cellCls,
     cellFixedStartCls,
@@ -65,8 +68,15 @@ function RowSortBodyCell<T = any>({
     rowSortHandleCls,
     rowSortHandleDisabledCls,
     rowSortHandleDraggingCls,
-  } = useStyles();
-  const CellComponent = getComponent(['body', 'cell'], 'div');
+  } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
+
+  const { getComponent } = useComponentsContext();
+  const { rowSortable } = useRowSortableContext();
+
+  const CellComponent = useMemo(
+    () => getComponent(['body', 'cell'], 'div'),
+    [getComponent],
+  );
 
   const rowSortDisabled =
     rowSortDragDisabled || !rowSortable || !isValidKey(rowSortKey);

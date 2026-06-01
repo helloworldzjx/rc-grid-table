@@ -28,18 +28,23 @@ import React, {
 } from 'react';
 
 import { isNum, isObject, isValidKey } from '../_utils/validate';
-import ScrollBarContainer from '../scrollContainer';
 import BodyRow from './Body/BodyRow';
 import ExpandedRow from './Body/ExpandedRow';
 import Head from './Head/Head';
 import HorizontalScrollbar from './HorizontalScrollbar';
 import Placeholder from './Placeholder';
+import ScrollBarContainer from './ScrollContainer';
 import Summary from './Summary/Summary';
+import { useComponentsContext } from './componentsContext';
 import { useTableContext } from './context';
+import { useExpandableContext } from './expandableContext';
 import useTableScroll from './hooks/useTableScroll';
 import useVirtualBody from './hooks/useVirtualBody';
 import type { TableProps, TableRef, TableScrollToOptions } from './interface';
+import { usePrefixClsContext } from './prefixClsContext';
+import { useRowSortableContext } from './rowSortableContext';
 import { useStyles } from './style';
+import { getComponentCls } from './style/classNames';
 import {
   flattenDataSource,
   getRecordChildren,
@@ -102,15 +107,11 @@ type BodyItem<T = any> =
 const Table = forwardRef<HTMLDivElement, GridTableProps>(
   ({ tableRef }, ref) => {
     const {
-      prefixCls,
       initialized,
       containerWidth = 0,
       rowKey,
       className,
       rowClassName,
-      expandable,
-      rowSortable,
-      mergedExpandedRowKeys = [],
       dataSource,
       columns,
       flattenColumns = [],
@@ -129,41 +130,45 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       style,
       columnsWidthTotal,
       onScroll,
-      getComponent,
     } = useTableContext();
 
+    const prefixCls = usePrefixClsContext();
+    const { getComponent } = useComponentsContext();
+    const { expandable, mergedExpandedRowKeys = [] } = useExpandableContext();
+    const { rowSortable } = useRowSortableContext();
+
+    const { hashId, cssVarCls } = useStyles();
+
     const {
-      hashId,
       wrapperCls,
-      cssVarCls,
       wrapperInitializedCls,
       componentSMCls,
       componentMDCls,
       borderedCls,
       stripeCls,
-      hasSummaryCls,
       noDataCls,
-      hasXScrollbarCls,
-      hasYScrollbarCls,
-      hasStickyCls,
       hasFixColumnsCls,
       hasFixStartColumnsCls,
       hasFixEndColumnsCls,
       fixColumnsGappedCls,
       pingStartCls,
       pingEndCls,
+      hasSummaryCls,
+      hasXScrollbarCls,
+      hasYScrollbarCls,
+      hasStickyCls,
       headStickyCls,
       bodyCls,
       bodyInnerCls,
+      bodyRowCls,
       bodyVirtualFillerCls,
       bodyVirtualInnerCls,
       bodyVirtualRowSpanCls,
-      bodyRowCls,
-      summaryStickyCls,
       cellCls,
       noDataCellCls,
       noDataCellContentCls,
-    } = useStyles();
+      summaryStickyCls,
+    } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
 
     const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -852,7 +857,6 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
             />
 
             <ScrollBarContainer
-              prefixCls={prefixCls}
               className={bodyCls}
               classNames={{ inner: bodyInnerCls }}
               contentComponent={BodyWrapperComponent}

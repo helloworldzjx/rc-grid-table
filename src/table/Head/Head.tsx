@@ -3,13 +3,15 @@ import React, {
   CSSProperties,
   forwardRef,
   useImperativeHandle,
+  useMemo,
   useRef,
 } from 'react';
 
-import { useTableContext } from '../context';
+import { useColumnSortableContext } from '../columnSortableContext';
+import { useComponentsContext } from '../componentsContext';
 import { CellType } from '../interface';
-import { useSortingColumnsContext } from '../sortingContext';
-import { useStyles } from '../style';
+import { usePrefixClsContext } from '../prefixClsContext';
+import { getComponentCls } from '../style/classNames';
 import HeadRow from './HeadRow';
 
 export interface HeadRef {
@@ -24,11 +26,15 @@ interface HeadProps<T = any> {
 
 const Head = forwardRef<HeadRef, HeadProps>(
   ({ rows, className, style }, ref) => {
-    const { headCls, headInnerCls } = useStyles();
-    const { getComponent } = useTableContext();
-    const { updateSortingColumns } = useSortingColumnsContext();
+    const prefixCls = usePrefixClsContext();
+    const { getComponent } = useComponentsContext();
+    const { updateSortingColumns } = useColumnSortableContext();
     const innerRef = useRef<HTMLDivElement>(null);
     const WrapperComponent = getComponent(['header', 'wrapper'], 'div');
+    const { headCls, headInnerCls } = useMemo(
+      () => getComponentCls(prefixCls),
+      [prefixCls],
+    );
 
     const handleResizeDragStart = (sorting?: boolean) => {
       if (sorting) {

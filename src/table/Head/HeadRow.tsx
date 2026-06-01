@@ -9,9 +9,11 @@ import {
 import { SortableContext } from '@dnd-kit/sortable';
 import React, { Key, useCallback, useMemo, useRef, useState } from 'react';
 
-import { useTableContext } from '../context';
+import { useColumnSortableContext } from '../columnSortableContext';
+import { useComponentsContext } from '../componentsContext';
 import { CellType, ColumnState } from '../interface';
-import { useStyles } from '../style';
+import { usePrefixClsContext } from '../prefixClsContext';
+import { getComponentCls } from '../style/classNames';
 import HeadCell from './HeadCell';
 import useSortablePreview from './useSortablePreview';
 
@@ -40,16 +42,17 @@ function HeadRow({
 }: HeadRowProps) {
   const {
     sortableColumns,
-    middleState,
-    innerColumnsState,
-    sortableDraftState,
-    updateMiddleState,
+    getSortableBaseState,
+    updateSortableColumnsState,
     updateSortableDraftState,
-    columnsConfig,
-    getComponent,
-  } = useTableContext();
+  } = useColumnSortableContext();
+  const prefixCls = usePrefixClsContext();
+  const { getComponent } = useComponentsContext();
 
-  const { headRowCls, headDraggingOverlayCellCls } = useStyles();
+  const { headRowCls, headDraggingOverlayCellCls } = useMemo(
+    () => getComponentCls(prefixCls),
+    [prefixCls],
+  );
   const RowComponent = getComponent(['header', 'row'], 'div');
 
   const firstRow = headRows[0] || [];
@@ -65,13 +68,6 @@ function HeadRow({
   const activeColumn = useMemo(() => {
     return columns.find((column) => column.key === activeKey);
   }, [activeKey, columns]);
-
-  const getSortableBaseState = () => {
-    return (
-      sortableDraftState ||
-      (innerColumnsState.length ? innerColumnsState : middleState)
-    );
-  };
 
   const sortablePreview = useSortablePreview({
     getBaseState: getSortableBaseState,
@@ -204,8 +200,7 @@ function HeadRow({
       const finalDraftState = sortablePreview.getDraftState();
 
       if (sortablePreview.hasDraftChanged() && finalDraftState) {
-        updateMiddleState(finalDraftState);
-        columnsConfig?.onChange?.(finalDraftState);
+        updateSortableColumnsState(finalDraftState);
         cleanupSortable(false);
       } else {
         cleanupSortable(true);

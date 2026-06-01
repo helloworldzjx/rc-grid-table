@@ -14,10 +14,13 @@ import React, {
 
 import { isNum, isValidKey } from '../../_utils/validate';
 import CellContainer from '../CellContainer';
-import { useTableContext } from '../context';
+import { useComponentsContext } from '../componentsContext';
+import { useExpandableContext } from '../expandableContext';
 import { ColumnState } from '../interface';
+import { usePrefixClsContext } from '../prefixClsContext';
+import { useRowSelectionContext } from '../rowSelectionContext';
 import { SelectionCheckbox, SelectionRadio } from '../Selection';
-import { useStyles } from '../style';
+import { getComponentCls } from '../style/classNames';
 import {
   isExpandColumn,
   isRowSortColumn,
@@ -78,13 +81,7 @@ function BodyCell({
   setRowSortActivatorNodeRef,
   setRowSortNodeRef,
 }: BodyRowProps) {
-  const {
-    expandable: expandableConfig,
-    rowSelection,
-    selection,
-    onTriggerExpand,
-    getComponent,
-  } = useTableContext();
+  const prefixCls = usePrefixClsContext();
 
   const {
     cellCls,
@@ -101,8 +98,17 @@ function BodyCell({
     expandIconCls,
     expandIconExpandedCls,
     expandIconSpacedCls,
-  } = useStyles();
-  const CellComponent = getComponent(['body', 'cell'], 'div');
+  } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
+
+  const { expandable: expandableConfig, onTriggerExpand } =
+    useExpandableContext();
+  const { rowSelection, selection } = useRowSelectionContext();
+  const { getComponent } = useComponentsContext();
+
+  const CellComponent = useMemo(
+    () => getComponent(['body', 'cell'], 'div'),
+    [getComponent],
+  );
 
   const cellProps = useMemo(
     () => column.onCell?.(rowData, rowIndex) || {},

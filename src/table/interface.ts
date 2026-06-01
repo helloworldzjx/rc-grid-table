@@ -9,7 +9,7 @@ import type {
   SetStateAction,
 } from 'react';
 
-import type { ScrollBarContainerRef } from '../scrollContainer/interface';
+import { ScrollBarContainerRef } from './ScrollContainer/interface';
 
 export interface TableRef {
   nativeElement: HTMLDivElement;
@@ -475,16 +475,20 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
   rowClassName?: (record?: T, rowIndex?: number) => string;
 }
 
-export interface TableContextProps<T = any> extends TableProps<T> {
+type TableFeatureContextKey =
+  | 'prefixCls'
+  | 'components'
+  | 'expandable'
+  | 'rowSelection'
+  | 'rowSortable'
+  | 'sortableColumns';
+
+export interface TableContextProps<T = any>
+  extends Omit<TableProps<T>, TableFeatureContextKey> {
   // base props
-  prefixCls: string;
   rowKey: RowKey<T>;
 
-  /** bug ref https://github.com/helloworldzjx/rc-grid-table/issues/1 */
-  lockContainerWidth: boolean;
   updateLockContainerWidth: Dispatch<SetStateAction<boolean>>;
-  mergedExpandedRowKeys?: Key[];
-  onTriggerExpand?: (record: T) => void;
   containerWidth?: number;
   containerHeight?: number;
   initialized?: boolean;
@@ -498,11 +502,36 @@ export interface TableContextProps<T = any> extends TableProps<T> {
   fixColumnsGapped: boolean;
   middleState: ColumnState<T>[];
   updateMiddleState: Dispatch<SetStateAction<ColumnState<T>[]>>;
+}
+
+export interface ComponentsContextProps {
+  components?: TableComponents;
+  getComponent: GetComponent;
+}
+
+export interface ExpandableContextProps<T = any> {
+  expandable?: ExpandableConfig<T>;
+  mergedExpandedRowKeys?: Key[];
+  onTriggerExpand?: (record: T) => void;
+}
+
+export interface RowSelectionContextProps<T = any> {
+  rowSelection?: TableRowSelection<T>;
+  selection?: TableSelectionContextProps<T>;
+}
+
+export interface RowSortableContextProps<T = any> {
+  rowSortable?: RowSortableConfig<T>;
+}
+
+export interface ColumnSortableContextProps<T = any> {
+  sortableColumns?: boolean;
   sortableDraftState?: ColumnState<T>[] | null;
   updateSortableDraftState: Dispatch<SetStateAction<ColumnState<T>[] | null>>;
-  innerColumnsState: ColumnState<T>[];
-  getComponent: GetComponent;
-  selection?: TableSelectionContextProps<T>;
+  getSortableBaseState: () => ColumnState<T>[];
+  updateSortableColumnsState: (columnsState: ColumnState<T>[]) => void;
+  sortingColumns: boolean;
+  updateSortingColumns: Dispatch<SetStateAction<boolean>>;
 }
 
 export interface TableSelectionContextProps<T = any> {

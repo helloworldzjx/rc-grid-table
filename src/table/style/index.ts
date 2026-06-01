@@ -4,94 +4,25 @@ import {
   useStyleRegister,
   type CSSInterpolation,
 } from '@ant-design/cssinjs';
+import { useMemo } from 'react';
 
 import useToken from '../../theme/hooks/useToken';
-import { useTableContext } from '../context';
 import {
   darkTableToken,
   lightTableToken,
   type ComponentToken,
 } from '../design';
-
-type ComponentClsType = {
-  wrapperCls: string;
-  wrapperInitializedCls: string;
-  placeholderCls: string;
-  placeholderBorderedCls: string;
-  componentCls: string;
-  componentSMCls: string;
-  componentMDCls: string;
-  contentCls: string;
-  borderedCls: string;
-  stripeCls: string;
-  noDataCls: string;
-  hasFixColumnsCls: string;
-  hasFixStartColumnsCls: string;
-  hasFixEndColumnsCls: string;
-  fixColumnsGappedCls: string;
-  pingStartCls: string;
-  pingEndCls: string;
-  hasSummaryCls: string;
-  hasXScrollbarCls: string;
-  hasYScrollbarCls: string;
-  hasStickyCls: string;
-  headCls: string;
-  headStickyCls: string;
-  headInnerCls: string;
-  headRowCls: string;
-  bodyCls: string;
-  bodyInnerCls: string;
-  bodyRowCls: string;
-  bodyGridRowCls: string;
-  bodyVirtualFillerCls: string;
-  bodyVirtualInnerCls: string;
-  bodyVirtualRowSpanCls: string;
-  bodyRowExpandableCls: string;
-  bodyRowSortDraggingCls: string;
-  cellCls: string;
-  cellEllipsisCls: string;
-  cellEllipsisInnerCls: string;
-  expandControlCellCls: string;
-  expandControlCls: string;
-  rowSortCellCls: string;
-  rowSortCellOverCls: string;
-  rowSortControlCls: string;
-  rowSortHandleCls: string;
-  rowSortHandleDisabledCls: string;
-  rowSortHandleDraggingCls: string;
-  selectionCellCls: string;
-  selectionControlCls: string;
-  selectionControlInputCls: string;
-  selectionControlContentCls: string;
-  selectionCheckboxCls: string;
-  selectionRadioCls: string;
-  selectionControlCheckedCls: string;
-  selectionControlIndeterminateCls: string;
-  selectionControlDisabledCls: string;
-  expandIconCls: string;
-  expandIconExpandedCls: string;
-  expandIconSpacedCls: string;
-  expandTreeCellInnerCls: string;
-  expandedRowCls: string;
-  expandedRowCellCls: string;
-  expandedRowContentCls: string;
-  headLastCellCls: string;
-  headCellResizeHandleCls: string;
-  headResizableCellDisabledCls: string;
-  headSortableCellCls: string;
-  headSortableCellDisabledCls: string;
-  headDraggingOverlayCellCls: string;
-  cellFixedStartCls: string;
-  cellFixedStartLastCls: string;
-  cellFixedEndCls: string;
-  cellFixedEndFirstCls: string;
-  noDataCellCls: string;
-  noDataCellContentCls: string;
-  summaryCls: string;
-  summaryStickyCls: string;
-  summaryInnerCls: string;
-  summaryRowCls: string;
-};
+import { usePrefixClsContext } from '../prefixClsContext';
+import {
+  ComponentClsType,
+  getComponentCls,
+  getScrollbarCls,
+  ScrollbarClsType,
+} from './classNames';
+import {
+  genScrollBarStyle,
+  genScrollbarToggleShowStyle,
+} from './scrollbarStyle';
 
 const genInitialStyle = ({
   wrapperCls: initialCls,
@@ -368,22 +299,32 @@ const genBodyStyle = (
   }: ComponentClsType,
   token: ComponentToken,
 ): CSSInterpolation => ({
-  [`.${bodyCls}::before`]: {
-    content: "' '",
-    position: 'absolute',
-    left: 0,
-    bottom: 0,
-    height: 0,
-    width: `max(100%, var(--${componentCls}-cols-width-total))`,
+  [`.${bodyCls}`]: {
+    position: 'relative',
     boxSizing: 'border-box',
-    borderBottom: `1px solid ${token.colorBorder}`,
-    pointerEvents: 'none',
-    zIndex: 2,
+    overflow: 'hidden',
+
+    '&::before': {
+      content: "' '",
+      position: 'absolute',
+      left: 0,
+      bottom: 0,
+      height: 0,
+      width: `max(100%, var(--${componentCls}-cols-width-total))`,
+      boxSizing: 'border-box',
+      borderBottom: `1px solid ${token.colorBorder}`,
+      pointerEvents: 'none',
+      zIndex: 2,
+    },
   },
 
   [`.${bodyInnerCls}`]: {
     display: 'grid',
     gridTemplateColumns: `var(--${componentCls}-cols-width)`,
+    height: '100%',
+    boxSizing: 'border-box',
+    overflow: 'auto',
+    scrollbarWidth: 'none',
 
     [`.${bodyRowCls}`]: {
       display: 'contents',
@@ -1008,6 +949,7 @@ const genEmptyClsStyle = ({
 
 const genNestStyles = (
   clsObj: ComponentClsType,
+  scrollbarClsObj: ScrollbarClsType,
   mergedToken: ComponentToken,
 ): CSSInterpolation => [
   genInitialStyle(clsObj),
@@ -1025,91 +967,30 @@ const genNestStyles = (
   { [`.${clsObj.componentCls}`]: genSummaryCls(clsObj, mergedToken) },
   { [`.${clsObj.componentCls}`]: genCellStyle(clsObj, mergedToken) },
   { [`.${clsObj.componentCls}`]: genFixedCellStyle(clsObj, mergedToken) },
+  {
+    [`.${clsObj.componentCls}`]: genScrollbarToggleShowStyle(
+      scrollbarClsObj.xScrollBarCls,
+      scrollbarClsObj.xScrollBarShowCls,
+    ),
+  },
+  {
+    [`.${clsObj.componentCls}`]: genScrollbarToggleShowStyle(
+      scrollbarClsObj.yScrollBarCls,
+      scrollbarClsObj.yScrollBarShowCls,
+    ),
+  },
+  { [`.${clsObj.componentCls}`]: genScrollBarStyle(scrollbarClsObj) },
 ];
 
 export const useStyles = () => {
-  const prefixCls = useTableContext().prefixCls as string;
+  const prefixCls = usePrefixClsContext();
   const [theme, token, hashId, realToken, isDark, cssVar] = useToken();
 
-  const clsObj: ComponentClsType = {
-    wrapperCls: `${prefixCls}-wrapper`,
-    wrapperInitializedCls: `${prefixCls}-wrapper-initialized`,
-    placeholderCls: `${prefixCls}-placeholder`,
-    placeholderBorderedCls: `${prefixCls}-placeholder-bordered`,
-    componentCls: prefixCls,
-    componentSMCls: `${prefixCls}-wrapper-small`,
-    componentMDCls: `${prefixCls}-wrapper-middle`,
-    contentCls: `${prefixCls}-content`,
-    borderedCls: `${prefixCls}-bordered`,
-    stripeCls: `${prefixCls}-stripe`,
-    noDataCls: `${prefixCls}-no-data`,
-    hasFixColumnsCls: `${prefixCls}-has-fix-columns`,
-    hasFixStartColumnsCls: `${prefixCls}-has-fix-start-columns`,
-    hasFixEndColumnsCls: `${prefixCls}-has-fix-end-columns`,
-    fixColumnsGappedCls: `${prefixCls}-fix-columns-gapped`,
-    pingStartCls: `${prefixCls}-ping-start`,
-    pingEndCls: `${prefixCls}-ping-end`,
-    hasSummaryCls: `${prefixCls}-has-summary`,
-    hasXScrollbarCls: `${prefixCls}-has-horizontal-scrollbar`,
-    hasYScrollbarCls: `${prefixCls}-has-vertical-scrollbar`,
-    hasStickyCls: `${prefixCls}-has-sticky`,
-    headCls: `${prefixCls}-head`,
-    headStickyCls: `${prefixCls}-head-sticky`,
-    headInnerCls: `${prefixCls}-head-inner`,
-    headRowCls: `${prefixCls}-head-row`,
-    bodyCls: `${prefixCls}-body`,
-    bodyInnerCls: `${prefixCls}-body-inner`,
-    bodyRowCls: `${prefixCls}-body-row`,
-    bodyGridRowCls: `${prefixCls}-body-grid-row`,
-    bodyVirtualFillerCls: `${prefixCls}-body-virtual-filler`,
-    bodyVirtualInnerCls: `${prefixCls}-body-virtual-inner`,
-    bodyVirtualRowSpanCls: `${prefixCls}-body-virtual-row-span`,
-    bodyRowExpandableCls: `${prefixCls}-body-row-expandable`,
-    bodyRowSortDraggingCls: `${prefixCls}-body-row-sort-dragging`,
-    cellCls: `${prefixCls}-cell`,
-    cellEllipsisCls: `${prefixCls}-cell-ellipsis`,
-    cellEllipsisInnerCls: `${prefixCls}-cell-ellipsis-inner`,
-    expandControlCellCls: `${prefixCls}-expand-control-cell`,
-    expandControlCls: `${prefixCls}-expand-control`,
-    rowSortCellCls: `${prefixCls}-row-sort-cell`,
-    rowSortCellOverCls: `${prefixCls}-row-sort-cell-over`,
-    rowSortControlCls: `${prefixCls}-row-sort-control`,
-    rowSortHandleCls: `${prefixCls}-row-sort-handle`,
-    rowSortHandleDisabledCls: `${prefixCls}-row-sort-handle-disabled`,
-    rowSortHandleDraggingCls: `${prefixCls}-row-sort-handle-dragging`,
-    selectionCellCls: `${prefixCls}-selection-cell`,
-    selectionControlCls: `${prefixCls}-selection-control`,
-    selectionControlInputCls: `${prefixCls}-selection-control-input`,
-    selectionControlContentCls: `${prefixCls}-selection-control-content`,
-    selectionCheckboxCls: `${prefixCls}-selection-checkbox`,
-    selectionRadioCls: `${prefixCls}-selection-radio`,
-    selectionControlCheckedCls: `${prefixCls}-selection-control-checked`,
-    selectionControlIndeterminateCls: `${prefixCls}-selection-control-indeterminate`,
-    selectionControlDisabledCls: `${prefixCls}-selection-control-disabled`,
-    expandIconCls: `${prefixCls}-expand-icon`,
-    expandIconExpandedCls: `${prefixCls}-expand-icon-expanded`,
-    expandIconSpacedCls: `${prefixCls}-expand-icon-spaced`,
-    expandTreeCellInnerCls: `${prefixCls}-expand-tree-cell-inner`,
-    expandedRowCls: `${prefixCls}-expanded-row`,
-    expandedRowCellCls: `${prefixCls}-expanded-row-cell`,
-    expandedRowContentCls: `${prefixCls}-expanded-row-content`,
-    headLastCellCls: `${prefixCls}-head-last-cell`,
-    headCellResizeHandleCls: `${prefixCls}-head-cell-resize-handle`,
-    headResizableCellDisabledCls: `${prefixCls}-head-resizable-cell-disabled`,
-    headSortableCellCls: `${prefixCls}-head-sortable-cell`,
-    headSortableCellDisabledCls: `${prefixCls}-head-sortable-cell-disabled`,
-    headDraggingOverlayCellCls: `${prefixCls}-head-dragging-verlay-cell`,
-    cellFixedStartCls: `${prefixCls}-cell-fixed-start`,
-    cellFixedStartLastCls: `${prefixCls}-cell-fixed-start-last`,
-    cellFixedEndCls: `${prefixCls}-cell-fixed-end`,
-    cellFixedEndFirstCls: `${prefixCls}-cell-fixed-end-first`,
-    noDataCellCls: `${prefixCls}-no-data-cell`,
-    noDataCellContentCls: `${prefixCls}-no-data-cell-content`,
-    summaryCls: `${prefixCls}-summary`,
-    summaryStickyCls: `${prefixCls}-summary-sticky`,
-    summaryInnerCls: `${prefixCls}-summary-inner`,
-    summaryRowCls: `${prefixCls}-summary-row`,
-  };
+  const clsObj = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
+  const scrollbarClsObj = useMemo(
+    () => getScrollbarCls(prefixCls),
+    [prefixCls],
+  );
 
   const [cssVarToken] = useCSSVarRegister(
     {
@@ -1129,19 +1010,25 @@ export const useStyles = () => {
     () => (isDark ? darkTableToken : lightTableToken),
   );
 
-  const mergedToken: any = {
-    ...token,
-    ...(cssVar?.key ? cssVarToken : isDark ? darkTableToken : lightTableToken),
-  };
+  const mergedToken: any = useMemo(
+    () => ({
+      ...token,
+      ...(cssVar?.key
+        ? cssVarToken
+        : isDark
+        ? darkTableToken
+        : lightTableToken),
+    }),
+    [token, cssVar?.key, cssVarToken, isDark],
+  );
 
   useStyleRegister(
     { theme, token, hashId, path: [prefixCls, `${isDark}`] },
-    () => genNestStyles(clsObj, mergedToken),
+    () => genNestStyles(clsObj, scrollbarClsObj, mergedToken),
   );
 
   return {
     hashId,
     cssVarCls: cssVar?.key,
-    ...clsObj,
   };
 };

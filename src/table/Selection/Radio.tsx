@@ -4,9 +4,11 @@ import React, {
   LabelHTMLAttributes,
   MouseEvent,
   PointerEvent,
+  useMemo,
 } from 'react';
 
-import { useStyles } from '../style';
+import { usePrefixClsContext } from '../prefixClsContext';
+import { getComponentCls } from '../style/classNames';
 
 type RadioProps = Omit<LabelHTMLAttributes<HTMLLabelElement>, 'onChange'> & {
   checked?: boolean;
@@ -24,6 +26,8 @@ const Radio: FC<RadioProps> = ({
   onMouseDown,
   ...rest
 }) => {
+  const prefixCls = usePrefixClsContext();
+
   const {
     selectionControlCls,
     selectionControlInputCls,
@@ -31,7 +35,7 @@ const Radio: FC<RadioProps> = ({
     selectionRadioCls,
     selectionControlCheckedCls,
     selectionControlDisabledCls,
-  } = useStyles();
+  } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
 
   const handleClick = (event: MouseEvent<HTMLLabelElement>) => {
     event.stopPropagation();

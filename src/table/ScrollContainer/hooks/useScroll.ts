@@ -10,7 +10,7 @@ import {
   useState,
 } from 'react';
 
-import { MIN_THUMB_SIZE } from '../../_utils/const';
+import { MIN_THUMB_SIZE } from '../../../_utils/const';
 import { ScrollBarContainerProps } from '../interface';
 
 type UseScrollProps = Omit<ScrollBarContainerProps, 'classNames' | 'prefixCls'>;

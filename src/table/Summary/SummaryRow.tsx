@@ -1,7 +1,8 @@
-import React, { FC } from 'react';
+import React, { FC, useMemo } from 'react';
 
 import { TableSummaryRowCell } from '../interface';
-import { useStyles } from '../style';
+import { usePrefixClsContext } from '../prefixClsContext';
+import { getComponentCls } from '../style/classNames';
 import { filterSpan } from '../utils/handle';
 import SummaryCell from './SummaryCell';
 
@@ -10,7 +11,11 @@ interface SummaryRowProps {
 }
 
 const SummaryRow: FC<SummaryRowProps> = ({ row }) => {
-  const { summaryRowCls } = useStyles();
+  const prefixCls = usePrefixClsContext();
+  const { summaryRowCls } = useMemo(
+    () => getComponentCls(prefixCls),
+    [prefixCls],
+  );
   let ignoreCol = 0;
 
   return (

@@ -1,9 +1,12 @@
 import classNames from 'classnames';
-import React, { FC, useEffect, useRef } from 'react';
+import React, { FC, useEffect, useMemo, useRef } from 'react';
 
 import { isNum } from '../../_utils/validate';
+import { useColumnSortableContext } from '../columnSortableContext';
 import { useTableContext } from '../context';
+import { usePrefixClsContext } from '../prefixClsContext';
 import { useStyles } from '../style';
+import { getComponentCls } from '../style/classNames';
 import { distribute } from '../utils/calc';
 import { batchUpdateColumns } from '../utils/handle';
 
@@ -17,14 +20,19 @@ const Placeholder: FC = () => {
     columnsWidthTotal,
     flattenColumns = [],
     flattenColumnsWidths = [],
-    sortableDraftState,
     middleState,
     updateFlattenColumnsWidths,
     updateMiddleState,
     columnsConfig,
   } = useTableContext();
+  const { sortableDraftState } = useColumnSortableContext();
+  const prefixCls = usePrefixClsContext();
 
-  const { hashId, placeholderCls, placeholderBorderedCls } = useStyles();
+  const { hashId } = useStyles();
+  const { placeholderCls, placeholderBorderedCls } = useMemo(
+    () => getComponentCls(prefixCls),
+    [prefixCls],
+  );
   const autoFillFrameRef = useRef<number | null>(null);
   const autoFillCheckCountRef = useRef(0);
   // autoFill 会在 rAF 中二次校准，使用 ref 保存最新状态，避免回调读到旧闭包。

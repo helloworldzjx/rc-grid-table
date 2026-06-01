@@ -6,10 +6,13 @@ import classNames from 'classnames';
 import React, { CSSProperties, Ref, memo, useMemo } from 'react';
 
 import { isValidKey } from '../../_utils/validate';
-import { useTableContext } from '../context';
+import { useComponentsContext } from '../componentsContext';
+import { useExpandableContext } from '../expandableContext';
 import useFixedInfo from '../hooks/useFixedInfo';
 import { ColumnState, StickyOffsets } from '../interface';
-import { useStyles } from '../style';
+import { usePrefixClsContext } from '../prefixClsContext';
+import { useRowSortableContext } from '../rowSortableContext';
+import { getComponentCls } from '../style/classNames';
 import { isInternalColumn, isRowSortColumn } from '../utils/const';
 import { getCellSpan } from '../utils/handle';
 import BodyCell, { BodyCellVirtualRenderMode } from './BodyCell';
@@ -57,21 +60,25 @@ function BodyRow({
   rowSortDropDisabled = false,
   rowSortDragging = false,
 }: BodyRowProps) {
-  const {
-    expandable: expandableConfig,
-    getComponent,
-    onTriggerExpand,
-    rowSortable,
-  } = useTableContext();
+  const prefixCls = usePrefixClsContext();
+
   const {
     bodyRowCls,
     bodyGridRowCls,
     bodyRowExpandableCls,
     bodyRowSortDraggingCls,
-  } = useStyles();
+  } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
 
+  const { expandable: expandableConfig, onTriggerExpand } =
+    useExpandableContext();
+  const { rowSortable } = useRowSortableContext();
+  const { getComponent } = useComponentsContext();
   const fixedInfoList = useFixedInfo(flattenColumns, fixedOffset);
-  const RowComponent = getComponent(['body', 'row'], 'div');
+
+  const RowComponent = useMemo(
+    () => getComponent(['body', 'row'], 'div'),
+    [getComponent],
+  );
 
   const expandByClick =
     !!expandableConfig?.expandRowByClick && rowSupportExpand;

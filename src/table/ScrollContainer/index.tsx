@@ -1,10 +1,11 @@
 import { useIsomorphicLayoutEffect } from 'ahooks';
 import clsx from 'classnames';
-import React, { forwardRef, useImperativeHandle } from 'react';
+import React, { forwardRef, useImperativeHandle, useMemo } from 'react';
 
+import { usePrefixClsContext } from '../prefixClsContext';
+import { getScrollbarCls } from '../style/classNames';
 import useScroll from './hooks/useScroll';
 import { ScrollBarContainerProps, ScrollBarContainerRef } from './interface';
-import { useStyles } from './style';
 
 const ScrollContainer = forwardRef<
   ScrollBarContainerRef,
@@ -12,7 +13,6 @@ const ScrollContainer = forwardRef<
 >(
   (
     {
-      prefixCls,
       className,
       classNames,
       styles,
@@ -52,14 +52,12 @@ const ScrollContainer = forwardRef<
       onVerticalScroll,
     });
 
-    const {
-      hashId,
-      scrollbarCls,
-      scrollbarInnerCls,
-      yScrollBarCls,
-      yScrollBarThumbCls,
-      yScrollBarShowCls,
-    } = useStyles(prefixCls);
+    const prefixCls = usePrefixClsContext();
+    const { yScrollBarCls, yScrollBarThumbCls, yScrollBarShowCls } = useMemo(
+      () => getScrollbarCls(prefixCls),
+      [prefixCls],
+    );
+
     const showVerticalScrollbar = !!showVertical && hasVertical;
 
     useImperativeHandle(ref, () => ({
@@ -82,8 +80,6 @@ const ScrollContainer = forwardRef<
       <div
         className={clsx(
           className,
-          scrollbarCls,
-          hashId,
           classNames?.hasYScrollbarCls && {
             [classNames.hasYScrollbarCls]: showVerticalScrollbar,
           },
@@ -92,7 +88,7 @@ const ScrollContainer = forwardRef<
         {...rest}
       >
         <ContentComponent
-          className={clsx(classNames?.inner, scrollbarInnerCls)}
+          className={classNames?.inner}
           ref={contentRef}
           onScroll={handleContentScroll}
           style={styles?.content}
@@ -101,7 +97,7 @@ const ScrollContainer = forwardRef<
         </ContentComponent>
 
         <div
-          className={clsx(yScrollBarCls, hashId, {
+          className={clsx(yScrollBarCls, {
             [yScrollBarShowCls]: showVerticalScrollbar,
           })}
           ref={verticalTrackRef}

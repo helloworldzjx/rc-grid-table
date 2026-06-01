@@ -1,9 +1,9 @@
 import classNames from 'classnames';
-import React, { MouseEventHandler, RefCallback } from 'react';
+import React, { MouseEventHandler, RefCallback, useMemo } from 'react';
 
-import { isNum, isObject } from '../_utils/validate';
-import { useStyles as useScrollStyles } from '../scrollContainer/style';
-import type { TableSticky } from './interface';
+import { isNum, isObject } from '../../_utils/validate';
+import type { TableSticky } from '../interface';
+import { getScrollbarCls } from '../style/classNames';
 
 interface HorizontalScrollbarProps {
   prefixCls: string;
@@ -32,17 +32,17 @@ const HorizontalScrollbar: React.FC<HorizontalScrollbarProps> = ({
   onMouseDown,
 }) => {
   const {
-    hashId,
     xScrollBarCls,
     xScrollBarStickyCls,
     xScrollBarThumbCls,
     xScrollBarShowCls,
-  } = useScrollStyles(prefixCls);
+  } = useMemo(() => getScrollbarCls(prefixCls), [prefixCls]);
+
   const stickyOffset = getStickyOffset(sticky);
 
   return (
     <div
-      className={classNames(xScrollBarCls, hashId, {
+      className={classNames(xScrollBarCls, {
         [xScrollBarStickyCls]: sticky,
         [xScrollBarShowCls]: visible,
       })}

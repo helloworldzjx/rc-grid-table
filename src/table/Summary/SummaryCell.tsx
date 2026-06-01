@@ -4,7 +4,8 @@ import React, { CSSProperties, FC, useMemo } from 'react';
 import CellContainer from '../CellContainer';
 import { useTableContext } from '../context';
 import { TableSummaryRowCell } from '../interface';
-import { useStyles } from '../style';
+import { usePrefixClsContext } from '../prefixClsContext';
+import { getComponentCls } from '../style/classNames';
 import { getCellFixedInfo } from '../utils/fixedColumns';
 import { getEllipsisTitle } from '../utils/handle';
 
@@ -15,16 +16,17 @@ interface SummaryCellProps {
 
 const SummaryCell: FC<SummaryCellProps> = ({ column, colEnd }) => {
   const { flattenColumns = [], fixedOffset } = useTableContext();
+  const prefixCls = usePrefixClsContext();
 
   const {
     cellCls,
     cellEllipsisCls,
+    cellEllipsisInnerCls,
     cellFixedStartCls,
     cellFixedStartLastCls,
     cellFixedEndCls,
     cellFixedEndFirstCls,
-    cellEllipsisInnerCls,
-  } = useStyles();
+  } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
 
   const { colStart, spanStyle } = useMemo(() => {
     const style: CSSProperties = {};

@@ -4,9 +4,11 @@ import React, {
   LabelHTMLAttributes,
   MouseEvent,
   PointerEvent,
+  useMemo,
 } from 'react';
 
-import { useStyles } from '../style';
+import { usePrefixClsContext } from '../prefixClsContext';
+import { getComponentCls } from '../style/classNames';
 
 type CheckboxProps = Omit<LabelHTMLAttributes<HTMLLabelElement>, 'onChange'> & {
   checked?: boolean;
@@ -26,6 +28,8 @@ const Checkbox: FC<CheckboxProps> = ({
   onMouseDown,
   ...rest
 }) => {
+  const prefixCls = usePrefixClsContext();
+
   const {
     selectionControlCls,
     selectionControlInputCls,
@@ -34,7 +38,7 @@ const Checkbox: FC<CheckboxProps> = ({
     selectionControlCheckedCls,
     selectionControlIndeterminateCls,
     selectionControlDisabledCls,
-  } = useStyles();
+  } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
 
   const handleClick = (event: MouseEvent<HTMLLabelElement>) => {
     event.stopPropagation();

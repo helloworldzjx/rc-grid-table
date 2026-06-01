@@ -4,10 +4,14 @@ import classNames from 'classnames';
 import React, { CSSProperties, Key, useMemo, useRef } from 'react';
 
 import CellContainer from '../CellContainer';
+import { useColumnSortableContext } from '../columnSortableContext';
+import { useComponentsContext } from '../componentsContext';
 import { useTableContext } from '../context';
 import { CellType } from '../interface';
+import { usePrefixClsContext } from '../prefixClsContext';
+import { useRowSelectionContext } from '../rowSelectionContext';
 import { SelectionCheckbox } from '../Selection';
-import { useStyles } from '../style';
+import { getComponentCls } from '../style/classNames';
 import { getMergedSpanKeys } from '../utils/calc';
 import { isSelectionColumn } from '../utils/const';
 import { getCellFixedInfo } from '../utils/fixedColumns';
@@ -37,12 +41,12 @@ function HeadCell({
   const {
     flattenColumns = [],
     resizableColumns,
-    sortableColumns,
     fixedOffset,
-    rowSelection,
-    selection,
-    getComponent,
   } = useTableContext();
+  const { sortableColumns } = useColumnSortableContext();
+  const prefixCls = usePrefixClsContext();
+  const { getComponent } = useComponentsContext();
+  const { rowSelection, selection } = useRowSelectionContext();
 
   const {
     cellCls,
@@ -57,7 +61,7 @@ function HeadCell({
     cellFixedStartLastCls,
     cellFixedEndCls,
     cellFixedEndFirstCls,
-  } = useStyles();
+  } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
 
   const resizableRef = useRef<HTMLDivElement | null>(null);
   const CellComponent = getComponent(['header', 'cell'], 'div');

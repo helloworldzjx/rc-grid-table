@@ -8,7 +8,6 @@ import {
 export interface ScrollBarContainerProps
   extends RefAttributes<HTMLDivElement>,
     HTMLAttributes<HTMLDivElement> {
-  prefixCls: string;
   classNames?: {
     inner?: string;
     hasYScrollbarCls?: string;

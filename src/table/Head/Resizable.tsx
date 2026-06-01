@@ -10,7 +10,8 @@ import React, {
 } from 'react';
 
 import { useTableContext } from '../context';
-import { useStyles } from '../style';
+import { usePrefixClsContext } from '../prefixClsContext';
+import { getComponentCls } from '../style/classNames';
 import { DEFAULT_RESIZE_MIN_WIDTH } from '../utils/const';
 import { batchUpdateColumns } from '../utils/handle';
 
@@ -30,8 +31,12 @@ const Resizable = forwardRef<HTMLDivElement, ResizableProps>(
       updateMiddleState,
       columnsConfig,
     } = useTableContext();
+    const prefixCls = usePrefixClsContext();
 
-    const { headCellResizeHandleCls } = useStyles();
+    const { headCellResizeHandleCls } = useMemo(
+      () => getComponentCls(prefixCls),
+      [prefixCls],
+    );
 
     const updated = useRef(false);
     const appliedDistanceTotal = useRef(0);
