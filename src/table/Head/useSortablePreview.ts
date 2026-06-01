@@ -1,4 +1,4 @@
-import React, { Dispatch, Key, SetStateAction, useEffect, useRef } from 'react';
+import { Dispatch, Key, SetStateAction, useEffect, useRef } from 'react';
 
 import { cancelRaf, raf } from '../../_utils/raf';
 import { ColumnState } from '../interface';
@@ -17,11 +17,6 @@ interface UseSortablePreviewProps<T = any> {
   getBaseState: () => ColumnState<T>[];
   updateDraftState: Dispatch<SetStateAction<ColumnState<T>[] | null>>;
 }
-
-const startTransition =
-  typeof React.startTransition === 'function'
-    ? React.startTransition
-    : (callback: () => void) => callback();
 
 const getPreviewKey = (key: Key) => `${typeof key}:${String(key)}`;
 
@@ -89,9 +84,7 @@ const useSortablePreview = <T>({
       draftChangedRef.current = true;
       draftStateRef.current = nextState as ColumnState<T>[];
       previewSignatureRef.current = signature;
-      startTransition(() => {
-        updateDraftStateRef.current(nextState as ColumnState<T>[]);
-      });
+      updateDraftStateRef.current(nextState as ColumnState<T>[]);
     }
 
     return true;

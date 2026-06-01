@@ -6,40 +6,41 @@ import { useSortingColumnsContext } from './sortingContext';
 type CellContainerProps = HTMLAttributes<HTMLDivElement> & {
   component?: ElementType;
 };
-type MotionCellContainerProps = CellContainerProps & {
-  ref: React.ForwardedRef<HTMLDivElement>;
-  initial: false;
-  layout: 'position';
-  transition: {
-    duration: number;
-    ease: string;
-  };
-};
 
 const CellContainer = forwardRef<HTMLDivElement, CellContainerProps>(
-  ({ component: Component = 'div', ...props }, ref) => {
+  ({ component: Component = 'div', ...rest }, ref) => {
     const { sortingColumns } = useSortingColumnsContext();
+
     const MotionComponent = useMemo(
       () => (Component === 'div' ? motion.div : motion.create(Component)),
       [Component],
     );
 
-    if (sortingColumns) {
-      const motionProps: MotionCellContainerProps = {
-        ...props,
-        ref,
-        initial: false,
-        layout: 'position',
-        transition: {
-          duration: 0.15,
-          ease: 'easeOut',
-        },
-      };
+    const props = useMemo(() => {
+      if (sortingColumns) {
+        return {
+          ...rest,
+          initial: false,
+          layout: 'position',
+          transition: {
+            duration: 0.15,
+            ease: 'easeOut',
+          },
+        };
+      }
 
-      return React.createElement(MotionComponent, motionProps);
-    }
+      return rest;
+    }, [sortingColumns, rest]);
 
-    return <Component {...props} ref={ref} />;
+    const Container = useMemo(() => {
+      if (sortingColumns) {
+        return MotionComponent;
+      }
+
+      return Component;
+    }, [sortingColumns, MotionComponent, Component]);
+
+    return <Container {...props} ref={ref} />;
   },
 );
 

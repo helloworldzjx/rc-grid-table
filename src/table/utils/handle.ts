@@ -650,15 +650,15 @@ export const getSortablePreviewColumns = <T>(
       const sourceColumn = sourceColumnMap.get(column.key);
       const width =
         sourceWidthMap.get(column.key) ?? sourceColumn?.width ?? column.width;
+
+      if (sourceColumn) {
+        flattenColumns.push(sourceColumn);
+        return sourceColumn;
+      }
+
       const nextColumn = {
         ...column,
         width,
-        resizeMinWidth: sourceColumn?.resizeMinWidth ?? column.resizeMinWidth,
-        distribute: sourceColumn?.distribute ?? column.distribute,
-        widthManuallyChanged:
-          sourceColumn?.widthManuallyChanged ?? column.widthManuallyChanged,
-        autoWidthLocked:
-          sourceColumn?.autoWidthLocked ?? column.autoWidthLocked,
         hasChildren: false,
         children: [],
       };
