@@ -74,6 +74,48 @@ const genComponentStyle = ({
   },
 });
 
+const genVirtualStyle = ({
+  componentCls,
+  virtualCls,
+  bodyVirtualFillerCls,
+  bodyVirtualInnerCls,
+  bodyVirtualRowSpanCls,
+  bodyVirtualRowSpanTopCls,
+  cellCls,
+}: ComponentClsType): CSSInterpolation => ({
+  [`.${componentCls}.${virtualCls}`]: {
+    [`.${bodyVirtualFillerCls}`]: {
+      position: 'relative',
+      gridColumn: '1 / -1',
+      width: `max(100%, var(--${componentCls}-cols-width-total))`,
+      minHeight: '100%',
+    },
+
+    [`.${bodyVirtualInnerCls}`]: {
+      position: 'absolute',
+      insetInline: 0,
+      top: 0,
+      display: 'grid',
+      gridTemplateColumns: `var(--${componentCls}-cols-width)`,
+    },
+
+    [`.${bodyVirtualRowSpanCls}`]: {
+      position: 'absolute',
+      insetInline: 0,
+      top: 0,
+      pointerEvents: 'none',
+
+      [`.${cellCls}`]: {
+        pointerEvents: 'auto',
+      },
+    },
+
+    [`.${bodyVirtualRowSpanTopCls} .${cellCls}`]: {
+      borderTopColor: 'transparent',
+    },
+  },
+});
+
 const genBorderedStyle = (
   {
     componentCls,
@@ -246,10 +288,6 @@ const genBodyStyle = (
     bodyInnerCls,
     bodyRowCls,
     bodyGridRowCls,
-    bodyVirtualFillerCls,
-    bodyVirtualInnerCls,
-    bodyVirtualRowSpanCls,
-    cellCls,
   }: ComponentClsType,
   token: ComponentToken,
 ): CSSInterpolation => ({
@@ -292,32 +330,6 @@ const genBodyStyle = (
       display: 'grid',
       gridTemplateColumns: `var(--${componentCls}-cols-width)`,
       gridColumn: '1 / -1',
-    },
-  },
-
-  [`.${bodyVirtualFillerCls}`]: {
-    position: 'relative',
-    gridColumn: '1 / -1',
-    width: `max(100%, var(--${componentCls}-cols-width-total))`,
-    minHeight: '100%',
-  },
-
-  [`.${bodyVirtualInnerCls}`]: {
-    position: 'absolute',
-    insetInline: 0,
-    top: 0,
-    display: 'grid',
-    gridTemplateColumns: `var(--${componentCls}-cols-width)`,
-  },
-
-  [`.${bodyVirtualRowSpanCls}`]: {
-    position: 'absolute',
-    insetInline: 0,
-    top: 0,
-    pointerEvents: 'none',
-
-    [`.${cellCls}`]: {
-      pointerEvents: 'auto',
     },
   },
 });
@@ -926,6 +938,7 @@ const genNestStyles = (
   genInitialStyle(clsObj),
   genPlaceholderStyle(clsObj, mergedToken),
   genComponentStyle(clsObj),
+  genVirtualStyle(clsObj),
   genBorderedStyle(clsObj, mergedToken),
   genFixedShadowStyle(clsObj),
   genSizeClsStyle(clsObj, mergedToken),

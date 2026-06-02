@@ -7,6 +7,7 @@ export type ComponentClsType = {
   componentMDCls: string;
   contentCls: string;
   borderedCls: string;
+  virtualCls: string;
   stripeCls: string;
   noDataCls: string;
   hasFixColumnsCls: string;
@@ -30,6 +31,7 @@ export type ComponentClsType = {
   bodyVirtualFillerCls: string;
   bodyVirtualInnerCls: string;
   bodyVirtualRowSpanCls: string;
+  bodyVirtualRowSpanTopCls: string;
   bodyRowExpandableCls: string;
   bodyRowSortDraggingCls: string;
   cellCls: string;
@@ -97,6 +99,7 @@ export const getComponentCls = (prefixCls: string): ComponentClsType => {
     componentMDCls: `${prefixCls}-wrapper-middle`,
     contentCls: `${prefixCls}-content`,
     borderedCls: `${prefixCls}-bordered`,
+    virtualCls: `${prefixCls}-virtual`,
     stripeCls: `${prefixCls}-stripe`,
     noDataCls: `${prefixCls}-no-data`,
     hasFixColumnsCls: `${prefixCls}-has-fix-columns`,
@@ -120,6 +123,7 @@ export const getComponentCls = (prefixCls: string): ComponentClsType => {
     bodyVirtualFillerCls: `${prefixCls}-body-virtual-filler`,
     bodyVirtualInnerCls: `${prefixCls}-body-virtual-inner`,
     bodyVirtualRowSpanCls: `${prefixCls}-body-virtual-row-span`,
+    bodyVirtualRowSpanTopCls: `${prefixCls}-body-virtual-row-span-top`,
     bodyRowExpandableCls: `${prefixCls}-body-row-expandable`,
     bodyRowSortDraggingCls: `${prefixCls}-body-row-sort-dragging`,
     cellCls: `${prefixCls}-cell`,

@@ -1,5 +1,5 @@
+import classNames from 'classnames';
 import React, { Key, useMemo } from 'react';
-
 import { usePrefixClsContext } from '../../prefixClsContext';
 import { getComponentCls } from '../../style/classNames';
 import type { BodyItem, BodyItemRenderer, BodyRowItem } from '../interface';
@@ -35,8 +35,12 @@ const VirtualBody = <T,>({
   onItemResize,
 }: VirtualBodyProps<T>) => {
   const prefixCls = usePrefixClsContext();
-  const { bodyVirtualFillerCls, bodyVirtualInnerCls, bodyVirtualRowSpanCls } =
-    useMemo(() => getComponentCls(prefixCls), [prefixCls]);
+  const {
+    bodyVirtualFillerCls,
+    bodyVirtualInnerCls,
+    bodyVirtualRowSpanCls,
+    bodyVirtualRowSpanTopCls,
+  } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
 
   if (!inVirtual) {
     return <>{bodyItems.map((item) => renderBodyItem(item))}</>;
@@ -57,16 +61,20 @@ const VirtualBody = <T,>({
             onRowResize: onItemResize,
           }),
         )}
-        {rowSpanItems.map(({ bodyItem, top, getHeight }) =>
-          renderBodyItem(bodyItem, {
+        {rowSpanItems.map(({ bodyItem, top, getHeight }) => {
+          const offsetTop = top - offsetY;
+
+          return renderBodyItem(bodyItem, {
             renderMode: 'rowSpanOverlay',
             renderKey: `rowspan-${bodyItem.reactKey}`,
-            className: bodyVirtualRowSpanCls,
-            style: { top: top - offsetY },
+            className: classNames(bodyVirtualRowSpanCls, {
+              [bodyVirtualRowSpanTopCls]: offsetTop === 0,
+            }),
+            style: { top: offsetTop },
             getRowSpanHeight: getHeight,
             onRowResize: onItemResize,
-          }),
-        )}
+          });
+        })}
       </div>
     </div>
   );
