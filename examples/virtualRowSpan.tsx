@@ -1,7 +1,7 @@
-import { Button, Space, Tag } from 'antd';
+import { Button, Flex, Space, Switch, Tag, Typography } from 'antd';
 import { Table, TableRef } from 'rc-grid-table';
 import { ColumnsType } from 'rc-grid-table/es/table/interface';
-import React, { useMemo, useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import ConfigActions from './_utils/components/ConfigActions';
 import useConfigActions from './_utils/hooks/useConfigActions';
 
@@ -19,6 +19,9 @@ const groupSize = 6;
 
 const App: React.FC = () => {
   const tableRef = useRef<TableRef>(null);
+  const [expandable, setExpandable] = useState(false);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+
   const columns: ColumnsType<DataType> = [
     {
       title: 'Group',
@@ -26,6 +29,10 @@ const App: React.FC = () => {
       fixed: 'start',
       width: 140,
       onCell: (_, index = 0) => {
+        if (expandable) {
+          return {};
+        }
+
         if (index % groupSize === 0) {
           return { rowSpan: groupSize };
         }
@@ -79,23 +86,21 @@ const App: React.FC = () => {
     },
   ];
 
-  const data = useMemo<DataType[]>(
-    () =>
-      Array.from({ length: 3000 }).map((_, index) => ({
-        key: `${index}`,
-        group: `Group ${Math.floor(index / groupSize)}`,
-        name: `User ${index}`,
-        age: 20 + (index % 30),
-        status: ['Active', 'Pending', 'Disabled'][
-          index % 3
-        ] as DataType['status'],
-        address: `No. ${index} Lake Park, Dublin`,
-        note:
-          index % 8 === 0
-            ? 'This row intentionally has a longer paragraph so row height measurement changes while rowSpan cells keep their visual height across the grouped rows.'
-            : 'Compact row.',
-      })),
-    [],
+  const [dataSource] = useState(() =>
+    Array.from({ length: 10000 }).map<DataType>((_, index) => ({
+      key: `${index}`,
+      group: `Group ${Math.floor(index / groupSize)}`,
+      name: `User ${index}`,
+      age: 20 + (index % 30),
+      status: ['Active', 'Pending', 'Disabled'][
+        index % 3
+      ] as DataType['status'],
+      address: `No. ${index} Lake Park, Dublin`,
+      note:
+        index % 8 === 0
+          ? 'This row intentionally has a longer paragraph so row height measurement changes while rowSpan cells keep their visual height across the grouped rows.'
+          : 'Compact row.',
+    })),
   );
 
   const { baseProps, state, onChange } = useConfigActions({
@@ -107,6 +112,10 @@ const App: React.FC = () => {
     <>
       <ConfigActions value={state} onChange={onChange} />
       <Space style={{ marginBottom: 12 }}>
+        <Flex align="center" gap={6}>
+          <Switch checked={expandable} onChange={setExpandable} />
+          <Typography.Text>expandable</Typography.Text>
+        </Flex>
         <Button onClick={() => tableRef.current?.scrollToTop()}>
           Scroll top
         </Button>
@@ -129,14 +138,27 @@ const App: React.FC = () => {
         {...baseProps}
         ref={tableRef}
         columns={columns}
-        dataSource={data}
+        dataSource={dataSource}
         scrollY={420}
         sticky={{ offsetHeader: 76 }}
-        expandable={{
-          fixed: 'start',
-          expandedRowRender: (record) => record.note,
-          rowExpandable: (record) => Number(record.key) % 12 === 0,
-        }}
+        rowSelection={
+          expandable
+            ? undefined
+            : {
+                fixed: 'start',
+                selectedRowKeys,
+                onChange: (keys) => setSelectedRowKeys(keys),
+              }
+        }
+        expandable={
+          expandable
+            ? {
+                fixed: 'start',
+                expandedRowRender: (record) => record.note,
+                rowExpandable: (record) => Number(record.key) % 12 === 0,
+              }
+            : undefined
+        }
         summary={(pageData) => [
           [
             { children: null },

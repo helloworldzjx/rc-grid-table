@@ -1,7 +1,7 @@
 import { Button, Space, Tag } from 'antd';
 import { Table, TableRef } from 'rc-grid-table';
 import { ColumnsType } from 'rc-grid-table/es/table/interface';
-import React, { useMemo, useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import ConfigActions from './_utils/components/ConfigActions';
 import useConfigActions from './_utils/hooks/useConfigActions';
 
@@ -71,23 +71,21 @@ const App: React.FC = () => {
     },
   ];
 
-  const data = useMemo<DataType[]>(
-    () =>
-      Array.from({ length: 5000 }).map((_, index) => ({
-        key: `${index}`,
-        name: `User ${index}`,
-        age: 20 + (index % 30),
-        department: ['Operations', 'Support', 'Finance', 'Product'][
-          index % 4
-        ],
-        status: ['Active', 'Pending', 'Disabled'][index % 3] as DataType['status'],
-        address: `No. ${index} Lake Park, Dublin`,
-        note:
-          index % 7 === 0
-            ? 'This row has a longer paragraph so the virtual list can collect real height and keep the scrollbar size accurate while scrolling quickly.'
-            : 'Compact row.',
-      })),
-    [],
+  const [dataSource] = useState(() =>
+    Array.from({ length: 5000 }).map<DataType>((_, index) => ({
+      key: `${index}`,
+      name: `User ${index}`,
+      age: 20 + (index % 30),
+      department: ['Operations', 'Support', 'Finance', 'Product'][index % 4],
+      status: ['Active', 'Pending', 'Disabled'][
+        index % 3
+      ] as DataType['status'],
+      address: `No. ${index} Lake Park, Dublin`,
+      note:
+        index % 7 === 0
+          ? 'This row has a longer paragraph so the virtual list can collect real height and keep the scrollbar size accurate while scrolling quickly.'
+          : 'Compact row.',
+    })),
   );
 
   const { baseProps, state, onChange } = useConfigActions({
@@ -121,7 +119,7 @@ const App: React.FC = () => {
         {...baseProps}
         ref={tableRef}
         columns={columns}
-        dataSource={data}
+        dataSource={dataSource}
         scrollY={420}
         sticky={{ offsetHeader: 76 }}
         expandable={{
@@ -134,7 +132,10 @@ const App: React.FC = () => {
             { children: null },
             { children: 'Total rows' },
             { children: pageData.length },
-            { colSpan: columns.length - 2, children: 'Virtual list is enabled by default.' },
+            {
+              colSpan: columns.length - 2,
+              children: 'Virtual list is enabled by default.',
+            },
           ],
         ]}
       />
