@@ -2,7 +2,6 @@ export type ComponentClsType = {
   wrapperCls: string;
   wrapperInitializedCls: string;
   placeholderCls: string;
-  placeholderBorderedCls: string;
   componentCls: string;
   componentSMCls: string;
   componentMDCls: string;
@@ -93,7 +92,6 @@ export const getComponentCls = (prefixCls: string): ComponentClsType => {
     wrapperCls: `${prefixCls}-wrapper`,
     wrapperInitializedCls: `${prefixCls}-wrapper-initialized`,
     placeholderCls: `${prefixCls}-placeholder`,
-    placeholderBorderedCls: `${prefixCls}-placeholder-bordered`,
     componentCls: prefixCls,
     componentSMCls: `${prefixCls}-wrapper-small`,
     componentMDCls: `${prefixCls}-wrapper-middle`,

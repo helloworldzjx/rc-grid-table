@@ -1,11 +1,9 @@
-import classNames from 'classnames';
 import React, { FC, useEffect, useMemo, useRef } from 'react';
 
 import { isNum } from '../../_utils/validate';
 import { useColumnSortableContext } from '../columnSortableContext';
 import { useTableContext } from '../context';
 import { usePrefixClsContext } from '../prefixClsContext';
-import { useStyles } from '../style';
 import { getComponentCls } from '../style/classNames';
 import { distribute } from '../utils/calc';
 import { batchUpdateColumns } from '../utils/handle';
@@ -16,7 +14,6 @@ const AUTO_FILL_CHECK_FRAMES = 4;
 const Placeholder: FC = () => {
   const {
     containerWidth = 0,
-    bordered,
     columnsWidthTotal,
     flattenColumns = [],
     flattenColumnsWidths = [],
@@ -28,8 +25,7 @@ const Placeholder: FC = () => {
   const { sortableDraftState } = useColumnSortableContext();
   const prefixCls = usePrefixClsContext();
 
-  const { hashId } = useStyles();
-  const { placeholderCls, placeholderBorderedCls } = useMemo(
+  const { placeholderCls } = useMemo(
     () => getComponentCls(prefixCls),
     [prefixCls],
   );
@@ -201,9 +197,7 @@ const Placeholder: FC = () => {
     // 暂不动态渲染这个占位元素，而是通过display控制
     <div
       onClick={autoFill}
-      className={classNames(placeholderCls, hashId, {
-        [placeholderBorderedCls]: bordered,
-      })}
+      className={placeholderCls}
       style={{
         left: columnsWidthTotal,
         display:
