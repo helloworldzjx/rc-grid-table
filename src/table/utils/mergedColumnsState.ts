@@ -1,6 +1,6 @@
 import { Key } from 'react';
 
-import { isNum } from '../../_utils/validate';
+import { isNum, isValidKey } from '../../_utils/validate';
 import { ColumnState } from '../interface';
 import { getColumnKey } from './handle';
 
@@ -94,10 +94,9 @@ function normalizeColumnsOrder<T = any>(
       }
     }
 
-    const insertIndex =
-      anchorKey === undefined
-        ? 0
-        : placedColumns.findIndex((item) => item.key === anchorKey) + 1;
+    const insertIndex = !isValidKey(anchorKey)
+      ? 0
+      : placedColumns.findIndex((item) => item.key === anchorKey) + 1;
     placedColumns.splice(insertIndex, 0, column);
     placedKeySet.add(column.key as Key);
   });

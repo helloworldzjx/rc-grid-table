@@ -96,8 +96,9 @@ export default function useTableVirtualBody<T = any>({
   const getRowSpan = useCallback(
     (columnIndex: number, rowIndex: number) => {
       const bodyItemIndex = rowItemIndexMap.get(rowIndex);
-      const bodyItem =
-        bodyItemIndex === undefined ? undefined : bodyItems[bodyItemIndex];
+      const bodyItem = !isNum(bodyItemIndex)
+        ? undefined
+        : bodyItems[bodyItemIndex];
 
       if (!bodyItem || !isBodyRowItem(bodyItem)) {
         return 1;
@@ -168,8 +169,9 @@ export default function useTableVirtualBody<T = any>({
 
     for (let rowIndex = startRowIndex; rowIndex <= endRowIndex; rowIndex += 1) {
       const bodyItemIndex = rowItemIndexMap.get(rowIndex);
-      const bodyItem =
-        bodyItemIndex === undefined ? undefined : bodyItems[bodyItemIndex];
+      const bodyItem = !isNum(bodyItemIndex)
+        ? undefined
+        : bodyItems[bodyItemIndex];
 
       if (
         !bodyItem ||
@@ -191,10 +193,9 @@ export default function useTableVirtualBody<T = any>({
             flattenDataLength - 1,
           );
           const endBodyItemIndex = rowLastItemIndexMap.get(endRowIndex);
-          const endBodyItem =
-            endBodyItemIndex === undefined
-              ? undefined
-              : bodyItems[endBodyItemIndex];
+          const endBodyItem = !isNum(endBodyItemIndex)
+            ? undefined
+            : bodyItems[endBodyItemIndex];
 
           if (!endBodyItem) {
             return sourceSize.bottom - sourceSize.top;

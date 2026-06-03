@@ -90,7 +90,7 @@ const raf = (callback: FrameRequestCallback, times = 1) => {
 };
 
 const cancelRaf = (id: number | null) => {
-  if (id === null) return;
+  if (!isNum(id)) return;
 
   const requestId = rafIds.get(id);
   if (requestId === undefined) return;
@@ -394,7 +394,7 @@ export default function useVirtualBody<ItemType>({
       )[0];
       const startKey = data[visibleStart]?.key;
 
-      if (changedKey === startKey && previousHeight === undefined) {
+      if (changedKey === startKey && !isNum(previousHeight)) {
         const nextHeight = heightsRef.current.get(changedKey);
         if (isNum(nextHeight)) {
           syncScrollTop((top) => top + nextHeight - itemHeight, false);
@@ -495,7 +495,7 @@ export default function useVirtualBody<ItemType>({
       const absX = Math.abs(mergedDeltaX);
       const absY = Math.abs(mergedDeltaY);
 
-      if (wheelDirectionRef.current === null) {
+      if (!wheelDirectionRef.current) {
         wheelDirectionRef.current = absX > absY ? 'x' : 'y';
       }
 

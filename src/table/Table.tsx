@@ -279,7 +279,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
     );
 
     const activeRowSortBodyItem = useMemo(() => {
-      if (activeRowSortKey === null) {
+      if (!isValidKey(activeRowSortKey)) {
         return null;
       }
 
@@ -296,7 +296,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
         if (!rowSortable || !isValidKey(key)) {
           return true;
         }
-        if (activeRowSortKey === null || key === activeRowSortKey) {
+        if (!isValidKey(activeRowSortKey) || key === activeRowSortKey) {
           return false;
         }
         const activeEntity = rowSortEntities.get(activeRowSortKey);
