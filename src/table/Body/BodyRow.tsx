@@ -1,22 +1,18 @@
-import type { UniqueIdentifier } from '@dnd-kit/core';
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import ResizeObserver from '@rc-component/resize-observer';
 import classNames from 'classnames';
 import React, { CSSProperties, Ref, memo, useMemo } from 'react';
 
-import { isValidKey } from '../../_utils/validate';
 import { useComponentsContext } from '../componentsContext';
 import { useExpandableContext } from '../expandableContext';
 import useFixedInfo from '../hooks/useFixedInfo';
 import { ColumnState, StickyOffsets } from '../interface';
 import { usePrefixClsContext } from '../prefixClsContext';
-import { useRowSortableContext } from '../rowSortableContext';
 import { getComponentCls } from '../style/classNames';
-import { isInternalColumn, isRowSortColumn } from '../utils/const';
+import { isInternalColumn } from '../utils/const';
 import BodyCell from './BodyCell';
 import { getBodyCellSpanInfo, isVirtualBodyRenderMode } from './cellSpan';
 import type { BodyRenderMode } from './interface';
+import useRowSort from './useRowSort';
 
 interface BodyRowProps<T = any> {
   rowData: T;
@@ -28,6 +24,7 @@ interface BodyRowProps<T = any> {
   style?: CSSProperties;
   rowRef?: Ref<HTMLDivElement>;
   onRowResize?: () => void;
+  rowSortOverlay?: boolean;
   renderMode?: BodyRenderMode;
   getRowSpanHeight?: (rowSpan: number) => number;
   indent?: number;
@@ -49,6 +46,7 @@ function BodyRow({
   style,
   rowRef,
   onRowResize,
+  rowSortOverlay = false,
   renderMode = 'normal',
   getRowSpanHeight,
   indent = 0,
@@ -70,7 +68,6 @@ function BodyRow({
 
   const { expandable: expandableConfig, onTriggerExpand } =
     useExpandableContext();
-  const { rowSortable } = useRowSortableContext();
   const { getComponent } = useComponentsContext();
   const fixedInfoList = useFixedInfo(flattenColumns, fixedOffset);
 
@@ -85,68 +82,19 @@ function BodyRow({
   const firstDataColumnIndex = flattenColumns.findIndex(
     (column) => !isInternalColumn(column),
   );
-  const sortableDisabled = !rowSortable || !isValidKey(rowKeyValue);
-  const sortableId = (
-    isValidKey(rowKeyValue) ? rowKeyValue : `row-sort-${rowIndex}`
-  ) as UniqueIdentifier;
 
-  const {
-    attributes: rowSortAttributes,
-    listeners: rowSortListeners,
-    setActivatorNodeRef: setRowSortActivatorNodeRef,
-    setNodeRef: setRowSortNodeRef,
-    transform: rowSortTransform,
-    transition: rowSortTransition,
-    isDragging: isRowSortDragging,
-    isSorting: isRowSortSorting,
-    isOver: isRowSortOver,
-  } = useSortable({
-    id: sortableId,
-    disabled: {
-      draggable: sortableDisabled || rowSortDragDisabled,
-      droppable: sortableDisabled || rowSortDropDisabled,
-    },
-    attributes: {
-      role: 'button',
-      roleDescription: 'sortable row',
-      tabIndex: sortableDisabled || rowSortDragDisabled ? -1 : 0,
-    },
-    data: {
-      type: 'rowSortable',
-      key: rowKeyValue,
-      record: rowData,
-      index: rowIndex,
-    },
+  const rowSort = useRowSort({
+    rowData,
+    rowIndex,
+    rowKeyValue,
+    rowRef,
+    style,
+    virtual,
+    rowSortDragDisabled,
+    rowSortDropDisabled,
+    rowSortOverlay,
+    rowSortDragging,
   });
-
-  const rowSortTransformStyle = CSS.Transform.toString(rowSortTransform);
-  const rowSortActive = rowSortDragging || isRowSortDragging;
-  const rowSortSorting = isRowSortSorting || rowSortDragging;
-  const isRowSortDisabled = sortableDisabled || rowSortDragDisabled;
-
-  const rowSortCellStyle = useMemo<CSSProperties | undefined>(() => {
-    if (!rowSortSorting) {
-      return undefined;
-    }
-
-    return {
-      transform: 'inherit',
-      transition: 'inherit',
-      ...(rowSortActive ? { zIndex: 2 } : null),
-    };
-  }, [rowSortActive, rowSortSorting]);
-
-  const mergedStyle = useMemo<CSSProperties | undefined>(() => {
-    if (!rowSortTransformStyle && !rowSortTransition) {
-      return style;
-    }
-
-    return {
-      ...style,
-      transform: rowSortTransformStyle,
-      transition: rowSortTransition,
-    };
-  }, [rowSortTransformStyle, rowSortTransition, style]);
 
   const handleClick = () => {
     if (expandByClick) {
@@ -161,13 +109,13 @@ function BodyRow({
         {
           [bodyGridRowCls]: virtual,
           [bodyRowExpandableCls]: expandByClick,
-          [bodyRowSortDraggingCls]: rowSortActive,
+          [bodyRowSortDraggingCls]: rowSort.active,
         },
         className,
       )}
-      style={mergedStyle}
+      style={rowSort.rowStyle}
       onClick={handleClick}
-      ref={rowRef}
+      ref={rowSort.rowRef}
     >
       {flattenColumns?.map((column, colIndex) => {
         if (renderMode === 'normal') {
@@ -200,15 +148,13 @@ function BodyRow({
             isFirstDataColumn={colIndex === firstDataColumnIndex}
             rowSortKey={rowKeyValue}
             rowSortDragDisabled={rowSortDragDisabled}
-            rowSortDragging={rowSortActive}
-            rowSortIsOver={isRowSortOver}
-            rowSortCellStyle={rowSortCellStyle}
-            rowSortAttributes={rowSortAttributes}
-            rowSortListeners={isRowSortDisabled ? undefined : rowSortListeners}
-            setRowSortActivatorNodeRef={setRowSortActivatorNodeRef}
-            setRowSortNodeRef={
-              isRowSortColumn(column) ? setRowSortNodeRef : undefined
-            }
+            rowSortDragging={rowSort.active}
+            rowSortIsOver={rowSort.isOver}
+            rowSortCellStyle={rowSort.cellStyle}
+            rowSortAttributes={rowSort.attributes}
+            rowSortListeners={rowSort.listeners}
+            setRowSortActivatorNodeRef={rowSort.setActivatorNodeRef}
+            setRowSortNodeRef={rowSort.getNodeRef(column)}
           />
         );
       })}

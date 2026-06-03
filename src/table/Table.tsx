@@ -2,6 +2,7 @@ import {
   closestCenter,
   DndContext,
   DragEndEvent,
+  DragOverlay,
   DragStartEvent,
   PointerSensor,
   UniqueIdentifier,
@@ -156,6 +157,10 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
     const childrenColumnName = expandable?.childrenColumnName ?? 'children';
     const allowCrossLevelSort = !!rowSortable?.allowCrossLevelSort;
     const [activeRowSortKey, setActiveRowSortKey] = useState<Key | null>(null);
+    const activeRowSortDataRef = useRef<{
+      key: Key;
+      index: number;
+    } | null>(null);
 
     const isTreeMode = !hasExpandedRowRender;
     const hasTreeData = useMemo(() => {
@@ -273,6 +278,19 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       [rowSortItems],
     );
 
+    const activeRowSortBodyItem = useMemo(() => {
+      if (activeRowSortKey === null) {
+        return null;
+      }
+
+      return (
+        bodyItems.find(
+          (item) =>
+            item.type === 'row' && item.rowKeyValue === activeRowSortKey,
+        ) ?? null
+      );
+    }, [activeRowSortKey, bodyItems]);
+
     const getRowSortDropDisabled = useCallback(
       (key: Key | undefined) => {
         if (!rowSortable || !isValidKey(key)) {
@@ -318,50 +336,80 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       const activeEntity = event.active.data?.current;
       if (!activeEntity) return;
 
-      document.documentElement.style.cursor = 'move';
+      activeRowSortDataRef.current = {
+        key: activeEntity.key,
+        index: activeEntity.index,
+      };
+      document.documentElement.style.cursor = 'grabbing';
       setActiveRowSortKey(activeEntity.key);
     }, []);
 
     const cleanupRowSort = useCallback(() => {
       document.documentElement.style.cursor = '';
+      activeRowSortDataRef.current = null;
       setActiveRowSortKey(null);
     }, []);
 
     const handleRowSortEnd = useCallback(
       (event: DragEndEvent) => {
-        if (event.active.data.current?.type !== 'rowSortable') {
+        const isRowSortEvent =
+          event.active.data.current?.type === 'rowSortable' ||
+          activeRowSortDataRef.current !== null;
+        const activeEntity =
+          event.active.data.current?.type === 'rowSortable'
+            ? event.active.data.current
+            : activeRowSortDataRef.current;
+
+        if (!isRowSortEvent) {
           return;
         }
 
-        const activeEntity = event.active.data?.current;
-        const overEntity = event.over?.data?.current;
-        if (!activeEntity || !overEntity) return;
-
-        if (activeEntity.key !== overEntity.key) {
-          const placement =
-            activeEntity.index > overEntity.index ? 'before' : 'after';
-          const result = reorderDataSource({
-            dataSource: dataSource || [],
-            rowKey,
-            childrenColumnName,
-            activeKey: activeEntity.key,
-            overKey: overEntity.key,
-            placement,
-            allowCrossLevelSort,
-          });
-
-          if (result) {
-            rowSortable?.onChange?.(result.dataSource, result.info);
+        try {
+          if (!activeEntity) {
+            return;
           }
-        }
 
-        cleanupRowSort();
+          const overEntity = event.over?.data?.current;
+          const activeKey = activeEntity.key;
+          const overKey =
+            overEntity?.type === 'rowSortable'
+              ? overEntity.key
+              : event.over?.id;
+
+          if (
+            isValidKey(activeKey) &&
+            isValidKey(overKey) &&
+            activeKey !== overKey
+          ) {
+            const activeIndex =
+              activeEntity.index ?? rowSortEntities.get(activeKey)?.index ?? 0;
+            const overIndex =
+              overEntity?.index ?? rowSortEntities.get(overKey)?.index ?? 0;
+            const placement = activeIndex > overIndex ? 'before' : 'after';
+            const result = reorderDataSource({
+              dataSource: dataSource || [],
+              rowKey,
+              childrenColumnName,
+              activeKey,
+              overKey,
+              placement,
+              allowCrossLevelSort,
+            });
+
+            if (result) {
+              rowSortable?.onChange?.(result.dataSource, result.info);
+            }
+          }
+        } finally {
+          cleanupRowSort();
+        }
       },
       [
         allowCrossLevelSort,
         childrenColumnName,
         cleanupRowSort,
         dataSource,
+        rowSortEntities,
         rowKey,
         rowSortable,
       ],
@@ -521,6 +569,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
           style={options.style}
           rowRef={options.rowRef}
           onRowResize={options.onRowResize}
+          rowSortOverlay={options.rowSortOverlay}
           renderMode={options.renderMode}
           getRowSpanHeight={options.getRowSpanHeight}
           rowSortDragDisabled={dragDisabled}
@@ -627,6 +676,19 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
                 >
                   {!!dataSource?.length && virtualBody.render(renderBodyItem)}
                 </SortableContext>
+                <DragOverlay adjustScale={false} dropAnimation={null}>
+                  {activeRowSortBodyItem &&
+                    renderBodyItem(activeRowSortBodyItem, {
+                      renderMode: virtualBody.inVirtual ? 'virtual' : 'normal',
+                      renderKey: `row-sort-overlay-${activeRowSortBodyItem.reactKey}`,
+                      style: {
+                        display: 'grid',
+                        gridTemplateColumns: `var(--${prefixCls}-cols-width)`,
+                        width: `var(--${prefixCls}-cols-width-total)`,
+                      },
+                      rowSortOverlay: true,
+                    })}
+                </DragOverlay>
               </DndContext>
             </ScrollBarContainer>
 

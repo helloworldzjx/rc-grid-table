@@ -36,6 +36,7 @@ export interface BodyRenderOptions {
   style?: CSSProperties;
   rowRef?: Ref<HTMLDivElement>;
   onRowResize?: () => void;
+  rowSortOverlay?: boolean;
   renderKey?: Key;
   className?: string;
   getRowSpanHeight?: (rowSpan: number) => number;

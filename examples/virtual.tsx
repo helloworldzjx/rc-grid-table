@@ -71,7 +71,7 @@ const App: React.FC = () => {
     },
   ];
 
-  const [dataSource] = useState(() =>
+  const [dataSource, setDataSource] = useState(() =>
     Array.from({ length: 5000 }).map<DataType>((_, index) => ({
       key: `${index}`,
       name: `User ${index}`,
@@ -122,6 +122,10 @@ const App: React.FC = () => {
         dataSource={dataSource}
         scrollY={420}
         sticky={{ offsetHeader: 76 }}
+        rowSortable={{
+          fixed: 'start',
+          onChange: setDataSource,
+        }}
         expandable={{
           fixed: 'start',
           expandedRowRender: (record) => record.note,
