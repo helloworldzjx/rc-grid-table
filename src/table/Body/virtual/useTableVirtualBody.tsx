@@ -277,6 +277,11 @@ export default function useTableVirtualBody<T = any>({
         return;
       }
 
+      if (typeof options === 'number') {
+        scrollBodyTo({ top: options });
+        return;
+      }
+
       scrollBodyTo((options || undefined) as ScrollToOptions | undefined);
     },
     [bodyItems, inVirtual, scrollBodyTo, scrollVirtualTo],

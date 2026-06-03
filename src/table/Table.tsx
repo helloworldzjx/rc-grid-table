@@ -428,9 +428,10 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
     const rowSortAutoScroll = useMemo(
       () => ({
         canScroll: (element: Element) =>
-          element === bodyScrollElement && lastRowSortItem === undefined,
+          element === bodyScrollElement &&
+          (virtualBody.inVirtual ? true : lastRowSortItem === undefined),
       }),
-      [bodyScrollElement, lastRowSortItem],
+      [bodyScrollElement, lastRowSortItem, virtualBody.inVirtual],
     );
 
     const TableComponent = getComponent(['table'], 'div');

@@ -264,6 +264,8 @@ export default function useVirtualBody<ItemType>({
   );
 
   useIsomorphicLayoutEffect(() => {
+    if (!inVirtual) return;
+
     scrollTopRef.current = keepInRange(scrollTopRef.current);
     if (scrollTopRef.current !== offsetTop) {
       setOffsetTop(scrollTopRef.current);
@@ -275,7 +277,7 @@ export default function useVirtualBody<ItemType>({
     ) {
       scrollElement.scrollTop = scrollTopRef.current;
     }
-  }, [keepInRange, scrollElement, offsetTop]);
+  }, [inVirtual, keepInRange, scrollElement, offsetTop]);
 
   const collectHeight = useCallback((sync = false) => {
     cancelRaf(collectFrameRef.current);
@@ -425,7 +427,6 @@ export default function useVirtualBody<ItemType>({
           return;
         }
         scrollTopRef.current = scrollTop;
-        updateOffsetTop(scrollTop, sync);
         return;
       }
 
@@ -443,7 +444,6 @@ export default function useVirtualBody<ItemType>({
       prefixHeights,
       scrollY,
       syncScrollTop,
-      updateOffsetTop,
       visibleEnd,
       visibleStart,
     ],
