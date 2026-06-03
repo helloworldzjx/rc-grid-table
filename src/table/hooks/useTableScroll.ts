@@ -6,6 +6,7 @@ import {
   MIN_THUMB_SIZE,
   SCROLLBAR_VISIBLE_TOLERANCE,
 } from '../../_utils/const';
+import { useElementRef } from '../../_utils/hooks/useElementRef';
 import type { HeadRef } from '../Head/Head';
 import type { ScrollBarContainerRef } from '../ScrollContainer/interface';
 
@@ -17,16 +18,6 @@ interface UseTableScrollProps {
   onScroll?: UIEventHandler<HTMLDivElement>;
   deps?: unknown[];
 }
-
-const useElementRef = <T extends HTMLElement>() => {
-  const [element, setElement] = useState<T | null>(null);
-
-  const ref = useCallback((node: T | null) => {
-    setElement(node);
-  }, []);
-
-  return [ref, element] as const;
-};
 
 const getMaxScrollLeft = (element: HTMLDivElement) =>
   Math.max(element.scrollWidth - element.clientWidth, 0);

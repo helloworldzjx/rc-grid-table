@@ -1,3 +1,5 @@
+import { isNum } from './validate';
+
 export const raf = (callback: FrameRequestCallback) => {
   if (typeof requestAnimationFrame === 'function') {
     return requestAnimationFrame(callback);
@@ -7,7 +9,7 @@ export const raf = (callback: FrameRequestCallback) => {
 };
 
 export const cancelRaf = (id: number | null) => {
-  if (id === null) return;
+  if (!isNum(id)) return;
 
   if (typeof cancelAnimationFrame === 'function') {
     cancelAnimationFrame(id);

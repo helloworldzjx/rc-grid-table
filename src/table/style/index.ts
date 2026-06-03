@@ -176,6 +176,7 @@ const genBorderedStyle = (
 
     [`.${headCls}`]: {
       '&::before': {
+        // 使用outline替代border，避免sticky情况下border叠加导致的宽度问题
         borderBottomColor: 'transparent',
         outline: `1px solid ${token.colorBorder}`,
         outlineOffset: -1,
@@ -200,6 +201,7 @@ const genBorderedStyle = (
 
     [`.${summaryCls}`]: {
       '&::before': {
+        // 使用outline替代border，避免sticky情况下border叠加导致的宽度问题
         borderBottomColor: 'transparent',
         outline: `1px solid ${token.colorBorder}`,
         outlineOffset: -1,

@@ -1,8 +1,6 @@
 import { useIsomorphicLayoutEffect } from 'ahooks';
 import {
   MouseEventHandler,
-  MouseEvent as ReactMouseEvent,
-  TouchEvent as ReactTouchEvent,
   UIEventHandler,
   useCallback,
   useEffect,
@@ -11,59 +9,16 @@ import {
 } from 'react';
 
 import { MIN_THUMB_SIZE } from '../../../_utils/const';
+import {
+  getPageY,
+  preventDefaultIfCancelable,
+  type DragEventLike,
+} from '../../../_utils/event';
+import { useElementRef } from '../../../_utils/hooks/useElementRef';
+import { cancelRaf, raf } from '../../../_utils/raf';
 import { ScrollBarContainerProps } from '../interface';
 
 type UseScrollProps = Omit<ScrollBarContainerProps, 'classNames' | 'prefixCls'>;
-
-type DragEventLike =
-  | MouseEvent
-  | TouchEvent
-  | ReactMouseEvent
-  | ReactTouchEvent;
-
-const raf = (callback: FrameRequestCallback) => {
-  if (typeof requestAnimationFrame === 'function') {
-    return requestAnimationFrame(callback);
-  }
-
-  return setTimeout(() => callback(Date.now()), 16) as unknown as number;
-};
-
-const cancelRaf = (id: number | null) => {
-  if (id === null) return;
-
-  if (typeof cancelAnimationFrame === 'function') {
-    cancelAnimationFrame(id);
-  } else {
-    clearTimeout(id);
-  }
-};
-
-const getPageY = (event: DragEventLike) => {
-  if ('touches' in event) {
-    return event.touches[0]?.pageY ?? 0;
-  }
-
-  return event.pageY;
-};
-
-const preventDefaultIfCancelable = (
-  event: Event | ReactMouseEvent | ReactTouchEvent,
-) => {
-  if (event.cancelable) {
-    event.preventDefault();
-  }
-};
-
-const useElementRef = <T extends HTMLElement>() => {
-  const [element, setElement] = useState<T | null>(null);
-
-  const ref = useCallback((node: T | null) => {
-    setElement(node);
-  }, []);
-
-  return [ref, element] as const;
-};
 
 const useScroll = ({
   showVertical,

@@ -72,7 +72,7 @@ const App: React.FC = () => {
   ];
 
   const [dataSource, setDataSource] = useState(() =>
-    Array.from({ length: 5000 }).map<DataType>((_, index) => ({
+    Array.from({ length: 10000 }).map<DataType>((_, index) => ({
       key: `${index}`,
       name: `User ${index}`,
       age: 20 + (index % 30),
@@ -109,7 +109,7 @@ const App: React.FC = () => {
         </Button>
         <Button
           onClick={() =>
-            tableRef.current?.scrollTo({ key: '4999', align: 'bottom' })
+            tableRef.current?.scrollTo({ key: '9999', align: 'bottom' })
           }
         >
           Scroll bottom

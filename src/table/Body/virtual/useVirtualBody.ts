@@ -2,6 +2,7 @@ import { useIsomorphicLayoutEffect } from 'ahooks';
 import { Key, useCallback, useMemo, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 
+import { preventDefaultIfCancelable } from '../../../_utils/event';
 import { isNum } from '../../../_utils/validate';
 import type { SizeType, TableScrollToOptions } from '../../interface';
 import { getDefaultInternalColumnWidth } from '../../utils/const';
@@ -117,15 +118,6 @@ const getPageXY = (event: MouseEvent | TouchEvent, horizontal = false) => {
 
 const getDragScrollOffset = (offset: number) =>
   Math.floor(Math.sqrt(Math.max(offset, 0)));
-
-const preventDefaultIfCancelable = (event: Event) => {
-  if (event.cancelable) {
-    event.preventDefault();
-    return true;
-  }
-
-  return false;
-};
 
 export default function useVirtualBody<ItemType>({
   data,

@@ -128,7 +128,7 @@ const App: React.FC = () => {
         </Button>
         <Button
           onClick={() =>
-            tableRef.current?.scrollTo({ key: '2999', align: 'bottom' })
+            tableRef.current?.scrollTo({ key: '9999', align: 'bottom' })
           }
         >
           Scroll bottom
