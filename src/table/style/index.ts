@@ -767,8 +767,9 @@ const genFixedCellStyle = (
     content: "' '",
     position: 'absolute',
     width: 30,
-    top: 0,
-    bottom: -1,
+    // 单元格边框是顶部边框，宽度为1px，所以阴影距离需要加1px，避免出现1px的缝隙
+    top: -1,
+    bottom: 0,
     right: 0,
     transform: 'translateX(100%)',
     transition: 'box-shadow 0.3s',
@@ -779,8 +780,9 @@ const genFixedCellStyle = (
     content: "' '",
     position: 'absolute',
     width: 30,
-    top: 0,
-    bottom: -1,
+    // 单元格边框是顶部边框，宽度为1px，所以阴影距离需要加1px，避免出现1px的缝隙
+    top: -1,
+    bottom: 0,
     left: 0,
     transform: 'translateX(-100%)',
     transition: 'box-shadow 0.3s',

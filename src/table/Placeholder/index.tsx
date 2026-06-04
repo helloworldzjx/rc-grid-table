@@ -29,6 +29,7 @@ const Placeholder: FC = () => {
     () => getComponentCls(prefixCls),
     [prefixCls],
   );
+
   const autoFillFrameRef = useRef<number | null>(null);
   const autoFillCheckCountRef = useRef(0);
   // autoFill 会在 rAF 中二次校准，使用 ref 保存最新状态，避免回调读到旧闭包。

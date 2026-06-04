@@ -133,11 +133,10 @@ const App: React.FC = () => {
         }}
         summary={(pageData) => [
           [
-            { children: null },
-            { children: 'Total rows' },
+            { children: 'Total rows', colSpan: 2 },
             { children: pageData.length },
             {
-              colSpan: columns.length - 2,
+              colSpan: columns.length - 1,
               children: 'Virtual list is enabled by default.',
             },
           ],
