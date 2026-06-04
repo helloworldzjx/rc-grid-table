@@ -1,0 +1,53 @@
+import classNames from 'classnames';
+import React, { FC, useMemo } from 'react';
+
+import { useComponentsContext } from '../componentsContext';
+import { useTableContext } from '../context';
+import useFixedInfo from '../hooks/useFixedInfo';
+import { usePrefixClsContext } from '../prefixClsContext';
+import { getComponentCls } from '../style/classNames';
+import HeadFilterCell from './HeadFilterCell';
+
+const HeadFilterRow: FC = () => {
+  const { flattenColumns = [], fixedOffset } = useTableContext();
+  const prefixCls = usePrefixClsContext();
+  const { getComponent } = useComponentsContext();
+
+  const { headRowCls, filterRowCls } = useMemo(
+    () => getComponentCls(prefixCls),
+    [prefixCls],
+  );
+
+  const RowComponent = useMemo(
+    () =>
+      getComponent(
+        ['header', 'filterRow'],
+        getComponent(['header', 'row'], 'div'),
+      ),
+    [getComponent],
+  );
+  const fixedInfoList = useFixedInfo(flattenColumns, fixedOffset);
+
+  const hasFilter = flattenColumns.some(
+    (column) => typeof column.filterRender === 'function',
+  );
+  if (!hasFilter) {
+    return null;
+  }
+
+  return (
+    <RowComponent className={classNames(headRowCls, filterRowCls)}>
+      {flattenColumns.map((column, columnIndex) => (
+        <HeadFilterCell
+          key={column.key}
+          column={column}
+          columnIndex={columnIndex}
+          fixedInfo={fixedInfoList[columnIndex]}
+          last={columnIndex === flattenColumns.length - 1}
+        />
+      ))}
+    </RowComponent>
+  );
+};
+
+export default HeadFilterRow;

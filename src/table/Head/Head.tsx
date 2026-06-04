@@ -12,6 +12,7 @@ import { useComponentsContext } from '../componentsContext';
 import { CellType } from '../interface';
 import { usePrefixClsContext } from '../prefixClsContext';
 import { getComponentCls } from '../style/classNames';
+import HeadFilterRow from './HeadFilterRow';
 import HeadRow from './HeadRow';
 
 export interface HeadRef {
@@ -68,6 +69,7 @@ const Head = forwardRef<HeadRef, HeadProps>(
               onResizeEnd={handleResizeDragEnd}
             />
           ))}
+          <HeadFilterRow />
         </WrapperComponent>
       </div>
     );

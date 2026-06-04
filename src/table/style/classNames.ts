@@ -24,6 +24,7 @@ export type ComponentClsType = {
   headStickyCls: string;
   headInnerCls: string;
   headRowCls: string;
+  filterRowCls: string;
   bodyCls: string;
   bodyInnerCls: string;
   bodyRowCls: string;
@@ -35,6 +36,7 @@ export type ComponentClsType = {
   bodyRowExpandableCls: string;
   bodyRowSortDraggingCls: string;
   cellCls: string;
+  filterCellCls: string;
   cellEllipsisCls: string;
   cellEllipsisInnerCls: string;
   expandControlCellCls: string;
@@ -116,6 +118,7 @@ export const getComponentCls = (prefixCls: string): ComponentClsType => {
     headStickyCls: `${prefixCls}-head-sticky`,
     headInnerCls: `${prefixCls}-head-inner`,
     headRowCls: `${prefixCls}-head-row`,
+    filterRowCls: `${prefixCls}-filter-row`,
     bodyCls: `${prefixCls}-body`,
     bodyInnerCls: `${prefixCls}-body-inner`,
     bodyRowCls: `${prefixCls}-body-row`,
@@ -127,6 +130,7 @@ export const getComponentCls = (prefixCls: string): ComponentClsType => {
     bodyRowExpandableCls: `${prefixCls}-body-row-expandable`,
     bodyRowSortDraggingCls: `${prefixCls}-body-row-sort-dragging`,
     cellCls: `${prefixCls}-cell`,
+    filterCellCls: `${prefixCls}-filter-cell`,
     cellEllipsisCls: `${prefixCls}-cell-ellipsis`,
     cellEllipsisInnerCls: `${prefixCls}-cell-ellipsis-inner`,
     expandControlCellCls: `${prefixCls}-expand-control-cell`,

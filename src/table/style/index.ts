@@ -388,6 +388,7 @@ const genCellStyle = (
     bodyRowSortDraggingCls,
     summaryRowCls,
     cellCls,
+    filterCellCls,
     cellEllipsisCls,
     cellEllipsisInnerCls,
     expandControlCls,
@@ -513,6 +514,16 @@ const genCellStyle = (
     alignContent: 'center',
     wordBreak: 'break-word',
     boxSizing: 'border-box',
+  },
+
+  [`.${filterCellCls}`]: {
+    minWidth: 0,
+
+    'input, select, textarea': {
+      width: '100%',
+      minWidth: 0,
+      boxSizing: 'border-box',
+    },
   },
 
   [`.${selectionControlCls}`]: {

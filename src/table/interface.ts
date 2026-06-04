@@ -56,6 +56,8 @@ export interface TableComponents {
     wrapper?: CustomizeComponent;
     row?: CustomizeComponent;
     cell?: CustomizeComponent;
+    filterRow?: CustomizeComponent;
+    filterCell?: CustomizeComponent;
   };
   body?: {
     wrapper?: CustomizeComponent;
@@ -108,6 +110,13 @@ export type GetHeaderCellProps<T> = (
 ) => React.HTMLAttributes<any> & {
   rowSpan?: number;
   colSpan?: number;
+  align?: AlignType;
+};
+
+export type GetFilterCellProps<T> = (
+  column: ColumnState<T>,
+  columnIndex?: number,
+) => React.HTMLAttributes<any> & {
   align?: AlignType;
 };
 
@@ -243,6 +252,7 @@ export interface ColumnProps<T = any> {
   __RC_GRID_TABLE_ROW_SORT_COLUMN?: true;
   title?: ReactNode;
   render?: (value: any, record: T, rowIndex: number) => ReactNode;
+  filterRender?: (column: ColumnState<T>, columnIndex: number) => ReactNode;
   /** 列宽，仅支持数字和百分比数字，不支持px的字符串写法 */
   width?: number | PercentColumnWidthType;
   /** 禁止表格重新调整叶子列宽度 */
@@ -266,6 +276,7 @@ export interface ColumnProps<T = any> {
   colSpan?: number;
   onCell?: GetBodyCellProps<T>;
   onHeaderCell?: GetHeaderCellProps<T>;
+  onFilterCell?: GetFilterCellProps<T>;
 }
 
 export type ExpandColumnType = ColumnProps<any> & {
