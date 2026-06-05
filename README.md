@@ -1,6 +1,6 @@
 # rc-grid-table
 
-一个使用grid布局完成的react table组件
+一个使用 grid 布局完成的 react table 组件
 
 ## 组件文档
 
@@ -11,10 +11,13 @@
 [https://helloworldzjx.github.io/rc-grid-table/components](https://helloworldzjx.github.io/rc-grid-table/components)
 
 ## 安装
+
 ```bash
 npm install rc-grid-table
 ```
+
 or
+
 ```bash
 yarn add rc-grid-table
 ```
@@ -26,12 +29,12 @@ yarn add rc-grid-table
 - 树结构渲染
 - 嵌套表格
 - 选择列
+- 可编辑单元格
+- tbody 的行拖拽排序
+- 虚拟列表
+- 高级筛选行(支持表头分组，列合并)
 
 ## 即将到来的特性
 
 - 列显隐控制(支持表头分组，列合并)
 - 固定列控制(支持表头分组，列合并)
-- 可编辑单元格
-- tbody的行拖拽排序
-- 虚拟列表
-- 高级筛选行(支持表头分组，列合并)
