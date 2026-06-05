@@ -7,14 +7,23 @@ import { TableSummaryRowCell } from '../interface';
 import { usePrefixClsContext } from '../prefixClsContext';
 import { getComponentCls } from '../style/classNames';
 import { getCellFixedInfo } from '../utils/fixedColumns';
+import {
+  getNormalSpanStyle,
+  getVirtualColumnPlacementStyle,
+} from '../utils/gridPlacement';
 import { getEllipsisTitle } from '../utils/handle';
 
 interface SummaryCellProps {
   column: TableSummaryRowCell;
   colEnd: number;
+  virtualColumn?: boolean;
 }
 
-const SummaryCell: FC<SummaryCellProps> = ({ column, colEnd }) => {
+const SummaryCell: FC<SummaryCellProps> = ({
+  column,
+  colEnd,
+  virtualColumn = false,
+}) => {
   const { flattenColumns = [], fixedOffset } = useTableContext();
   const prefixCls = usePrefixClsContext();
 
@@ -29,21 +38,26 @@ const SummaryCell: FC<SummaryCellProps> = ({ column, colEnd }) => {
   } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
 
   const { colStart, spanStyle } = useMemo(() => {
-    const style: CSSProperties = {};
-    if (column.rowSpan && column.rowSpan > 1) {
-      style.gridRow = `span ${column.rowSpan}`;
-    }
     let colStart = colEnd;
     if (column.colSpan && column.colSpan > 1) {
-      style.gridColumn = `span ${column.colSpan}`;
       colStart = colStart - column.colSpan + 1;
     }
+    const style = virtualColumn
+      ? getVirtualColumnPlacementStyle({
+          colStart,
+          rowSpan: column.rowSpan,
+          colSpan: column.colSpan,
+        })
+      : getNormalSpanStyle({
+          rowSpan: column.rowSpan,
+          colSpan: column.colSpan,
+        });
 
     return {
       colStart,
       spanStyle: style,
     };
-  }, [column.rowSpan, column.colSpan, colEnd]);
+  }, [column.rowSpan, column.colSpan, colEnd, virtualColumn]);
 
   const { fixedInfo, mergedStyle } = useMemo(() => {
     const style: CSSProperties = {};
@@ -94,7 +108,7 @@ const SummaryCell: FC<SummaryCellProps> = ({ column, colEnd }) => {
       })}
       style={mergedStyle}
     >
-      {column.children}
+      {childrenNode}
     </CellContainer>
   );
 };

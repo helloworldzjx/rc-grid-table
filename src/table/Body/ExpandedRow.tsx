@@ -2,11 +2,13 @@ import ResizeObserver from '@rc-component/resize-observer';
 import classNames from 'classnames';
 import React, { CSSProperties, FC, ReactNode, Ref, useMemo } from 'react';
 
+import { isNum } from '../../_utils/validate';
 import { useComponentsContext } from '../componentsContext';
 import { useTableContext } from '../context';
 import { useExpandableContext } from '../expandableContext';
+import type { VirtualColumnsState } from '../hooks/useVirtualColumns';
 import { usePrefixClsContext } from '../prefixClsContext';
-import { getComponentCls } from '../style/classNames';
+import { getComponentCls, getCssVar } from '../style/classNames';
 import { isVirtualBodyRenderMode } from './cellSpan';
 import type { BodyRenderMode } from './interface';
 
@@ -14,9 +16,11 @@ interface ExpandedRowProps {
   children?: ReactNode;
   className?: string;
   style?: CSSProperties;
+  rowHeight?: number;
   rowRef?: Ref<HTMLDivElement>;
   onRowResize?: () => void;
   renderMode?: BodyRenderMode;
+  virtualColumns: VirtualColumnsState;
   indent?: number;
 }
 
@@ -24,9 +28,11 @@ const ExpandedRow: FC<ExpandedRowProps> = ({
   children,
   className,
   style,
+  rowHeight,
   rowRef,
   onRowResize,
   renderMode = 'normal',
+  virtualColumns,
   indent = 0,
 }) => {
   const {
@@ -41,14 +47,32 @@ const ExpandedRow: FC<ExpandedRowProps> = ({
   const {
     bodyRowCls,
     bodyGridRowCls,
+    bodyRowFixedHeightCls,
     cellCls,
     expandedRowCls,
     expandedRowCellCls,
     expandedRowContentCls,
   } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
+  const { bodyRowFixedHeightCssVar } = useMemo(
+    () => getCssVar(prefixCls),
+    [prefixCls],
+  );
+
   const RowComponent = getComponent(['body', 'row'], 'div');
   const CellComponent = getComponent(['body', 'cell'], 'div');
   const virtual = isVirtualBodyRenderMode(renderMode);
+  const virtualColumn = virtualColumns.inVirtual;
+  const hasFixedRowHeight = isNum(rowHeight) && rowHeight > 0;
+  const mergedStyle = useMemo<CSSProperties | undefined>(() => {
+    if (!hasFixedRowHeight) {
+      return style;
+    }
+
+    return {
+      ...style,
+      [bodyRowFixedHeightCssVar]: `${rowHeight}px`,
+    } as CSSProperties;
+  }, [bodyRowFixedHeightCssVar, hasFixedRowHeight, rowHeight, style]);
   const expandedRowCellWidth = Math.min(
     columnsWidthTotal,
     containerWidth || columnsWidthTotal,
@@ -59,16 +83,21 @@ const ExpandedRow: FC<ExpandedRowProps> = ({
       className={classNames(
         bodyRowCls,
         expandedRowCls,
-        { [bodyGridRowCls]: virtual },
+        {
+          [bodyGridRowCls]: virtual || virtualColumn,
+          [bodyRowFixedHeightCls]: hasFixedRowHeight,
+        },
         className,
       )}
-      style={style}
+      style={mergedStyle}
       ref={rowRef}
     >
       <CellComponent
         className={classNames(cellCls, expandedRowCellCls)}
         style={{
-          gridColumn: `span ${flattenColumns.length || 1}`,
+          gridColumn: virtualColumn
+            ? `1 / span ${flattenColumns.length || 1}`
+            : `span ${flattenColumns.length || 1}`,
           width: expandedRowCellWidth,
         }}
       >

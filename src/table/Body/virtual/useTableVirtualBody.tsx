@@ -5,6 +5,7 @@ import type {
   ColumnState,
   SizeType,
   TableScrollToOptions,
+  TableVirtualConfig,
 } from '../../interface';
 import { getCellSpan } from '../../utils/handle';
 import type {
@@ -22,7 +23,7 @@ interface UseTableVirtualBodyProps<T = any> {
   flattenColumns: ColumnState<T>[];
   scrollElement?: HTMLDivElement | null;
   scrollY?: number;
-  virtual?: boolean | { itemHeight?: number; overscan?: number };
+  virtual?: boolean | TableVirtualConfig;
   size?: SizeType;
   onBodyScroll: React.UIEventHandler<HTMLDivElement>;
   scrollBodyTo: (options?: ScrollToOptions) => void;
@@ -32,6 +33,33 @@ interface UseTableVirtualBodyProps<T = any> {
 
 const isBodyRowItem = <T,>(item: BodyItem<T>): item is BodyRowItem<T> =>
   item.type === 'row';
+
+const getFixedHeightConfig = (
+  virtual: boolean | TableVirtualConfig | undefined,
+) => {
+  if (typeof virtual !== 'object') {
+    return {
+      rowHeight: undefined,
+      expandedRowHeight: undefined,
+    };
+  }
+
+  const rowHeight =
+    isNum(virtual.rowHeight) && virtual.rowHeight > 0
+      ? virtual.rowHeight
+      : undefined;
+  const expandedRowHeight =
+    virtual.expandedRowHeight === false
+      ? undefined
+      : isNum(virtual.expandedRowHeight) && virtual.expandedRowHeight > 0
+      ? virtual.expandedRowHeight
+      : rowHeight;
+
+  return {
+    rowHeight,
+    expandedRowHeight,
+  };
+};
 
 export default function useTableVirtualBody<T = any>({
   bodyItems,
@@ -46,6 +74,11 @@ export default function useTableVirtualBody<T = any>({
   scrollBodyToTop,
   extraUpdateDeps = [],
 }: UseTableVirtualBodyProps<T>): TableVirtualBodyController<T> {
+  const {
+    rowHeight: fixedRowHeight,
+    expandedRowHeight: fixedExpandedRowHeight,
+  } = useMemo(() => getFixedHeightConfig(virtual), [virtual]);
+
   const virtualData = useMemo(
     () =>
       bodyItems.map((item) => ({
@@ -53,6 +86,17 @@ export default function useTableVirtualBody<T = any>({
         item,
       })),
     [bodyItems],
+  );
+
+  const getItemFixedHeight = useCallback(
+    (item: BodyItem<T>) => {
+      if (item.type === 'row') {
+        return fixedRowHeight;
+      }
+
+      return fixedExpandedRowHeight;
+    },
+    [fixedExpandedRowHeight, fixedRowHeight],
   );
 
   const {
@@ -73,6 +117,7 @@ export default function useTableVirtualBody<T = any>({
     scrollY,
     virtual,
     size,
+    getItemFixedHeight,
   });
 
   const rowItemIndexMap = useMemo(() => {
@@ -197,6 +242,25 @@ export default function useTableVirtualBody<T = any>({
             ? undefined
             : bodyItems[endBodyItemIndex];
 
+          if (fixedRowHeight !== undefined && isNum(endBodyItemIndex)) {
+            const startIndex = rowItemIndexMap.get(bodyItem.rowIndex);
+            if (isNum(startIndex)) {
+              return bodyItems
+                .slice(startIndex, endBodyItemIndex + 1)
+                .reduce((total, item) => {
+                  const fixedHeight = getItemFixedHeight(item);
+                  if (fixedHeight !== undefined) {
+                    return total + fixedHeight;
+                  }
+
+                  const size = getItemSize(item.key);
+                  return total + size.bottom - size.top;
+                }, 0);
+            }
+
+            return rowSpan * fixedRowHeight;
+          }
+
           if (!endBodyItem) {
             return sourceSize.bottom - sourceSize.top;
           }
@@ -212,6 +276,9 @@ export default function useTableVirtualBody<T = any>({
     bodyItems,
     flattenColumns,
     flattenDataLength,
+    fixedExpandedRowHeight,
+    fixedRowHeight,
+    getItemFixedHeight,
     getItemSize,
     getRowSpan,
     inVirtual,

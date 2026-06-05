@@ -28,8 +28,16 @@ export type TableScrollToOptions = ScrollToOptions & {
 };
 
 export interface TableVirtualConfig {
-  itemHeight?: number;
-  overscan?: number;
+  /** 帮助虚拟列表预估每行的高度，在实际测量行高前使用 */
+  estimatedRowHeight?: number;
+  /** 可见垂直范围外追加渲染的行数 */
+  rowOverscan?: number;
+  /** 固定每行的高度（展开行除外）。设置后，每行不再动态的测量高度，每行高度固定 */
+  rowHeight?: number;
+  /** 展开行的固定高度。未设置rowHeight或expandedRowHeight设置为false时展开行的高度随内容自适应。expandedRowHeight默认为rowHeight的值 */
+  expandedRowHeight?: number | false;
+  /** 可见水平范围外追加渲染的宽度(px)，计算水平可见范围时不含固定列的宽度，且默认使用table的容器宽度 */
+  columnOverscan?: number;
 }
 
 export interface CellType<T = any> {

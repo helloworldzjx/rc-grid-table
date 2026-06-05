@@ -15,6 +15,10 @@ import { getComponentCls } from '../style/classNames';
 import { getMergedSpanKeys } from '../utils/calc';
 import { isSelectionColumn } from '../utils/const';
 import { getCellFixedInfo } from '../utils/fixedColumns';
+import {
+  getNormalSpanStyle,
+  getVirtualColumnPlacementStyle,
+} from '../utils/gridPlacement';
 import { filterSpan, getEllipsisTitle } from '../utils/handle';
 import Resizable from './Resizable';
 
@@ -22,6 +26,7 @@ interface HeadCellProps<T = any> {
   column: CellType<T>;
   columnIndex: number;
   rowIndex: number;
+  virtualColumn?: boolean;
   /** 最后一列的parentKey */
   prevRowLastCellKey?: Key;
   /** 当前行的最大index */
@@ -37,6 +42,7 @@ function HeadCell({
   prevRowLastCellKey,
   currentRowLastIndex,
   firstRowLastCellKey,
+  virtualColumn = false,
 }: HeadCellProps) {
   const {
     flattenColumns = [],
@@ -102,14 +108,18 @@ function HeadCell({
   );
 
   const mergedStyle = useMemo(() => {
-    const style: CSSProperties = {};
     const rowSpan = cellProps?.rowSpan ?? col.rowSpan;
-    if (rowSpan && rowSpan > 1) {
-      style.gridRow = `span ${rowSpan}`;
-    }
     const colSpan = cellProps?.colSpan ?? col.colSpan;
+    const style: CSSProperties = virtualColumn
+      ? getVirtualColumnPlacementStyle({
+          rowIndex,
+          colStart: col.colStart,
+          rowSpan,
+          colSpan,
+        })
+      : getNormalSpanStyle({ rowSpan, colSpan });
+
     if (colSpan && colSpan > 1) {
-      style.gridColumn = `span ${colSpan}`;
       style.textAlign = 'center';
     }
     if (!filterSpan(colSpan)) {
@@ -130,11 +140,14 @@ function HeadCell({
   }, [
     col.rowSpan,
     col.colSpan,
+    col.colStart,
     cellProps,
     fixedInfo.fixStart,
     fixedInfo.fixEnd,
     col.column?.align,
     col.column?.style,
+    rowIndex,
+    virtualColumn,
   ]);
 
   const restCellProps = useMemo(() => {

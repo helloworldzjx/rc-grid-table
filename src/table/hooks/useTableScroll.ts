@@ -1,12 +1,13 @@
 import { useIsomorphicLayoutEffect } from 'ahooks';
 import type { MouseEventHandler, UIEventHandler } from 'react';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
   MIN_THUMB_SIZE,
   SCROLLBAR_VISIBLE_TOLERANCE,
 } from '../../_utils/const';
 import { useElementRef } from '../../_utils/hooks/useElementRef';
+import { cancelRaf, raf } from '../../_utils/raf';
 import type { HeadRef } from '../Head/Head';
 import type { ScrollBarContainerRef } from '../ScrollContainer/interface';
 
@@ -45,12 +46,15 @@ export const useTableScroll = ({
   const syncingScrollLeftRef = useRef(false);
   const horizontalDraggingRef = useRef(false);
   const lastBodyScrollLeftRef = useRef(0);
+  const scrollLeftFrameRef = useRef<number | null>(null);
+  const latestScrollLeftRef = useRef(0);
   const [bodyScrollElement, setBodyScrollElement] = useState<
     HTMLDivElement | undefined
   >();
   const [hasVertical, setHasVertical] = useState(false);
   const [isStart, setIsStart] = useState(true);
   const [isEnd, setIsEnd] = useState(true);
+  const [scrollLeft, setScrollLeft] = useState(0);
   const [horizontalThumbWidth, setHorizontalThumbWidth] = useState(0);
   const [horizontalTrackRef, horizontalTrackElement] =
     useElementRef<HTMLDivElement>();
@@ -66,10 +70,26 @@ export const useTableScroll = ({
     [bodyScrollElement],
   );
 
+  const updateScrollLeft = useCallback((nextScrollLeft: number) => {
+    latestScrollLeftRef.current = nextScrollLeft;
+    cancelRaf(scrollLeftFrameRef.current);
+    scrollLeftFrameRef.current = raf(() => {
+      scrollLeftFrameRef.current = null;
+      setScrollLeft((prev) =>
+        prev === latestScrollLeftRef.current
+          ? prev
+          : latestScrollLeftRef.current,
+      );
+    });
+  }, []);
+
   const setTableBodyRef = useCallback((node: ScrollBarContainerRef | null) => {
     tableBodyRef.current = node;
     const scrollElement = node?.nativeScrollElement;
-    lastBodyScrollLeftRef.current = scrollElement?.scrollLeft ?? 0;
+    const nextScrollLeft = scrollElement?.scrollLeft ?? 0;
+    latestScrollLeftRef.current = nextScrollLeft;
+    lastBodyScrollLeftRef.current = nextScrollLeft;
+    setScrollLeft(nextScrollLeft);
     setBodyScrollElement(scrollElement);
   }, []);
 
@@ -140,10 +160,17 @@ export const useTableScroll = ({
         lastBodyScrollLeftRef.current = scrollLeft;
       }
       syncingScrollLeftRef.current = false;
+      updateScrollLeft(scrollLeft);
       syncScrollState(source);
       syncHorizontalThumb(source);
     },
-    [bodyScrollElement, showSummary, syncHorizontalThumb, syncScrollState],
+    [
+      bodyScrollElement,
+      showSummary,
+      syncHorizontalThumb,
+      syncScrollState,
+      updateScrollLeft,
+    ],
   );
 
   const updateHorizontalScrollbar = useCallback(() => {
@@ -256,6 +283,12 @@ export const useTableScroll = ({
     tableBodyRef.current?.scrollToRight();
   }, []);
 
+  useEffect(() => {
+    return () => {
+      cancelRaf(scrollLeftFrameRef.current);
+    };
+  }, []);
+
   useIsomorphicLayoutEffect(() => {
     updateHorizontalScrollbar();
     syncScrollLeft(bodyScrollElement);
@@ -300,6 +333,7 @@ export const useTableScroll = ({
     tableHeadRef,
     tableSummaryRef,
     bodyScrollElement,
+    scrollLeft,
     getTableBodyScrollElement,
     setTableBodyRef,
     horizontalTrackRef,

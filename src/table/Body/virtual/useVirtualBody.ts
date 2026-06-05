@@ -4,7 +4,11 @@ import { flushSync } from 'react-dom';
 
 import { preventDefaultIfCancelable } from '../../../_utils/event';
 import { isNum } from '../../../_utils/validate';
-import type { SizeType, TableScrollToOptions } from '../../interface';
+import type {
+  SizeType,
+  TableScrollToOptions,
+  TableVirtualConfig,
+} from '../../interface';
 import { getDefaultInternalColumnWidth } from '../../utils/const';
 
 type VirtualWheelEvent = WheelEvent & {
@@ -24,12 +28,13 @@ interface UseVirtualBodyProps<ItemType> {
   data: VirtualItem<ItemType>[];
   scrollElement?: HTMLDivElement | null;
   scrollY?: number;
-  virtual?: boolean | { itemHeight?: number; overscan?: number };
+  virtual?: boolean | TableVirtualConfig;
   size?: SizeType;
+  getItemFixedHeight?: (item: ItemType) => number | undefined;
   onScrollTopChange?: (scrollTop: number) => void;
 }
 
-const getDefaultItemHeight = getDefaultInternalColumnWidth;
+const getDefaultEstimatedRowHeight = getDefaultInternalColumnWidth;
 
 const getVirtualConfig = (
   virtual: UseVirtualBodyProps<unknown>['virtual'],
@@ -37,17 +42,24 @@ const getVirtualConfig = (
   scrollY: number | undefined,
 ) => {
   const config = typeof virtual === 'object' ? virtual : {};
-  const itemHeight = Math.max(
+  const estimatedRowHeight = Math.max(
     1,
-    config.itemHeight ?? getDefaultItemHeight(size),
+    config.rowHeight ??
+      config.estimatedRowHeight ??
+      getDefaultEstimatedRowHeight(size),
   );
+  const fixedRowHeight =
+    isNum(config.rowHeight) && config.rowHeight > 0
+      ? config.rowHeight
+      : undefined;
   const overscan =
-    isNum(config.overscan) && config.overscan >= 0
-      ? Math.floor(config.overscan)
-      : Math.ceil((scrollY || 0) / itemHeight);
+    isNum(config.rowOverscan) && config.rowOverscan >= 0
+      ? Math.floor(config.rowOverscan)
+      : Math.ceil((scrollY || 0) / estimatedRowHeight);
 
   return {
-    itemHeight,
+    estimatedRowHeight,
+    fixedRowHeight,
     overscan: Math.max(1, overscan),
   };
 };
@@ -125,9 +137,10 @@ export default function useVirtualBody<ItemType>({
   scrollY,
   virtual = true,
   size,
+  getItemFixedHeight,
   onScrollTopChange,
 }: UseVirtualBodyProps<ItemType>) {
-  const { itemHeight, overscan } = useMemo(
+  const { estimatedRowHeight, fixedRowHeight, overscan } = useMemo(
     () => getVirtualConfig(virtual, size, scrollY),
     [scrollY, size, virtual],
   );
@@ -136,7 +149,7 @@ export default function useVirtualBody<ItemType>({
     isNum(scrollY) &&
     scrollY > 0 &&
     data.length > 0 &&
-    itemHeight > 0;
+    estimatedRowHeight > 0;
   const [offsetTop, setOffsetTop] = useState(0);
   const [heightUpdateMark, setHeightUpdateMark] = useState(0);
   const heightsRef = useRef(new Map<Key, number>());
@@ -165,18 +178,34 @@ export default function useVirtualBody<ItemType>({
 
   const heights = heightsRef.current;
 
-  const getItemHeight = useCallback(
-    (key: Key) => heights.get(key) ?? itemHeight,
-    [heights, itemHeight],
+  const itemMap = useMemo(() => {
+    const map = new Map<Key, ItemType>();
+    data.forEach(({ key, item }) => {
+      map.set(key, item);
+    });
+    return map;
+  }, [data]);
+
+  const getRowHeight = useCallback(
+    (key: Key) => {
+      const item = itemMap.get(key);
+      if (item !== undefined && getItemFixedHeight) {
+        const fixedHeight = getItemFixedHeight(item);
+        return fixedHeight ?? heights.get(key) ?? estimatedRowHeight;
+      }
+
+      return fixedRowHeight ?? heights.get(key) ?? estimatedRowHeight;
+    },
+    [estimatedRowHeight, fixedRowHeight, getItemFixedHeight, heights, itemMap],
   );
 
   const prefixHeights = useMemo(() => {
     const list: number[] = [0];
     data.forEach(({ key }, index) => {
-      list[index + 1] = list[index] + getItemHeight(key);
+      list[index + 1] = list[index] + getRowHeight(key);
     });
     return list;
-  }, [data, getItemHeight, heightUpdateMark]);
+  }, [data, getRowHeight, heightUpdateMark]);
 
   const scrollHeight = prefixHeights[prefixHeights.length - 1] || 0;
   const inVirtual = useVirtual && scrollHeight > (scrollY || 0);
@@ -271,36 +300,48 @@ export default function useVirtualBody<ItemType>({
     }
   }, [inVirtual, keepInRange, scrollElement, offsetTop]);
 
-  const collectHeight = useCallback((sync = false) => {
-    cancelRaf(collectFrameRef.current);
-
-    const doCollect = () => {
-      collectFrameRef.current = null;
-      let changed = false;
-
-      instancesRef.current.forEach((element, key) => {
-        if (!element || !element.offsetParent) return;
-
-        const prev = heightsRef.current.get(key);
-        const next = element.getBoundingClientRect().height;
-        if (isNum(next) && next > 0 && prev !== next) {
-          changedHeightsRef.current.set(key, prev);
-          heightsRef.current.set(key, next);
-          changed = true;
-        }
-      });
-
-      if (changed) {
-        setHeightUpdateMark((mark) => mark + 1);
+  const collectHeight = useCallback(
+    (sync = false) => {
+      if (fixedRowHeight !== undefined && !getItemFixedHeight) {
+        return;
       }
-    };
 
-    if (sync) {
-      doCollect();
-    } else {
-      collectFrameRef.current = raf(doCollect);
-    }
-  }, []);
+      cancelRaf(collectFrameRef.current);
+
+      const doCollect = () => {
+        collectFrameRef.current = null;
+        let changed = false;
+
+        instancesRef.current.forEach((element, key) => {
+          if (!element || !element.offsetParent) return;
+
+          const item = itemMap.get(key);
+          if (item !== undefined && getItemFixedHeight?.(item) !== undefined) {
+            return;
+          }
+
+          const prev = heightsRef.current.get(key);
+          const next = element.getBoundingClientRect().height;
+          if (isNum(next) && next > 0 && prev !== next) {
+            changedHeightsRef.current.set(key, prev);
+            heightsRef.current.set(key, next);
+            changed = true;
+          }
+        });
+
+        if (changed) {
+          setHeightUpdateMark((mark) => mark + 1);
+        }
+      };
+
+      if (sync) {
+        doCollect();
+      } else {
+        collectFrameRef.current = raf(doCollect);
+      }
+    },
+    [fixedRowHeight, getItemFixedHeight, itemMap],
+  );
 
   const setItemRef = useCallback(
     (key: Key, element: HTMLElement | null) => {
@@ -380,10 +421,10 @@ export default function useVirtualBody<ItemType>({
         top: prefixHeights[realStartIndex] || 0,
         bottom:
           prefixHeights[realEndIndex + 1] ??
-          (prefixHeights[realEndIndex] || 0) + itemHeight,
+          (prefixHeights[realEndIndex] || 0) + estimatedRowHeight,
       };
     },
-    [itemHeight, keyIndexMap, prefixHeights],
+    [estimatedRowHeight, keyIndexMap, prefixHeights],
   );
 
   useIsomorphicLayoutEffect(() => {
@@ -397,7 +438,7 @@ export default function useVirtualBody<ItemType>({
       if (changedKey === startKey && !isNum(previousHeight)) {
         const nextHeight = heightsRef.current.get(changedKey);
         if (isNum(nextHeight)) {
-          syncScrollTop((top) => top + nextHeight - itemHeight, false);
+          syncScrollTop((top) => top + nextHeight - estimatedRowHeight, false);
         }
       }
     }
@@ -405,9 +446,9 @@ export default function useVirtualBody<ItemType>({
     changedRecord.clear();
   }, [
     data,
+    estimatedRowHeight,
     heightUpdateMark,
     inVirtual,
-    itemHeight,
     syncScrollTop,
     visibleStart,
   ]);
@@ -778,7 +819,7 @@ export default function useVirtualBody<ItemType>({
         const offset = options.offset ?? 0;
         const itemTop = prefixHeights[targetIndex] || 0;
         const itemBottom =
-          prefixHeights[targetIndex + 1] || itemTop + itemHeight;
+          prefixHeights[targetIndex + 1] || itemTop + estimatedRowHeight;
         const viewTop = scrollTopRef.current;
         const viewBottom = viewTop + (scrollY || 0);
 
@@ -802,7 +843,7 @@ export default function useVirtualBody<ItemType>({
     },
     [
       data.length,
-      itemHeight,
+      estimatedRowHeight,
       keyIndexMap,
       prefixHeights,
       scrollY,
@@ -812,7 +853,7 @@ export default function useVirtualBody<ItemType>({
 
   return {
     inVirtual,
-    itemHeight,
+    estimatedRowHeight,
     scrollHeight,
     offsetTop,
     offsetY,

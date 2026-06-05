@@ -27,6 +27,7 @@ import {
   isSelectionColumn,
 } from '../utils/const';
 import { FixedInfo } from '../utils/fixedColumns';
+import { getVirtualColumnPlacementStyle } from '../utils/gridPlacement';
 import { getEllipsisTitle } from '../utils/handle';
 import { getBodyCellSpanInfo } from './cellSpan';
 import type { BodyRenderMode } from './interface';
@@ -39,6 +40,7 @@ interface BodyRowProps<T = any> {
   fixedInfo: FixedInfo;
   renderMode?: BodyRenderMode;
   colIndex?: number;
+  virtualColumn?: boolean;
   getRowSpanHeight?: (rowSpan: number) => number;
   indent?: number;
   expanded?: boolean;
@@ -63,6 +65,7 @@ function BodyCell({
   fixedInfo,
   renderMode = 'normal',
   colIndex,
+  virtualColumn = false,
   getRowSpanHeight,
   indent = 0,
   expanded = false,
@@ -133,6 +136,15 @@ function BodyCell({
   const mergedStyle = useMemo(() => {
     const style: CSSProperties = { ...spanInfo.style };
 
+    if (virtualColumn && colIndex !== undefined) {
+      Object.assign(
+        style,
+        getVirtualColumnPlacementStyle({
+          colStart: colIndex,
+          colSpan: spanInfo.colSpan,
+        }),
+      );
+    }
     if (fixedInfo.fixStart !== null) {
       style.left = fixedInfo.fixStart as number;
     }
@@ -158,6 +170,8 @@ function BodyCell({
     column.style,
     rowSortCellStyle,
     spanInfo.style,
+    virtualColumn,
+    colIndex,
   ]);
 
   const restCellProps = useMemo(() => {

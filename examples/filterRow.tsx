@@ -1,9 +1,11 @@
-import { DatePicker, Form, Input, Select } from 'antd';
+import { DatePicker, Form, Input, Select, Space } from 'antd';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import { Table } from 'rc-grid-table';
 import { ColumnsType } from 'rc-grid-table/es/table/interface';
 import React, { useCallback, useMemo } from 'react';
+import ConfigActions from './_utils/components/ConfigActions';
+import useConfigActions from './_utils/hooks/useConfigActions';
 
 const { RangePicker } = DatePicker;
 
@@ -86,120 +88,117 @@ export default () => {
     [FilterRow],
   );
 
-  const columns = useMemo<ColumnsType<DataType>>(
-    () => [
-      {
-        title: 'Name',
-        dataIndex: 'name',
-        width: 180,
-        fixed: 'start',
-        filterRender: () => (
-          <Form.Item name="name" noStyle>
-            <Input
-              allowClear
-              placeholder="Search name"
-              style={{ width: '100%' }}
-            />
-          </Form.Item>
-        ),
-      },
-      {
-        title: 'Role',
-        dataIndex: 'role',
-        width: 150,
-        filterRender: () => (
-          <Form.Item name="role" noStyle>
-            <Select
-              allowClear
-              placeholder="Role"
-              style={{ width: '100%' }}
-              options={roleOptions.map((role) => ({
-                value: role,
-                label: role,
-              }))}
-            />
-          </Form.Item>
-        ),
-      },
-      {
-        title: 'Status',
-        dataIndex: 'status',
-        width: 140,
-        filterRender: () => (
-          <Form.Item name="status" noStyle>
-            <Select
-              allowClear
-              placeholder="Status"
-              options={statusOptions}
-              style={{ width: '100%' }}
-            />
-          </Form.Item>
-        ),
-      },
-      {
-        title: 'Age',
-        dataIndex: 'age',
-        width: 100,
-        align: 'center',
-      },
-      {
-        title: 'Company',
-        dataIndex: 'company',
-        width: 190,
-        filterRender: () => (
-          <Form.Item name="company" noStyle>
-            <Select
-              allowClear
-              showSearch
-              placeholder="Company"
-              style={{ width: '100%' }}
-              options={companyOptions.map((company) => ({
-                value: company,
-                label: company,
-              }))}
-            />
-          </Form.Item>
-        ),
-      },
-      {
-        title: 'Joined',
-        dataIndex: 'joinedAt',
-        width: 170,
-        filterRender: () => (
-          <Form.Item name="joinedAt" noStyle>
-            <DatePicker
-              allowClear
-              placeholder="Joined date"
-              style={{ width: '100%' }}
-            />
-          </Form.Item>
-        ),
-      },
-      {
-        title: 'Created',
-        dataIndex: 'createdAt',
-        width: 260,
-        filterRender: () => (
-          <Form.Item name="createdAtRange" noStyle>
-            <RangePicker allowClear style={{ width: '100%' }} />
-          </Form.Item>
-        ),
-      },
-      {
-        title: 'Address',
-        dataIndex: 'address',
-        width: 220,
-      },
-      {
-        title: 'Action',
-        key: 'action',
-        width: 120,
-        fixed: 'end',
-        render: () => <a>Detail</a>,
-      },
-    ],
-    [],
-  );
+  const columns: ColumnsType<DataType> = [
+    {
+      title: 'Name',
+      dataIndex: 'name',
+      width: 180,
+      fixed: 'start',
+      filterRender: () => (
+        <Form.Item name="name" noStyle>
+          <Input
+            allowClear
+            placeholder="Search name"
+            style={{ width: '100%' }}
+          />
+        </Form.Item>
+      ),
+    },
+    {
+      title: 'Role',
+      dataIndex: 'role',
+      width: 150,
+      filterRender: () => (
+        <Form.Item name="role" noStyle>
+          <Select
+            allowClear
+            placeholder="Role"
+            style={{ width: '100%' }}
+            options={roleOptions.map((role) => ({
+              value: role,
+              label: role,
+            }))}
+          />
+        </Form.Item>
+      ),
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      width: 140,
+      filterRender: () => (
+        <Form.Item name="status" noStyle>
+          <Select
+            allowClear
+            placeholder="Status"
+            options={statusOptions}
+            style={{ width: '100%' }}
+          />
+        </Form.Item>
+      ),
+    },
+    {
+      title: 'Age',
+      dataIndex: 'age',
+      width: 100,
+      align: 'center',
+    },
+    {
+      title: 'Company',
+      dataIndex: 'company',
+      width: 190,
+      filterRender: () => (
+        <Form.Item name="company" noStyle>
+          <Select
+            allowClear
+            showSearch
+            placeholder="Company"
+            style={{ width: '100%' }}
+            options={companyOptions.map((company) => ({
+              value: company,
+              label: company,
+            }))}
+          />
+        </Form.Item>
+      ),
+    },
+    {
+      title: 'Joined',
+      dataIndex: 'joinedAt',
+      width: 170,
+      filterRender: () => (
+        <Form.Item name="joinedAt" noStyle>
+          <DatePicker
+            allowClear
+            placeholder="Joined date"
+            style={{ width: '100%' }}
+          />
+        </Form.Item>
+      ),
+    },
+    {
+      title: 'Created',
+      dataIndex: 'createdAt',
+      width: 260,
+      filterRender: () => (
+        <Form.Item name="createdAtRange" noStyle>
+          <RangePicker allowClear style={{ width: '100%' }} />
+        </Form.Item>
+      ),
+    },
+    {
+      title: 'Address',
+      dataIndex: 'address',
+      width: 220,
+    },
+    {
+      title: 'Action',
+      key: 'action',
+      width: 120,
+      fixed: 'end',
+      render: () => <a>Detail</a>,
+    },
+  ];
 
   const filteredData = useMemo(() => {
     return dataSource.filter((record) => {
@@ -222,14 +221,20 @@ export default () => {
     });
   }, [filters]);
 
+  // 动态控制 bordered、stripe、resizableColumns、sortableColumns 属性
+  const { baseProps, state, onChange } = useConfigActions();
+
   return (
-    <Table
-      bordered
-      columns={columns}
-      dataSource={filteredData}
-      scrollY={360}
-      sticky={{ offsetHeader: 0 }}
-      components={components}
-    />
+    <Space direction="vertical" size={20} style={{ width: '100%' }}>
+      <ConfigActions value={state} onChange={onChange} />
+      <Table
+        {...baseProps}
+        columns={columns}
+        dataSource={filteredData}
+        scrollY={360}
+        sticky={{ offsetHeader: 0 }}
+        components={components}
+      />
+    </Space>
   );
 };
