@@ -1,6 +1,12 @@
 import { type CSSInterpolation } from '@ant-design/cssinjs';
 import { ScrollbarClsType } from './classNames';
 
+import {
+  SCROLLBAR_SIZE,
+  SCROLLBAR_THUMB_ABSOLUTE_LEFT_TOP,
+  SCROLLBAR_THUMB_SIZE,
+} from '../../_utils/const';
+
 export const genScrollbarToggleShowStyle = (
   initialCls: string,
   initializedCls: string,
@@ -28,10 +34,10 @@ export const genScrollBarStyle = ({
   [`.${xScrollBarCls}`]: {
     position: 'absolute',
     width: '100%',
-    height: 12,
+    height: SCROLLBAR_SIZE,
     left: 0,
     backgroundColor: 'rgba(0, 0, 0, 0)',
-    borderRadius: 12,
+    borderRadius: SCROLLBAR_SIZE,
     userSelect: 'none',
     transition: 'background-color 0.2s',
     zIndex: 1,
@@ -42,10 +48,10 @@ export const genScrollBarStyle = ({
 
     [`.${xScrollBarThumbCls}`]: {
       position: 'absolute',
-      height: 8,
-      top: 'calc(50% - 4px)',
+      height: SCROLLBAR_THUMB_SIZE,
+      top: SCROLLBAR_THUMB_ABSOLUTE_LEFT_TOP,
       backgroundColor: 'rgba(0, 0, 0, 0)',
-      borderRadius: 8,
+      borderRadius: SCROLLBAR_THUMB_SIZE,
       transition: 'background-color 0.2s',
 
       '&:hover': {
@@ -60,18 +66,18 @@ export const genScrollBarStyle = ({
 
   [`.${xScrollBarStickyCls}`]: {
     position: 'sticky',
-    marginTop: -12,
+    marginTop: -SCROLLBAR_SIZE,
     zIndex: 4,
   },
 
   [`.${yScrollBarCls}`]: {
     position: 'absolute',
-    width: 12,
+    width: SCROLLBAR_SIZE,
     height: '100%',
     top: 0,
     right: 0,
     backgroundColor: 'rgba(0, 0, 0, 0)',
-    borderRadius: 12,
+    borderRadius: SCROLLBAR_SIZE,
     userSelect: 'none',
     transition: 'background-color 0.2s',
     zIndex: 1,
@@ -82,10 +88,10 @@ export const genScrollBarStyle = ({
 
     [`.${yScrollBarThumbCls}`]: {
       position: 'absolute',
-      width: 8,
-      left: 'calc(50% - 4px)',
+      width: SCROLLBAR_THUMB_SIZE,
+      left: SCROLLBAR_THUMB_ABSOLUTE_LEFT_TOP,
       backgroundColor: 'rgba(0, 0, 0, 0)',
-      borderRadius: 8,
+      borderRadius: SCROLLBAR_THUMB_SIZE,
       transition: 'background-color 0.2s',
 
       '&:hover': {

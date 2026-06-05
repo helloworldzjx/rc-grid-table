@@ -29,6 +29,8 @@ export type ComponentClsType = {
   bodyInnerCls: string;
   bodyRowCls: string;
   bodyGridRowCls: string;
+  bodyRowFixedHeightCls: string;
+  summaryGridRowCls: string;
   bodyVirtualFillerCls: string;
   bodyVirtualInnerCls: string;
   bodyVirtualRowSpanCls: string;
@@ -91,6 +93,12 @@ export type ScrollbarClsType = {
   yScrollBarShowCls: string;
 };
 
+export type CssVarType = {
+  bodyRowFixedHeightCssVar: string;
+  colsWidthCssVar: string;
+  colsWidthTotalCssVar: string;
+};
+
 export const getComponentCls = (prefixCls: string): ComponentClsType => {
   return {
     wrapperCls: `${prefixCls}-wrapper`,
@@ -123,6 +131,8 @@ export const getComponentCls = (prefixCls: string): ComponentClsType => {
     bodyInnerCls: `${prefixCls}-body-inner`,
     bodyRowCls: `${prefixCls}-body-row`,
     bodyGridRowCls: `${prefixCls}-body-grid-row`,
+    bodyRowFixedHeightCls: `${prefixCls}-body-row-fixed-height`,
+    summaryGridRowCls: `${prefixCls}-summary-grid-row`,
     bodyVirtualFillerCls: `${prefixCls}-body-virtual-filler`,
     bodyVirtualInnerCls: `${prefixCls}-body-virtual-inner`,
     bodyVirtualRowSpanCls: `${prefixCls}-body-virtual-row-span`,
@@ -184,4 +194,10 @@ export const getScrollbarCls = (prefixCls: string): ScrollbarClsType => ({
   yScrollBarCls: `${prefixCls}-vertical-scrollbar`,
   yScrollBarThumbCls: `${prefixCls}-vertical-scrollbar-thumb`,
   yScrollBarShowCls: `${prefixCls}-vertical-scrollbar-show`,
+});
+
+export const getCssVar = (prefixCls: string): CssVarType => ({
+  bodyRowFixedHeightCssVar: `--${prefixCls}-body-row-fixed-height`,
+  colsWidthCssVar: `--${prefixCls}-cols-width`,
+  colsWidthTotalCssVar: `--${prefixCls}-cols-width-total`,
 });

@@ -15,7 +15,9 @@ import {
 import { usePrefixClsContext } from '../prefixClsContext';
 import {
   ComponentClsType,
+  CssVarType,
   getComponentCls,
+  getCssVar,
   getScrollbarCls,
   ScrollbarClsType,
 } from './classNames';
@@ -74,20 +76,30 @@ const genComponentStyle = ({
   },
 });
 
-const genVirtualStyle = ({
-  componentCls,
-  virtualCls,
-  bodyVirtualFillerCls,
-  bodyVirtualInnerCls,
-  bodyVirtualRowSpanCls,
-  bodyVirtualRowSpanTopCls,
-  cellCls,
-}: ComponentClsType): CSSInterpolation => ({
+const genVirtualStyle = (
+  {
+    componentCls,
+    virtualCls,
+    bodyVirtualFillerCls,
+    bodyVirtualInnerCls,
+    bodyVirtualRowSpanCls,
+    bodyVirtualRowSpanTopCls,
+    bodyRowFixedHeightCls,
+    summaryRowCls,
+    summaryGridRowCls,
+    cellCls,
+  }: ComponentClsType,
+  {
+    colsWidthCssVar,
+    colsWidthTotalCssVar,
+    bodyRowFixedHeightCssVar,
+  }: CssVarType,
+): CSSInterpolation => ({
   [`.${componentCls}.${virtualCls}`]: {
     [`.${bodyVirtualFillerCls}`]: {
       position: 'relative',
       gridColumn: '1 / -1',
-      width: `max(100%, var(--${componentCls}-cols-width-total))`,
+      width: `max(100%, var(${colsWidthTotalCssVar}))`,
       minHeight: '100%',
     },
 
@@ -96,7 +108,7 @@ const genVirtualStyle = ({
       insetInline: 0,
       top: 0,
       display: 'grid',
-      gridTemplateColumns: `var(--${componentCls}-cols-width)`,
+      gridTemplateColumns: `var(${colsWidthCssVar})`,
     },
 
     [`.${bodyVirtualRowSpanCls}`]: {
@@ -112,6 +124,16 @@ const genVirtualStyle = ({
 
     [`.${bodyVirtualRowSpanTopCls} .${cellCls}`]: {
       borderTopColor: 'transparent',
+    },
+
+    [`.${bodyRowFixedHeightCls}`]: {
+      gridTemplateRows: `var(${bodyRowFixedHeightCssVar})`,
+    },
+
+    [`.${summaryRowCls}.${summaryGridRowCls}`]: {
+      display: 'grid',
+      gridTemplateColumns: `var(${colsWidthCssVar})`,
+      gridColumn: '1 / -1',
     },
   },
 });
@@ -239,14 +261,9 @@ const genBorderedStyle = (
 });
 
 const genHeadStyle = (
-  {
-    componentCls,
-    headCls,
-    headStickyCls,
-    headInnerCls,
-    headRowCls,
-  }: ComponentClsType,
+  { headCls, headStickyCls, headInnerCls, headRowCls }: ComponentClsType,
   token: ComponentToken,
+  { colsWidthCssVar }: CssVarType,
 ): CSSInterpolation => ({
   [`.${headCls}`]: {
     position: 'relative',
@@ -271,7 +288,7 @@ const genHeadStyle = (
 
     [`.${headInnerCls}`]: {
       display: 'grid',
-      gridTemplateColumns: `var(--${componentCls}-cols-width)`,
+      gridTemplateColumns: `var(${colsWidthCssVar})`,
       overflow: 'auto hidden',
       scrollbarWidth: 'none',
     },
@@ -284,7 +301,6 @@ const genHeadStyle = (
 
 const genBodyStyle = (
   {
-    componentCls,
     hasSummaryCls,
     bodyCls,
     bodyInnerCls,
@@ -292,6 +308,7 @@ const genBodyStyle = (
     bodyGridRowCls,
   }: ComponentClsType,
   token: ComponentToken,
+  { colsWidthCssVar }: CssVarType,
 ): CSSInterpolation => ({
   [`.${bodyCls}`]: {
     position: 'relative',
@@ -318,7 +335,7 @@ const genBodyStyle = (
 
   [`.${bodyInnerCls}`]: {
     display: 'grid',
-    gridTemplateColumns: `var(--${componentCls}-cols-width)`,
+    gridTemplateColumns: `var(${colsWidthCssVar})`,
     height: '100%',
     boxSizing: 'border-box',
     overflow: 'auto',
@@ -330,7 +347,7 @@ const genBodyStyle = (
 
     [`.${bodyGridRowCls}`]: {
       display: 'grid',
-      gridTemplateColumns: `var(--${componentCls}-cols-width)`,
+      gridTemplateColumns: `var(${colsWidthCssVar})`,
       gridColumn: '1 / -1',
     },
   },
@@ -338,13 +355,13 @@ const genBodyStyle = (
 
 const genSummaryCls = (
   {
-    componentCls,
     summaryCls,
     summaryStickyCls,
     summaryInnerCls,
     summaryRowCls,
   }: ComponentClsType,
   token: ComponentToken,
+  { colsWidthCssVar }: CssVarType,
 ): CSSInterpolation => ({
   [`.${summaryCls}`]: {
     position: 'relative',
@@ -369,7 +386,7 @@ const genSummaryCls = (
 
     [`.${summaryInnerCls}`]: {
       display: 'grid',
-      gridTemplateColumns: `var(--${componentCls}-cols-width)`,
+      gridTemplateColumns: `var(${colsWidthCssVar})`,
       overflow: 'auto hidden',
       scrollbarWidth: 'none',
     },
@@ -389,6 +406,7 @@ const genCellStyle = (
     summaryRowCls,
     cellCls,
     filterCellCls,
+    noDataCellCls,
     cellEllipsisCls,
     cellEllipsisInnerCls,
     expandControlCls,
@@ -471,10 +489,11 @@ const genCellStyle = (
       borderTopColor: 'transparent',
     },
 
-    [`&:not(.${bodyRowSortDraggingCls}):hover .${cellCls}`]: {
-      backgroundColor: token.cellColorHoverBg,
-      transition: 'background-color 0.3s',
-    },
+    [`&:not(.${bodyRowSortDraggingCls}):hover .${cellCls}:not(.${noDataCellCls})`]:
+      {
+        backgroundColor: token.cellColorHoverBg,
+        transition: 'background-color 0.3s',
+      },
 
     [`&.${bodyRowSortDraggingCls} .${cellCls}`]: {
       borderBottom: `1px solid ${token.colorBorder}`,
@@ -881,6 +900,7 @@ const genSizeClsStyle = (
     headLastCellCls,
     headCellResizeHandleCls,
     cellCls,
+    noDataCellContentCls,
   }: ComponentClsType,
   token: ComponentToken,
 ): CSSInterpolation => ({
@@ -906,10 +926,18 @@ const genSizeClsStyle = (
   [`.${componentCls}.${componentSMCls} .${cellCls}`]: {
     paddingBlock: unit(token.cellPaddingBlockSM),
     paddingInline: unit(token.cellPaddingInlineSM),
+
+    [`.${noDataCellContentCls}`]: {
+      marginInline: unit(-token.cellPaddingInlineSM),
+    },
   },
   [`.${componentCls}.${componentMDCls} .${cellCls}`]: {
     paddingBlock: unit(token.cellPaddingBlockMD),
     paddingInline: unit(token.cellPaddingInlineMD),
+
+    [`.${noDataCellContentCls}`]: {
+      marginInline: unit(-token.cellPaddingInlineMD),
+    },
   },
 });
 
@@ -922,25 +950,15 @@ const genStripeClsStyle = (
   },
 });
 
-const genEmptyClsStyle = ({
-  noDataCls,
-  noDataCellCls,
-  noDataCellContentCls,
-}: ComponentClsType): CSSInterpolation => ({
+const genEmptyClsStyle = (
+  { noDataCls, noDataCellContentCls }: ComponentClsType,
+  token: ComponentToken,
+): CSSInterpolation => ({
   [`.${noDataCls}`]: {
-    [`.${noDataCellCls}`]: {
-      minHeight: '200px',
-    },
-
     [`.${noDataCellContentCls}`]: {
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      position: 'absolute',
+      position: 'sticky',
       left: 0,
-      top: 0,
-      height: '100%',
-      pointerEvents: 'none',
+      marginInline: unit(-token.cellPaddingInline),
     },
   },
 });
@@ -948,21 +966,22 @@ const genEmptyClsStyle = ({
 const genNestStyles = (
   clsObj: ComponentClsType,
   scrollbarClsObj: ScrollbarClsType,
+  cssVar: CssVarType,
   mergedToken: ComponentToken,
 ): CSSInterpolation => [
   genInitialStyle(clsObj),
   genPlaceholderStyle(clsObj, mergedToken),
   genComponentStyle(clsObj),
-  genVirtualStyle(clsObj),
+  genVirtualStyle(clsObj, cssVar),
   genBorderedStyle(clsObj, mergedToken),
   genFixedShadowStyle(clsObj),
   genSizeClsStyle(clsObj, mergedToken),
   genStripeClsStyle(clsObj, mergedToken),
-  genEmptyClsStyle(clsObj),
+  genEmptyClsStyle(clsObj, mergedToken),
   // 避免对象属性冲突，分开来构建样式
-  { [`.${clsObj.componentCls}`]: genHeadStyle(clsObj, mergedToken) },
-  { [`.${clsObj.componentCls}`]: genBodyStyle(clsObj, mergedToken) },
-  { [`.${clsObj.componentCls}`]: genSummaryCls(clsObj, mergedToken) },
+  { [`.${clsObj.componentCls}`]: genHeadStyle(clsObj, mergedToken, cssVar) },
+  { [`.${clsObj.componentCls}`]: genBodyStyle(clsObj, mergedToken, cssVar) },
+  { [`.${clsObj.componentCls}`]: genSummaryCls(clsObj, mergedToken, cssVar) },
   { [`.${clsObj.componentCls}`]: genCellStyle(clsObj, mergedToken) },
   { [`.${clsObj.componentCls}`]: genFixedCellStyle(clsObj, mergedToken) },
   {
@@ -989,6 +1008,7 @@ export const useStyles = () => {
     () => getScrollbarCls(prefixCls),
     [prefixCls],
   );
+  const componentCssVar = useMemo(() => getCssVar(prefixCls), [prefixCls]);
 
   const [cssVarToken] = useCSSVarRegister(
     {
@@ -1022,7 +1042,7 @@ export const useStyles = () => {
 
   useStyleRegister(
     { theme, token, hashId, path: [prefixCls, `${isDark}`] },
-    () => genNestStyles(clsObj, scrollbarClsObj, mergedToken),
+    () => genNestStyles(clsObj, scrollbarClsObj, componentCssVar, mergedToken),
   );
 
   return {
