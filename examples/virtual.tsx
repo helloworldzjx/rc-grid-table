@@ -37,7 +37,6 @@ const App: React.FC = () => {
   const tableRef = useRef<TableRef>(null);
   const [form] = Form.useForm<FilterValues>();
   const filters = Form.useWatch([], form) || {};
-  const [virtualEnabled, setVirtualEnabled] = useState(true);
   const [rowHeightEnabled, setRowHeightEnabled] = useState(true);
 
   const FilterRow = useCallback(
@@ -209,12 +208,6 @@ const App: React.FC = () => {
           Scroll bottom
         </Button>
         <Switch
-          checked={virtualEnabled}
-          checkedChildren="Virtual"
-          unCheckedChildren="Full"
-          onChange={setVirtualEnabled}
-        />
-        <Switch
           checked={rowHeightEnabled}
           checkedChildren="Fixed Row Height"
           unCheckedChildren="Dynamic Row Height"
@@ -228,18 +221,14 @@ const App: React.FC = () => {
         dataSource={filteredData}
         scrollY={420}
         sticky={{ offsetHeader: 76 }}
-        virtual={
-          virtualEnabled
-            ? {
-                rowOverscan: 6,
-                columnOverscan: 640,
-                ...(rowHeightEnabled && {
-                  rowHeight: 56,
-                  expandedRowHeight: 80,
-                }),
-              }
-            : false
-        }
+        virtual={{
+          rowOverscan: 6,
+          columnOverscan: 640,
+          ...(rowHeightEnabled && {
+            rowHeight: 56,
+            expandedRowHeight: 80,
+          }),
+        }}
         components={components}
         rowSortable={{
           fixed: 'start',
