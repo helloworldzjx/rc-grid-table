@@ -3,6 +3,7 @@ import React, { CSSProperties, FC, useMemo } from 'react';
 
 import CellContainer from '../CellContainer';
 import { useComponentsContext } from '../componentsContext';
+import { useFixedShadowActive } from '../fixedShadowContext';
 import { ColumnState } from '../interface';
 import { usePrefixClsContext } from '../prefixClsContext';
 import { getComponentCls } from '../style/classNames';
@@ -35,9 +36,13 @@ const HeadFilterCell: FC<HeadFilterCellProps> = ({
     headLastCellCls,
     cellFixedStartCls,
     cellFixedStartLastCls,
+    cellFixedStartShadowActiveCls,
     cellFixedEndCls,
     cellFixedEndFirstCls,
+    cellFixedEndShadowActiveCls,
   } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
+
+  const fixedShadowActive = useFixedShadowActive(fixedInfo);
 
   const CellComponent = useMemo(
     () =>
@@ -101,8 +106,10 @@ const HeadFilterCell: FC<HeadFilterCellProps> = ({
           [headLastCellCls]: last,
           [cellFixedStartCls]: fixedInfo.fixStart !== null,
           [cellFixedStartLastCls]: fixedInfo.fixedStartShadow,
+          [cellFixedStartShadowActiveCls]: fixedShadowActive.start,
           [cellFixedEndCls]: fixedInfo.fixEnd !== null,
           [cellFixedEndFirstCls]: fixedInfo.fixedEndShadow,
+          [cellFixedEndShadowActiveCls]: fixedShadowActive.end,
         },
         column.className,
         cellProps.className,

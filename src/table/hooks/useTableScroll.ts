@@ -55,6 +55,7 @@ export const useTableScroll = ({
   const [isStart, setIsStart] = useState(true);
   const [isEnd, setIsEnd] = useState(true);
   const [scrollLeft, setScrollLeft] = useState(0);
+  const [maxScrollLeft, setMaxScrollLeft] = useState(0);
   const [horizontalThumbWidth, setHorizontalThumbWidth] = useState(0);
   const [horizontalTrackRef, horizontalTrackElement] =
     useElementRef<HTMLDivElement>();
@@ -95,6 +96,11 @@ export const useTableScroll = ({
 
   const syncScrollState = useCallback(
     (scrollElement?: HTMLDivElement | null) => {
+      const nextMaxScrollLeft = scrollElement
+        ? getMaxScrollLeft(scrollElement)
+        : 0;
+      setMaxScrollLeft(nextMaxScrollLeft);
+
       if (fixColumnsGapped || !hasHorizontal) {
         setIsStart(true);
         setIsEnd(true);
@@ -104,10 +110,9 @@ export const useTableScroll = ({
       if (!scrollElement) return;
 
       const { scrollLeft } = scrollElement;
-      const maxScrollLeft = getMaxScrollLeft(scrollElement);
 
       setIsStart(scrollLeft <= SCROLLBAR_VISIBLE_TOLERANCE);
-      setIsEnd(maxScrollLeft - scrollLeft <= SCROLLBAR_VISIBLE_TOLERANCE);
+      setIsEnd(nextMaxScrollLeft - scrollLeft <= SCROLLBAR_VISIBLE_TOLERANCE);
     },
     [fixColumnsGapped, hasHorizontal],
   );
@@ -334,6 +339,7 @@ export const useTableScroll = ({
     tableSummaryRef,
     bodyScrollElement,
     scrollLeft,
+    maxScrollLeft,
     getTableBodyScrollElement,
     setTableBodyRef,
     horizontalTrackRef,

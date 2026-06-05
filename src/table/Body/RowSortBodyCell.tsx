@@ -8,6 +8,7 @@ import React, { CSSProperties, Key, memo, useMemo } from 'react';
 import { isValidKey } from '../../_utils/validate';
 import CellContainer from '../CellContainer';
 import { useComponentsContext } from '../componentsContext';
+import { useFixedShadowActive } from '../fixedShadowContext';
 import { ColumnState } from '../interface';
 import { usePrefixClsContext } from '../prefixClsContext';
 import { useRowSortableContext } from '../rowSortableContext';
@@ -60,8 +61,10 @@ function RowSortBodyCell<T = any>({
     cellCls,
     cellFixedStartCls,
     cellFixedStartLastCls,
+    cellFixedStartShadowActiveCls,
     cellFixedEndCls,
     cellFixedEndFirstCls,
+    cellFixedEndShadowActiveCls,
     rowSortCellCls,
     rowSortCellOverCls,
     rowSortControlCls,
@@ -72,6 +75,7 @@ function RowSortBodyCell<T = any>({
 
   const { getComponent } = useComponentsContext();
   const { rowSortable } = useRowSortableContext();
+  const fixedShadowActive = useFixedShadowActive(fixedInfo);
 
   const CellComponent = useMemo(
     () => getComponent(['body', 'cell'], 'div'),
@@ -114,8 +118,10 @@ function RowSortBodyCell<T = any>({
         {
           [cellFixedStartCls]: fixedInfo.fixStart !== null,
           [cellFixedStartLastCls]: fixedInfo.fixedStartShadow,
+          [cellFixedStartShadowActiveCls]: fixedShadowActive.start,
           [cellFixedEndCls]: fixedInfo.fixEnd !== null,
           [cellFixedEndFirstCls]: fixedInfo.fixedEndShadow,
+          [cellFixedEndShadowActiveCls]: fixedShadowActive.end,
           [rowSortCellCls]: true,
           [rowSortCellOverCls]: rowSortIsOver,
         },

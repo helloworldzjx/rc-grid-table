@@ -16,6 +16,7 @@ import { isValidKey } from '../../_utils/validate';
 import CellContainer from '../CellContainer';
 import { useComponentsContext } from '../componentsContext';
 import { useExpandableContext } from '../expandableContext';
+import { useFixedShadowActive } from '../fixedShadowContext';
 import { ColumnState } from '../interface';
 import { usePrefixClsContext } from '../prefixClsContext';
 import { useRowSelectionContext } from '../rowSelectionContext';
@@ -90,8 +91,10 @@ function BodyCell({
     cellEllipsisInnerCls,
     cellFixedStartCls,
     cellFixedStartLastCls,
+    cellFixedStartShadowActiveCls,
     cellFixedEndCls,
     cellFixedEndFirstCls,
+    cellFixedEndShadowActiveCls,
     expandControlCellCls,
     expandControlCls,
     selectionCellCls,
@@ -110,6 +113,7 @@ function BodyCell({
     () => getComponent(['body', 'cell'], 'div'),
     [getComponent],
   );
+  const fixedShadowActive = useFixedShadowActive(fixedInfo);
 
   const cellProps = useMemo(
     () => column.onCell?.(rowData, rowIndex) || {},
@@ -376,8 +380,10 @@ function BodyCell({
           [cellEllipsisCls]: ellipsis,
           [cellFixedStartCls]: fixedInfo.fixStart !== null,
           [cellFixedStartLastCls]: fixedInfo.fixedStartShadow,
+          [cellFixedStartShadowActiveCls]: fixedShadowActive.start,
           [cellFixedEndCls]: fixedInfo.fixEnd !== null,
           [cellFixedEndFirstCls]: fixedInfo.fixedEndShadow,
+          [cellFixedEndShadowActiveCls]: fixedShadowActive.end,
           [expandControlCellCls]: isInternalExpandColumn,
           [selectionCellCls]: isInternalSelectionColumn,
         },

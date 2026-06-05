@@ -73,8 +73,10 @@ export type ComponentClsType = {
   headDraggingOverlayCellCls: string;
   cellFixedStartCls: string;
   cellFixedStartLastCls: string;
+  cellFixedStartShadowActiveCls: string;
   cellFixedEndCls: string;
   cellFixedEndFirstCls: string;
+  cellFixedEndShadowActiveCls: string;
   noDataCellCls: string;
   noDataCellContentCls: string;
   summaryCls: string;
@@ -175,8 +177,10 @@ export const getComponentCls = (prefixCls: string): ComponentClsType => {
     headDraggingOverlayCellCls: `${prefixCls}-head-dragging-verlay-cell`,
     cellFixedStartCls: `${prefixCls}-cell-fixed-start`,
     cellFixedStartLastCls: `${prefixCls}-cell-fixed-start-last`,
+    cellFixedStartShadowActiveCls: `${prefixCls}-cell-fixed-start-shadow-active`,
     cellFixedEndCls: `${prefixCls}-cell-fixed-end`,
     cellFixedEndFirstCls: `${prefixCls}-cell-fixed-end-first`,
+    cellFixedEndShadowActiveCls: `${prefixCls}-cell-fixed-end-shadow-active`,
     noDataCellCls: `${prefixCls}-no-data-cell`,
     noDataCellContentCls: `${prefixCls}-no-data-cell-content`,
     summaryCls: `${prefixCls}-summary`,

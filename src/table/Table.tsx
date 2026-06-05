@@ -43,6 +43,8 @@ import { useColumnSortableContext } from './columnSortableContext';
 import { useComponentsContext } from './componentsContext';
 import { useTableContext } from './context';
 import { useExpandableContext } from './expandableContext';
+import FixedShadowContext from './fixedShadowContext';
+import useFixedShadow from './hooks/useFixedShadow';
 import useTableScroll from './hooks/useTableScroll';
 import useVirtualColumns from './hooks/useVirtualColumns';
 import type { TableProps, TableRef } from './interface';
@@ -450,6 +452,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       horizontalThumbWidth,
       bodyScrollElement,
       scrollLeft: bodyScrollLeft,
+      maxScrollLeft: bodyMaxScrollLeft,
       hasHorizontal,
       hasVertical,
       isStart,
@@ -523,6 +526,14 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       }),
       [bodyScrollElement, lastRowSortItem, virtualBody.inVirtual],
     );
+
+    const fixedShadowContextValue = useFixedShadow({
+      scrollLeft: bodyScrollLeft,
+      maxScrollLeft: bodyMaxScrollLeft,
+      fixColumnsGapped,
+      flattenColumns,
+      flattenColumnsWidths,
+    });
 
     const TableComponent = getComponent(['table'], 'div');
     const BodyWrapperComponent = getComponent(['body', 'wrapper'], 'div');
@@ -663,104 +674,108 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
               ...style,
             }}
           >
-            <Head
-              ref={tableHeadRef}
-              rows={headRows}
-              virtualColumns={virtualColumns}
-              className={classNames({ [headStickyCls]: sticky })}
-              style={stickyHeaderStyle}
-            />
+            <FixedShadowContext.Provider value={fixedShadowContextValue}>
+              <Head
+                ref={tableHeadRef}
+                rows={headRows}
+                virtualColumns={virtualColumns}
+                className={classNames({ [headStickyCls]: sticky })}
+                style={stickyHeaderStyle}
+              />
 
-            <ScrollBarContainer
-              className={bodyCls}
-              classNames={{ inner: bodyInnerCls }}
-              contentComponent={BodyWrapperComponent}
-              styles={{ content: virtualBody.bodyStyle }}
-              showVertical={
-                !!scrollY
-                  ? {
-                      offsetLeft: `max(0px, min(calc(var(${colsWidthTotalCssVar}) - ${SCROLLBAR_SIZE}px), calc(100% - ${SCROLLBAR_SIZE}px)))`,
+              <ScrollBarContainer
+                className={bodyCls}
+                classNames={{ inner: bodyInnerCls }}
+                contentComponent={BodyWrapperComponent}
+                styles={{ content: virtualBody.bodyStyle }}
+                showVertical={
+                  !!scrollY
+                    ? {
+                        offsetLeft: `max(0px, min(calc(var(${colsWidthTotalCssVar}) - ${SCROLLBAR_SIZE}px), calc(100% - ${SCROLLBAR_SIZE}px)))`,
+                      }
+                    : undefined
+                }
+                ref={setTableBodyRef}
+                onScroll={virtualBody.handleBodyScroll}
+                onVerticalScroll={virtualBody.handleVerticalScroll}
+                onVerticalVisibleChange={setHasVertical}
+                updateDeps={virtualBody.updateDeps}
+              >
+                {!dataSource?.length && (
+                  <BodyRowComponent
+                    className={classNames(bodyRowCls, {
+                      [bodyGridRowCls]: virtualColumns.inVirtual,
+                      [bodyRowFixedHeightCls]: rowHeight !== undefined,
+                    })}
+                    style={
+                      rowHeight !== undefined
+                        ? ({
+                            [`${bodyRowFixedHeightCssVar}`]: `${rowHeight}px`,
+                          } as CSSProperties)
+                        : undefined
                     }
-                  : undefined
-              }
-              ref={setTableBodyRef}
-              onScroll={virtualBody.handleBodyScroll}
-              onVerticalScroll={virtualBody.handleVerticalScroll}
-              onVerticalVisibleChange={setHasVertical}
-              updateDeps={virtualBody.updateDeps}
-            >
-              {!dataSource?.length && (
-                <BodyRowComponent
-                  className={classNames(bodyRowCls, {
-                    [bodyGridRowCls]: virtualColumns.inVirtual,
-                    [bodyRowFixedHeightCls]: rowHeight !== undefined,
-                  })}
-                  style={
-                    rowHeight !== undefined
-                      ? ({
-                          [`${bodyRowFixedHeightCssVar}`]: `${rowHeight}px`,
-                        } as CSSProperties)
-                      : undefined
-                  }
-                >
-                  <BodyCellComponent
-                    className={classNames(cellCls, noDataCellCls)}
-                    style={{
-                      gridColumn: virtualColumns.inVirtual
-                        ? `1 / span ${flattenColumns.length || 1}`
-                        : `span ${flattenColumns.length || 1}`,
-                    }}
                   >
-                    <div
-                      className={noDataCellContentCls}
+                    <BodyCellComponent
+                      className={classNames(cellCls, noDataCellCls)}
                       style={{
-                        width: `min(${columnsWidthTotal}px, ${containerWidth}px)`,
+                        gridColumn: virtualColumns.inVirtual
+                          ? `1 / span ${flattenColumns.length || 1}`
+                          : `span ${flattenColumns.length || 1}`,
                       }}
                     >
-                      <Empty prefixCls={`${prefixCls}-empty`} />
-                    </div>
-                  </BodyCellComponent>
-                </BodyRowComponent>
-              )}
+                      <div
+                        className={noDataCellContentCls}
+                        style={{
+                          width: `min(${columnsWidthTotal}px, ${containerWidth}px)`,
+                        }}
+                      >
+                        <Empty prefixCls={`${prefixCls}-empty`} />
+                      </div>
+                    </BodyCellComponent>
+                  </BodyRowComponent>
+                )}
 
-              <DndContext
-                sensors={rowSortSensors}
-                collisionDetection={closestCenter}
-                autoScroll={rowSortAutoScroll}
-                onDragStart={handleRowSortStart}
-                onDragEnd={handleRowSortEnd}
-                onDragCancel={cleanupRowSort}
-              >
-                <SortableContext
-                  items={rowSortItems}
-                  strategy={verticalListSortingStrategy}
+                <DndContext
+                  sensors={rowSortSensors}
+                  collisionDetection={closestCenter}
+                  autoScroll={rowSortAutoScroll}
+                  onDragStart={handleRowSortStart}
+                  onDragEnd={handleRowSortEnd}
+                  onDragCancel={cleanupRowSort}
                 >
-                  {hasData && virtualBody.render(renderBodyItem)}
-                </SortableContext>
-                <DragOverlay adjustScale={false} dropAnimation={null}>
-                  {activeRowSortBodyItem &&
-                    renderBodyItem(activeRowSortBodyItem, {
-                      renderMode: virtualBody.inVirtual ? 'virtual' : 'normal',
-                      renderKey: `row-sort-overlay-${activeRowSortBodyItem.reactKey}`,
-                      style: {
-                        display: 'grid',
-                        gridTemplateColumns: `var(${colsWidthCssVar})`,
-                        width: `var(${colsWidthTotalCssVar})`,
-                      },
-                      rowSortOverlay: true,
-                    })}
-                </DragOverlay>
-              </DndContext>
-            </ScrollBarContainer>
+                  <SortableContext
+                    items={rowSortItems}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {hasData && virtualBody.render(renderBodyItem)}
+                  </SortableContext>
+                  <DragOverlay adjustScale={false} dropAnimation={null}>
+                    {activeRowSortBodyItem &&
+                      renderBodyItem(activeRowSortBodyItem, {
+                        renderMode: virtualBody.inVirtual
+                          ? 'virtual'
+                          : 'normal',
+                        renderKey: `row-sort-overlay-${activeRowSortBodyItem.reactKey}`,
+                        style: {
+                          display: 'grid',
+                          gridTemplateColumns: `var(${colsWidthCssVar})`,
+                          width: `var(${colsWidthTotalCssVar})`,
+                        },
+                        rowSortOverlay: true,
+                      })}
+                  </DragOverlay>
+                </DndContext>
+              </ScrollBarContainer>
 
-            {showSummary && (
-              <Summary
-                ref={tableSummaryRef}
-                virtualColumns={virtualColumns}
-                className={classNames({ [summaryStickyCls]: sticky })}
-                style={stickySummaryStyle}
-              />
-            )}
+              {showSummary && (
+                <Summary
+                  ref={tableSummaryRef}
+                  virtualColumns={virtualColumns}
+                  className={classNames({ [summaryStickyCls]: sticky })}
+                  style={stickySummaryStyle}
+                />
+              )}
+            </FixedShadowContext.Provider>
 
             <HorizontalScrollbar
               prefixCls={prefixCls}

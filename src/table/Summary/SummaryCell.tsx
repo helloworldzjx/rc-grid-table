@@ -3,6 +3,7 @@ import React, { CSSProperties, FC, useMemo } from 'react';
 
 import CellContainer from '../CellContainer';
 import { useTableContext } from '../context';
+import { useFixedShadowActive } from '../fixedShadowContext';
 import { TableSummaryRowCell } from '../interface';
 import { usePrefixClsContext } from '../prefixClsContext';
 import { getComponentCls } from '../style/classNames';
@@ -33,8 +34,10 @@ const SummaryCell: FC<SummaryCellProps> = ({
     cellEllipsisInnerCls,
     cellFixedStartCls,
     cellFixedStartLastCls,
+    cellFixedStartShadowActiveCls,
     cellFixedEndCls,
     cellFixedEndFirstCls,
+    cellFixedEndShadowActiveCls,
   } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
 
   const { colStart, spanStyle } = useMemo(() => {
@@ -80,6 +83,8 @@ const SummaryCell: FC<SummaryCellProps> = ({
     };
   }, [colStart, colEnd, spanStyle, flattenColumns, fixedOffset]);
 
+  const fixedShadowActive = useFixedShadowActive(fixedInfo);
+
   let childrenNode = column.children;
   const ellipsis = !!column?.ellipsis;
   if (ellipsis) {
@@ -103,8 +108,10 @@ const SummaryCell: FC<SummaryCellProps> = ({
         [cellEllipsisCls]: ellipsis,
         [cellFixedStartCls]: fixedInfo.fixStart !== null,
         [cellFixedStartLastCls]: fixedInfo.fixedStartShadow,
+        [cellFixedStartShadowActiveCls]: fixedShadowActive.start,
         [cellFixedEndCls]: fixedInfo.fixEnd !== null,
         [cellFixedEndFirstCls]: fixedInfo.fixedEndShadow,
+        [cellFixedEndShadowActiveCls]: fixedShadowActive.end,
       })}
       style={mergedStyle}
     >

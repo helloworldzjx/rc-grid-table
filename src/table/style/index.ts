@@ -141,7 +141,6 @@ const genVirtualStyle = (
 const genBorderedStyle = (
   {
     componentCls,
-    fixColumnsGappedCls,
     borderedCls,
     hasXScrollbarCls,
     hasSummaryCls,
@@ -156,7 +155,6 @@ const genBorderedStyle = (
     cellCls,
     pingStartCls,
     pingEndCls,
-    cellFixedStartLastCls,
     bodyRowSortDraggingCls,
   }: ComponentClsType,
   token: ComponentToken,
@@ -250,11 +248,6 @@ const genBorderedStyle = (
     },
 
     [`.${cellCls}`]: {
-      borderLeft: `1px solid ${token.colorBorder}`,
-    },
-
-    [`&.${fixColumnsGappedCls} .${cellFixedStartLastCls}::after`]: {
-      width: 32,
       borderLeft: `1px solid ${token.colorBorder}`,
     },
   },
@@ -802,7 +795,9 @@ const genFixedCellStyle = (
     bottom: 0,
     right: 0,
     transform: 'translateX(100%)',
-    transition: 'box-shadow 0.3s',
+    boxShadow: 'inset 10px 0 8px -8px rgba(0, 0, 0, 0.1)',
+    opacity: 0,
+    transition: 'opacity 0.3s',
     pointerEvents: 'none',
   },
 
@@ -815,7 +810,9 @@ const genFixedCellStyle = (
     bottom: 0,
     left: 0,
     transform: 'translateX(-100%)',
-    transition: 'box-shadow 0.3s',
+    boxShadow: 'inset -10px 0 8px -8px rgba(0, 0, 0, 0.1)',
+    opacity: 0,
+    transition: 'opacity 0.3s',
     pointerEvents: 'none',
   },
 });
@@ -830,7 +827,9 @@ const genFixedShadowStyle = ({
   hasXScrollbarCls,
   headRowCls,
   cellFixedStartLastCls,
+  cellFixedStartShadowActiveCls,
   cellFixedEndFirstCls,
+  cellFixedEndShadowActiveCls,
 }: ComponentClsType): CSSInterpolation => ({
   [`.${componentCls}.${hasXScrollbarCls}`]: {
     '&::after': {
@@ -877,15 +876,24 @@ const genFixedShadowStyle = ({
 
     [`&.${pingStartCls}:not(.${fixColumnsGappedCls}) .${cellFixedStartLastCls}::after`]:
       {
-        boxShadow: 'inset 10px 0 8px -8px rgba(0, 0, 0, 0.1)',
+        opacity: 1,
       },
     [`&.${pingEndCls}:not(.${fixColumnsGappedCls}) .${cellFixedEndFirstCls}::after`]:
       {
-        boxShadow: 'inset -10px 0 8px -8px rgba(0, 0, 0, 0.1)',
+        opacity: 1,
       },
+    [`.${cellFixedStartShadowActiveCls}::after`]: {
+      opacity: 1,
+    },
+    [`.${cellFixedEndShadowActiveCls}::after`]: {
+      opacity: 1,
+    },
 
     // 左侧最后一列固定列显示阴影时不显示使用::before制作的分割线border
     [`&.${pingStartCls} .${headRowCls} .${cellFixedStartLastCls}::before`]: {
+      display: 'none',
+    },
+    [`.${headRowCls} .${cellFixedStartShadowActiveCls}::before`]: {
       display: 'none',
     },
   },

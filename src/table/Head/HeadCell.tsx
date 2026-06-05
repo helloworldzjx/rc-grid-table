@@ -7,6 +7,7 @@ import CellContainer from '../CellContainer';
 import { useColumnSortableContext } from '../columnSortableContext';
 import { useComponentsContext } from '../componentsContext';
 import { useTableContext } from '../context';
+import { useFixedShadowActive } from '../fixedShadowContext';
 import { CellType } from '../interface';
 import { usePrefixClsContext } from '../prefixClsContext';
 import { useRowSelectionContext } from '../rowSelectionContext';
@@ -65,8 +66,10 @@ function HeadCell({
     headSortableCellDisabledCls,
     cellFixedStartCls,
     cellFixedStartLastCls,
+    cellFixedStartShadowActiveCls,
     cellFixedEndCls,
     cellFixedEndFirstCls,
+    cellFixedEndShadowActiveCls,
   } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
 
   const resizableRef = useRef<HTMLDivElement | null>(null);
@@ -80,6 +83,8 @@ function HeadCell({
       fixedOffset,
     );
   }, [col.colStart, col.colEnd, flattenColumns, fixedOffset]);
+
+  const fixedShadowActive = useFixedShadowActive(fixedInfo);
 
   // 最后一列不显示右侧border
   const hasHeadLastCellCls = useMemo(() => {
@@ -302,8 +307,10 @@ function HeadCell({
           [headLastCellCls]: hasHeadLastCellCls,
           [cellFixedStartCls]: fixedInfo.fixStart !== null,
           [cellFixedStartLastCls]: fixedInfo.fixedStartShadow,
+          [cellFixedStartShadowActiveCls]: fixedShadowActive.start,
           [cellFixedEndCls]: fixedInfo.fixEnd !== null,
           [cellFixedEndFirstCls]: fixedInfo.fixedEndShadow,
+          [cellFixedEndShadowActiveCls]: fixedShadowActive.end,
           [selectionCellCls]: isInternalSelectionColumn,
           [headResizableCellDisabledCls]:
             !!resizableColumns && !!col.column?.resizeDisabled,
