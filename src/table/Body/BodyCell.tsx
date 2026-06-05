@@ -9,6 +9,7 @@ import React, {
   memo,
   MouseEvent,
   ReactNode,
+  useCallback,
   useMemo,
 } from 'react';
 
@@ -188,23 +189,39 @@ function BodyCell({
     return restProps;
   }, [column.onCell, rowData, rowIndex]);
 
-  if (spanInfo.hidden) {
-    return null;
-  }
-
   const isInternalExpandColumn = isExpandColumn(column);
   const isInternalSelectionColumn = isSelectionColumn(column);
   const isInternalRowSortColumn = isRowSortColumn(column);
 
-  const handleExpand = (event: MouseEvent<HTMLElement>) => {
-    event.stopPropagation();
-    if (rowSupportExpand) {
-      onTriggerExpand?.(rowData);
-    }
-  };
+  const selectionType = rowSelection?.type ?? 'checkbox';
+  const selectionChecked = selection?.isSelected(rowData) ?? false;
+  const selectionControlProps = useMemo(
+    () =>
+      selectionType === 'radio'
+        ? rowSelection?.getRadioProps?.(rowData) || {}
+        : rowSelection?.getCheckboxProps?.(rowData) || {},
+    [rowData, rowSelection, selectionType],
+  );
+  const mergedSelectionControlStyle = useMemo<CSSProperties>(
+    () => ({
+      ...selectionControlProps.style,
+      justifyContent: rowSelection?.align ?? 'center',
+    }),
+    [selectionControlProps.style, rowSelection?.align],
+  );
 
-  const renderExpandIcon = (spaced = false) => {
-    const iconProps = {
+  const handleExpand = useCallback(
+    (event: MouseEvent<HTMLElement>) => {
+      event.stopPropagation();
+      if (rowSupportExpand) {
+        onTriggerExpand?.(rowData);
+      }
+    },
+    [onTriggerExpand, rowData, rowSupportExpand],
+  );
+
+  const expandIconProps = useMemo(
+    () => ({
       expanded,
       expandable: rowSupportExpand,
       record: rowData,
@@ -212,10 +229,17 @@ function BodyCell({
       indent,
       onExpand: (_record: any, event: MouseEvent<HTMLElement>) =>
         handleExpand(event),
-    };
+    }),
+    [expanded, handleExpand, indent, rowData, rowIndex, rowSupportExpand],
+  );
 
+  if (spanInfo.hidden) {
+    return null;
+  }
+
+  const renderExpandIcon = (spaced = false) => {
     const iconNode = expandableConfig?.expandIcon ? (
-      expandableConfig.expandIcon(iconProps)
+      expandableConfig.expandIcon(expandIconProps)
     ) : (
       <button
         type="button"
@@ -243,22 +267,13 @@ function BodyCell({
   const renderSelectionControl = () => {
     if (!selection || !rowSelection) return null;
 
-    const type = rowSelection.type ?? 'checkbox';
-    const checked = selection.isSelected(rowData);
-    const controlProps =
-      type === 'radio'
-        ? rowSelection.getRadioProps?.(rowData) || {}
-        : rowSelection.getCheckboxProps?.(rowData) || {};
-    const disabled = !!controlProps.disabled;
+    const disabled = !!selectionControlProps.disabled;
     const originNode =
-      type === 'radio' ? (
+      selectionType === 'radio' ? (
         <SelectionRadio
-          {...controlProps}
-          style={{
-            ...controlProps.style,
-            justifyContent: rowSelection.align ?? 'center',
-          }}
-          checked={checked}
+          {...selectionControlProps}
+          style={mergedSelectionControlStyle}
+          checked={selectionChecked}
           disabled={disabled}
           onChange={(event) =>
             selection.onSelectRecord(rowData, rowIndex, event)
@@ -266,12 +281,9 @@ function BodyCell({
         />
       ) : (
         <SelectionCheckbox
-          {...controlProps}
-          style={{
-            ...controlProps.style,
-            justifyContent: rowSelection.align ?? 'center',
-          }}
-          checked={checked}
+          {...selectionControlProps}
+          style={mergedSelectionControlStyle}
+          checked={selectionChecked}
           indeterminate={selection.isHalfSelected(rowData)}
           disabled={disabled}
           onChange={(event) =>
@@ -281,8 +293,12 @@ function BodyCell({
       );
 
     return (
-      rowSelection.renderCell?.(checked, rowData, rowIndex, originNode) ??
-      originNode
+      rowSelection.renderCell?.(
+        selectionChecked,
+        rowData,
+        rowIndex,
+        originNode,
+      ) ?? originNode
     );
   };
 

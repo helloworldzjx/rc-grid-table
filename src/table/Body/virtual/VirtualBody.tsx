@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { Key, useMemo } from 'react';
+import React, { Key, useCallback, useMemo } from 'react';
 import { usePrefixClsContext } from '../../prefixClsContext';
 import { getComponentCls } from '../../style/classNames';
 import type { BodyItem, BodyItemRenderer, BodyRowItem } from '../interface';
@@ -42,6 +42,28 @@ const VirtualBody = <T,>({
     bodyVirtualRowSpanTopCls,
   } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
 
+  const getRowSpanRenderOptions = useCallback(
+    (
+      bodyItem: BodyRowItem<T>,
+      top: number,
+      getHeight: (rowSpan: number) => number,
+    ) => {
+      const offsetTop = top - offsetY;
+
+      return {
+        renderMode: 'rowSpanOverlay' as const,
+        renderKey: `rowspan-${bodyItem.reactKey}`,
+        className: classNames(bodyVirtualRowSpanCls, {
+          [bodyVirtualRowSpanTopCls]: offsetTop === 0,
+        }),
+        style: { top: offsetTop },
+        getRowSpanHeight: getHeight,
+        onRowResize: onItemResize,
+      };
+    },
+    [bodyVirtualRowSpanCls, bodyVirtualRowSpanTopCls, offsetY, onItemResize],
+  );
+
   if (!inVirtual) {
     return <>{bodyItems.map((item) => renderBodyItem(item))}</>;
   }
@@ -50,9 +72,7 @@ const VirtualBody = <T,>({
     <div className={bodyVirtualFillerCls} style={{ height: scrollHeight }}>
       <div
         className={bodyVirtualInnerCls}
-        style={{
-          transform: `translateY(${offsetY}px)`,
-        }}
+        style={{ transform: `translateY(${offsetY}px)` }}
       >
         {visibleItems.map(({ key, item }) =>
           renderBodyItem(item, {
@@ -61,20 +81,12 @@ const VirtualBody = <T,>({
             onRowResize: onItemResize,
           }),
         )}
-        {rowSpanItems.map(({ bodyItem, top, getHeight }) => {
-          const offsetTop = top - offsetY;
-
-          return renderBodyItem(bodyItem, {
-            renderMode: 'rowSpanOverlay',
-            renderKey: `rowspan-${bodyItem.reactKey}`,
-            className: classNames(bodyVirtualRowSpanCls, {
-              [bodyVirtualRowSpanTopCls]: offsetTop === 0,
-            }),
-            style: { top: offsetTop },
-            getRowSpanHeight: getHeight,
-            onRowResize: onItemResize,
-          });
-        })}
+        {rowSpanItems.map(({ bodyItem, top, getHeight }) =>
+          renderBodyItem(
+            bodyItem,
+            getRowSpanRenderOptions(bodyItem, top, getHeight),
+          ),
+        )}
       </div>
     </div>
   );

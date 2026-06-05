@@ -251,6 +251,17 @@ function HeadCell({
   });
 
   const isInternalSelectionColumn = isSelectionColumn(col.column);
+  const titleCheckboxProps = useMemo(
+    () => rowSelection?.getTitleCheckboxProps?.() || {},
+    [rowSelection],
+  );
+  const titleCheckboxStyle = useMemo<CSSProperties>(
+    () => ({
+      ...titleCheckboxProps.style,
+      justifyContent: rowSelection?.align ?? 'center',
+    }),
+    [rowSelection?.align, titleCheckboxProps.style],
+  );
 
   let childrenNode = col.children;
   if (isInternalSelectionColumn) {
@@ -260,15 +271,11 @@ function HeadCell({
     ) {
       childrenNode = null;
     } else {
-      const checkboxProps = rowSelection?.getTitleCheckboxProps?.() || {};
-      const disabled = !!checkboxProps.disabled;
+      const disabled = !!titleCheckboxProps.disabled;
       const originNode = (
         <SelectionCheckbox
-          {...checkboxProps}
-          style={{
-            ...checkboxProps.style,
-            justifyContent: rowSelection?.align ?? 'center',
-          }}
+          {...titleCheckboxProps}
+          style={titleCheckboxStyle}
           checked={!!selection?.isAllSelected}
           indeterminate={!!selection?.isPartiallySelected}
           disabled={disabled}

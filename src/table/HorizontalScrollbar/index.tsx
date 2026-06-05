@@ -39,6 +39,13 @@ const HorizontalScrollbar: React.FC<HorizontalScrollbarProps> = ({
   } = useMemo(() => getScrollbarCls(prefixCls), [prefixCls]);
 
   const stickyOffset = getStickyOffset(sticky);
+  const scrollbarStyle = useMemo(
+    () => ({
+      bottom: sticky ? stickyOffset : 0,
+    }),
+    [sticky, stickyOffset],
+  );
+  const thumbStyle = useMemo(() => ({ width: thumbWidth }), [thumbWidth]);
 
   return (
     <div
@@ -48,15 +55,9 @@ const HorizontalScrollbar: React.FC<HorizontalScrollbarProps> = ({
       })}
       ref={trackRef}
       onMouseDown={onMouseDown}
-      style={{
-        bottom: sticky ? stickyOffset : 0,
-      }}
+      style={scrollbarStyle}
     >
-      <div
-        className={xScrollBarThumbCls}
-        ref={thumbRef}
-        style={{ width: thumbWidth }}
-      />
+      <div className={xScrollBarThumbCls} ref={thumbRef} style={thumbStyle} />
     </div>
   );
 };

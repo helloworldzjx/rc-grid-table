@@ -194,18 +194,23 @@ const Placeholder: FC = () => {
     }
   };
 
+  const placeholderStyle = useMemo(
+    () => ({
+      left: columnsWidthTotal,
+      display:
+        containerWidth - columnsWidthTotal > PLACEHOLDER_VISIBLE_TOLERANCE
+          ? 'block'
+          : 'none',
+    }),
+    [columnsWidthTotal, containerWidth],
+  );
+
   return (
     // 暂不动态渲染这个占位元素，而是通过display控制
     <div
       onClick={autoFill}
       className={placeholderCls}
-      style={{
-        left: columnsWidthTotal,
-        display:
-          containerWidth - columnsWidthTotal > PLACEHOLDER_VISIBLE_TOLERANCE
-            ? 'block'
-            : 'none',
-      }}
+      style={placeholderStyle}
     />
   );
 };

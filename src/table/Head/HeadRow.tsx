@@ -92,6 +92,20 @@ function HeadRow({
     updateDraftState: updateSortableDraftState,
   });
 
+  const sortableItems = useMemo(
+    () => renderColumns.map(({ column }) => `${column.key}`),
+    [renderColumns],
+  );
+
+  const dragOverlayStyle = useMemo<React.CSSProperties>(
+    () => ({
+      ...dragOverlaySize,
+      lineHeight: `${dragOverlaySize.height}px`,
+      transform: `translate(${translate.x}px, ${translate.y}px)`,
+    }),
+    [dragOverlaySize, translate.x, translate.y],
+  );
+
   const cleanupSortableScrollListener = useCallback(() => {
     clearTimeout(scrollEndTimerRef.current!);
     scrollingRef.current = false;
@@ -250,9 +264,7 @@ function HeadRow({
         onDragEnd={handleDragEnd}
         onDragCancel={handleDragCancel}
       >
-        <SortableContext
-          items={renderColumns.map(({ column }) => `${column.key}`)}
-        >
+        <SortableContext items={sortableItems}>
           {renderColumns.map(({ column, columnIndex }) => (
             <HeadCell
               key={column.key}
@@ -273,11 +285,7 @@ function HeadRow({
             {activeColumn && (
               <div
                 className={headDraggingOverlayCellCls}
-                style={{
-                  ...dragOverlaySize,
-                  lineHeight: `${dragOverlaySize.height}px`,
-                  transform: `translate(${translate.x}px, ${translate.y}px)`,
-                }}
+                style={dragOverlayStyle}
               >
                 {activeColumn?.children}
               </div>

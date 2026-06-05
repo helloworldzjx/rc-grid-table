@@ -86,19 +86,26 @@ function RowSortBodyCell<T = any>({
     rowSortDragDisabled || !rowSortable || !isValidKey(rowSortKey);
   const disabled = rowSortDisabled;
   const dragging = rowSortDragging;
-  const activatorProps = disabled
-    ? {}
-    : {
-        ...rowSortAttributes,
-        ...rowSortListeners,
-      };
-  const iconProps = {
-    disabled,
-    dragging,
-    record: rowData,
-    index: rowIndex,
-    indent,
-  };
+  const activatorProps = useMemo(
+    () =>
+      disabled
+        ? {}
+        : {
+            ...rowSortAttributes,
+            ...rowSortListeners,
+          },
+    [disabled, rowSortAttributes, rowSortListeners],
+  );
+  const iconProps = useMemo(
+    () => ({
+      disabled,
+      dragging,
+      record: rowData,
+      index: rowIndex,
+      indent,
+    }),
+    [disabled, dragging, indent, rowData, rowIndex],
+  );
 
   const iconNode = rowSortable?.sortIcon ? (
     rowSortable.sortIcon(iconProps)

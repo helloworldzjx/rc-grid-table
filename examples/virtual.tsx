@@ -244,7 +244,7 @@ const App: React.FC = () => {
             { children: 'Total rows', colSpan: 2 },
             { children: pageData.length },
             {
-              colSpan: Math.max((flattenColumns?.length || 1) - 2, 1),
+              colSpan: Math.max((flattenColumns?.length || 1) - 3, 1),
               children:
                 'Rows and non-fixed columns are virtualized by default.',
             },

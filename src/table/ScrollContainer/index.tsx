@@ -59,6 +59,19 @@ const ScrollContainer = forwardRef<
     );
 
     const showVerticalScrollbar = !!showVertical && hasVertical;
+    const verticalTrackStyle = useMemo(
+      () => ({
+        ...(typeof showVertical !== 'boolean' && {
+          left: showVertical?.offsetLeft,
+          right: showVertical?.offsetRight,
+        }),
+      }),
+      [showVertical],
+    );
+    const verticalThumbStyle = useMemo(
+      () => ({ height: verticalThumbHeight }),
+      [verticalThumbHeight],
+    );
 
     useImperativeHandle(ref, () => ({
       nativeElement: wrapperElement!,
@@ -102,17 +115,12 @@ const ScrollContainer = forwardRef<
           })}
           ref={verticalTrackRef}
           onMouseDown={handleVerticalDrag}
-          style={{
-            ...(typeof showVertical !== 'boolean' && {
-              left: showVertical?.offsetLeft,
-              right: showVertical?.offsetRight,
-            }),
-          }}
+          style={verticalTrackStyle}
         >
           <div
             className={yScrollBarThumbCls}
             ref={verticalThumbRef}
-            style={{ height: verticalThumbHeight }}
+            style={verticalThumbStyle}
           />
         </div>
       </div>

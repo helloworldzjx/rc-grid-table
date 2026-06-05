@@ -488,15 +488,6 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       disabled: sortingColumns,
     });
 
-    const virtualBodyUpdateDeps = useMemo(
-      () => [
-        mergedExpandedRowKeys,
-        columnsWidthTotal,
-        virtualColumns.columns.length,
-      ],
-      [columnsWidthTotal, mergedExpandedRowKeys, virtualColumns.columns.length],
-    );
-
     const virtualBody = useTableVirtualBody({
       bodyItems,
       flattenDataLength: flattenData.length,
@@ -508,7 +499,11 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       onBodyScroll: handleBodyScroll,
       scrollBodyTo,
       scrollBodyToTop,
-      extraUpdateDeps: virtualBodyUpdateDeps,
+      extraUpdateDeps: [
+        mergedExpandedRowKeys,
+        columnsWidthTotal,
+        virtualColumns.columns.length,
+      ],
     });
 
     useImperativeHandle(tableRef, () => ({
@@ -555,6 +550,81 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
         bottom: getStickyOffset(sticky, 'offsetSummary'),
       };
     }, [sticky]);
+
+    const tableStyle = useMemo<CSSProperties>(
+      () => ({
+        [`${colsWidthCssVar}`]: gridTemplateColumns,
+        [`${colsWidthTotalCssVar}`]: `${columnsWidthTotal}px`,
+        ...style,
+      }),
+      [
+        colsWidthCssVar,
+        colsWidthTotalCssVar,
+        columnsWidthTotal,
+        gridTemplateColumns,
+        style,
+      ],
+    );
+
+    const bodyShowVertical = useMemo(
+      () =>
+        !!scrollY
+          ? {
+              offsetLeft: `max(0px, min(calc(var(${colsWidthTotalCssVar}) - ${SCROLLBAR_SIZE}px), calc(100% - ${SCROLLBAR_SIZE}px)))`,
+            }
+          : undefined,
+      [colsWidthTotalCssVar, scrollY],
+    );
+
+    const emptyRowStyle = useMemo<CSSProperties | undefined>(
+      () =>
+        rowHeight !== undefined
+          ? ({
+              [`${bodyRowFixedHeightCssVar}`]: `${rowHeight}px`,
+            } as CSSProperties)
+          : undefined,
+      [bodyRowFixedHeightCssVar, rowHeight],
+    );
+
+    const emptyCellStyle = useMemo<CSSProperties>(
+      () => ({
+        gridColumn: virtualColumns.inVirtual
+          ? `1 / span ${flattenColumns.length || 1}`
+          : `span ${flattenColumns.length || 1}`,
+      }),
+      [flattenColumns.length, virtualColumns.inVirtual],
+    );
+
+    const emptyCellContentStyle = useMemo<CSSProperties>(
+      () => ({
+        width: `min(${columnsWidthTotal}px, ${containerWidth}px)`,
+      }),
+      [columnsWidthTotal, containerWidth],
+    );
+
+    const rowSortOverlayRenderOptions = useMemo<
+      BodyRenderOptions | undefined
+    >(() => {
+      if (!activeRowSortBodyItem) {
+        return undefined;
+      }
+
+      return {
+        renderMode: virtualBody.inVirtual ? 'virtual' : 'normal',
+        renderKey: `row-sort-overlay-${activeRowSortBodyItem.reactKey}`,
+        style: {
+          display: 'grid',
+          gridTemplateColumns: `var(${colsWidthCssVar})`,
+          width: `var(${colsWidthTotalCssVar})`,
+        },
+        rowSortOverlay: true,
+      };
+    }, [
+      activeRowSortBodyItem,
+      colsWidthCssVar,
+      colsWidthTotalCssVar,
+      virtualBody.inVirtual,
+    ]);
 
     const renderBodyItem = (
       bodyItem: BodyItem,
@@ -668,11 +738,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
               },
               className,
             )}
-            style={{
-              [`${colsWidthCssVar}`]: gridTemplateColumns,
-              [`${colsWidthTotalCssVar}`]: `${columnsWidthTotal}px`,
-              ...style,
-            }}
+            style={tableStyle}
           >
             <FixedShadowContext.Provider value={fixedShadowContextValue}>
               <Head
@@ -688,13 +754,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
                 classNames={{ inner: bodyInnerCls }}
                 contentComponent={BodyWrapperComponent}
                 styles={{ content: virtualBody.bodyStyle }}
-                showVertical={
-                  !!scrollY
-                    ? {
-                        offsetLeft: `max(0px, min(calc(var(${colsWidthTotalCssVar}) - ${SCROLLBAR_SIZE}px), calc(100% - ${SCROLLBAR_SIZE}px)))`,
-                      }
-                    : undefined
-                }
+                showVertical={bodyShowVertical}
                 ref={setTableBodyRef}
                 onScroll={virtualBody.handleBodyScroll}
                 onVerticalScroll={virtualBody.handleVerticalScroll}
@@ -707,27 +767,15 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
                       [bodyGridRowCls]: virtualColumns.inVirtual,
                       [bodyRowFixedHeightCls]: rowHeight !== undefined,
                     })}
-                    style={
-                      rowHeight !== undefined
-                        ? ({
-                            [`${bodyRowFixedHeightCssVar}`]: `${rowHeight}px`,
-                          } as CSSProperties)
-                        : undefined
-                    }
+                    style={emptyRowStyle}
                   >
                     <BodyCellComponent
                       className={classNames(cellCls, noDataCellCls)}
-                      style={{
-                        gridColumn: virtualColumns.inVirtual
-                          ? `1 / span ${flattenColumns.length || 1}`
-                          : `span ${flattenColumns.length || 1}`,
-                      }}
+                      style={emptyCellStyle}
                     >
                       <div
                         className={noDataCellContentCls}
-                        style={{
-                          width: `min(${columnsWidthTotal}px, ${containerWidth}px)`,
-                        }}
+                        style={emptyCellContentStyle}
                       >
                         <Empty prefixCls={`${prefixCls}-empty`} />
                       </div>
@@ -751,18 +799,11 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
                   </SortableContext>
                   <DragOverlay adjustScale={false} dropAnimation={null}>
                     {activeRowSortBodyItem &&
-                      renderBodyItem(activeRowSortBodyItem, {
-                        renderMode: virtualBody.inVirtual
-                          ? 'virtual'
-                          : 'normal',
-                        renderKey: `row-sort-overlay-${activeRowSortBodyItem.reactKey}`,
-                        style: {
-                          display: 'grid',
-                          gridTemplateColumns: `var(${colsWidthCssVar})`,
-                          width: `var(${colsWidthTotalCssVar})`,
-                        },
-                        rowSortOverlay: true,
-                      })}
+                      rowSortOverlayRenderOptions &&
+                      renderBodyItem(
+                        activeRowSortBodyItem,
+                        rowSortOverlayRenderOptions,
+                      )}
                   </DragOverlay>
                 </DndContext>
               </ScrollBarContainer>

@@ -173,21 +173,33 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     );
   }, [containerWidth, renderedColumnsState, sortableDraftState]);
 
-  const renderedCols = sortablePreviewColumns?.treeColumns ?? cols;
-  const renderedFlattenCols =
-    sortablePreviewColumns?.flattenColumns ?? flattenCols;
-  const renderedFlattenColumnsWidths =
-    sortablePreviewColumns?.flattenColumnsWidths ?? flattenColumnsWidths;
+  const renderedCols = useMemo(
+    () => sortablePreviewColumns?.treeColumns ?? cols,
+    [cols, sortablePreviewColumns],
+  );
+  const renderedFlattenCols = useMemo(
+    () => sortablePreviewColumns?.flattenColumns ?? flattenCols,
+    [flattenCols, sortablePreviewColumns],
+  );
+  const renderedFlattenColumnsWidths = useMemo(
+    () => sortablePreviewColumns?.flattenColumnsWidths ?? flattenColumnsWidths,
+    [flattenColumnsWidths, sortablePreviewColumns],
+  );
 
   const fixedOffset = useStickyOffsets(
     renderedFlattenColumnsWidths,
     renderedFlattenCols,
   );
 
-  latestRenderedColumnsRef.current = {
-    flattenColumns: renderedFlattenCols,
-    flattenColumnsWidths: renderedFlattenColumnsWidths,
-  };
+  const latestRenderedColumns = useMemo(
+    () => ({
+      flattenColumns: renderedFlattenCols,
+      flattenColumnsWidths: renderedFlattenColumnsWidths,
+    }),
+    [renderedFlattenCols, renderedFlattenColumnsWidths],
+  );
+
+  latestRenderedColumnsRef.current = latestRenderedColumns;
 
   const columnsWidthTotal = useMemo(() => {
     return renderedFlattenColumnsWidths?.reduce(
@@ -196,8 +208,10 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     );
   }, [renderedFlattenColumnsWidths]);
 
-  const mergedExpandedRowKeys =
-    expandable?.expandedRowKeys ?? innerExpandedRowKeys;
+  const mergedExpandedRowKeys = useMemo(
+    () => expandable?.expandedRowKeys ?? innerExpandedRowKeys,
+    [expandable?.expandedRowKeys, innerExpandedRowKeys],
+  );
   const selection = useSelection({
     rowKey,
     dataSource,
@@ -544,9 +558,14 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     ],
   );
 
+  const tableContextValue = useMemo(
+    () => ({ ...baseProps, ...rest }),
+    [baseProps, rest],
+  );
+
   return (
     <PrefixClsContext.Provider value={prefixCls}>
-      <TableContext.Provider value={{ ...baseProps, ...rest }}>
+      <TableContext.Provider value={tableContextValue}>
         <ComponentsContext.Provider value={componentsContextValue}>
           <ExpandableContext.Provider value={expandableContextValue}>
             <RowSelectionContext.Provider value={rowSelectionContextValue}>

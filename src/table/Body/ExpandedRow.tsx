@@ -77,6 +77,15 @@ const ExpandedRow: FC<ExpandedRowProps> = ({
     columnsWidthTotal,
     containerWidth || columnsWidthTotal,
   );
+  const cellStyle = useMemo<CSSProperties>(
+    () => ({
+      gridColumn: virtualColumn
+        ? `1 / span ${flattenColumns.length || 1}`
+        : `span ${flattenColumns.length || 1}`,
+      width: expandedRowCellWidth,
+    }),
+    [expandedRowCellWidth, flattenColumns.length, virtualColumn],
+  );
 
   const rowNode = (
     <RowComponent
@@ -94,12 +103,7 @@ const ExpandedRow: FC<ExpandedRowProps> = ({
     >
       <CellComponent
         className={classNames(cellCls, expandedRowCellCls)}
-        style={{
-          gridColumn: virtualColumn
-            ? `1 / span ${flattenColumns.length || 1}`
-            : `span ${flattenColumns.length || 1}`,
-          width: expandedRowCellWidth,
-        }}
+        style={cellStyle}
       >
         <div
           className={expandedRowContentCls}
