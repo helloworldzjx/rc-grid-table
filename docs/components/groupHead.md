@@ -1,6 +1,6 @@
 ---
 title: 表头分组
-order: 7
+order: 8
 ---
 
 <code src="../../examples/groupHead.tsx"></code>
