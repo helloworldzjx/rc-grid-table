@@ -13,3 +13,5 @@ export const SCROLLBAR_THUMB_ABSOLUTE_LEFT_TOP =
 
 /** 滚动条显隐容差，避免临界宽度下反复闪烁 */
 export const SCROLLBAR_VISIBLE_TOLERANCE = 1;
+
+export const COLUMNS_SORT_OVERLAY_POINTER_OFFSET_X = 16;

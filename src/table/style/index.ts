@@ -6,6 +6,7 @@ import {
 } from '@ant-design/cssinjs';
 import { useMemo } from 'react';
 
+import { COLUMNS_SORT_OVERLAY_POINTER_OFFSET_X } from '../../_utils/const';
 import useToken from '../../theme/hooks/useToken';
 import {
   darkTableToken,
@@ -452,7 +453,8 @@ const genCellStyle = (
       userSelect: 'none',
     },
     [`.${headDraggingOverlayCellCls}`]: {
-      paddingInline: unit(token.cellPaddingInline),
+      paddingLeft: COLUMNS_SORT_OVERLAY_POINTER_OFFSET_X * 1.5,
+      paddingRight: COLUMNS_SORT_OVERLAY_POINTER_OFFSET_X,
       boxSizing: 'border-box',
       fontSize: token.fontSize,
       color: token.colorText,
@@ -461,6 +463,8 @@ const genCellStyle = (
       overflow: 'hidden',
       border: `1px solid ${token.colorBorder}`,
       backgroundColor: token.colorBgContainer,
+      borderRadius: token.borderRadius,
+      boxShadow: '0 0 16px rgba(0, 0, 0, 0.1)',
       cursor: 'move',
     },
   },

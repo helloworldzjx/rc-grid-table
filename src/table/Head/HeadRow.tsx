@@ -1,14 +1,19 @@
 import {
+  ClientRect,
   DndContext,
   DragCancelEvent,
   DragEndEvent,
   DragOverEvent,
   DragOverlay,
   DragStartEvent,
+  pointerWithin,
+  type Modifier,
 } from '@dnd-kit/core';
 import { SortableContext } from '@dnd-kit/sortable';
+import { Coordinates, getEventCoordinates } from '@dnd-kit/utilities';
 import React, { Key, useCallback, useMemo, useRef, useState } from 'react';
 
+import { COLUMNS_SORT_OVERLAY_POINTER_OFFSET_X } from '../../_utils/const';
 import { useColumnSortableContext } from '../columnSortableContext';
 import { useComponentsContext } from '../componentsContext';
 import { CellType, ColumnState } from '../interface';
@@ -41,7 +46,6 @@ function HeadRow({
   onResizeEnd,
 }: HeadRowProps) {
   const {
-    sortableColumns,
     getSortableBaseState,
     updateSortableColumnsState,
     updateSortableDraftState,
@@ -58,8 +62,8 @@ function HeadRow({
   const firstRow = headRows[0] || [];
   const previousRow = headRows[headRowIndex - 1] || [];
   const [activeKey, setActiveKey] = useState<Key | null>(null);
-  const [dragOverlaySize] = useState({ width: 100, height: 40 });
-  const [translate, setTranslate] = useState({ x: 0, y: 0 });
+  const [dragOverlaySize] = useState({ width: 90, height: 36 });
+  const activeRectRef = useRef<ClientRect | null>(null);
   const scrollListenerCleanupRef = useRef<(() => void) | null>(null);
   const scrollEndTimerRef = useRef<NodeJS.Timeout | null>(null);
   const scrollLeftRef = useRef(0);
@@ -83,10 +87,44 @@ function HeadRow({
     () => ({
       ...dragOverlaySize,
       lineHeight: `${dragOverlaySize.height}px`,
-      transform: `translate(${translate.x}px, ${translate.y}px)`,
     }),
-    [dragOverlaySize, translate.x, translate.y],
+    [dragOverlaySize],
   );
+
+  const dragOverlayModifiers = useMemo<Modifier[] | undefined>(() => {
+    if (!activeColumn) return undefined;
+
+    return [
+      ({ activatorEvent, activeNodeRect, overlayNodeRect, transform }) => {
+        let coordinates: Coordinates | null = null;
+        if (activatorEvent) {
+          coordinates = getEventCoordinates(activatorEvent);
+        }
+
+        // 需要保存activeNodeRect，因为排序预览功能会改变rect
+        if (!activeRectRef.current && activeNodeRect) {
+          activeRectRef.current = activeNodeRect;
+        }
+        const activeRect = activeRectRef.current ?? activeNodeRect;
+        if (!coordinates || !activeRect) {
+          return transform;
+        }
+
+        const overlayHeight = overlayNodeRect?.height ?? dragOverlaySize.height;
+        const offsetX =
+          coordinates.x -
+          activeRect.left -
+          COLUMNS_SORT_OVERLAY_POINTER_OFFSET_X;
+        const offsetY = coordinates.y - activeRect.top - overlayHeight / 2;
+
+        return {
+          ...transform,
+          x: transform.x + offsetX,
+          y: transform.y + offsetY,
+        };
+      },
+    ];
+  }, [activeColumn, dragOverlaySize.height, dragOverlaySize.width]);
 
   const cleanupSortableScrollListener = useCallback(() => {
     clearTimeout(scrollEndTimerRef.current!);
@@ -123,9 +161,9 @@ function HeadRow({
 
   const cleanupSortable = (clearDraft = true) => {
     cleanupSortableScrollListener();
+    activeRectRef.current = null;
     document.documentElement.style.cursor = '';
     setActiveKey(null);
-    setTranslate({ x: 0, y: 0 });
     sortablePreview.cleanup(clearDraft);
   };
 
@@ -136,13 +174,6 @@ function HeadRow({
       document.documentElement.style.cursor = 'move';
       sortablePreview.start();
       startSortableScrollListener();
-      const x =
-        (event.activatorEvent as MouseEvent).offsetX -
-        dragOverlaySize.width / 2;
-      const y =
-        (event.activatorEvent as MouseEvent).offsetY -
-        dragOverlaySize.height / 2;
-      setTranslate({ x, y });
       setActiveKey(event.active.id);
     }
 
@@ -241,6 +272,7 @@ function HeadRow({
   return (
     <RowComponent className={headRowCls}>
       <DndContext
+        collisionDetection={pointerWithin}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
@@ -261,18 +293,16 @@ function HeadRow({
             />
           ))}
         </SortableContext>
-        {sortableColumns && (
-          <DragOverlay dropAnimation={null}>
-            {activeColumn && (
-              <div
-                className={headDraggingOverlayCellCls}
-                style={dragOverlayStyle}
-              >
-                {activeColumn?.children}
-              </div>
-            )}
-          </DragOverlay>
-        )}
+        <DragOverlay dropAnimation={null} modifiers={dragOverlayModifiers}>
+          {activeColumn && (
+            <div
+              className={headDraggingOverlayCellCls}
+              style={dragOverlayStyle}
+            >
+              {activeColumn?.children}
+            </div>
+          )}
+        </DragOverlay>
       </DndContext>
     </RowComponent>
   );

@@ -129,16 +129,7 @@ const App: React.FC = () => {
   return (
     <>
       <ConfigActions value={state} onChange={onChange} />
-      <Table
-        {...baseProps}
-        columns={columns}
-        dataSource={data}
-        columnsConfig={{
-          onChange(columnsState) {
-            console.log(columnsState);
-          },
-        }}
-      />
+      <Table {...baseProps} columns={columns} dataSource={data} />
     </>
   );
 };
