@@ -8,23 +8,15 @@ import { TableSummaryRowCell } from '../interface';
 import { usePrefixClsContext } from '../prefixClsContext';
 import { getComponentCls } from '../style/classNames';
 import { getCellFixedInfo } from '../utils/fixedColumns';
-import {
-  getNormalSpanStyle,
-  getVirtualColumnPlacementStyle,
-} from '../utils/gridPlacement';
+import { getNormalSpanStyle } from '../utils/gridPlacement';
 import { getEllipsisTitle } from '../utils/handle';
 
 interface SummaryCellProps {
   column: TableSummaryRowCell;
   colEnd: number;
-  virtualColumn?: boolean;
 }
 
-const SummaryCell: FC<SummaryCellProps> = ({
-  column,
-  colEnd,
-  virtualColumn = false,
-}) => {
+const SummaryCell: FC<SummaryCellProps> = ({ column, colEnd }) => {
   const { flattenColumns = [], fixedOffset } = useTableContext();
   const prefixCls = usePrefixClsContext();
 
@@ -45,22 +37,16 @@ const SummaryCell: FC<SummaryCellProps> = ({
     if (column.colSpan && column.colSpan > 1) {
       colStart = colStart - column.colSpan + 1;
     }
-    const style = virtualColumn
-      ? getVirtualColumnPlacementStyle({
-          colStart,
-          rowSpan: column.rowSpan,
-          colSpan: column.colSpan,
-        })
-      : getNormalSpanStyle({
-          rowSpan: column.rowSpan,
-          colSpan: column.colSpan,
-        });
+    const style = getNormalSpanStyle({
+      rowSpan: column.rowSpan,
+      colSpan: column.colSpan,
+    });
 
     return {
       colStart,
       spanStyle: style,
     };
-  }, [column.rowSpan, column.colSpan, colEnd, virtualColumn]);
+  }, [column.rowSpan, column.colSpan, colEnd]);
 
   const { fixedInfo, mergedStyle } = useMemo(() => {
     const style: CSSProperties = {};

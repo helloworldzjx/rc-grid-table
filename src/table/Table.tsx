@@ -39,14 +39,12 @@ import HorizontalScrollbar from './HorizontalScrollbar';
 import Placeholder from './Placeholder';
 import ScrollBarContainer from './ScrollContainer';
 import Summary from './Summary/Summary';
-import { useColumnSortableContext } from './columnSortableContext';
 import { useComponentsContext } from './componentsContext';
 import { useTableContext } from './context';
 import { useExpandableContext } from './expandableContext';
 import FixedShadowContext from './fixedShadowContext';
 import useFixedShadow from './hooks/useFixedShadow';
 import useTableScroll from './hooks/useTableScroll';
-import useVirtualColumns from './hooks/useVirtualColumns';
 import type { TableProps, TableRef } from './interface';
 import { usePrefixClsContext } from './prefixClsContext';
 import { useRowSortableContext } from './rowSortableContext';
@@ -118,7 +116,6 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
     const { getComponent } = useComponentsContext();
     const { expandable, mergedExpandedRowKeys = [] } = useExpandableContext();
     const { rowSortable } = useRowSortableContext();
-    const { sortingColumns } = useColumnSortableContext();
 
     const { hashId, cssVarCls } = useStyles();
 
@@ -145,7 +142,6 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       bodyCls,
       bodyInnerCls,
       bodyRowCls,
-      bodyGridRowCls,
       bodyRowFixedHeightCls,
       cellCls,
       noDataCellCls,
@@ -477,17 +473,6 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       ],
     });
 
-    const virtualColumns = useVirtualColumns({
-      flattenColumns,
-      flattenColumnsWidths,
-      containerWidth,
-      columnsWidthTotal,
-      scrollLeft: bodyScrollLeft,
-      hasHorizontal,
-      virtual,
-      disabled: sortingColumns,
-    });
-
     const virtualBody = useTableVirtualBody({
       bodyItems,
       flattenDataLength: flattenData.length,
@@ -499,11 +484,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       onBodyScroll: handleBodyScroll,
       scrollBodyTo,
       scrollBodyToTop,
-      extraUpdateDeps: [
-        mergedExpandedRowKeys,
-        columnsWidthTotal,
-        virtualColumns.columns.length,
-      ],
+      extraUpdateDeps: [mergedExpandedRowKeys, columnsWidthTotal],
     });
 
     useImperativeHandle(tableRef, () => ({
@@ -588,11 +569,9 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
 
     const emptyCellStyle = useMemo<CSSProperties>(
       () => ({
-        gridColumn: virtualColumns.inVirtual
-          ? `1 / span ${flattenColumns.length || 1}`
-          : `span ${flattenColumns.length || 1}`,
+        gridColumn: `span ${flattenColumns.length || 1}`,
       }),
-      [flattenColumns.length, virtualColumns.inVirtual],
+      [flattenColumns.length],
     );
 
     const emptyCellContentStyle = useMemo<CSSProperties>(
@@ -641,7 +620,6 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
             rowRef={options.rowRef}
             onRowResize={options.onRowResize}
             renderMode={options.renderMode}
-            virtualColumns={virtualColumns}
           >
             {expandable?.expandedRowRender?.(
               bodyItem.record,
@@ -680,7 +658,6 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
           key={options.renderKey ?? bodyItem.reactKey}
           flattenColumns={flattenColumns}
           fixedOffset={fixedOffset}
-          virtualColumns={virtualColumns}
           rowData={rowData}
           rowIndex={rowIndex}
           rowKeyValue={key}
@@ -744,7 +721,6 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
               <Head
                 ref={tableHeadRef}
                 rows={headRows}
-                virtualColumns={virtualColumns}
                 className={classNames({ [headStickyCls]: sticky })}
                 style={stickyHeaderStyle}
               />
@@ -764,7 +740,6 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
                 {!dataSource?.length && (
                   <BodyRowComponent
                     className={classNames(bodyRowCls, {
-                      [bodyGridRowCls]: virtualColumns.inVirtual,
                       [bodyRowFixedHeightCls]: rowHeight !== undefined,
                     })}
                     style={emptyRowStyle}
@@ -811,7 +786,6 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
               {showSummary && (
                 <Summary
                   ref={tableSummaryRef}
-                  virtualColumns={virtualColumns}
                   className={classNames({ [summaryStickyCls]: sticky })}
                   style={stickySummaryStyle}
                 />

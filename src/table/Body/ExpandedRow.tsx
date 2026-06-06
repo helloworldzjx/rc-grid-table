@@ -6,7 +6,6 @@ import { isNum } from '../../_utils/validate';
 import { useComponentsContext } from '../componentsContext';
 import { useTableContext } from '../context';
 import { useExpandableContext } from '../expandableContext';
-import type { VirtualColumnsState } from '../hooks/useVirtualColumns';
 import { usePrefixClsContext } from '../prefixClsContext';
 import { getComponentCls, getCssVar } from '../style/classNames';
 import { isVirtualBodyRenderMode } from './cellSpan';
@@ -20,7 +19,6 @@ interface ExpandedRowProps {
   rowRef?: Ref<HTMLDivElement>;
   onRowResize?: () => void;
   renderMode?: BodyRenderMode;
-  virtualColumns: VirtualColumnsState;
   indent?: number;
 }
 
@@ -32,7 +30,6 @@ const ExpandedRow: FC<ExpandedRowProps> = ({
   rowRef,
   onRowResize,
   renderMode = 'normal',
-  virtualColumns,
   indent = 0,
 }) => {
   const {
@@ -61,7 +58,6 @@ const ExpandedRow: FC<ExpandedRowProps> = ({
   const RowComponent = getComponent(['body', 'row'], 'div');
   const CellComponent = getComponent(['body', 'cell'], 'div');
   const virtual = isVirtualBodyRenderMode(renderMode);
-  const virtualColumn = virtualColumns.inVirtual;
   const hasFixedRowHeight = isNum(rowHeight) && rowHeight > 0;
   const mergedStyle = useMemo<CSSProperties | undefined>(() => {
     if (!hasFixedRowHeight) {
@@ -79,12 +75,10 @@ const ExpandedRow: FC<ExpandedRowProps> = ({
   );
   const cellStyle = useMemo<CSSProperties>(
     () => ({
-      gridColumn: virtualColumn
-        ? `1 / span ${flattenColumns.length || 1}`
-        : `span ${flattenColumns.length || 1}`,
+      gridColumn: `span ${flattenColumns.length || 1}`,
       width: expandedRowCellWidth,
     }),
-    [expandedRowCellWidth, flattenColumns.length, virtualColumn],
+    [expandedRowCellWidth, flattenColumns.length],
   );
 
   const rowNode = (
@@ -93,7 +87,7 @@ const ExpandedRow: FC<ExpandedRowProps> = ({
         bodyRowCls,
         expandedRowCls,
         {
-          [bodyGridRowCls]: virtual || virtualColumn,
+          [bodyGridRowCls]: virtual,
           [bodyRowFixedHeightCls]: hasFixedRowHeight,
         },
         className,

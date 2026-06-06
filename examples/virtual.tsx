@@ -22,10 +22,10 @@ interface FilterValues {
   name?: string;
   department?: string;
   metric_0?: string;
-  metric_29?: string;
+  metric_15?: string;
 }
 
-const metricCount = 30;
+const metricCount = 16;
 const metricIndexes = Array.from({ length: metricCount }, (_, index) => index);
 
 const includesText = (source: string | number, target?: string) => {
@@ -176,7 +176,7 @@ const App: React.FC = () => {
           includesText(record.name, filters.name) &&
           includesText(record.department, filters.department) &&
           includesText(record.metric_0, filters.metric_0) &&
-          includesText(record.metric_29, filters.metric_29),
+          includesText(record.metric_15, filters.metric_15),
       ),
     [dataSource, filters],
   );
@@ -223,7 +223,6 @@ const App: React.FC = () => {
         sticky={{ offsetHeader: 76 }}
         virtual={{
           rowOverscan: 6,
-          columnOverscan: 640,
           ...(rowHeightEnabled && {
             rowHeight: 56,
             expandedRowHeight: 80,
@@ -245,8 +244,7 @@ const App: React.FC = () => {
             { children: pageData.length },
             {
               colSpan: Math.max((flattenColumns?.length || 1) - 3, 1),
-              children:
-                'Rows and non-fixed columns are virtualized by default.',
+              children: 'Rows are virtualized when scrollY is configured.',
             },
           ],
         ]}

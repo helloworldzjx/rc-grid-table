@@ -9,7 +9,6 @@ import React, {
 
 import { useColumnSortableContext } from '../columnSortableContext';
 import { useComponentsContext } from '../componentsContext';
-import type { VirtualColumnsState } from '../hooks/useVirtualColumns';
 import { CellType } from '../interface';
 import { usePrefixClsContext } from '../prefixClsContext';
 import { getComponentCls } from '../style/classNames';
@@ -22,13 +21,12 @@ export interface HeadRef {
 
 interface HeadProps<T = any> {
   rows: CellType<T>[][];
-  virtualColumns: VirtualColumnsState<T>;
   className?: string;
   style?: CSSProperties;
 }
 
 const Head = forwardRef<HeadRef, HeadProps>(
-  ({ rows, virtualColumns, className, style }, ref) => {
+  ({ rows, className, style }, ref) => {
     const prefixCls = usePrefixClsContext();
     const { getComponent } = useComponentsContext();
     const { updateSortingColumns } = useColumnSortableContext();
@@ -64,7 +62,6 @@ const Head = forwardRef<HeadRef, HeadProps>(
               headRows={rows}
               row={row}
               headRowIndex={rowIndex}
-              virtualColumns={virtualColumns}
               getScrollElement={() => innerRef.current}
               onSortableStart={() => handleResizeDragStart(true)}
               onSortableEnd={() => handleResizeDragEnd(true)}
@@ -72,10 +69,7 @@ const Head = forwardRef<HeadRef, HeadProps>(
               onResizeEnd={handleResizeDragEnd}
             />
           ))}
-          <HeadFilterRow
-            rowIndex={rows.length}
-            virtualColumns={virtualColumns}
-          />
+          <HeadFilterRow />
         </WrapperComponent>
       </div>
     );

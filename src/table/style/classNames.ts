@@ -30,7 +30,6 @@ export type ComponentClsType = {
   bodyRowCls: string;
   bodyGridRowCls: string;
   bodyRowFixedHeightCls: string;
-  summaryGridRowCls: string;
   bodyVirtualFillerCls: string;
   bodyVirtualInnerCls: string;
   bodyVirtualRowSpanCls: string;
@@ -134,7 +133,6 @@ export const getComponentCls = (prefixCls: string): ComponentClsType => {
     bodyRowCls: `${prefixCls}-body-row`,
     bodyGridRowCls: `${prefixCls}-body-grid-row`,
     bodyRowFixedHeightCls: `${prefixCls}-body-row-fixed-height`,
-    summaryGridRowCls: `${prefixCls}-summary-grid-row`,
     bodyVirtualFillerCls: `${prefixCls}-body-virtual-filler`,
     bodyVirtualInnerCls: `${prefixCls}-body-virtual-inner`,
     bodyVirtualRowSpanCls: `${prefixCls}-body-virtual-row-span`,

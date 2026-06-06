@@ -8,24 +8,19 @@ import { ColumnState } from '../interface';
 import { usePrefixClsContext } from '../prefixClsContext';
 import { getComponentCls } from '../style/classNames';
 import { FixedInfo } from '../utils/fixedColumns';
-import { getVirtualColumnPlacementStyle } from '../utils/gridPlacement';
 
 interface HeadFilterCellProps<T = any> {
   column: ColumnState<T>;
   columnIndex: number;
-  rowIndex: number;
   fixedInfo: FixedInfo;
   last?: boolean;
-  virtualColumn?: boolean;
 }
 
 const HeadFilterCell: FC<HeadFilterCellProps> = ({
   column,
   columnIndex,
-  rowIndex,
   fixedInfo,
   last = false,
-  virtualColumn = false,
 }) => {
   const prefixCls = usePrefixClsContext();
   const { getComponent } = useComponentsContext();
@@ -59,12 +54,7 @@ const HeadFilterCell: FC<HeadFilterCellProps> = ({
   );
 
   const mergedStyle = useMemo(() => {
-    const style: CSSProperties = virtualColumn
-      ? getVirtualColumnPlacementStyle({
-          rowIndex,
-          colStart: columnIndex,
-        })
-      : {};
+    const style: CSSProperties = {};
     if (fixedInfo.fixStart !== null) {
       style.left = fixedInfo.fixStart as number;
     }
@@ -81,11 +71,8 @@ const HeadFilterCell: FC<HeadFilterCellProps> = ({
     cellProps,
     column.align,
     column.style,
-    columnIndex,
-    rowIndex,
     fixedInfo.fixEnd,
     fixedInfo.fixStart,
-    virtualColumn,
   ]);
 
   const restCellProps = useMemo(() => {

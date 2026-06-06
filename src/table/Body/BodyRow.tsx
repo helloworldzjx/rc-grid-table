@@ -6,12 +6,10 @@ import { isNum } from '../../_utils/validate';
 import { useComponentsContext } from '../componentsContext';
 import { useExpandableContext } from '../expandableContext';
 import useFixedInfo from '../hooks/useFixedInfo';
-import type { VirtualColumnsState } from '../hooks/useVirtualColumns';
 import { ColumnState, StickyOffsets } from '../interface';
 import { usePrefixClsContext } from '../prefixClsContext';
 import { getComponentCls, getCssVar } from '../style/classNames';
 import { isInternalColumn } from '../utils/const';
-import { getCellSpan } from '../utils/handle';
 import BodyCell from './BodyCell';
 import { getBodyCellSpanInfo, isVirtualBodyRenderMode } from './cellSpan';
 import type { BodyRenderMode } from './interface';
@@ -23,7 +21,6 @@ interface BodyRowProps<T = any> {
   rowKeyValue?: React.Key;
   flattenColumns: ColumnState<T>[];
   fixedOffset: StickyOffsets;
-  virtualColumns: VirtualColumnsState<T>;
   className?: string;
   style?: CSSProperties;
   rowHeight?: number;
@@ -47,7 +44,6 @@ function BodyRow({
   rowKeyValue,
   flattenColumns,
   fixedOffset,
-  virtualColumns,
   className,
   style,
   rowHeight,
@@ -91,7 +87,6 @@ function BodyRow({
   const expandByClick =
     !!expandableConfig?.expandRowByClick && rowSupportExpand;
   const virtual = isVirtualBodyRenderMode(renderMode);
-  const virtualColumn = virtualColumns.inVirtual;
   const hasFixedRowHeight =
     renderMode !== 'rowSpanOverlay' && isNum(rowHeight) && rowHeight > 0;
   const mergedRowStyle = useMemo<CSSProperties | undefined>(() => {
@@ -132,7 +127,7 @@ function BodyRow({
       className={classNames(
         bodyRowCls,
         {
-          [bodyGridRowCls]: virtual || virtualColumn,
+          [bodyGridRowCls]: virtual,
           [bodyRowFixedHeightCls]: hasFixedRowHeight,
           [bodyRowExpandableCls]: expandByClick,
           [bodyRowSortDraggingCls]: rowSort.active,
@@ -144,15 +139,6 @@ function BodyRow({
       ref={rowSort.rowRef}
     >
       {flattenColumns.map((column, colIndex) => {
-        if (virtualColumn) {
-          const cellProps = column.onCell?.(rowData, rowIndex);
-          const colSpan = getCellSpan(cellProps?.colSpan);
-          const colEnd = colIndex + (colSpan || 1) - 1;
-          if (!virtualColumns.shouldRenderColumnRange(colIndex, colEnd)) {
-            return null;
-          }
-        }
-
         if (renderMode === 'normal') {
           const cellProps = column.onCell?.(rowData, rowIndex);
           if (
@@ -175,7 +161,6 @@ function BodyRow({
             fixedInfo={fixedInfoList[colIndex]}
             renderMode={renderMode}
             colIndex={colIndex}
-            virtualColumn={virtualColumn}
             getRowSpanHeight={getRowSpanHeight}
             indent={indent}
             expanded={expanded}

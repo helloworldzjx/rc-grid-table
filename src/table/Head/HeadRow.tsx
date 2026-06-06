@@ -11,7 +11,6 @@ import React, { Key, useCallback, useMemo, useRef, useState } from 'react';
 
 import { useColumnSortableContext } from '../columnSortableContext';
 import { useComponentsContext } from '../componentsContext';
-import type { VirtualColumnsState } from '../hooks/useVirtualColumns';
 import { CellType, ColumnState } from '../interface';
 import { usePrefixClsContext } from '../prefixClsContext';
 import { getComponentCls } from '../style/classNames';
@@ -24,7 +23,6 @@ interface HeadRowProps<T = any> {
   headRows: CellType<T>[][];
   row: CellType<T>[];
   headRowIndex: number;
-  virtualColumns: VirtualColumnsState<T>;
   getScrollElement?: () => HTMLDivElement | null;
   onSortableStart?: () => void;
   onSortableEnd?: () => void;
@@ -36,7 +34,6 @@ function HeadRow({
   headRows,
   row: columns,
   headRowIndex,
-  virtualColumns,
   getScrollElement,
   onSortableStart,
   onSortableEnd,
@@ -72,29 +69,14 @@ function HeadRow({
     return columns.find((column) => column.key === activeKey);
   }, [activeKey, columns]);
 
-  const renderColumns = useMemo(
-    () =>
-      columns
-        .map((column, columnIndex) => ({ column, columnIndex }))
-        .filter(
-          ({ column }) =>
-            !virtualColumns.inVirtual ||
-            virtualColumns.shouldRenderColumnRange(
-              column.colStart as number,
-              column.colEnd,
-            ),
-        ),
-    [columns, virtualColumns],
-  );
-
   const sortablePreview = useSortablePreview({
     getBaseState: getSortableBaseState,
     updateDraftState: updateSortableDraftState,
   });
 
   const sortableItems = useMemo(
-    () => renderColumns.map(({ column }) => `${column.key}`),
-    [renderColumns],
+    () => columns.map((column) => `${column.key}`),
+    [columns],
   );
 
   const dragOverlayStyle = useMemo<React.CSSProperties>(
@@ -265,13 +247,12 @@ function HeadRow({
         onDragCancel={handleDragCancel}
       >
         <SortableContext items={sortableItems}>
-          {renderColumns.map(({ column, columnIndex }) => (
+          {columns.map((column, columnIndex) => (
             <HeadCell
               key={column.key}
               column={column}
               columnIndex={columnIndex}
               rowIndex={headRowIndex}
-              virtualColumn={virtualColumns.inVirtual}
               prevRowLastCellKey={
                 previousRow[previousRow.length - 1]?.column?.key
               }

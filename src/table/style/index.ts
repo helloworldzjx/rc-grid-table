@@ -85,8 +85,6 @@ const genVirtualStyle = (
     bodyVirtualRowSpanCls,
     bodyVirtualRowSpanTopCls,
     bodyRowFixedHeightCls,
-    summaryRowCls,
-    summaryGridRowCls,
     cellCls,
   }: ComponentClsType,
   {
@@ -128,12 +126,6 @@ const genVirtualStyle = (
 
     [`.${bodyRowFixedHeightCls}`]: {
       gridTemplateRows: `var(${bodyRowFixedHeightCssVar})`,
-    },
-
-    [`.${summaryRowCls}.${summaryGridRowCls}`]: {
-      display: 'grid',
-      gridTemplateColumns: `var(${colsWidthCssVar})`,
-      gridColumn: '1 / -1',
     },
   },
 });
