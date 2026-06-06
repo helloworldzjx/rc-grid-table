@@ -32,6 +32,8 @@ type RowSortNodeRef = (element: HTMLElement | null) => void;
 interface UseRowSortResult {
   active: boolean;
   isOver: boolean;
+  first: boolean;
+  last: boolean;
   rowRef?: Ref<HTMLDivElement>;
   rowStyle?: CSSProperties;
   cellStyle?: CSSProperties;
@@ -78,6 +80,8 @@ export default function useRowSort<T = any>({
     isDragging,
     isSorting,
     isOver,
+    items,
+    newIndex,
   } = useSortable({
     id: sortableId,
     disabled: {
@@ -103,6 +107,8 @@ export default function useRowSort<T = any>({
     : CSS.Translate.toString(transform);
   const active = rowSortDragging || isDragging;
   const sorting = !rowSortOverlay && (isSorting || rowSortDragging);
+  const first = !rowSortOverlay && isSorting && newIndex === 0;
+  const last = !rowSortOverlay && isSorting && newIndex === items.length - 1;
   const disabled = sortableDisabled || rowSortDragDisabled;
 
   const cellStyle = useMemo<CSSProperties | undefined>(() => {
@@ -113,14 +119,8 @@ export default function useRowSort<T = any>({
     return {
       transform: 'inherit',
       transition: 'inherit',
-      ...(active
-        ? {
-            opacity: 0,
-            pointerEvents: 'none',
-          }
-        : null),
     };
-  }, [active, sorting, virtual]);
+  }, [sorting, virtual]);
 
   const mergedRowRef = useMemo(
     () =>
@@ -134,24 +134,16 @@ export default function useRowSort<T = any>({
   );
 
   const rowStyle = useMemo<CSSProperties | undefined>(() => {
-    const activeStyle: CSSProperties | null = active
-      ? {
-          opacity: rowSortOverlay || !virtual ? undefined : 0,
-          pointerEvents: 'none',
-        }
-      : null;
-
-    if (!transformStyle && !transition && !activeStyle) {
+    if (!transformStyle && !transition) {
       return style;
     }
 
     return {
       ...style,
-      ...activeStyle,
       transform: transformStyle,
       transition,
     };
-  }, [active, rowSortOverlay, style, transformStyle, transition, virtual]);
+  }, [style, transformStyle, transition]);
 
   const getNodeRef = useCallback(
     (column: ColumnState) =>
@@ -164,6 +156,8 @@ export default function useRowSort<T = any>({
   return {
     active,
     isOver,
+    first,
+    last,
     rowRef: mergedRowRef,
     rowStyle,
     cellStyle,

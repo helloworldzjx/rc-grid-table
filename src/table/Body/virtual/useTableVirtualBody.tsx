@@ -21,6 +21,7 @@ interface UseTableVirtualBodyProps<T = any> {
   bodyItems: BodyItem<T>[];
   flattenDataLength: number;
   flattenColumns: ColumnState<T>[];
+  preserveItemKey?: React.Key | null;
   scrollElement?: HTMLDivElement | null;
   scrollY?: number;
   virtual?: boolean | TableVirtualConfig;
@@ -65,6 +66,7 @@ export default function useTableVirtualBody<T = any>({
   bodyItems,
   flattenDataLength,
   flattenColumns,
+  preserveItemKey,
   scrollElement,
   scrollY,
   virtual = true,
@@ -119,6 +121,31 @@ export default function useTableVirtualBody<T = any>({
     size,
     getItemFixedHeight,
   });
+
+  const preservedItem = useMemo(() => {
+    if (
+      !inVirtual ||
+      preserveItemKey === null ||
+      preserveItemKey === undefined
+    ) {
+      return null;
+    }
+
+    const rendered = visibleItems.some(({ key }) => key === preserveItemKey);
+    if (rendered) {
+      return null;
+    }
+
+    const item = virtualData.find(({ key }) => key === preserveItemKey);
+    if (!item) {
+      return null;
+    }
+
+    return {
+      ...item,
+      top: getItemSize(preserveItemKey).top,
+    };
+  }, [getItemSize, inVirtual, preserveItemKey, virtualData, visibleItems]);
 
   const rowItemIndexMap = useMemo(() => {
     const map = new Map<number, number>();
@@ -393,6 +420,7 @@ export default function useTableVirtualBody<T = any>({
         scrollHeight={scrollHeight}
         offsetY={offsetY}
         visibleItems={visibleItems}
+        preservedItem={preservedItem}
         rowSpanItems={rowSpanItems}
         renderBodyItem={renderBodyItem}
         setItemRef={setItemRef}
@@ -408,6 +436,7 @@ export default function useTableVirtualBody<T = any>({
       scrollHeight,
       setItemRef,
       visibleItems,
+      preservedItem,
     ],
   );
 

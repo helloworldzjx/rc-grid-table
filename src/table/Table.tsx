@@ -1,14 +1,4 @@
-import {
-  closestCenter,
-  DndContext,
-  DragEndEvent,
-  DragOverlay,
-  DragStartEvent,
-  PointerSensor,
-  UniqueIdentifier,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
+import { closestCenter, DndContext, DragOverlay } from '@dnd-kit/core';
 import {
   SortableContext,
   verticalListSortingStrategy,
@@ -20,12 +10,9 @@ import classNames from 'classnames';
 import React, {
   CSSProperties,
   forwardRef,
-  Key,
-  useCallback,
   useImperativeHandle,
   useMemo,
   useRef,
-  useState,
 } from 'react';
 
 import { SCROLLBAR_SIZE } from '../_utils/const';
@@ -44,6 +31,7 @@ import { useTableContext } from './context';
 import { useExpandableContext } from './expandableContext';
 import FixedShadowContext from './fixedShadowContext';
 import useFixedShadow from './hooks/useFixedShadow';
+import useTableRowSort from './hooks/useTableRowSort';
 import useTableScroll from './hooks/useTableScroll';
 import type { TableProps, TableRef } from './interface';
 import { usePrefixClsContext } from './prefixClsContext';
@@ -57,7 +45,6 @@ import {
   hasChildrenInData,
 } from './utils/expand';
 import { parseHeaderRows } from './utils/handle';
-import { getRowSortEntities, reorderDataSource } from './utils/rowSortable';
 import { warningInvalidRecordKey } from './utils/warning';
 
 const getStickyOffset = (
@@ -69,16 +56,6 @@ const getStickyOffset = (
   const offset = sticky[key];
   return isNum(offset) ? offset : 0;
 };
-
-const isValidRowSortId = (key: Key | undefined): key is UniqueIdentifier =>
-  isValidKey(key);
-
-const isDescendantOrSelfPath = (
-  parentPath: number[],
-  maybeDescendantPath: number[],
-) =>
-  parentPath.length <= maybeDescendantPath.length &&
-  parentPath.every((value, index) => value === maybeDescendantPath[index]);
 
 interface GridTableProps {
   tableRef?: React.Ref<TableRef>;
@@ -138,6 +115,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       hasXScrollbarCls,
       hasYScrollbarCls,
       hasStickyCls,
+      rowSortingCls,
       headStickyCls,
       bodyCls,
       bodyInnerCls,
@@ -179,12 +157,6 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
         ? virtual.expandedRowHeight
         : rowHeight;
     const childrenColumnName = expandable?.childrenColumnName ?? 'children';
-    const allowCrossLevelSort = !!rowSortable?.allowCrossLevelSort;
-    const [activeRowSortKey, setActiveRowSortKey] = useState<Key | null>(null);
-    const activeRowSortDataRef = useRef<{
-      key: Key;
-      index: number;
-    } | null>(null);
 
     const isTreeMode = !hasExpandedRowRender;
     const hasTreeData = useMemo(() => {
@@ -216,27 +188,6 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       childrenColumnName,
       mergedExpandedRowKeys,
     ]);
-
-    const rowSortSensors = useSensors(
-      useSensor(PointerSensor, {
-        activationConstraint: {
-          distance: 4,
-        },
-      }),
-    );
-
-    const rowSortEntities = useMemo(
-      () => getRowSortEntities(dataSource, rowKey, childrenColumnName),
-      [childrenColumnName, dataSource, rowKey],
-    );
-
-    const rowSortItems = useMemo(
-      () =>
-        flattenData
-          .map(({ key }) => key)
-          .filter((key): key is UniqueIdentifier => isValidRowSortId(key)),
-      [flattenData],
-    );
 
     const bodyItems = useMemo<BodyItem[]>(() => {
       return flattenData.reduce<BodyItem[]>(
@@ -297,148 +248,6 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       mergedExpandedRowKeys,
     ]);
 
-    const lastRowSortItem = useMemo(
-      () => rowSortItems[rowSortItems.length - 1],
-      [rowSortItems],
-    );
-
-    const activeRowSortBodyItem = useMemo(() => {
-      if (!isValidKey(activeRowSortKey)) {
-        return null;
-      }
-
-      return (
-        bodyItems.find(
-          (item) =>
-            item.type === 'row' && item.rowKeyValue === activeRowSortKey,
-        ) ?? null
-      );
-    }, [activeRowSortKey, bodyItems]);
-
-    const getRowSortDropDisabled = useCallback(
-      (key: Key | undefined) => {
-        if (!rowSortable || !isValidKey(key)) {
-          return true;
-        }
-        if (!isValidKey(activeRowSortKey) || key === activeRowSortKey) {
-          return false;
-        }
-        const activeEntity = rowSortEntities.get(activeRowSortKey);
-        const overEntity = rowSortEntities.get(key);
-        if (!activeEntity || !overEntity) {
-          return true;
-        }
-
-        if (allowCrossLevelSort) {
-          return isDescendantOrSelfPath(
-            [...activeEntity.parentPath, activeEntity.index],
-            overEntity.parentPath,
-          );
-        }
-
-        return activeEntity.parentKey !== overEntity.parentKey;
-      },
-      [activeRowSortKey, allowCrossLevelSort, rowSortEntities, rowSortable],
-    );
-
-    const getRowSortDragDisabled = useCallback(
-      (record: any, key: Key | undefined) => {
-        if (!rowSortable || !isValidKey(key)) {
-          return true;
-        }
-        const disabledByRecord = rowSortable?.rowDraggable?.(record) === false;
-        return disabledByRecord;
-      },
-      [rowSortable],
-    );
-
-    const handleRowSortStart = useCallback((event: DragStartEvent) => {
-      if (event.active.data.current?.type !== 'rowSortable') {
-        return;
-      }
-
-      const activeEntity = event.active.data?.current;
-      if (!activeEntity) return;
-
-      activeRowSortDataRef.current = {
-        key: activeEntity.key,
-        index: activeEntity.index,
-      };
-      document.documentElement.style.cursor = 'grabbing';
-      setActiveRowSortKey(activeEntity.key);
-    }, []);
-
-    const cleanupRowSort = useCallback(() => {
-      document.documentElement.style.cursor = '';
-      activeRowSortDataRef.current = null;
-      setActiveRowSortKey(null);
-    }, []);
-
-    const handleRowSortEnd = useCallback(
-      (event: DragEndEvent) => {
-        const isRowSortEvent =
-          event.active.data.current?.type === 'rowSortable' ||
-          activeRowSortDataRef.current !== null;
-        const activeEntity =
-          event.active.data.current?.type === 'rowSortable'
-            ? event.active.data.current
-            : activeRowSortDataRef.current;
-
-        if (!isRowSortEvent) {
-          return;
-        }
-
-        try {
-          if (!activeEntity) {
-            return;
-          }
-
-          const overEntity = event.over?.data?.current;
-          const activeKey = activeEntity.key;
-          const overKey =
-            overEntity?.type === 'rowSortable'
-              ? overEntity.key
-              : event.over?.id;
-
-          if (
-            isValidKey(activeKey) &&
-            isValidKey(overKey) &&
-            activeKey !== overKey
-          ) {
-            const activeIndex =
-              activeEntity.index ?? rowSortEntities.get(activeKey)?.index ?? 0;
-            const overIndex =
-              overEntity?.index ?? rowSortEntities.get(overKey)?.index ?? 0;
-            const placement = activeIndex > overIndex ? 'before' : 'after';
-            const result = reorderDataSource({
-              dataSource: dataSource || [],
-              rowKey,
-              childrenColumnName,
-              activeKey,
-              overKey,
-              placement,
-              allowCrossLevelSort,
-            });
-
-            if (result) {
-              rowSortable?.onChange?.(result.dataSource, result.info);
-            }
-          }
-        } finally {
-          cleanupRowSort();
-        }
-      },
-      [
-        allowCrossLevelSort,
-        childrenColumnName,
-        cleanupRowSort,
-        dataSource,
-        rowSortEntities,
-        rowKey,
-        rowSortable,
-      ],
-    );
-
     const {
       tableHeadRef,
       tableSummaryRef,
@@ -473,10 +282,23 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       ],
     });
 
+    const rowSort = useTableRowSort({
+      bodyItems,
+      flattenData,
+      dataSource,
+      rowKey,
+      childrenColumnName,
+      rowSortable,
+      flattenColumns,
+      bodyScrollElement,
+      bodyScrollLeft,
+    });
+
     const virtualBody = useTableVirtualBody({
       bodyItems,
       flattenDataLength: flattenData.length,
       flattenColumns,
+      preserveItemKey: rowSort.preserveItemKey,
       scrollElement: bodyScrollElement,
       scrollY,
       virtual,
@@ -494,13 +316,9 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       scrollToLeft,
     }));
 
-    const rowSortAutoScroll = useMemo(
-      () => ({
-        canScroll: (element: Element) =>
-          element === bodyScrollElement &&
-          (virtualBody.inVirtual ? true : lastRowSortItem === undefined),
-      }),
-      [bodyScrollElement, lastRowSortItem, virtualBody.inVirtual],
+    const rowSortRuntime = useMemo(
+      () => rowSort.getRuntime(virtualBody.inVirtual),
+      [rowSort, virtualBody.inVirtual],
     );
 
     const fixedShadowContextValue = useFixedShadow({
@@ -581,30 +399,6 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       [columnsWidthTotal, containerWidth],
     );
 
-    const rowSortOverlayRenderOptions = useMemo<
-      BodyRenderOptions | undefined
-    >(() => {
-      if (!activeRowSortBodyItem) {
-        return undefined;
-      }
-
-      return {
-        renderMode: virtualBody.inVirtual ? 'virtual' : 'normal',
-        renderKey: `row-sort-overlay-${activeRowSortBodyItem.reactKey}`,
-        style: {
-          display: 'grid',
-          gridTemplateColumns: `var(${colsWidthCssVar})`,
-          width: `var(${colsWidthTotalCssVar})`,
-        },
-        rowSortOverlay: true,
-      };
-    }, [
-      activeRowSortBodyItem,
-      colsWidthCssVar,
-      colsWidthTotalCssVar,
-      virtualBody.inVirtual,
-    ]);
-
     const renderBodyItem = (
       bodyItem: BodyItem,
       options: BodyRenderOptions = {},
@@ -650,14 +444,14 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
         warningInvalidRecordKey(rowKey, 'row rendering', key);
       }
 
-      const dragDisabled = getRowSortDragDisabled(rowData, key);
-      const dropDisabled = getRowSortDropDisabled(key);
+      const dragDisabled = rowSort.getDragDisabled(rowData, key);
+      const dropDisabled = rowSort.getDropDisabled(key);
 
       return (
         <BodyRow
           key={options.renderKey ?? bodyItem.reactKey}
-          flattenColumns={flattenColumns}
-          fixedOffset={fixedOffset}
+          flattenColumns={options.flattenColumns ?? flattenColumns}
+          fixedOffset={options.fixedOffset ?? fixedOffset}
           rowData={rowData}
           rowIndex={rowIndex}
           rowKeyValue={key}
@@ -678,7 +472,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
           getRowSpanHeight={options.getRowSpanHeight}
           rowSortDragDisabled={dragDisabled}
           rowSortDropDisabled={dropDisabled}
-          rowSortDragging={activeRowSortKey === key}
+          rowSortDragging={rowSort.activeKey === key}
         />
       );
     };
@@ -712,6 +506,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
                 [pingStartCls]: !isStart,
                 [pingEndCls]: !isEnd,
                 [hasStickyCls]: sticky,
+                [rowSortingCls]: rowSort.activeKey !== null,
               },
               className,
             )}
@@ -759,25 +554,29 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
                 )}
 
                 <DndContext
-                  sensors={rowSortSensors}
+                  sensors={rowSort.sensors}
                   collisionDetection={closestCenter}
-                  autoScroll={rowSortAutoScroll}
-                  onDragStart={handleRowSortStart}
-                  onDragEnd={handleRowSortEnd}
-                  onDragCancel={cleanupRowSort}
+                  autoScroll={rowSortRuntime.autoScroll}
+                  onDragStart={rowSort.onDragStart}
+                  onDragEnd={rowSort.onDragEnd}
+                  onDragCancel={rowSort.onDragCancel}
                 >
                   <SortableContext
-                    items={rowSortItems}
+                    items={rowSort.items}
                     strategy={verticalListSortingStrategy}
                   >
                     {hasData && virtualBody.render(renderBodyItem)}
                   </SortableContext>
-                  <DragOverlay adjustScale={false} dropAnimation={null}>
-                    {activeRowSortBodyItem &&
-                      rowSortOverlayRenderOptions &&
+                  <DragOverlay
+                    adjustScale={false}
+                    dropAnimation={null}
+                    modifiers={rowSortRuntime.overlayModifiers}
+                  >
+                    {rowSort.activeBodyItem &&
+                      rowSortRuntime.overlayRenderOptions &&
                       renderBodyItem(
-                        activeRowSortBodyItem,
-                        rowSortOverlayRenderOptions,
+                        rowSort.activeBodyItem,
+                        rowSortRuntime.overlayRenderOptions,
                       )}
                   </DragOverlay>
                 </DndContext>

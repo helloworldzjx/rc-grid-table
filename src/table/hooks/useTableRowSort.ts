@@ -1,0 +1,399 @@
+import {
+  DragEndEvent,
+  DragStartEvent,
+  PointerSensor,
+  UniqueIdentifier,
+  useSensor,
+  useSensors,
+  type Modifier,
+} from '@dnd-kit/core';
+import type { Key } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
+
+import { isNum, isValidKey } from '../../_utils/validate';
+import type { BodyItem, BodyRenderOptions } from '../Body/interface';
+import type {
+  ColumnState,
+  RowKey,
+  RowSortableConfig,
+  StickyOffsets,
+} from '../interface';
+import { isInternalColumn, isRowSortColumn } from '../utils/const';
+import type { FlattenRecord } from '../utils/expand';
+import { getRowSortEntities, reorderDataSource } from '../utils/rowSortable';
+
+interface UseTableRowSortProps<T = any> {
+  bodyItems: BodyItem<T>[];
+  flattenData: FlattenRecord<T>[];
+  dataSource?: T[];
+  rowKey: RowKey<T>;
+  childrenColumnName: string;
+  rowSortable?: RowSortableConfig<T>;
+  flattenColumns: ColumnState<T>[];
+  bodyScrollElement?: HTMLDivElement | null;
+  bodyScrollLeft: number;
+}
+
+interface RowSortDragData<T = any> {
+  type: 'rowSortable';
+  key?: Key;
+  record?: T;
+  index?: number;
+}
+
+const isValidRowSortId = (key: Key | undefined): key is UniqueIdentifier =>
+  isValidKey(key);
+
+const isRowSortDragData = <T>(data: unknown): data is RowSortDragData<T> =>
+  (data as RowSortDragData<T> | undefined)?.type === 'rowSortable';
+
+const isDescendantOrSelfPath = (
+  parentPath: number[],
+  maybeDescendantPath: number[],
+) =>
+  parentPath.length <= maybeDescendantPath.length &&
+  parentPath.every((value, index) => value === maybeDescendantPath[index]);
+
+const getColumnMatchKeys = (column: ColumnState) =>
+  [column.key, column.dataIndex].filter(isValidKey);
+
+const getRowSortOverlayColumns = <T>(
+  columns: ColumnState<T>[],
+  overlayColumnKeys?: readonly Key[],
+) => {
+  const rowSortColumn = columns.find(isRowSortColumn);
+  const overlayBusinessColumns = overlayColumnKeys?.length
+    ? columns.filter(
+        (column) =>
+          !isInternalColumn(column) &&
+          getColumnMatchKeys(column).some((key) =>
+            overlayColumnKeys.includes(key),
+          ),
+      )
+    : columns.filter((column) => !isInternalColumn(column)).slice(0, 1);
+
+  return [rowSortColumn, ...overlayBusinessColumns].filter(
+    (column): column is ColumnState<T> => !!column,
+  );
+};
+
+const getStaticOffset = (widths: readonly number[]): StickyOffsets => ({
+  start: widths.map(() => 0),
+  end: widths.map(() => 0),
+  widths,
+  hasFixColumns: false,
+  hasFixStartColumns: false,
+  hasFixEndColumns: false,
+  fixColumnsGapped: false,
+});
+
+export default function useTableRowSort<T = any>({
+  bodyItems,
+  flattenData,
+  dataSource,
+  rowKey,
+  childrenColumnName,
+  rowSortable,
+  flattenColumns,
+  bodyScrollElement,
+  bodyScrollLeft,
+}: UseTableRowSortProps<T>) {
+  const allowCrossLevelSort = !!rowSortable?.allowCrossLevelSort;
+  const [activeKey, setActiveKey] = useState<Key | null>(null);
+  const activeDataRef = useRef<{
+    key: Key;
+    index?: number;
+  } | null>(null);
+  const scrollLeftRef = useRef(0);
+
+  if (activeDataRef.current === null) {
+    scrollLeftRef.current = bodyScrollLeft;
+  }
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 4,
+      },
+    }),
+  );
+
+  const entities = useMemo(
+    () => getRowSortEntities(dataSource, rowKey, childrenColumnName),
+    [childrenColumnName, dataSource, rowKey],
+  );
+
+  const items = useMemo(
+    () =>
+      flattenData
+        .map(({ key }) => key)
+        .filter((key): key is UniqueIdentifier => isValidRowSortId(key)),
+    [flattenData],
+  );
+
+  const lastItem = useMemo(() => items[items.length - 1], [items]);
+
+  const activeBodyItem = useMemo(() => {
+    if (!isValidKey(activeKey)) {
+      return null;
+    }
+
+    return (
+      bodyItems.find(
+        (item) => item.type === 'row' && item.rowKeyValue === activeKey,
+      ) ?? null
+    );
+  }, [activeKey, bodyItems]);
+
+  const preserveItemKey = useMemo(
+    () => (isValidKey(activeKey) ? `row-${activeKey}` : null),
+    [activeKey],
+  );
+
+  const getDropDisabled = useCallback(
+    (key: Key | undefined) => {
+      if (!rowSortable || !isValidKey(key)) {
+        return true;
+      }
+      if (!isValidKey(activeKey) || key === activeKey) {
+        return false;
+      }
+      const activeEntity = entities.get(activeKey);
+      const overEntity = entities.get(key);
+      if (!activeEntity || !overEntity) {
+        return true;
+      }
+
+      if (allowCrossLevelSort) {
+        return isDescendantOrSelfPath(
+          [...activeEntity.parentPath, activeEntity.index],
+          overEntity.parentPath,
+        );
+      }
+
+      return activeEntity.parentKey !== overEntity.parentKey;
+    },
+    [activeKey, allowCrossLevelSort, entities, rowSortable],
+  );
+
+  const getDragDisabled = useCallback(
+    (record: T, key: Key | undefined) => {
+      if (!rowSortable || !isValidKey(key)) {
+        return true;
+      }
+      return rowSortable?.rowDraggable?.(record) === false;
+    },
+    [rowSortable],
+  );
+
+  const cleanup = useCallback(() => {
+    document.documentElement.style.cursor = '';
+    activeDataRef.current = null;
+    scrollLeftRef.current = 0;
+    setActiveKey(null);
+  }, []);
+
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    const activeData = event.active.data.current;
+    if (!isRowSortDragData<T>(activeData) || !isValidKey(activeData.key)) {
+      return;
+    }
+
+    activeDataRef.current = {
+      key: activeData.key,
+      index: activeData.index,
+    };
+    document.documentElement.style.cursor = 'grabbing';
+    setActiveKey(activeData.key);
+  }, []);
+
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const activeEventData = event.active.data.current;
+      const activeEntity = isRowSortDragData<T>(activeEventData)
+        ? activeEventData
+        : activeDataRef.current;
+      const isRowSortEvent =
+        isRowSortDragData<T>(activeEventData) || activeDataRef.current !== null;
+
+      if (!isRowSortEvent) {
+        return;
+      }
+
+      try {
+        if (!activeEntity || !isValidKey(activeEntity.key)) {
+          return;
+        }
+
+        const overEventData = event.over?.data.current;
+        const overEntity = isRowSortDragData<T>(overEventData)
+          ? overEventData
+          : null;
+        const activeRowKey = activeEntity.key;
+        const overKey =
+          overEntity && isValidKey(overEntity.key)
+            ? overEntity.key
+            : event.over?.id;
+
+        if (
+          isValidKey(activeRowKey) &&
+          isValidKey(overKey) &&
+          activeRowKey !== overKey
+        ) {
+          const activeIndex =
+            activeEntity.index ?? entities.get(activeRowKey)?.index ?? 0;
+          const overIndex =
+            overEntity?.index ?? entities.get(overKey)?.index ?? 0;
+          const placement = activeIndex > overIndex ? 'before' : 'after';
+          const result = reorderDataSource({
+            dataSource: dataSource || [],
+            rowKey,
+            childrenColumnName,
+            activeKey: activeRowKey,
+            overKey,
+            placement,
+            allowCrossLevelSort,
+          });
+
+          if (result) {
+            rowSortable?.onChange?.(result.dataSource, result.info);
+          }
+        }
+      } finally {
+        cleanup();
+      }
+    },
+    [
+      allowCrossLevelSort,
+      childrenColumnName,
+      cleanup,
+      dataSource,
+      entities,
+      rowKey,
+      rowSortable,
+    ],
+  );
+
+  const overlayColumns = useMemo(
+    () =>
+      getRowSortOverlayColumns(
+        flattenColumns,
+        rowSortable?.overlayColumnKeys,
+      ).map((column) => ({
+        ...column,
+        fixed: undefined,
+      })),
+    [flattenColumns, rowSortable?.overlayColumnKeys],
+  );
+
+  const overlayColumnsWidths = useMemo(
+    () =>
+      overlayColumns.map((column) => (isNum(column.width) ? column.width : 0)),
+    [overlayColumns],
+  );
+
+  const overlayColumnsWidthTotal = useMemo(
+    () => overlayColumnsWidths.reduce((total, width) => total + width, 0),
+    [overlayColumnsWidths],
+  );
+
+  const overlayFixedOffset = useMemo(
+    () => getStaticOffset(overlayColumnsWidths),
+    [overlayColumnsWidths],
+  );
+
+  const scrollLeftOffsetModifiers = useMemo<Modifier[]>(
+    () => [
+      ({ transform }) => {
+        const startScrollLeft = scrollLeftRef.current;
+
+        if (!startScrollLeft) {
+          return transform;
+        }
+
+        return {
+          ...transform,
+          x: transform.x + startScrollLeft,
+        };
+      },
+    ],
+    [],
+  );
+
+  const getAutoScroll = useCallback(
+    (inVirtual: boolean) => ({
+      canScroll: (element: Element) =>
+        element === bodyScrollElement &&
+        (inVirtual ? true : lastItem === undefined),
+    }),
+    [bodyScrollElement, lastItem],
+  );
+
+  const getOverlayRenderOptions = useCallback(
+    (inVirtual: boolean): BodyRenderOptions | undefined => {
+      if (!activeBodyItem) {
+        return undefined;
+      }
+
+      return {
+        renderMode: inVirtual ? 'virtual' : 'normal',
+        flattenColumns: overlayColumns,
+        fixedOffset: overlayFixedOffset,
+        renderKey: `row-sort-overlay-${activeBodyItem.reactKey}`,
+        style: {
+          display: 'grid',
+          gridTemplateColumns: overlayColumnsWidths
+            .map((width) => `${width}px`)
+            .join(' '),
+          width: overlayColumnsWidthTotal,
+        },
+        rowSortOverlay: true,
+      };
+    },
+    [
+      activeBodyItem,
+      overlayColumns,
+      overlayColumnsWidthTotal,
+      overlayColumnsWidths,
+      overlayFixedOffset,
+    ],
+  );
+
+  const getRuntime = useCallback(
+    (inVirtual: boolean) => ({
+      autoScroll: getAutoScroll(inVirtual),
+      overlayModifiers: scrollLeftOffsetModifiers,
+      overlayRenderOptions: getOverlayRenderOptions(inVirtual),
+    }),
+    [getAutoScroll, getOverlayRenderOptions, scrollLeftOffsetModifiers],
+  );
+
+  return useMemo(
+    () => ({
+      activeKey,
+      activeBodyItem,
+      preserveItemKey,
+      sensors,
+      items,
+      getDragDisabled,
+      getDropDisabled,
+      onDragStart: handleDragStart,
+      onDragEnd: handleDragEnd,
+      onDragCancel: cleanup,
+      getRuntime,
+    }),
+    [
+      activeBodyItem,
+      activeKey,
+      cleanup,
+      getDragDisabled,
+      getDropDisabled,
+      getRuntime,
+      handleDragEnd,
+      handleDragStart,
+      items,
+      preserveItemKey,
+      sensors,
+    ],
+  );
+}

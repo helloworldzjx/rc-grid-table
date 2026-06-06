@@ -198,6 +198,8 @@ export interface RowSortableConfig<T = any> {
   /** 拖拽调整列宽时的最小宽度 */
   resizeMinWidth?: PercentColumnWidthType | number;
   allowCrossLevelSort?: boolean;
+  /** 行拖拽overlay中渲染的列。通过columns中的key或dataIndex匹配 */
+  overlayColumnKeys?: Key[];
   sortIcon?: (props: RowSortIconProps<T>) => ReactNode;
   rowDraggable?: (record: T) => boolean;
   onChange?: (dataSource: T[], info: RowSortChangeInfo<T>) => void;

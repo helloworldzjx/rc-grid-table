@@ -20,6 +20,7 @@ export type ComponentClsType = {
   hasXScrollbarCls: string;
   hasYScrollbarCls: string;
   hasStickyCls: string;
+  rowSortingCls: string;
   headCls: string;
   headStickyCls: string;
   headInnerCls: string;
@@ -34,8 +35,12 @@ export type ComponentClsType = {
   bodyVirtualInnerCls: string;
   bodyVirtualRowSpanCls: string;
   bodyVirtualRowSpanTopCls: string;
+  bodyVirtualPreservedCls: string;
   bodyRowExpandableCls: string;
   bodyRowSortDraggingCls: string;
+  bodyRowSortDraggingOverlayCls: string;
+  bodyRowSortFirstCls: string;
+  bodyRowSortLastCls: string;
   cellCls: string;
   filterCellCls: string;
   cellEllipsisCls: string;
@@ -123,6 +128,7 @@ export const getComponentCls = (prefixCls: string): ComponentClsType => {
     hasXScrollbarCls: `${prefixCls}-has-horizontal-scrollbar`,
     hasYScrollbarCls: `${prefixCls}-has-vertical-scrollbar`,
     hasStickyCls: `${prefixCls}-has-sticky`,
+    rowSortingCls: `${prefixCls}-row-sorting`,
     headCls: `${prefixCls}-head`,
     headStickyCls: `${prefixCls}-head-sticky`,
     headInnerCls: `${prefixCls}-head-inner`,
@@ -137,8 +143,12 @@ export const getComponentCls = (prefixCls: string): ComponentClsType => {
     bodyVirtualInnerCls: `${prefixCls}-body-virtual-inner`,
     bodyVirtualRowSpanCls: `${prefixCls}-body-virtual-row-span`,
     bodyVirtualRowSpanTopCls: `${prefixCls}-body-virtual-row-span-top`,
+    bodyVirtualPreservedCls: `${prefixCls}-body-virtual-preserved`,
     bodyRowExpandableCls: `${prefixCls}-body-row-expandable`,
     bodyRowSortDraggingCls: `${prefixCls}-body-row-sort-dragging`,
+    bodyRowSortDraggingOverlayCls: `${prefixCls}-body-row-sort-dragging-overlay`,
+    bodyRowSortFirstCls: `${prefixCls}-body-row-sort-first`,
+    bodyRowSortLastCls: `${prefixCls}-body-row-sort-last`,
     cellCls: `${prefixCls}-cell`,
     filterCellCls: `${prefixCls}-filter-cell`,
     cellEllipsisCls: `${prefixCls}-cell-ellipsis`,

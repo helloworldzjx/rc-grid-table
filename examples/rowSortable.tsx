@@ -77,6 +77,20 @@ const initialData: DataType[] = [
     department: 'Operations',
     status: 'Active',
   },
+  {
+    key: '4',
+    name: 'Advertising Department',
+    role: 'Department',
+    department: 'Advertising',
+    status: 'Active',
+  },
+  {
+    key: '5',
+    name: 'Human Resources Department',
+    role: 'Department',
+    department: 'Human Resources',
+    status: 'Active',
+  },
 ];
 
 const App: React.FC = () => {

@@ -1,6 +1,10 @@
 import type { CSSProperties, Key, ReactNode, Ref, UIEventHandler } from 'react';
 
-import type { TableScrollToOptions } from '../interface';
+import type {
+  ColumnState,
+  StickyOffsets,
+  TableScrollToOptions,
+} from '../interface';
 
 export type BodyRenderMode = 'normal' | 'virtual' | 'rowSpanOverlay';
 
@@ -33,6 +37,8 @@ export type BodyItem<T = any> = BodyRowItem<T> | BodyExpandedItem<T>;
 
 export interface BodyRenderOptions {
   renderMode?: BodyRenderMode;
+  flattenColumns?: ColumnState[];
+  fixedOffset?: StickyOffsets;
   style?: CSSProperties;
   rowRef?: Ref<HTMLDivElement>;
   onRowResize?: () => void;

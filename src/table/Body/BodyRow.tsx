@@ -68,6 +68,9 @@ function BodyRow({
     bodyRowFixedHeightCls,
     bodyRowExpandableCls,
     bodyRowSortDraggingCls,
+    bodyRowSortDraggingOverlayCls,
+    bodyRowSortFirstCls,
+    bodyRowSortLastCls,
   } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
   const { bodyRowFixedHeightCssVar } = useMemo(
     () => getCssVar(prefixCls),
@@ -130,7 +133,10 @@ function BodyRow({
           [bodyGridRowCls]: virtual,
           [bodyRowFixedHeightCls]: hasFixedRowHeight,
           [bodyRowExpandableCls]: expandByClick,
-          [bodyRowSortDraggingCls]: rowSort.active,
+          [bodyRowSortDraggingCls]: rowSort.active && !rowSortOverlay,
+          [bodyRowSortDraggingOverlayCls]: rowSort.active && rowSortOverlay,
+          [bodyRowSortFirstCls]: rowSort.first && !rowSortOverlay,
+          [bodyRowSortLastCls]: rowSort.last && !rowSortOverlay,
         },
         className,
       )}

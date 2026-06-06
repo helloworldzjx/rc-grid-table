@@ -17,6 +17,7 @@ interface VirtualBodyProps<T = any> {
   scrollHeight: number;
   offsetY: number;
   visibleItems: VirtualItem<BodyItem<T>>[];
+  preservedItem?: (VirtualItem<BodyItem<T>> & { top: number }) | null;
   rowSpanItems: VirtualRowSpanItem<T>[];
   renderBodyItem: BodyItemRenderer<T>;
   setItemRef: (key: Key, element: HTMLDivElement | null) => void;
@@ -29,6 +30,7 @@ const VirtualBody = <T,>({
   scrollHeight,
   offsetY,
   visibleItems,
+  preservedItem,
   rowSpanItems,
   renderBodyItem,
   setItemRef,
@@ -38,6 +40,7 @@ const VirtualBody = <T,>({
   const {
     bodyVirtualFillerCls,
     bodyVirtualInnerCls,
+    bodyVirtualPreservedCls,
     bodyVirtualRowSpanCls,
     bodyVirtualRowSpanTopCls,
   } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
@@ -81,6 +84,15 @@ const VirtualBody = <T,>({
             onRowResize: onItemResize,
           }),
         )}
+        {preservedItem &&
+          renderBodyItem(preservedItem.item, {
+            renderMode: 'virtual',
+            renderKey: `preserved-${preservedItem.key}`,
+            className: bodyVirtualPreservedCls,
+            style: { top: preservedItem.top - offsetY },
+            rowRef: (element) => setItemRef(preservedItem.key, element),
+            onRowResize: onItemResize,
+          })}
         {rowSpanItems.map(({ bodyItem, top, getHeight }) =>
           renderBodyItem(
             bodyItem,

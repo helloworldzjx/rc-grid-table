@@ -85,6 +85,7 @@ const genVirtualStyle = (
     bodyVirtualInnerCls,
     bodyVirtualRowSpanCls,
     bodyVirtualRowSpanTopCls,
+    bodyVirtualPreservedCls,
     bodyRowFixedHeightCls,
     cellCls,
   }: ComponentClsType,
@@ -121,6 +122,14 @@ const genVirtualStyle = (
       },
     },
 
+    [`.${bodyVirtualPreservedCls}`]: {
+      position: 'absolute',
+      insetInline: 0,
+      top: 0,
+      display: 'grid',
+      gridTemplateColumns: `var(${colsWidthCssVar})`,
+    },
+
     [`.${bodyVirtualRowSpanTopCls} .${cellCls}`]: {
       borderTopColor: 'transparent',
     },
@@ -148,7 +157,6 @@ const genBorderedStyle = (
     cellCls,
     pingStartCls,
     pingEndCls,
-    bodyRowSortDraggingCls,
   }: ComponentClsType,
   token: ComponentToken,
 ): CSSInterpolation => ({
@@ -232,14 +240,6 @@ const genBorderedStyle = (
       display: 'none',
     },
 
-    [`.${bodyRowSortDraggingCls} .${cellCls}`]: {
-      borderBottom: `1px solid ${token.colorBorder}`,
-
-      '&:last-child': {
-        borderRight: `1px solid ${token.colorBorder}`,
-      },
-    },
-
     [`.${cellCls}`]: {
       borderLeft: `1px solid ${token.colorBorder}`,
     },
@@ -292,6 +292,7 @@ const genBodyStyle = (
     bodyInnerCls,
     bodyRowCls,
     bodyGridRowCls,
+    bodyRowSortDraggingOverlayCls,
   }: ComponentClsType,
   token: ComponentToken,
   { colsWidthCssVar }: CssVarType,
@@ -336,6 +337,13 @@ const genBodyStyle = (
       gridTemplateColumns: `var(${colsWidthCssVar})`,
       gridColumn: '1 / -1',
     },
+  },
+
+  [`.${bodyRowCls}.${bodyRowSortDraggingOverlayCls}`]: {
+    borderRadius: token.borderRadius,
+    boxShadow: '0 0 16px rgba(0, 0, 0, 0.1)',
+    outline: `1px solid ${token.colorBorder}`,
+    outlineOffset: -1,
   },
 });
 
@@ -385,10 +393,13 @@ const genSummaryCls = (
 
 const genCellStyle = (
   {
+    rowSortingCls,
     headRowCls,
     bodyRowCls,
-    bodyRowExpandableCls,
     bodyRowSortDraggingCls,
+    bodyRowSortDraggingOverlayCls,
+    bodyRowSortFirstCls,
+    bodyRowExpandableCls,
     summaryRowCls,
     cellCls,
     filterCellCls,
@@ -474,21 +485,46 @@ const genCellStyle = (
       backgroundColor: token.colorBgContainer,
       borderTop: `1px solid ${token.colorBorder}`,
     },
-    [`&:first-child .${cellCls}`]: {
-      borderTopColor: 'transparent',
-    },
+    [`&:first-child:not(.${bodyRowSortDraggingCls}, .${bodyRowSortDraggingOverlayCls}) .${cellCls}`]:
+      {
+        borderTopColor: 'transparent',
+      },
 
-    [`&:not(.${bodyRowSortDraggingCls}):hover .${cellCls}:not(.${noDataCellCls})`]:
+    [`&:not(.${bodyRowSortDraggingOverlayCls}):hover .${cellCls}:not(.${noDataCellCls})`]:
       {
         backgroundColor: token.cellColorHoverBg,
         transition: 'background-color 0.3s',
       },
 
+    [`&.${bodyRowSortFirstCls} .${cellCls}`]: {
+      borderTopColor: 'transparent',
+    },
     [`&.${bodyRowSortDraggingCls} .${cellCls}`]: {
+      pointerEvents: 'none',
+      opacity: 0.4,
+    },
+    [`&.${bodyRowSortDraggingOverlayCls} .${cellCls}`]: {
+      borderTop: `1px solid ${token.colorBorder}`,
       borderBottom: `1px solid ${token.colorBorder}`,
-      borderTopColor: token.colorBorder,
+      borderLeft: `1px solid ${token.colorBorder}`,
+
+      '&:first-child': {
+        borderTopLeftRadius: token.borderRadius,
+        borderBottomLeftRadius: token.borderRadius,
+      },
+
+      '&:last-child': {
+        borderRight: `1px solid ${token.colorBorder}`,
+        borderTopRightRadius: token.borderRadius,
+        borderBottomRightRadius: token.borderRadius,
+      },
     },
   },
+
+  [`&.${rowSortingCls} .${bodyRowCls}:first-child:not(.${bodyRowSortFirstCls}) .${cellCls}`]:
+    {
+      borderTopColor: token.colorBorder,
+    },
 
   [`.${bodyRowExpandableCls}`]: {
     cursor: 'pointer',
@@ -522,6 +558,12 @@ const genCellStyle = (
     alignContent: 'center',
     wordBreak: 'break-word',
     boxSizing: 'border-box',
+  },
+
+  [`.${cellEllipsisCls} .${cellEllipsisInnerCls}`]: {
+    overflow: 'hidden',
+    whiteSpace: 'nowrap',
+    textOverflow: 'ellipsis',
   },
 
   [`.${filterCellCls}`]: {
@@ -746,20 +788,16 @@ const genCellStyle = (
     cursor: 'default',
     visibility: 'hidden',
   },
-
-  [`.${cellEllipsisCls}`]: {
-    [`.${cellEllipsisInnerCls}`]: {
-      overflow: 'hidden',
-      whiteSpace: 'nowrap',
-      textOverflow: 'ellipsis',
-    },
-  },
 });
 
 const genFixedCellStyle = (
   {
+    pingStartCls,
+    pingEndCls,
     headRowCls,
     bodyRowCls,
+    bodyRowSortDraggingCls,
+    cellCls,
     cellFixedStartCls,
     cellFixedStartLastCls,
     cellFixedEndCls,
@@ -811,6 +849,23 @@ const genFixedCellStyle = (
     transition: 'opacity 0.3s',
     pointerEvents: 'none',
   },
+
+  [`&.${pingStartCls}.${pingEndCls} .${bodyRowCls}.${bodyRowSortDraggingCls} .${cellCls}.${cellFixedStartCls}`]:
+    {
+      opacity: 1,
+    },
+  [`&.${pingStartCls}.${pingEndCls} .${bodyRowCls}.${bodyRowSortDraggingCls} .${cellCls}.${cellFixedEndCls}`]:
+    {
+      opacity: 1,
+    },
+  [`&.${pingStartCls} .${bodyRowCls}.${bodyRowSortDraggingCls} .${cellCls}.${cellFixedStartCls}`]:
+    {
+      opacity: 1,
+    },
+  [`&.${pingEndCls} .${bodyRowCls}.${bodyRowSortDraggingCls} .${cellCls}.${cellFixedEndCls}`]:
+    {
+      opacity: 1,
+    },
 });
 
 const genFixedShadowStyle = ({
