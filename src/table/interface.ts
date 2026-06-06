@@ -140,6 +140,7 @@ export interface ExpandIconProps<T = any> {
 export interface ExpandableConfig<T = any> {
   childrenColumnName?: string;
   columnTitle?: ReactNode;
+  columnOverlayTitle?: ReactNode;
   columnWidth?: PercentColumnWidthType | number;
   defaultExpandAllRows?: boolean;
   defaultExpandedRowKeys?: Key[];
@@ -193,6 +194,7 @@ export interface RowSortChangeInfo<T = any> {
 export interface RowSortableConfig<T = any> {
   align?: 'start' | 'end' | 'center';
   columnTitle?: ReactNode;
+  columnOverlayTitle?: ReactNode;
   columnWidth?: PercentColumnWidthType | number;
   fixed?: FixedType;
   /** 拖拽调整列宽时的最小宽度 */
@@ -220,6 +222,7 @@ export interface TableRowSelection<T = any> {
   align?: 'start' | 'end' | 'center';
   checkStrictly?: boolean;
   columnTitle?: ReactNode | ((originalNode: ReactNode) => ReactNode);
+  columnOverlayTitle?: ReactNode;
   columnWidth?: PercentColumnWidthType | number;
   fixed?: FixedType;
   /** 禁止选择列重新调整宽度 */
@@ -359,6 +362,7 @@ export type ColumnStateConfigType = {
 
 export type ColumnState<T = any> = Omit<ColumnType<T>, 'children'> &
   ColumnStateConfigType & {
+    columnOverlayTitle?: ReactNode;
     width?: number;
     resizeMinWidth?: number;
     children?: ColumnState<T>[];

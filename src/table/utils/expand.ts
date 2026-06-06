@@ -171,6 +171,7 @@ export const getColumnsWithExpandColumn = <T = any>(
 ): ColumnsType<T> => {
   const {
     columnTitle,
+    columnOverlayTitle,
     columnWidth,
     expandedRowRender,
     fixed,
@@ -190,6 +191,7 @@ export const getColumnsWithExpandColumn = <T = any>(
     ...EXPAND_COLUMN,
     key: INTERNAL_EXPAND_COLUMN_KEY,
     title: columnTitle,
+    columnOverlayTitle,
     width: columnWidth ?? getDefaultInternalColumnWidth(size),
     fixed,
     resizeDisabled,
@@ -223,6 +225,7 @@ export const getColumnsWithInternalColumns = <T = any>(
 ): ColumnsType<T> => {
   const {
     columnTitle,
+    columnOverlayTitle,
     columnWidth,
     expandedRowRender,
     fixed,
@@ -248,6 +251,7 @@ export const getColumnsWithInternalColumns = <T = any>(
         ...EXPAND_COLUMN,
         key: INTERNAL_EXPAND_COLUMN_KEY,
         title: columnTitle,
+        columnOverlayTitle,
         width: columnWidth ?? getDefaultInternalColumnWidth(size),
         fixed,
         resizeDisabled,
@@ -259,6 +263,7 @@ export const getColumnsWithInternalColumns = <T = any>(
         ...SELECTION_COLUMN,
         key: INTERNAL_SELECTION_COLUMN_KEY,
         title: '',
+        columnOverlayTitle: rowSelection?.columnOverlayTitle,
         width: rowSelection?.columnWidth ?? getDefaultInternalColumnWidth(size),
         fixed: rowSelection?.fixed,
         resizeDisabled: rowSelection?.resizeDisabled ?? true,
@@ -271,6 +276,7 @@ export const getColumnsWithInternalColumns = <T = any>(
         ...ROW_SORT_COLUMN,
         key: INTERNAL_ROW_SORT_COLUMN_KEY,
         title: rowSortable?.columnTitle,
+        columnOverlayTitle: rowSortable?.columnOverlayTitle,
         width: rowSortable?.columnWidth ?? getDefaultInternalColumnWidth(size),
         fixed: rowSortable?.fixed,
         resizeDisabled: true,

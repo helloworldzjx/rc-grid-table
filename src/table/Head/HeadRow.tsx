@@ -91,6 +91,12 @@ function HeadRow({
     [dragOverlaySize],
   );
 
+  const dragOverlayChildren = useMemo(() => {
+    return activeColumn?.column?.columnOverlayTitle !== undefined
+      ? activeColumn.column.columnOverlayTitle
+      : activeColumn?.children;
+  }, [activeColumn]);
+
   const dragOverlayModifiers = useMemo<Modifier[] | undefined>(() => {
     if (!activeColumn) return undefined;
 
@@ -299,7 +305,7 @@ function HeadRow({
               className={headDraggingOverlayCellCls}
               style={dragOverlayStyle}
             >
-              {activeColumn?.children}
+              {dragOverlayChildren}
             </div>
           )}
         </DragOverlay>
