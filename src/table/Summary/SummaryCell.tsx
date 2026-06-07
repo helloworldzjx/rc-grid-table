@@ -1,12 +1,12 @@
 import classNames from 'classnames';
-import React, { CSSProperties, FC, useMemo } from 'react';
+import React, { CSSProperties, FC, memo, useMemo } from 'react';
 
 import CellContainer from '../CellContainer';
-import { useTableContext } from '../context';
 import { useFixedShadowActive } from '../fixedShadowContext';
 import { TableSummaryRowCell } from '../interface';
 import { usePrefixClsContext } from '../prefixClsContext';
 import { getComponentCls } from '../style/classNames';
+import { useTableLayoutContext } from '../tableLayoutContext';
 import { getCellFixedInfo } from '../utils/fixedColumns';
 import { getNormalSpanStyle } from '../utils/gridPlacement';
 import { getEllipsisTitle } from '../utils/handle';
@@ -17,7 +17,7 @@ interface SummaryCellProps {
 }
 
 const SummaryCell: FC<SummaryCellProps> = ({ column, colEnd }) => {
-  const { flattenColumns = [], fixedOffset } = useTableContext();
+  const { flattenColumns = [], fixedOffset } = useTableLayoutContext();
   const prefixCls = usePrefixClsContext();
 
   const {
@@ -106,4 +106,4 @@ const SummaryCell: FC<SummaryCellProps> = ({ column, colEnd }) => {
   );
 };
 
-export default SummaryCell;
+export default memo(SummaryCell);

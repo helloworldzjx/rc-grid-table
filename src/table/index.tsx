@@ -14,6 +14,7 @@ import React, {
 
 import { isNum, isValidKey } from '../_utils/validate';
 import ColumnSortableContext from './columnSortableContext';
+import ColumnSortMotionContext from './columnSortMotionContext';
 import ComponentsContext from './componentsContext';
 import TableContext from './context';
 import ExpandableContext from './expandableContext';
@@ -25,7 +26,10 @@ import {
   GetComponent,
   RowSortColumnType,
   SelectionColumnType,
+  TableColumnStateContextProps,
   TableContextProps,
+  TableDataContextProps,
+  TableLayoutContextProps,
   type TableProps,
   type TableRef,
 } from './interface';
@@ -33,6 +37,9 @@ import PrefixClsContext from './prefixClsContext';
 import RowSelectionContext from './rowSelectionContext';
 import RowSortableContext from './rowSortableContext';
 import InternalTable from './Table';
+import TableColumnStateContext from './tableColumnStateContext';
+import TableDataContext from './tableDataContext';
+import TableLayoutContext from './tableLayoutContext';
 import { columnsWidthDistribute } from './utils/calc';
 import {
   EXPAND_COLUMN,
@@ -84,7 +91,17 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     size = 'large',
     components,
     onScroll,
-    ...rest
+    className,
+    rowClassName,
+    bordered,
+    stripe,
+    scrollY,
+    summary,
+    sticky,
+    virtual,
+    loading,
+    style,
+    ...nativeProps
   } = props;
 
   /** bug ref https://github.com/helloworldzjx/rc-grid-table/issues/1 */
@@ -507,6 +524,65 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     onScroll,
   ]);
 
+  const tableDataContextValue = useMemo<TableDataContextProps<T>>(
+    () => ({
+      rowKey,
+      dataSource,
+    }),
+    [dataSource, rowKey],
+  );
+
+  const tableLayoutContextValue = useMemo<TableLayoutContextProps<T>>(
+    () => ({
+      containerWidth,
+      containerHeight,
+      columns: renderedCols,
+      flattenColumns: renderedFlattenCols,
+      flattenColumnsWidths: renderedFlattenColumnsWidths,
+      columnsWidthTotal,
+      fixedOffset,
+      hasFixedColumns: fixedOffset.hasFixColumns,
+      fixColumnsGapped: fixedOffset.fixColumnsGapped,
+    }),
+    [
+      containerWidth,
+      containerHeight,
+      renderedCols,
+      renderedFlattenCols,
+      renderedFlattenColumnsWidths,
+      columnsWidthTotal,
+      fixedOffset,
+      fixedOffset.hasFixColumns,
+      fixedOffset.fixColumnsGapped,
+    ],
+  );
+
+  const tableColumnStateContextValue = useMemo<TableColumnStateContextProps<T>>(
+    () => ({
+      resizableColumns,
+      fixableColumns,
+      visibleColumns,
+      columnMinWidth,
+      leafColumnMinWidth,
+      middleState,
+      columnsConfig: mergedColumnsConfig,
+      updateLockContainerWidth,
+      updateFlattenColumnsWidths: setFlattenColumnsWidths,
+      updateMiddleState,
+    }),
+    [
+      resizableColumns,
+      fixableColumns,
+      visibleColumns,
+      columnMinWidth,
+      leafColumnMinWidth,
+      middleState,
+      mergedColumnsConfig,
+      updateLockContainerWidth,
+      updateMiddleState,
+    ],
+  );
+
   const componentsContextValue = useMemo(
     () => ({
       components,
@@ -559,28 +635,71 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
   );
 
   const tableContextValue = useMemo(
-    () => ({ ...baseProps, ...rest }),
-    [baseProps, rest],
+    () => ({
+      ...baseProps,
+      className,
+      rowClassName,
+      bordered,
+      stripe,
+      scrollY,
+      summary,
+      sticky,
+      virtual,
+      loading,
+      style,
+    }),
+    [
+      baseProps,
+      className,
+      rowClassName,
+      bordered,
+      stripe,
+      scrollY,
+      summary,
+      sticky,
+      virtual,
+      loading,
+      style,
+    ],
   );
 
   return (
     <PrefixClsContext.Provider value={prefixCls}>
       <TableContext.Provider value={tableContextValue}>
-        <ComponentsContext.Provider value={componentsContextValue}>
-          <ExpandableContext.Provider value={expandableContextValue}>
-            <RowSelectionContext.Provider value={rowSelectionContextValue}>
-              <RowSortableContext.Provider value={rowSortableContextValue}>
-                <ColumnSortableContext.Provider
-                  value={columnSortableContextValue}
-                >
-                  <ResizeObserver onResize={onResize}>
-                    <InternalTable tableRef={ref} />
-                  </ResizeObserver>
-                </ColumnSortableContext.Provider>
-              </RowSortableContext.Provider>
-            </RowSelectionContext.Provider>
-          </ExpandableContext.Provider>
-        </ComponentsContext.Provider>
+        <TableDataContext.Provider value={tableDataContextValue}>
+          <TableLayoutContext.Provider value={tableLayoutContextValue}>
+            <TableColumnStateContext.Provider
+              value={tableColumnStateContextValue}
+            >
+              <ComponentsContext.Provider value={componentsContextValue}>
+                <ExpandableContext.Provider value={expandableContextValue}>
+                  <RowSelectionContext.Provider
+                    value={rowSelectionContextValue}
+                  >
+                    <RowSortableContext.Provider
+                      value={rowSortableContextValue}
+                    >
+                      <ColumnSortableContext.Provider
+                        value={columnSortableContextValue}
+                      >
+                        <ColumnSortMotionContext.Provider
+                          value={sortingColumns}
+                        >
+                          <ResizeObserver onResize={onResize}>
+                            <InternalTable
+                              nativeProps={nativeProps}
+                              tableRef={ref}
+                            />
+                          </ResizeObserver>
+                        </ColumnSortMotionContext.Provider>
+                      </ColumnSortableContext.Provider>
+                    </RowSortableContext.Provider>
+                  </RowSelectionContext.Provider>
+                </ExpandableContext.Provider>
+              </ComponentsContext.Provider>
+            </TableColumnStateContext.Provider>
+          </TableLayoutContext.Provider>
+        </TableDataContext.Provider>
       </TableContext.Provider>
     </PrefixClsContext.Provider>
   );

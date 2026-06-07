@@ -45,6 +45,7 @@ import {
   hasChildrenInData,
 } from './utils/expand';
 import { parseHeaderRows } from './utils/handle';
+import { getVirtualFixedHeightConfig } from './utils/virtual';
 import { warningInvalidRecordKey } from './utils/warning';
 
 const getStickyOffset = (
@@ -58,11 +59,12 @@ const getStickyOffset = (
 };
 
 interface GridTableProps {
+  nativeProps?: React.HTMLAttributes<HTMLDivElement>;
   tableRef?: React.Ref<TableRef>;
 }
 
 const Table = forwardRef<HTMLDivElement, GridTableProps>(
-  ({ tableRef }, ref) => {
+  ({ nativeProps, tableRef }, ref) => {
     const {
       initialized,
       containerWidth = 0,
@@ -143,22 +145,10 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       : '';
     const hasExpandedRowRender =
       typeof expandable?.expandedRowRender === 'function';
-    const rowHeight =
-      typeof virtual === 'object' &&
-      isNum(virtual.rowHeight) &&
-      virtual.rowHeight > 0
-        ? hasData
-          ? virtual.rowHeight
-          : undefined
-        : undefined;
-    const expandedRowHeight =
-      typeof virtual === 'object' && virtual.expandedRowHeight === false
-        ? undefined
-        : typeof virtual === 'object' &&
-          isNum(virtual.expandedRowHeight) &&
-          virtual.expandedRowHeight > 0
-        ? virtual.expandedRowHeight
-        : rowHeight;
+    const { rowHeight, expandedRowHeight } = useMemo(
+      () => getVirtualFixedHeightConfig(virtual, hasData),
+      [hasData, virtual],
+    );
     const childrenColumnName = expandable?.childrenColumnName ?? 'children';
 
     const isTreeMode = !hasExpandedRowRender;
@@ -482,6 +472,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
 
     return (
       <div
+        {...nativeProps}
         className={classNames(wrapperCls, hashId, cssVarCls, {
           [wrapperInitializedCls]: initialized,
         })}
@@ -588,6 +579,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
               {showSummary && (
                 <Summary
                   ref={tableSummaryRef}
+                  summary={summary}
                   className={classNames({ [summaryStickyCls]: sticky })}
                   style={stickySummaryStyle}
                 />

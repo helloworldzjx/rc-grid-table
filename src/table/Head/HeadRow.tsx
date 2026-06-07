@@ -11,7 +11,14 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext } from '@dnd-kit/sortable';
 import { Coordinates, getEventCoordinates } from '@dnd-kit/utilities';
-import React, { Key, useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  Key,
+  memo,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import { COLUMNS_SORT_OVERLAY_POINTER_OFFSET_X } from '../../_utils/const';
 import { useColumnSortableContext } from '../columnSortableContext';
@@ -328,4 +335,4 @@ function HeadRow({
   );
 }
 
-export default HeadRow;
+export default memo(HeadRow);

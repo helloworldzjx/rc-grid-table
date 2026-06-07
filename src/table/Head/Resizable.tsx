@@ -3,15 +3,17 @@ import { useDebounceFn } from 'ahooks';
 import React, {
   forwardRef,
   Key,
+  memo,
   useCallback,
   useEffect,
   useMemo,
   useRef,
 } from 'react';
 
-import { useTableContext } from '../context';
 import { usePrefixClsContext } from '../prefixClsContext';
 import { getComponentCls } from '../style/classNames';
+import { useTableColumnStateContext } from '../tableColumnStateContext';
+import { useTableLayoutContext } from '../tableLayoutContext';
 import { DEFAULT_RESIZE_MIN_WIDTH } from '../utils/const';
 import { batchUpdateColumns } from '../utils/handle';
 
@@ -22,15 +24,15 @@ interface ResizableProps {
 
 const Resizable = forwardRef<HTMLDivElement, ResizableProps>(
   ({ id, keys }, ref) => {
+    const { flattenColumns = [], flattenColumnsWidths = [] } =
+      useTableLayoutContext();
     const {
-      flattenColumns = [],
-      flattenColumnsWidths = [],
       middleState,
       updateLockContainerWidth,
       updateFlattenColumnsWidths,
       updateMiddleState,
       columnsConfig,
-    } = useTableContext();
+    } = useTableColumnStateContext();
     const prefixCls = usePrefixClsContext();
 
     const { headCellResizeHandleCls } = useMemo(
@@ -181,4 +183,4 @@ const Resizable = forwardRef<HTMLDivElement, ResizableProps>(
   },
 );
 
-export default Resizable;
+export default memo(Resizable);

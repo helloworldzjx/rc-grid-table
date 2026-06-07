@@ -9,9 +9,9 @@ import useFixedInfo from '../hooks/useFixedInfo';
 import { ColumnState, StickyOffsets } from '../interface';
 import { usePrefixClsContext } from '../prefixClsContext';
 import { getComponentCls, getCssVar } from '../style/classNames';
-import { isInternalColumn } from '../utils/const';
+import { isInternalColumn, isRowSortColumn } from '../utils/const';
 import BodyCell from './BodyCell';
-import { getBodyCellSpanInfo, isVirtualBodyRenderMode } from './cellSpan';
+import { isVirtualBodyRenderMode } from './cellSpan';
 import type { BodyRenderMode } from './interface';
 import useRowSort from './useRowSort';
 
@@ -145,18 +145,7 @@ function BodyRow({
       ref={rowSort.rowRef}
     >
       {flattenColumns.map((column, colIndex) => {
-        if (renderMode === 'normal') {
-          const cellProps = column.onCell?.(rowData, rowIndex);
-          if (
-            getBodyCellSpanInfo({
-              renderMode,
-              rowSpan: cellProps?.rowSpan,
-              colSpan: cellProps?.colSpan,
-            }).hidden
-          ) {
-            return null;
-          }
-        }
+        const rowSortControlColumn = isRowSortColumn(column);
 
         return (
           <BodyCell
@@ -166,7 +155,7 @@ function BodyRow({
             column={column}
             fixedInfo={fixedInfoList[colIndex]}
             renderMode={renderMode}
-            colIndex={colIndex}
+            colIndex={renderMode === 'normal' ? undefined : colIndex}
             getRowSpanHeight={getRowSpanHeight}
             indent={indent}
             expanded={expanded}
@@ -178,9 +167,11 @@ function BodyRow({
             rowSortDragging={rowSort.active}
             rowSortIsOver={rowSort.isOver}
             rowSortCellStyle={rowSort.cellStyle}
-            rowSortAttributes={rowSort.attributes}
-            rowSortListeners={rowSort.listeners}
-            setRowSortActivatorNodeRef={rowSort.setActivatorNodeRef}
+            {...(rowSortControlColumn && {
+              rowSortAttributes: rowSort.attributes,
+              rowSortListeners: rowSort.listeners,
+              setRowSortActivatorNodeRef: rowSort.setActivatorNodeRef,
+            })}
             setRowSortNodeRef={rowSort.getNodeRef(column)}
           />
         );

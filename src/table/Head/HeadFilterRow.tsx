@@ -1,15 +1,15 @@
 import classNames from 'classnames';
-import React, { FC, useMemo } from 'react';
+import React, { FC, memo, useMemo } from 'react';
 
 import { useComponentsContext } from '../componentsContext';
-import { useTableContext } from '../context';
 import useFixedInfo from '../hooks/useFixedInfo';
 import { usePrefixClsContext } from '../prefixClsContext';
 import { getComponentCls } from '../style/classNames';
+import { useTableLayoutContext } from '../tableLayoutContext';
 import HeadFilterCell from './HeadFilterCell';
 
 const HeadFilterRow: FC = () => {
-  const { flattenColumns = [], fixedOffset } = useTableContext();
+  const { flattenColumns = [], fixedOffset } = useTableLayoutContext();
   const prefixCls = usePrefixClsContext();
   const { headRowCls, filterRowCls } = useMemo(
     () => getComponentCls(prefixCls),
@@ -54,4 +54,4 @@ const HeadFilterRow: FC = () => {
   );
 };
 
-export default HeadFilterRow;
+export default memo(HeadFilterRow);

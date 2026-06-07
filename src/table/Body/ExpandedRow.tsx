@@ -4,10 +4,10 @@ import React, { CSSProperties, FC, ReactNode, Ref, useMemo } from 'react';
 
 import { isNum } from '../../_utils/validate';
 import { useComponentsContext } from '../componentsContext';
-import { useTableContext } from '../context';
 import { useExpandableContext } from '../expandableContext';
 import { usePrefixClsContext } from '../prefixClsContext';
 import { getComponentCls, getCssVar } from '../style/classNames';
+import { useTableLayoutContext } from '../tableLayoutContext';
 import { isVirtualBodyRenderMode } from './cellSpan';
 import type { BodyRenderMode } from './interface';
 
@@ -36,7 +36,7 @@ const ExpandedRow: FC<ExpandedRowProps> = ({
     columnsWidthTotal,
     containerWidth = 0,
     flattenColumns = [],
-  } = useTableContext();
+  } = useTableLayoutContext();
   const prefixCls = usePrefixClsContext();
   const { getComponent } = useComponentsContext();
   const { expandable } = useExpandableContext();

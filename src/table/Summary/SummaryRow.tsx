@@ -1,4 +1,4 @@
-import React, { FC, useMemo } from 'react';
+import React, { FC, memo, useMemo } from 'react';
 
 import { TableSummaryRowCell } from '../interface';
 import { usePrefixClsContext } from '../prefixClsContext';
@@ -42,4 +42,4 @@ const SummaryRow: FC<SummaryRowProps> = ({ row }) => {
   );
 };
 
-export default SummaryRow;
+export default memo(SummaryRow);

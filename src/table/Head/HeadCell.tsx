@@ -6,13 +6,14 @@ import React, { CSSProperties, Key, useMemo, useRef } from 'react';
 import CellContainer from '../CellContainer';
 import { useColumnSortableContext } from '../columnSortableContext';
 import { useComponentsContext } from '../componentsContext';
-import { useTableContext } from '../context';
 import { useFixedShadowActive } from '../fixedShadowContext';
 import { CellType } from '../interface';
 import { usePrefixClsContext } from '../prefixClsContext';
 import { useRowSelectionContext } from '../rowSelectionContext';
 import { SelectionCheckbox } from '../Selection';
 import { getComponentCls } from '../style/classNames';
+import { useTableColumnStateContext } from '../tableColumnStateContext';
+import { useTableLayoutContext } from '../tableLayoutContext';
 import { getMergedSpanKeys } from '../utils/calc';
 import { isSelectionColumn } from '../utils/const';
 import { getCellFixedInfo } from '../utils/fixedColumns';
@@ -40,11 +41,8 @@ function HeadCell({
   currentRowLastIndex,
   firstRowLastCellKey,
 }: HeadCellProps) {
-  const {
-    flattenColumns = [],
-    resizableColumns,
-    fixedOffset,
-  } = useTableContext();
+  const { flattenColumns = [], fixedOffset } = useTableLayoutContext();
+  const { resizableColumns } = useTableColumnStateContext();
   const { sortableColumns } = useColumnSortableContext();
   const prefixCls = usePrefixClsContext();
   const { getComponent } = useComponentsContext();
@@ -335,4 +333,4 @@ function HeadCell({
   );
 }
 
-export default HeadCell;
+export default React.memo(HeadCell);

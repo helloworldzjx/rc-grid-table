@@ -527,6 +527,36 @@ export interface TableContextProps<T = any>
   updateMiddleState: Dispatch<SetStateAction<ColumnState<T>[]>>;
 }
 
+export interface TableDataContextProps<T = any> {
+  rowKey: RowKey<T>;
+  dataSource?: T[];
+}
+
+export interface TableLayoutContextProps<T = any> {
+  containerWidth?: number;
+  containerHeight?: number;
+  columns?: ColumnState<T>[];
+  flattenColumns?: ColumnState<T>[];
+  flattenColumnsWidths?: number[];
+  columnsWidthTotal: number;
+  fixedOffset: StickyOffsets;
+  hasFixedColumns: boolean;
+  fixColumnsGapped: boolean;
+}
+
+export interface TableColumnStateContextProps<T = any> {
+  resizableColumns?: boolean;
+  fixableColumns?: boolean;
+  visibleColumns?: boolean;
+  columnMinWidth?: number;
+  leafColumnMinWidth?: number;
+  middleState: ColumnState<T>[];
+  columnsConfig?: ColumnsConfig<T>;
+  updateLockContainerWidth: Dispatch<SetStateAction<boolean>>;
+  updateFlattenColumnsWidths: Dispatch<SetStateAction<number[]>>;
+  updateMiddleState: Dispatch<SetStateAction<ColumnState<T>[]>>;
+}
+
 export interface ComponentsContextProps {
   components?: TableComponents;
   getComponent: GetComponent;

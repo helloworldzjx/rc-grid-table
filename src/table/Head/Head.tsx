@@ -2,6 +2,8 @@ import classNames from 'classnames';
 import React, {
   CSSProperties,
   forwardRef,
+  memo,
+  useCallback,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -37,17 +39,41 @@ const Head = forwardRef<HeadRef, HeadProps>(
       [prefixCls],
     );
 
-    const handleResizeDragStart = (sorting?: boolean) => {
-      if (sorting) {
-        updateSortingColumns(true);
-      }
-    };
+    const getScrollElement = useCallback(() => innerRef.current, []);
 
-    const handleResizeDragEnd = (sorting?: boolean) => {
-      if (sorting) {
-        updateSortingColumns(false);
-      }
-    };
+    const handleDragSortResizeStart = useCallback(
+      (sorting?: boolean) => {
+        if (sorting) {
+          updateSortingColumns(true);
+        }
+      },
+      [updateSortingColumns],
+    );
+
+    const handleDragSortResizeEnd = useCallback(
+      (sorting?: boolean) => {
+        if (sorting) {
+          updateSortingColumns(false);
+        }
+      },
+      [updateSortingColumns],
+    );
+
+    const handleSortableStart = useCallback(() => {
+      handleDragSortResizeStart(true);
+    }, [handleDragSortResizeStart]);
+
+    const handleSortableEnd = useCallback(() => {
+      handleDragSortResizeEnd(true);
+    }, [handleDragSortResizeEnd]);
+
+    const handleResizeStart = useCallback(() => {
+      handleDragSortResizeStart();
+    }, [handleDragSortResizeStart]);
+
+    const handleResizeEnd = useCallback(() => {
+      handleDragSortResizeEnd();
+    }, [handleDragSortResizeEnd]);
 
     useImperativeHandle(ref, () => ({
       nativeElement: innerRef.current!,
@@ -62,11 +88,11 @@ const Head = forwardRef<HeadRef, HeadProps>(
               headRows={rows}
               row={row}
               headRowIndex={rowIndex}
-              getScrollElement={() => innerRef.current}
-              onSortableStart={() => handleResizeDragStart(true)}
-              onSortableEnd={() => handleResizeDragEnd(true)}
-              onResizeStart={handleResizeDragStart}
-              onResizeEnd={handleResizeDragEnd}
+              getScrollElement={getScrollElement}
+              onSortableStart={handleSortableStart}
+              onSortableEnd={handleSortableEnd}
+              onResizeStart={handleResizeStart}
+              onResizeEnd={handleResizeEnd}
             />
           ))}
           <HeadFilterRow />
@@ -76,4 +102,4 @@ const Head = forwardRef<HeadRef, HeadProps>(
   },
 );
 
-export default Head;
+export default memo(Head);

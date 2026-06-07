@@ -8,6 +8,7 @@ import type {
   TableVirtualConfig,
 } from '../../interface';
 import { getCellSpan } from '../../utils/handle';
+import { getVirtualFixedHeightConfig } from '../../utils/virtual';
 import type {
   BodyItem,
   BodyItemRenderer,
@@ -35,33 +36,6 @@ interface UseTableVirtualBodyProps<T = any> {
 const isBodyRowItem = <T,>(item: BodyItem<T>): item is BodyRowItem<T> =>
   item.type === 'row';
 
-const getFixedHeightConfig = (
-  virtual: boolean | TableVirtualConfig | undefined,
-) => {
-  if (typeof virtual !== 'object') {
-    return {
-      rowHeight: undefined,
-      expandedRowHeight: undefined,
-    };
-  }
-
-  const rowHeight =
-    isNum(virtual.rowHeight) && virtual.rowHeight > 0
-      ? virtual.rowHeight
-      : undefined;
-  const expandedRowHeight =
-    virtual.expandedRowHeight === false
-      ? undefined
-      : isNum(virtual.expandedRowHeight) && virtual.expandedRowHeight > 0
-      ? virtual.expandedRowHeight
-      : rowHeight;
-
-  return {
-    rowHeight,
-    expandedRowHeight,
-  };
-};
-
 export default function useTableVirtualBody<T = any>({
   bodyItems,
   flattenDataLength,
@@ -79,7 +53,7 @@ export default function useTableVirtualBody<T = any>({
   const {
     rowHeight: fixedRowHeight,
     expandedRowHeight: fixedExpandedRowHeight,
-  } = useMemo(() => getFixedHeightConfig(virtual), [virtual]);
+  } = useMemo(() => getVirtualFixedHeightConfig(virtual), [virtual]);
 
   const virtualData = useMemo(
     () =>

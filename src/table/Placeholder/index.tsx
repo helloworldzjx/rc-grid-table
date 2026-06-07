@@ -1,10 +1,11 @@
-import React, { FC, useEffect, useMemo, useRef } from 'react';
+import React, { FC, memo, useEffect, useMemo, useRef } from 'react';
 
 import { isNum } from '../../_utils/validate';
 import { useColumnSortableContext } from '../columnSortableContext';
-import { useTableContext } from '../context';
 import { usePrefixClsContext } from '../prefixClsContext';
 import { getComponentCls } from '../style/classNames';
+import { useTableColumnStateContext } from '../tableColumnStateContext';
+import { useTableLayoutContext } from '../tableLayoutContext';
 import { distribute } from '../utils/calc';
 import { batchUpdateColumns } from '../utils/handle';
 
@@ -17,11 +18,13 @@ const Placeholder: FC = () => {
     columnsWidthTotal,
     flattenColumns = [],
     flattenColumnsWidths = [],
+  } = useTableLayoutContext();
+  const {
     middleState,
     updateFlattenColumnsWidths,
     updateMiddleState,
     columnsConfig,
-  } = useTableContext();
+  } = useTableColumnStateContext();
   const { sortableDraftState } = useColumnSortableContext();
   const prefixCls = usePrefixClsContext();
 
@@ -215,4 +218,4 @@ const Placeholder: FC = () => {
   );
 };
 
-export default Placeholder;
+export default memo(Placeholder);
