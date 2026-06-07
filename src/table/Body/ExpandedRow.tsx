@@ -44,13 +44,13 @@ const ExpandedRow: FC<ExpandedRowProps> = ({
   const {
     bodyRowCls,
     bodyGridRowCls,
-    bodyRowFixedHeightCls,
+    bodyFixedHeightRowCls,
     cellCls,
     expandedRowCls,
     expandedRowCellCls,
     expandedRowContentCls,
   } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
-  const { bodyRowFixedHeightCssVar } = useMemo(
+  const { bodyFixedHeightRowCssVar } = useMemo(
     () => getCssVar(prefixCls),
     [prefixCls],
   );
@@ -66,9 +66,9 @@ const ExpandedRow: FC<ExpandedRowProps> = ({
 
     return {
       ...style,
-      [bodyRowFixedHeightCssVar]: `${rowHeight}px`,
+      [bodyFixedHeightRowCssVar]: `${rowHeight}px`,
     } as CSSProperties;
-  }, [bodyRowFixedHeightCssVar, hasFixedRowHeight, rowHeight, style]);
+  }, [bodyFixedHeightRowCssVar, hasFixedRowHeight, rowHeight, style]);
   const expandedRowCellWidth = Math.min(
     columnsWidthTotal,
     containerWidth || columnsWidthTotal,
@@ -88,7 +88,7 @@ const ExpandedRow: FC<ExpandedRowProps> = ({
         expandedRowCls,
         {
           [bodyGridRowCls]: virtual,
-          [bodyRowFixedHeightCls]: hasFixedRowHeight,
+          [bodyFixedHeightRowCls]: hasFixedRowHeight,
         },
         className,
       )}

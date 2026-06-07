@@ -85,14 +85,14 @@ function BodyCell({
 
   const {
     cellCls,
-    cellEllipsisCls,
-    cellEllipsisInnerCls,
-    cellFixedStartCls,
-    cellFixedStartLastCls,
-    cellFixedStartShadowActiveCls,
-    cellFixedEndCls,
-    cellFixedEndFirstCls,
-    cellFixedEndShadowActiveCls,
+    ellipsisCellCls,
+    ellipsisCellInnerCls,
+    fixedStartCellCls,
+    fixedStartLastCellCls,
+    fixedStartShadowActiveCellCls,
+    fixedEndCellCls,
+    fixedEndFirstCellCls,
+    fixedEndShadowActiveCellCls,
     expandControlCellCls,
     expandControlCls,
     selectionCellCls,
@@ -323,7 +323,7 @@ function BodyCell({
       ? (getEllipsisTitle(childrenNode) as string)
       : undefined;
     childrenNode = (
-      <div title={elTitle} className={cellEllipsisInnerCls}>
+      <div title={elTitle} className={ellipsisCellInnerCls}>
         {childrenNode}
       </div>
     );
@@ -379,13 +379,13 @@ function BodyCell({
       className={classNames(
         cellCls,
         {
-          [cellEllipsisCls]: ellipsis,
-          [cellFixedStartCls]: fixedInfo.fixStart !== null,
-          [cellFixedStartLastCls]: fixedInfo.fixedStartShadow,
-          [cellFixedStartShadowActiveCls]: fixedShadowActive.start,
-          [cellFixedEndCls]: fixedInfo.fixEnd !== null,
-          [cellFixedEndFirstCls]: fixedInfo.fixedEndShadow,
-          [cellFixedEndShadowActiveCls]: fixedShadowActive.end,
+          [ellipsisCellCls]: ellipsis,
+          [fixedStartCellCls]: fixedInfo.fixStart !== null,
+          [fixedStartLastCellCls]: fixedInfo.fixedStartShadow,
+          [fixedStartShadowActiveCellCls]: fixedShadowActive.start,
+          [fixedEndCellCls]: fixedInfo.fixEnd !== null,
+          [fixedEndFirstCellCls]: fixedInfo.fixedEndShadow,
+          [fixedEndShadowActiveCellCls]: fixedShadowActive.end,
           [expandControlCellCls]: isInternalExpandColumn,
           [selectionCellCls]: isInternalSelectionColumn,
         },

@@ -120,15 +120,18 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       bodyCls,
       bodyInnerCls,
       bodyRowCls,
-      bodyRowFixedHeightCls,
+      bodyFixedHeightRowCls,
       cellCls,
       noDataCellCls,
       noDataCellContentCls,
       summaryStickyCls,
     } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
 
-    const { colsWidthCssVar, colsWidthTotalCssVar, bodyRowFixedHeightCssVar } =
-      useMemo(() => getCssVar(prefixCls), [prefixCls]);
+    const {
+      columnsWidthCssVar,
+      columnsWidthTotalCssVar,
+      bodyFixedHeightRowCssVar,
+    } = useMemo(() => getCssVar(prefixCls), [prefixCls]);
 
     const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -352,13 +355,13 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
 
     const tableStyle = useMemo<CSSProperties>(
       () => ({
-        [`${colsWidthCssVar}`]: gridTemplateColumns,
-        [`${colsWidthTotalCssVar}`]: `${columnsWidthTotal}px`,
+        [`${columnsWidthCssVar}`]: gridTemplateColumns,
+        [`${columnsWidthTotalCssVar}`]: `${columnsWidthTotal}px`,
         ...style,
       }),
       [
-        colsWidthCssVar,
-        colsWidthTotalCssVar,
+        columnsWidthCssVar,
+        columnsWidthTotalCssVar,
         columnsWidthTotal,
         gridTemplateColumns,
         style,
@@ -369,20 +372,20 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       () =>
         !!scrollY
           ? {
-              offsetLeft: `max(0px, min(calc(var(${colsWidthTotalCssVar}) - ${SCROLLBAR_SIZE}px), calc(100% - ${SCROLLBAR_SIZE}px)))`,
+              offsetLeft: `max(0px, min(calc(var(${columnsWidthTotalCssVar}) - ${SCROLLBAR_SIZE}px), calc(100% - ${SCROLLBAR_SIZE}px)))`,
             }
           : undefined,
-      [colsWidthTotalCssVar, scrollY],
+      [columnsWidthTotalCssVar, scrollY],
     );
 
     const emptyRowStyle = useMemo<CSSProperties | undefined>(
       () =>
         rowHeight !== undefined
           ? ({
-              [`${bodyRowFixedHeightCssVar}`]: `${rowHeight}px`,
+              [`${bodyFixedHeightRowCssVar}`]: `${rowHeight}px`,
             } as CSSProperties)
           : undefined,
-      [bodyRowFixedHeightCssVar, rowHeight],
+      [bodyFixedHeightRowCssVar, rowHeight],
     );
 
     const emptyCellStyle = useMemo<CSSProperties>(
@@ -535,7 +538,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
                 {!dataSource?.length && (
                   <BodyRowComponent
                     className={classNames(bodyRowCls, {
-                      [bodyRowFixedHeightCls]: rowHeight !== undefined,
+                      [bodyFixedHeightRowCls]: rowHeight !== undefined,
                     })}
                     style={emptyRowStyle}
                   >

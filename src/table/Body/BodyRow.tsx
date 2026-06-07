@@ -65,14 +65,14 @@ function BodyRow({
   const {
     bodyRowCls,
     bodyGridRowCls,
-    bodyRowFixedHeightCls,
-    bodyRowExpandableCls,
-    bodyRowSortDraggingCls,
-    bodyRowSortDraggingOverlayCls,
-    bodyRowSortFirstCls,
-    bodyRowSortLastCls,
+    bodyFixedHeightRowCls,
+    bodyExpandableRowCls,
+    bodySortDraggingRowCls,
+    bodySortDraggingOverlayRowCls,
+    bodySortFirstRowCls,
+    bodySortLastRowCls,
   } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
-  const { bodyRowFixedHeightCssVar } = useMemo(
+  const { bodyFixedHeightRowCssVar } = useMemo(
     () => getCssVar(prefixCls),
     [prefixCls],
   );
@@ -99,9 +99,9 @@ function BodyRow({
 
     return {
       ...style,
-      [bodyRowFixedHeightCssVar]: `${rowHeight}px`,
+      [bodyFixedHeightRowCssVar]: `${rowHeight}px`,
     } as CSSProperties;
-  }, [bodyRowFixedHeightCssVar, hasFixedRowHeight, rowHeight, style]);
+  }, [bodyFixedHeightRowCssVar, hasFixedRowHeight, rowHeight, style]);
   const firstDataColumnIndex = flattenColumns.findIndex(
     (column) => !isInternalColumn(column),
   );
@@ -131,12 +131,12 @@ function BodyRow({
         bodyRowCls,
         {
           [bodyGridRowCls]: virtual,
-          [bodyRowFixedHeightCls]: hasFixedRowHeight,
-          [bodyRowExpandableCls]: expandByClick,
-          [bodyRowSortDraggingCls]: rowSort.active && !rowSortOverlay,
-          [bodyRowSortDraggingOverlayCls]: rowSort.active && rowSortOverlay,
-          [bodyRowSortFirstCls]: rowSort.first && !rowSortOverlay,
-          [bodyRowSortLastCls]: rowSort.last && !rowSortOverlay,
+          [bodyFixedHeightRowCls]: hasFixedRowHeight,
+          [bodyExpandableRowCls]: expandByClick,
+          [bodySortDraggingRowCls]: rowSort.active && !rowSortOverlay,
+          [bodySortDraggingOverlayRowCls]: rowSort.active && rowSortOverlay,
+          [bodySortFirstRowCls]: rowSort.first && !rowSortOverlay,
+          [bodySortLastRowCls]: rowSort.last && !rowSortOverlay,
         },
         className,
       )}

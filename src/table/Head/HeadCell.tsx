@@ -52,19 +52,19 @@ function HeadCell({
 
   const {
     cellCls,
-    cellEllipsisCls,
-    cellEllipsisInnerCls,
+    ellipsisCellCls,
+    ellipsisCellInnerCls,
     selectionCellCls,
     headLastCellCls,
     headResizableCellDisabledCls,
     headSortableCellCls,
     headSortableCellDisabledCls,
-    cellFixedStartCls,
-    cellFixedStartLastCls,
-    cellFixedStartShadowActiveCls,
-    cellFixedEndCls,
-    cellFixedEndFirstCls,
-    cellFixedEndShadowActiveCls,
+    fixedStartCellCls,
+    fixedStartLastCellCls,
+    fixedStartShadowActiveCellCls,
+    fixedEndCellCls,
+    fixedEndFirstCellCls,
+    fixedEndShadowActiveCellCls,
   } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
 
   const resizableRef = useRef<HTMLDivElement | null>(null);
@@ -289,7 +289,7 @@ function HeadCell({
       ? (getEllipsisTitle(childrenNode) as string)
       : undefined;
     childrenNode = (
-      <div title={elTitle} className={cellEllipsisInnerCls}>
+      <div title={elTitle} className={ellipsisCellInnerCls}>
         {childrenNode}
       </div>
     );
@@ -301,14 +301,14 @@ function HeadCell({
       className={classNames(
         cellCls,
         {
-          [cellEllipsisCls]: ellipsis,
+          [ellipsisCellCls]: ellipsis,
           [headLastCellCls]: hasHeadLastCellCls,
-          [cellFixedStartCls]: fixedInfo.fixStart !== null,
-          [cellFixedStartLastCls]: fixedInfo.fixedStartShadow,
-          [cellFixedStartShadowActiveCls]: fixedShadowActive.start,
-          [cellFixedEndCls]: fixedInfo.fixEnd !== null,
-          [cellFixedEndFirstCls]: fixedInfo.fixedEndShadow,
-          [cellFixedEndShadowActiveCls]: fixedShadowActive.end,
+          [fixedStartCellCls]: fixedInfo.fixStart !== null,
+          [fixedStartLastCellCls]: fixedInfo.fixedStartShadow,
+          [fixedStartShadowActiveCellCls]: fixedShadowActive.start,
+          [fixedEndCellCls]: fixedInfo.fixEnd !== null,
+          [fixedEndFirstCellCls]: fixedInfo.fixedEndShadow,
+          [fixedEndShadowActiveCellCls]: fixedShadowActive.end,
           [selectionCellCls]: isInternalSelectionColumn,
           [headResizableCellDisabledCls]:
             !!resizableColumns && !!col.column?.resizeDisabled,

@@ -30,25 +30,25 @@ export type ComponentClsType = {
   bodyInnerCls: string;
   bodyRowCls: string;
   bodyGridRowCls: string;
-  bodyRowFixedHeightCls: string;
+  bodyFixedHeightRowCls: string;
   bodyVirtualFillerCls: string;
   bodyVirtualInnerCls: string;
   bodyVirtualRowSpanCls: string;
   bodyVirtualRowSpanTopCls: string;
   bodyVirtualPreservedCls: string;
-  bodyRowExpandableCls: string;
-  bodyRowSortDraggingCls: string;
-  bodyRowSortDraggingOverlayCls: string;
-  bodyRowSortFirstCls: string;
-  bodyRowSortLastCls: string;
+  bodyExpandableRowCls: string;
+  bodySortDraggingRowCls: string;
+  bodySortDraggingOverlayRowCls: string;
+  bodySortFirstRowCls: string;
+  bodySortLastRowCls: string;
   cellCls: string;
   filterCellCls: string;
-  cellEllipsisCls: string;
-  cellEllipsisInnerCls: string;
+  ellipsisCellCls: string;
+  ellipsisCellInnerCls: string;
   expandControlCellCls: string;
   expandControlCls: string;
   rowSortCellCls: string;
-  rowSortCellOverCls: string;
+  rowSortOverCellCls: string;
   rowSortControlCls: string;
   rowSortHandleCls: string;
   rowSortHandleDisabledCls: string;
@@ -75,12 +75,12 @@ export type ComponentClsType = {
   headSortableCellCls: string;
   headSortableCellDisabledCls: string;
   headDraggingOverlayCellCls: string;
-  cellFixedStartCls: string;
-  cellFixedStartLastCls: string;
-  cellFixedStartShadowActiveCls: string;
-  cellFixedEndCls: string;
-  cellFixedEndFirstCls: string;
-  cellFixedEndShadowActiveCls: string;
+  fixedStartCellCls: string;
+  fixedStartLastCellCls: string;
+  fixedStartShadowActiveCellCls: string;
+  fixedEndCellCls: string;
+  fixedEndFirstCellCls: string;
+  fixedEndShadowActiveCellCls: string;
   noDataCellCls: string;
   noDataCellContentCls: string;
   summaryCls: string;
@@ -100,9 +100,9 @@ export type ScrollbarClsType = {
 };
 
 export type CssVarType = {
-  bodyRowFixedHeightCssVar: string;
-  colsWidthCssVar: string;
-  colsWidthTotalCssVar: string;
+  bodyFixedHeightRowCssVar: string;
+  columnsWidthCssVar: string;
+  columnsWidthTotalCssVar: string;
 };
 
 export const getComponentCls = (prefixCls: string): ComponentClsType => {
@@ -138,25 +138,25 @@ export const getComponentCls = (prefixCls: string): ComponentClsType => {
     bodyInnerCls: `${prefixCls}-body-inner`,
     bodyRowCls: `${prefixCls}-body-row`,
     bodyGridRowCls: `${prefixCls}-body-grid-row`,
-    bodyRowFixedHeightCls: `${prefixCls}-body-row-fixed-height`,
+    bodyFixedHeightRowCls: `${prefixCls}-body-fixed-height-row`,
     bodyVirtualFillerCls: `${prefixCls}-body-virtual-filler`,
     bodyVirtualInnerCls: `${prefixCls}-body-virtual-inner`,
     bodyVirtualRowSpanCls: `${prefixCls}-body-virtual-row-span`,
     bodyVirtualRowSpanTopCls: `${prefixCls}-body-virtual-row-span-top`,
     bodyVirtualPreservedCls: `${prefixCls}-body-virtual-preserved`,
-    bodyRowExpandableCls: `${prefixCls}-body-row-expandable`,
-    bodyRowSortDraggingCls: `${prefixCls}-body-row-sort-dragging`,
-    bodyRowSortDraggingOverlayCls: `${prefixCls}-body-row-sort-dragging-overlay`,
-    bodyRowSortFirstCls: `${prefixCls}-body-row-sort-first`,
-    bodyRowSortLastCls: `${prefixCls}-body-row-sort-last`,
+    bodyExpandableRowCls: `${prefixCls}-body-expandable-row`,
+    bodySortDraggingRowCls: `${prefixCls}-body-sort-dragging-row`,
+    bodySortDraggingOverlayRowCls: `${prefixCls}-body-sort-dragging-overlay-row`,
+    bodySortFirstRowCls: `${prefixCls}-body-sort-first-row`,
+    bodySortLastRowCls: `${prefixCls}-body-sort-last-row`,
     cellCls: `${prefixCls}-cell`,
     filterCellCls: `${prefixCls}-filter-cell`,
-    cellEllipsisCls: `${prefixCls}-cell-ellipsis`,
-    cellEllipsisInnerCls: `${prefixCls}-cell-ellipsis-inner`,
+    ellipsisCellCls: `${prefixCls}-ellipsis-cell`,
+    ellipsisCellInnerCls: `${prefixCls}-ellipsis-cell-inner`,
     expandControlCellCls: `${prefixCls}-expand-control-cell`,
     expandControlCls: `${prefixCls}-expand-control`,
     rowSortCellCls: `${prefixCls}-row-sort-cell`,
-    rowSortCellOverCls: `${prefixCls}-row-sort-cell-over`,
+    rowSortOverCellCls: `${prefixCls}-row-sort-over-cell`,
     rowSortControlCls: `${prefixCls}-row-sort-control`,
     rowSortHandleCls: `${prefixCls}-row-sort-handle`,
     rowSortHandleDisabledCls: `${prefixCls}-row-sort-handle-disabled`,
@@ -182,13 +182,13 @@ export const getComponentCls = (prefixCls: string): ComponentClsType => {
     headResizableCellDisabledCls: `${prefixCls}-head-resizable-cell-disabled`,
     headSortableCellCls: `${prefixCls}-head-sortable-cell`,
     headSortableCellDisabledCls: `${prefixCls}-head-sortable-cell-disabled`,
-    headDraggingOverlayCellCls: `${prefixCls}-head-dragging-verlay-cell`,
-    cellFixedStartCls: `${prefixCls}-cell-fixed-start`,
-    cellFixedStartLastCls: `${prefixCls}-cell-fixed-start-last`,
-    cellFixedStartShadowActiveCls: `${prefixCls}-cell-fixed-start-shadow-active`,
-    cellFixedEndCls: `${prefixCls}-cell-fixed-end`,
-    cellFixedEndFirstCls: `${prefixCls}-cell-fixed-end-first`,
-    cellFixedEndShadowActiveCls: `${prefixCls}-cell-fixed-end-shadow-active`,
+    headDraggingOverlayCellCls: `${prefixCls}-head-dragging-overlay-cell`,
+    fixedStartCellCls: `${prefixCls}-fixed-start-cell`,
+    fixedStartLastCellCls: `${prefixCls}-fixed-start-last-cell`,
+    fixedStartShadowActiveCellCls: `${prefixCls}-fixed-start-shadow-active-cell`,
+    fixedEndCellCls: `${prefixCls}-fixed-end-cell`,
+    fixedEndFirstCellCls: `${prefixCls}-fixed-end-first-cell`,
+    fixedEndShadowActiveCellCls: `${prefixCls}-fixed-end-shadow-active-cell`,
     noDataCellCls: `${prefixCls}-no-data-cell`,
     noDataCellContentCls: `${prefixCls}-no-data-cell-content`,
     summaryCls: `${prefixCls}-summary`,
@@ -209,7 +209,7 @@ export const getScrollbarCls = (prefixCls: string): ScrollbarClsType => ({
 });
 
 export const getCssVar = (prefixCls: string): CssVarType => ({
-  bodyRowFixedHeightCssVar: `--${prefixCls}-body-row-fixed-height`,
-  colsWidthCssVar: `--${prefixCls}-cols-width`,
-  colsWidthTotalCssVar: `--${prefixCls}-cols-width-total`,
+  bodyFixedHeightRowCssVar: `--${prefixCls}-body-fixed-height-row`,
+  columnsWidthCssVar: `--${prefixCls}-columns-width`,
+  columnsWidthTotalCssVar: `--${prefixCls}-columns-width-total`,
 });

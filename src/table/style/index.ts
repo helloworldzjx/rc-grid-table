@@ -86,20 +86,20 @@ const genVirtualStyle = (
     bodyVirtualRowSpanCls,
     bodyVirtualRowSpanTopCls,
     bodyVirtualPreservedCls,
-    bodyRowFixedHeightCls,
+    bodyFixedHeightRowCls,
     cellCls,
   }: ComponentClsType,
   {
-    colsWidthCssVar,
-    colsWidthTotalCssVar,
-    bodyRowFixedHeightCssVar,
+    columnsWidthCssVar,
+    columnsWidthTotalCssVar,
+    bodyFixedHeightRowCssVar,
   }: CssVarType,
 ): CSSInterpolation => ({
   [`.${componentCls}.${virtualCls}`]: {
     [`.${bodyVirtualFillerCls}`]: {
       position: 'relative',
       gridColumn: '1 / -1',
-      width: `max(100%, var(${colsWidthTotalCssVar}))`,
+      width: `max(100%, var(${columnsWidthTotalCssVar}))`,
       minHeight: '100%',
     },
 
@@ -108,7 +108,7 @@ const genVirtualStyle = (
       insetInline: 0,
       top: 0,
       display: 'grid',
-      gridTemplateColumns: `var(${colsWidthCssVar})`,
+      gridTemplateColumns: `var(${columnsWidthCssVar})`,
     },
 
     [`.${bodyVirtualRowSpanCls}`]: {
@@ -127,15 +127,15 @@ const genVirtualStyle = (
       insetInline: 0,
       top: 0,
       display: 'grid',
-      gridTemplateColumns: `var(${colsWidthCssVar})`,
+      gridTemplateColumns: `var(${columnsWidthCssVar})`,
     },
 
     [`.${bodyVirtualRowSpanTopCls} .${cellCls}`]: {
       borderTopColor: 'transparent',
     },
 
-    [`.${bodyRowFixedHeightCls}`]: {
-      gridTemplateRows: `var(${bodyRowFixedHeightCssVar})`,
+    [`.${bodyFixedHeightRowCls}`]: {
+      gridTemplateRows: `var(${bodyFixedHeightRowCssVar})`,
     },
   },
 });
@@ -249,7 +249,7 @@ const genBorderedStyle = (
 const genHeadStyle = (
   { headCls, headStickyCls, headInnerCls, headRowCls }: ComponentClsType,
   token: ComponentToken,
-  { colsWidthCssVar }: CssVarType,
+  { columnsWidthCssVar }: CssVarType,
 ): CSSInterpolation => ({
   [`.${headCls}`]: {
     position: 'relative',
@@ -274,7 +274,7 @@ const genHeadStyle = (
 
     [`.${headInnerCls}`]: {
       display: 'grid',
-      gridTemplateColumns: `var(${colsWidthCssVar})`,
+      gridTemplateColumns: `var(${columnsWidthCssVar})`,
       overflow: 'auto hidden',
       scrollbarWidth: 'none',
     },
@@ -292,10 +292,10 @@ const genBodyStyle = (
     bodyInnerCls,
     bodyRowCls,
     bodyGridRowCls,
-    bodyRowSortDraggingOverlayCls,
+    bodySortDraggingOverlayRowCls,
   }: ComponentClsType,
   token: ComponentToken,
-  { colsWidthCssVar }: CssVarType,
+  { columnsWidthCssVar }: CssVarType,
 ): CSSInterpolation => ({
   [`.${bodyCls}`]: {
     position: 'relative',
@@ -322,7 +322,7 @@ const genBodyStyle = (
 
   [`.${bodyInnerCls}`]: {
     display: 'grid',
-    gridTemplateColumns: `var(${colsWidthCssVar})`,
+    gridTemplateColumns: `var(${columnsWidthCssVar})`,
     height: '100%',
     boxSizing: 'border-box',
     overflow: 'auto',
@@ -334,12 +334,12 @@ const genBodyStyle = (
 
     [`.${bodyGridRowCls}`]: {
       display: 'grid',
-      gridTemplateColumns: `var(${colsWidthCssVar})`,
+      gridTemplateColumns: `var(${columnsWidthCssVar})`,
       gridColumn: '1 / -1',
     },
   },
 
-  [`.${bodyRowCls}.${bodyRowSortDraggingOverlayCls}`]: {
+  [`.${bodyRowCls}.${bodySortDraggingOverlayRowCls}`]: {
     borderRadius: token.borderRadius,
     boxShadow: '0 0 16px rgba(0, 0, 0, 0.1)',
     outline: `1px solid ${token.colorBorder}`,
@@ -355,7 +355,7 @@ const genSummaryCls = (
     summaryRowCls,
   }: ComponentClsType,
   token: ComponentToken,
-  { colsWidthCssVar }: CssVarType,
+  { columnsWidthCssVar }: CssVarType,
 ): CSSInterpolation => ({
   [`.${summaryCls}`]: {
     position: 'relative',
@@ -380,7 +380,7 @@ const genSummaryCls = (
 
     [`.${summaryInnerCls}`]: {
       display: 'grid',
-      gridTemplateColumns: `var(${colsWidthCssVar})`,
+      gridTemplateColumns: `var(${columnsWidthCssVar})`,
       overflow: 'auto hidden',
       scrollbarWidth: 'none',
     },
@@ -396,16 +396,16 @@ const genCellStyle = (
     rowSortingCls,
     headRowCls,
     bodyRowCls,
-    bodyRowSortDraggingCls,
-    bodyRowSortDraggingOverlayCls,
-    bodyRowSortFirstCls,
-    bodyRowExpandableCls,
+    bodySortDraggingRowCls,
+    bodySortDraggingOverlayRowCls,
+    bodySortFirstRowCls,
+    bodyExpandableRowCls,
     summaryRowCls,
     cellCls,
     filterCellCls,
     noDataCellCls,
-    cellEllipsisCls,
-    cellEllipsisInnerCls,
+    ellipsisCellCls,
+    ellipsisCellInnerCls,
     expandControlCls,
     rowSortHandleCls,
     rowSortHandleDisabledCls,
@@ -485,25 +485,25 @@ const genCellStyle = (
       backgroundColor: token.colorBgContainer,
       borderTop: `1px solid ${token.colorBorder}`,
     },
-    [`&:first-child:not(.${bodyRowSortDraggingCls}, .${bodyRowSortDraggingOverlayCls}) .${cellCls}`]:
+    [`&:first-child:not(.${bodySortDraggingRowCls}, .${bodySortDraggingOverlayRowCls}) .${cellCls}`]:
       {
         borderTopColor: 'transparent',
       },
 
-    [`&:not(.${bodyRowSortDraggingOverlayCls}):hover .${cellCls}:not(.${noDataCellCls})`]:
+    [`&:not(.${bodySortDraggingOverlayRowCls}):hover .${cellCls}:not(.${noDataCellCls})`]:
       {
         backgroundColor: token.cellColorHoverBg,
         transition: 'background-color 0.3s',
       },
 
-    [`&.${bodyRowSortFirstCls} .${cellCls}`]: {
+    [`&.${bodySortFirstRowCls} .${cellCls}`]: {
       borderTopColor: 'transparent',
     },
-    [`&.${bodyRowSortDraggingCls} .${cellCls}`]: {
+    [`&.${bodySortDraggingRowCls} .${cellCls}`]: {
       pointerEvents: 'none',
       opacity: 0.4,
     },
-    [`&.${bodyRowSortDraggingOverlayCls} .${cellCls}`]: {
+    [`&.${bodySortDraggingOverlayRowCls} .${cellCls}`]: {
       borderTop: `1px solid ${token.colorBorder}`,
       borderBottom: `1px solid ${token.colorBorder}`,
       borderLeft: `1px solid ${token.colorBorder}`,
@@ -521,12 +521,12 @@ const genCellStyle = (
     },
   },
 
-  [`&.${rowSortingCls} .${bodyRowCls}:first-child:not(.${bodyRowSortFirstCls}) .${cellCls}`]:
+  [`&.${rowSortingCls} .${bodyRowCls}:first-child:not(.${bodySortFirstRowCls}) .${cellCls}`]:
     {
       borderTopColor: token.colorBorder,
     },
 
-  [`.${bodyRowExpandableCls}`]: {
+  [`.${bodyExpandableRowCls}`]: {
     cursor: 'pointer',
   },
 
@@ -560,7 +560,7 @@ const genCellStyle = (
     boxSizing: 'border-box',
   },
 
-  [`.${cellEllipsisCls} .${cellEllipsisInnerCls}`]: {
+  [`.${ellipsisCellCls} .${ellipsisCellInnerCls}`]: {
     overflow: 'hidden',
     whiteSpace: 'nowrap',
     textOverflow: 'ellipsis',
@@ -796,31 +796,31 @@ const genFixedCellStyle = (
     pingEndCls,
     headRowCls,
     bodyRowCls,
-    bodyRowSortDraggingCls,
+    bodySortDraggingRowCls,
     cellCls,
-    cellFixedStartCls,
-    cellFixedStartLastCls,
-    cellFixedEndCls,
-    cellFixedEndFirstCls,
+    fixedStartCellCls,
+    fixedStartLastCellCls,
+    fixedEndCellCls,
+    fixedEndFirstCellCls,
   }: ComponentClsType,
   token: ComponentToken,
 ): CSSInterpolation => ({
-  [`.${headRowCls} .${cellFixedStartCls}, .${headRowCls} .${cellFixedEndCls}`]:
+  [`.${headRowCls} .${fixedStartCellCls}, .${headRowCls} .${fixedEndCellCls}`]:
     {
       position: 'sticky',
       zIndex: 1,
     },
-  [`.${cellFixedStartCls}, .${cellFixedEndCls}`]: {
+  [`.${fixedStartCellCls}, .${fixedEndCellCls}`]: {
     position: 'sticky',
     zIndex: 1,
   },
 
-  [`.${bodyRowCls} .${cellFixedStartCls}, .${bodyRowCls} .${cellFixedEndCls}`]:
+  [`.${bodyRowCls} .${fixedStartCellCls}, .${bodyRowCls} .${fixedEndCellCls}`]:
     {
       backgroundColor: token.colorBgContainer,
     },
 
-  [`.${cellFixedStartLastCls}::after`]: {
+  [`.${fixedStartLastCellCls}::after`]: {
     content: "' '",
     position: 'absolute',
     width: 30,
@@ -835,7 +835,7 @@ const genFixedCellStyle = (
     pointerEvents: 'none',
   },
 
-  [`.${cellFixedEndFirstCls}::after`]: {
+  [`.${fixedEndFirstCellCls}::after`]: {
     content: "' '",
     position: 'absolute',
     width: 30,
@@ -850,19 +850,19 @@ const genFixedCellStyle = (
     pointerEvents: 'none',
   },
 
-  [`&.${pingStartCls}.${pingEndCls} .${bodyRowCls}.${bodyRowSortDraggingCls} .${cellCls}.${cellFixedStartCls}`]:
+  [`&.${pingStartCls}.${pingEndCls} .${bodyRowCls}.${bodySortDraggingRowCls} .${cellCls}.${fixedStartCellCls}`]:
     {
       opacity: 1,
     },
-  [`&.${pingStartCls}.${pingEndCls} .${bodyRowCls}.${bodyRowSortDraggingCls} .${cellCls}.${cellFixedEndCls}`]:
+  [`&.${pingStartCls}.${pingEndCls} .${bodyRowCls}.${bodySortDraggingRowCls} .${cellCls}.${fixedEndCellCls}`]:
     {
       opacity: 1,
     },
-  [`&.${pingStartCls} .${bodyRowCls}.${bodyRowSortDraggingCls} .${cellCls}.${cellFixedStartCls}`]:
+  [`&.${pingStartCls} .${bodyRowCls}.${bodySortDraggingRowCls} .${cellCls}.${fixedStartCellCls}`]:
     {
       opacity: 1,
     },
-  [`&.${pingEndCls} .${bodyRowCls}.${bodyRowSortDraggingCls} .${cellCls}.${cellFixedEndCls}`]:
+  [`&.${pingEndCls} .${bodyRowCls}.${bodySortDraggingRowCls} .${cellCls}.${fixedEndCellCls}`]:
     {
       opacity: 1,
     },
@@ -877,10 +877,10 @@ const genFixedShadowStyle = ({
   pingEndCls,
   hasXScrollbarCls,
   headRowCls,
-  cellFixedStartLastCls,
-  cellFixedStartShadowActiveCls,
-  cellFixedEndFirstCls,
-  cellFixedEndShadowActiveCls,
+  fixedStartLastCellCls,
+  fixedStartShadowActiveCellCls,
+  fixedEndFirstCellCls,
+  fixedEndShadowActiveCellCls,
 }: ComponentClsType): CSSInterpolation => ({
   [`.${componentCls}.${hasXScrollbarCls}`]: {
     '&::after': {
@@ -925,26 +925,26 @@ const genFixedShadowStyle = ({
         boxShadow: 'inset 10px 0 8px -8px rgba(0, 0, 0, 0.1)',
       },
 
-    [`&.${pingStartCls}:not(.${fixColumnsGappedCls}) .${cellFixedStartLastCls}::after`]:
+    [`&.${pingStartCls}:not(.${fixColumnsGappedCls}) .${fixedStartLastCellCls}::after`]:
       {
         opacity: 1,
       },
-    [`&.${pingEndCls}:not(.${fixColumnsGappedCls}) .${cellFixedEndFirstCls}::after`]:
+    [`&.${pingEndCls}:not(.${fixColumnsGappedCls}) .${fixedEndFirstCellCls}::after`]:
       {
         opacity: 1,
       },
-    [`.${cellFixedStartShadowActiveCls}::after`]: {
+    [`.${fixedStartShadowActiveCellCls}::after`]: {
       opacity: 1,
     },
-    [`.${cellFixedEndShadowActiveCls}::after`]: {
+    [`.${fixedEndShadowActiveCellCls}::after`]: {
       opacity: 1,
     },
 
     // 左侧最后一列固定列显示阴影时不显示使用::before制作的分割线border
-    [`&.${pingStartCls} .${headRowCls} .${cellFixedStartLastCls}::before`]: {
+    [`&.${pingStartCls} .${headRowCls} .${fixedStartLastCellCls}::before`]: {
       display: 'none',
     },
-    [`.${headRowCls} .${cellFixedStartShadowActiveCls}::before`]: {
+    [`.${headRowCls} .${fixedStartShadowActiveCellCls}::before`]: {
       display: 'none',
     },
   },
