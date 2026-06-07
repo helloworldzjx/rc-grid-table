@@ -1,11 +1,11 @@
 import classNames from 'classnames';
 import React, { CSSProperties, forwardRef, memo, useMemo } from 'react';
 
+import useRenderedColumnLayout from '../hooks/useRenderedColumnLayout';
 import type { TableProps } from '../interface';
 import { usePrefixClsContext } from '../prefixClsContext';
 import { getComponentCls } from '../style/classNames';
 import { useTableDataContext } from '../tableDataContext';
-import { useTableLayoutContext } from '../tableLayoutContext';
 import SummaryRow from './SummaryRow';
 
 interface SummaryProps {
@@ -17,7 +17,7 @@ interface SummaryProps {
 const Summary = forwardRef<HTMLDivElement, SummaryProps>(
   ({ className, style, summary }, ref) => {
     const { dataSource = [] } = useTableDataContext();
-    const { flattenColumns = [] } = useTableLayoutContext();
+    const { flattenColumns = [] } = useRenderedColumnLayout();
     const prefixCls = usePrefixClsContext();
 
     const { summaryCls, summaryInnerCls } = useMemo(

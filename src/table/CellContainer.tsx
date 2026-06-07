@@ -1,24 +1,57 @@
 import { motion } from 'motion/react';
-import React, { ElementType, forwardRef, HTMLAttributes, useMemo } from 'react';
+import React, {
+  ElementType,
+  forwardRef,
+  HTMLAttributes,
+  Key,
+  useMemo,
+} from 'react';
 
 import { useColumnSortMotionContext } from './columnSortMotionContext';
 
 type CellContainerProps = HTMLAttributes<HTMLDivElement> & {
   component?: ElementType;
+  motionKeys?: Key[];
+  motionLayoutDependency?: string | number | false;
+};
+
+const hasMotionKey = (
+  motionKeys: Key[] | undefined,
+  sortableMotionKeys: ReadonlySet<Key>,
+) => {
+  if (!motionKeys?.length || !sortableMotionKeys.size) return false;
+
+  return motionKeys.some((key) => sortableMotionKeys.has(key));
 };
 
 const CellContainer = forwardRef<HTMLDivElement, CellContainerProps>(
-  ({ component: Component = 'div', ...rest }, ref) => {
-    const sortingColumns = useColumnSortMotionContext();
+  (
+    {
+      component: Component = 'div',
+      motionKeys,
+      motionLayoutDependency,
+      ...rest
+    },
+    ref,
+  ) => {
+    const { sortingColumns, sortableMotionKeys, sortableMotionVersion } =
+      useColumnSortMotionContext();
+    const motionEnabled = hasMotionKey(motionKeys, sortableMotionKeys);
+    const useMotionLayout = sortingColumns && motionEnabled;
 
     const MotionComponent = useMemo(
-      () => (Component === 'div' ? motion.div : motion.create(Component)),
-      [Component],
+      () =>
+        useMotionLayout
+          ? Component === 'div'
+            ? motion.div
+            : motion.create(Component)
+          : null,
+      [Component, useMotionLayout],
     );
 
     const props = useMemo(() => {
-      if (sortingColumns) {
-        return {
+      if (useMotionLayout) {
+        const motionProps: Record<string, unknown> = {
           ...rest,
           initial: false,
           layout: 'position',
@@ -27,18 +60,25 @@ const CellContainer = forwardRef<HTMLDivElement, CellContainerProps>(
             ease: 'easeOut',
           },
         };
+
+        if (motionLayoutDependency !== false) {
+          motionProps.layoutDependency =
+            motionLayoutDependency ?? sortableMotionVersion;
+        }
+
+        return motionProps;
       }
 
       return rest;
-    }, [sortingColumns, rest]);
+    }, [motionLayoutDependency, rest, sortableMotionVersion, useMotionLayout]);
 
     const Container = useMemo(() => {
-      if (sortingColumns) {
-        return MotionComponent;
+      if (useMotionLayout) {
+        return MotionComponent!;
       }
 
       return Component;
-    }, [sortingColumns, MotionComponent, Component]);
+    }, [useMotionLayout, MotionComponent, Component]);
 
     return <Container {...props} ref={ref} />;
   },

@@ -82,6 +82,17 @@ const HeadFilterCell: FC<HeadFilterCellProps> = ({
     delete restProps.className;
     return restProps;
   }, [cellProps]);
+  const motionKeys = useMemo(() => [column.key], [column.key]);
+  const motionLayoutDependency = useMemo(
+    () =>
+      [
+        column.key,
+        columnIndex,
+        fixedInfo.fixStart ?? '',
+        fixedInfo.fixEnd ?? '',
+      ].join('|'),
+    [column.key, columnIndex, fixedInfo.fixStart, fixedInfo.fixEnd],
+  );
 
   return (
     <CellContainer
@@ -102,6 +113,8 @@ const HeadFilterCell: FC<HeadFilterCellProps> = ({
         cellProps.className,
       )}
       style={mergedStyle}
+      motionKeys={motionKeys}
+      motionLayoutDependency={motionLayoutDependency}
       {...restCellProps}
     >
       {column.filterRender?.(column, columnIndex)}

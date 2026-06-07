@@ -65,6 +65,7 @@ function HeadRow({
     getSortableBaseState,
     updateSortableColumnsState,
     updateSortableDraftState,
+    updateSortableMotionKeys,
   } = useColumnSortableContext();
   const prefixCls = usePrefixClsContext();
   const { getComponent } = useComponentsContext();
@@ -92,6 +93,7 @@ function HeadRow({
   const sortablePreview = useSortablePreview({
     getBaseState: getSortableBaseState,
     updateDraftState: updateSortableDraftState,
+    updateMotionKeys: updateSortableMotionKeys,
   });
 
   const sortableItems = useMemo(

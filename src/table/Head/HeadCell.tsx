@@ -7,13 +7,13 @@ import CellContainer from '../CellContainer';
 import { useColumnSortableContext } from '../columnSortableContext';
 import { useComponentsContext } from '../componentsContext';
 import { useFixedShadowActive } from '../fixedShadowContext';
+import useRenderedColumnLayout from '../hooks/useRenderedColumnLayout';
 import { CellType } from '../interface';
 import { usePrefixClsContext } from '../prefixClsContext';
 import { useRowSelectionContext } from '../rowSelectionContext';
 import { SelectionCheckbox } from '../Selection';
 import { getComponentCls } from '../style/classNames';
 import { useTableColumnStateContext } from '../tableColumnStateContext';
-import { useTableLayoutContext } from '../tableLayoutContext';
 import { getMergedSpanKeys } from '../utils/calc';
 import { isSelectionColumn } from '../utils/const';
 import { getCellFixedInfo } from '../utils/fixedColumns';
@@ -41,7 +41,7 @@ function HeadCell({
   currentRowLastIndex,
   firstRowLastCellKey,
 }: HeadCellProps) {
-  const { flattenColumns = [], fixedOffset } = useTableLayoutContext();
+  const { flattenColumns = [], fixedOffset } = useRenderedColumnLayout();
   const { resizableColumns } = useTableColumnStateContext();
   const { sortableColumns } = useColumnSortableContext();
   const prefixCls = usePrefixClsContext();
@@ -184,6 +184,40 @@ function HeadCell({
     mergedSpanKeys,
   ]);
 
+  const motionKeys = useMemo(() => {
+    if (col.hasSubColumns) {
+      return flattenColumns
+        .filter((column) => column.ancestorKeys.includes(col.key as Key))
+        .map((column) => column.key);
+    }
+
+    return mergedSpanKeys;
+  }, [col.hasSubColumns, col.key, flattenColumns, mergedSpanKeys]);
+
+  const motionLayoutDependency = useMemo(
+    () =>
+      [
+        motionKeys.join(','),
+        col.colStart,
+        col.colEnd,
+        cellProps?.rowSpan ?? col.rowSpan,
+        cellProps?.colSpan ?? col.colSpan,
+        fixedInfo.fixStart ?? '',
+        fixedInfo.fixEnd ?? '',
+      ].join('|'),
+    [
+      motionKeys,
+      col.colStart,
+      col.colEnd,
+      cellProps?.rowSpan,
+      col.rowSpan,
+      cellProps?.colSpan,
+      col.colSpan,
+      fixedInfo.fixStart,
+      fixedInfo.fixEnd,
+    ],
+  );
+
   const resizeKeys = useMemo(() => {
     if (!resizableColumns || col.column?.resizeDisabled) return [];
 
@@ -317,6 +351,8 @@ function HeadCell({
         cellProps.className,
       )}
       style={mergedStyle}
+      motionKeys={motionKeys}
+      motionLayoutDependency={motionLayoutDependency}
       {...restCellProps}
       {...listeners}
       ref={setNodeRef}

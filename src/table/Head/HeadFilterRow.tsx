@@ -3,13 +3,13 @@ import React, { FC, memo, useMemo } from 'react';
 
 import { useComponentsContext } from '../componentsContext';
 import useFixedInfo from '../hooks/useFixedInfo';
+import useRenderedColumnLayout from '../hooks/useRenderedColumnLayout';
 import { usePrefixClsContext } from '../prefixClsContext';
 import { getComponentCls } from '../style/classNames';
-import { useTableLayoutContext } from '../tableLayoutContext';
 import HeadFilterCell from './HeadFilterCell';
 
 const HeadFilterRow: FC = () => {
-  const { flattenColumns = [], fixedOffset } = useTableLayoutContext();
+  const { flattenColumns = [], fixedOffset } = useRenderedColumnLayout();
   const prefixCls = usePrefixClsContext();
   const { headRowCls, filterRowCls } = useMemo(
     () => getComponentCls(prefixCls),

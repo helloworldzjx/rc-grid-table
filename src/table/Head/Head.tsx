@@ -9,11 +9,13 @@ import React, {
   useRef,
 } from 'react';
 
+import { useColumnSortPreviewLayoutContext } from '../columnSortPreviewLayoutContext';
 import { useColumnSortableContext } from '../columnSortableContext';
 import { useComponentsContext } from '../componentsContext';
 import { CellType } from '../interface';
 import { usePrefixClsContext } from '../prefixClsContext';
 import { getComponentCls } from '../style/classNames';
+import { parseHeaderRows } from '../utils/handle';
 import HeadFilterRow from './HeadFilterRow';
 import HeadRow from './HeadRow';
 
@@ -32,6 +34,7 @@ const Head = forwardRef<HeadRef, HeadProps>(
     const prefixCls = usePrefixClsContext();
     const { getComponent } = useComponentsContext();
     const { updateSortingColumns } = useColumnSortableContext();
+    const { columns: previewColumns } = useColumnSortPreviewLayoutContext();
     const innerRef = useRef<HTMLDivElement>(null);
     const WrapperComponent = getComponent(['header', 'wrapper'], 'div');
     const { headCls, headInnerCls } = useMemo(
@@ -40,6 +43,10 @@ const Head = forwardRef<HeadRef, HeadProps>(
     );
 
     const getScrollElement = useCallback(() => innerRef.current, []);
+    const renderedRows = useMemo(
+      () => (previewColumns ? parseHeaderRows(previewColumns) : rows),
+      [previewColumns, rows],
+    );
 
     const handleDragSortResizeStart = useCallback(
       (sorting?: boolean) => {
@@ -82,10 +89,10 @@ const Head = forwardRef<HeadRef, HeadProps>(
     return (
       <div className={classNames(headCls, className)} style={style}>
         <WrapperComponent className={headInnerCls} ref={innerRef}>
-          {rows.map((row, rowIndex) => (
+          {renderedRows.map((row, rowIndex) => (
             <HeadRow
               key={rowIndex}
-              headRows={rows}
+              headRows={renderedRows}
               row={row}
               headRowIndex={rowIndex}
               getScrollElement={getScrollElement}

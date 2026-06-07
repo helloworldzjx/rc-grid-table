@@ -21,6 +21,9 @@ import BodyRow from './Body/BodyRow';
 import ExpandedRow from './Body/ExpandedRow';
 import type { BodyItem, BodyRenderOptions } from './Body/interface';
 import useTableVirtualBody from './Body/virtual/useTableVirtualBody';
+import ColumnPreviewStyleScope, {
+  getGridTemplateColumns,
+} from './ColumnPreviewStyleScope';
 import Head from './Head/Head';
 import HorizontalScrollbar from './HorizontalScrollbar';
 import Placeholder from './Placeholder';
@@ -140,9 +143,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
     const hasData = !!dataSource?.length;
     const hasSummary = typeof summary === 'function';
     const showSummary = hasSummary && hasData;
-    const gridTemplateColumns = flattenColumnsWidths?.length
-      ? `${flattenColumnsWidths?.join('px ')}px`
-      : '';
+    const gridTemplateColumns = getGridTemplateColumns(flattenColumnsWidths);
     const hasExpandedRowRender =
       typeof expandable?.expandedRowRender === 'function';
     const { rowHeight, expandedRowHeight } = useMemo(
@@ -343,21 +344,6 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       };
     }, [sticky]);
 
-    const tableStyle = useMemo<CSSProperties>(
-      () => ({
-        [`${columnsWidthCssVar}`]: gridTemplateColumns,
-        [`${columnsWidthTotalCssVar}`]: `${columnsWidthTotal}px`,
-        ...style,
-      }),
-      [
-        columnsWidthCssVar,
-        columnsWidthTotalCssVar,
-        columnsWidthTotal,
-        gridTemplateColumns,
-        style,
-      ],
-    );
-
     const bodyShowVertical = useMemo(
       () =>
         !!scrollY
@@ -479,7 +465,8 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
         ref={composeRef(ref, wrapperRef)}
       >
         <Spin prefixCls={`${prefixCls}-spin`} spinning={loading}>
-          <TableComponent
+          <ColumnPreviewStyleScope
+            component={TableComponent}
             className={classNames(
               prefixCls,
               hashId,
@@ -504,7 +491,11 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
               },
               className,
             )}
-            style={tableStyle}
+            columnsWidthCssVar={columnsWidthCssVar}
+            columnsWidthTotalCssVar={columnsWidthTotalCssVar}
+            gridTemplateColumns={gridTemplateColumns}
+            columnsWidthTotal={columnsWidthTotal}
+            style={style}
           >
             <FixedShadowContext.Provider value={fixedShadowContextValue}>
               <Head
@@ -597,7 +588,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
             />
 
             <Placeholder />
-          </TableComponent>
+          </ColumnPreviewStyleScope>
         </Spin>
       </div>
     );
