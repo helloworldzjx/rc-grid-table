@@ -35,6 +35,15 @@ interface HeadRowProps<T = any> {
   onResizeEnd?: () => void;
 }
 
+const canOverByFixed = <T,>(
+  activeColumn: ColumnState<T>,
+  overColumn: ColumnState<T>,
+) => {
+  if (!activeColumn.fixed) return true;
+
+  return activeColumn.fixed === overColumn.fixed;
+};
+
 function HeadRow({
   headRows,
   row: columns,
@@ -223,6 +232,11 @@ function HeadRow({
       activeColumn.parentKey !== overColumn.parentKey ||
       activeColumn.dragSortDisabled
     ) {
+      return;
+    }
+
+    // 固定列只能 over 到固定列，且 fixed 值必须一致
+    if (!canOverByFixed(activeColumn, overColumn)) {
       return;
     }
 

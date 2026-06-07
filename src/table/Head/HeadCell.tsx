@@ -80,6 +80,12 @@ function HeadCell({
   }, [col.colStart, col.colEnd, flattenColumns, fixedOffset]);
 
   const fixedShadowActive = useFixedShadowActive(fixedInfo);
+  const fixedType =
+    fixedInfo.fixStart !== null
+      ? 'start'
+      : fixedInfo.fixEnd !== null
+      ? 'end'
+      : undefined;
 
   // 最后一列不显示右侧border
   const hasHeadLastCellCls = useMemo(() => {
@@ -210,7 +216,7 @@ function HeadCell({
         colSpan: col.column?.colSpan,
         order: col.column?.order,
         hasChildren: col.column?.hasChildren,
-        fixed: col.column?.fixed,
+        fixed: fixedType,
         dragSortDisabled,
       },
       sortKeys: sortEnabled ? mergedSpanKeys : [],
