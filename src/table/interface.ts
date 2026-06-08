@@ -585,6 +585,9 @@ export interface ColumnSortableContextProps<T = any> {
   updateSortableColumnsState: (columnsState: ColumnState<T>[]) => void;
   sortingColumns: boolean;
   updateSortingColumns: Dispatch<SetStateAction<boolean>>;
+  sortableMotionKeys: ReadonlySet<Key>;
+  updateSortableMotionKeys: Dispatch<SetStateAction<Set<Key>>>;
+  sortableMotionVersion: number;
 }
 
 export interface TableSelectionContextProps<T = any> {

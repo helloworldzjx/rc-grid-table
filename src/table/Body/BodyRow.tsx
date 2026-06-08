@@ -3,6 +3,7 @@ import classNames from 'classnames';
 import React, { CSSProperties, Ref, memo, useMemo } from 'react';
 
 import { isNum } from '../../_utils/validate';
+import { useColumnSortPreviewLayoutContext } from '../columnSortPreviewLayoutContext';
 import { useComponentsContext } from '../componentsContext';
 import { useExpandableContext } from '../expandableContext';
 import useFixedInfo from '../hooks/useFixedInfo';
@@ -80,7 +81,14 @@ function BodyRow({
   const { expandable: expandableConfig, onTriggerExpand } =
     useExpandableContext();
   const { getComponent } = useComponentsContext();
-  const fixedInfoList = useFixedInfo(flattenColumns, fixedOffset);
+  const previewLayout = useColumnSortPreviewLayoutContext();
+  // body 渲染读取预览列顺序，但虚拟滚动高度、滚动容器等仍由 Table 的真实布局维护。
+  const renderedFlattenColumns = previewLayout.flattenColumns ?? flattenColumns;
+  const renderedFixedOffset = previewLayout.fixedOffset ?? fixedOffset;
+  const fixedInfoList = useFixedInfo(
+    renderedFlattenColumns,
+    renderedFixedOffset,
+  );
 
   const RowComponent = useMemo(
     () => getComponent(['body', 'row'], 'div'),
@@ -102,7 +110,7 @@ function BodyRow({
       [bodyFixedHeightRowCssVar]: `${rowHeight}px`,
     } as CSSProperties;
   }, [bodyFixedHeightRowCssVar, hasFixedRowHeight, rowHeight, style]);
-  const firstDataColumnIndex = flattenColumns.findIndex(
+  const firstDataColumnIndex = renderedFlattenColumns.findIndex(
     (column) => !isInternalColumn(column),
   );
 
@@ -144,7 +152,7 @@ function BodyRow({
       onClick={handleClick}
       ref={rowSort.rowRef}
     >
-      {flattenColumns.map((column, colIndex) => {
+      {renderedFlattenColumns.map((column, colIndex) => {
         const rowSortControlColumn = isRowSortColumn(column);
 
         return (
@@ -154,8 +162,9 @@ function BodyRow({
             rowIndex={rowIndex}
             column={column}
             fixedInfo={fixedInfoList[colIndex]}
+            flattenColumns={renderedFlattenColumns}
             renderMode={renderMode}
-            colIndex={renderMode === 'normal' ? undefined : colIndex}
+            colIndex={colIndex}
             getRowSpanHeight={getRowSpanHeight}
             indent={indent}
             expanded={expanded}

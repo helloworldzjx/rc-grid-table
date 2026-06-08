@@ -3,10 +3,10 @@ import React, { CSSProperties, FC, memo, useMemo } from 'react';
 
 import CellContainer from '../CellContainer';
 import { useFixedShadowActive } from '../fixedShadowContext';
+import useRenderedColumnLayout from '../hooks/useRenderedColumnLayout';
 import { TableSummaryRowCell } from '../interface';
 import { usePrefixClsContext } from '../prefixClsContext';
 import { getComponentCls } from '../style/classNames';
-import { useTableLayoutContext } from '../tableLayoutContext';
 import { getCellFixedInfo } from '../utils/fixedColumns';
 import { getNormalSpanStyle } from '../utils/gridPlacement';
 import { getEllipsisTitle } from '../utils/handle';
@@ -17,7 +17,7 @@ interface SummaryCellProps {
 }
 
 const SummaryCell: FC<SummaryCellProps> = ({ column, colEnd }) => {
-  const { flattenColumns = [], fixedOffset } = useTableLayoutContext();
+  const { flattenColumns = [], fixedOffset } = useRenderedColumnLayout();
   const prefixCls = usePrefixClsContext();
 
   const {
@@ -68,6 +68,35 @@ const SummaryCell: FC<SummaryCellProps> = ({ column, colEnd }) => {
       mergedStyle: { ...spanStyle, ...style },
     };
   }, [colStart, colEnd, spanStyle, flattenColumns, fixedOffset]);
+  const motionKeys = useMemo(
+    () =>
+      // summary cell 可能跨列，按 colStart/colEnd 覆盖的叶子列加入 motion 区间判断。
+      flattenColumns
+        .slice(Math.max(colStart, 0), colEnd + 1)
+        .map((item) => item.key),
+    [colStart, colEnd, flattenColumns],
+  );
+  const motionLayoutDependency = useMemo(
+    () =>
+      [
+        motionKeys.join(','),
+        column.rowSpan ?? '',
+        column.colSpan ?? '',
+        colStart,
+        colEnd,
+        fixedInfo.fixStart ?? '',
+        fixedInfo.fixEnd ?? '',
+      ].join('|'),
+    [
+      motionKeys,
+      column.rowSpan,
+      column.colSpan,
+      colStart,
+      colEnd,
+      fixedInfo.fixStart,
+      fixedInfo.fixEnd,
+    ],
+  );
 
   const fixedShadowActive = useFixedShadowActive(fixedInfo);
 
@@ -100,6 +129,8 @@ const SummaryCell: FC<SummaryCellProps> = ({ column, colEnd }) => {
         [fixedEndShadowActiveCellCls]: fixedShadowActive.end,
       })}
       style={mergedStyle}
+      motionKeys={motionKeys}
+      motionLayoutDependency={motionLayoutDependency}
     >
       {childrenNode}
     </CellContainer>

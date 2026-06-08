@@ -39,6 +39,7 @@ interface BodyRowProps<T = any> {
   rowData: T;
   rowIndex: number;
   fixedInfo: FixedInfo;
+  flattenColumns: ColumnState<T>[];
   renderMode?: BodyRenderMode;
   colIndex?: number;
   getRowSpanHeight?: (rowSpan: number) => number;
@@ -63,6 +64,7 @@ function BodyCell({
   column,
   rowIndex,
   fixedInfo,
+  flattenColumns,
   renderMode = 'normal',
   colIndex,
   getRowSpanHeight,
@@ -134,6 +136,21 @@ function BodyCell({
       renderMode,
     ],
   );
+  const motionKeys = useMemo(() => {
+    // colSpan cell 需要按覆盖的叶子列参与 motion 区间判断；
+    // 普通 renderMode 也传 colIndex，是为了让列顺序变化时 body cell 的位置签名同步变化。
+    const startIndex =
+      colIndex ?? flattenColumns.findIndex((item) => item.key === column.key);
+    const colSpan = spanInfo.colSpan || 1;
+
+    if (startIndex < 0 || colSpan <= 1) {
+      return [column.key];
+    }
+
+    return flattenColumns
+      .slice(startIndex, startIndex + colSpan)
+      .map((item) => item.key);
+  }, [colIndex, column.key, flattenColumns, spanInfo.colSpan]);
 
   const mergedStyle = useMemo(() => {
     const style: CSSProperties = { ...spanInfo.style };
@@ -164,6 +181,34 @@ function BodyCell({
     rowSortCellStyle,
     spanInfo.style,
   ]);
+  const motionLayoutDependency = useMemo(
+    () =>
+      [
+        // 签名只描述影响列位置的因素，避免内容/hover 等状态导致 motion 额外测量。
+        motionKeys.join(','),
+        renderMode,
+        colIndex ?? '',
+        spanInfo.rowSpan,
+        spanInfo.colSpan,
+        spanInfo.style.gridColumn ?? '',
+        spanInfo.style.gridRow ?? '',
+        spanInfo.style.height ?? '',
+        fixedInfo.fixStart ?? '',
+        fixedInfo.fixEnd ?? '',
+      ].join('|'),
+    [
+      motionKeys,
+      renderMode,
+      colIndex,
+      spanInfo.rowSpan,
+      spanInfo.colSpan,
+      spanInfo.style.gridColumn,
+      spanInfo.style.gridRow,
+      spanInfo.style.height,
+      fixedInfo.fixStart,
+      fixedInfo.fixEnd,
+    ],
+  );
 
   const restCellProps = useMemo(() => {
     const restProps = { ...column.onCell?.(rowData, rowIndex) };
@@ -357,6 +402,8 @@ function BodyCell({
         restCellProps={restCellProps}
         column={column}
         fixedInfo={fixedInfo}
+        motionKeys={motionKeys}
+        motionLayoutDependency={motionLayoutDependency}
         indent={indent}
         mergedStyle={mergedStyle}
         rowData={rowData}
@@ -393,6 +440,8 @@ function BodyCell({
         cellProps.className,
       )}
       style={mergedStyle}
+      motionKeys={motionKeys}
+      motionLayoutDependency={motionLayoutDependency}
       {...restCellProps}
     >
       {childrenNode}

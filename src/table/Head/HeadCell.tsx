@@ -7,13 +7,13 @@ import CellContainer from '../CellContainer';
 import { useColumnSortableContext } from '../columnSortableContext';
 import { useComponentsContext } from '../componentsContext';
 import { useFixedShadowActive } from '../fixedShadowContext';
+import useRenderedColumnLayout from '../hooks/useRenderedColumnLayout';
 import { CellType } from '../interface';
 import { usePrefixClsContext } from '../prefixClsContext';
 import { useRowSelectionContext } from '../rowSelectionContext';
 import { SelectionCheckbox } from '../Selection';
 import { getComponentCls } from '../style/classNames';
 import { useTableColumnStateContext } from '../tableColumnStateContext';
-import { useTableLayoutContext } from '../tableLayoutContext';
 import { getMergedSpanKeys } from '../utils/calc';
 import { isSelectionColumn } from '../utils/const';
 import { getCellFixedInfo } from '../utils/fixedColumns';
@@ -41,7 +41,7 @@ function HeadCell({
   currentRowLastIndex,
   firstRowLastCellKey,
 }: HeadCellProps) {
-  const { flattenColumns = [], fixedOffset } = useTableLayoutContext();
+  const { flattenColumns = [], fixedOffset } = useRenderedColumnLayout();
   const { resizableColumns } = useTableColumnStateContext();
   const { sortableColumns } = useColumnSortableContext();
   const prefixCls = usePrefixClsContext();
@@ -184,6 +184,42 @@ function HeadCell({
     mergedSpanKeys,
   ]);
 
+  const motionKeys = useMemo(() => {
+    // 分组 header 覆盖多个叶子列，motionKeys 用覆盖范围命中 active-over 区间。
+    if (col.hasSubColumns) {
+      return flattenColumns
+        .filter((column) => column.ancestorKeys.includes(col.key as Key))
+        .map((column) => column.key);
+    }
+
+    return mergedSpanKeys;
+  }, [col.hasSubColumns, col.key, flattenColumns, mergedSpanKeys]);
+
+  const motionLayoutDependency = useMemo(
+    () =>
+      [
+        // Header 的位置由覆盖列、span 和 fixed offset 决定，签名稳定才能减少 motion 测量面。
+        motionKeys.join(','),
+        col.colStart,
+        col.colEnd,
+        cellProps?.rowSpan ?? col.rowSpan,
+        cellProps?.colSpan ?? col.colSpan,
+        fixedInfo.fixStart ?? '',
+        fixedInfo.fixEnd ?? '',
+      ].join('|'),
+    [
+      motionKeys,
+      col.colStart,
+      col.colEnd,
+      cellProps?.rowSpan,
+      col.rowSpan,
+      cellProps?.colSpan,
+      col.colSpan,
+      fixedInfo.fixStart,
+      fixedInfo.fixEnd,
+    ],
+  );
+
   const resizeKeys = useMemo(() => {
     if (!resizableColumns || col.column?.resizeDisabled) return [];
 
@@ -317,6 +353,8 @@ function HeadCell({
         cellProps.className,
       )}
       style={mergedStyle}
+      motionKeys={motionKeys}
+      motionLayoutDependency={motionLayoutDependency}
       {...restCellProps}
       {...listeners}
       ref={setNodeRef}

@@ -1,44 +1,91 @@
 import { motion } from 'motion/react';
-import React, { ElementType, forwardRef, HTMLAttributes, useMemo } from 'react';
+import React, {
+  ElementType,
+  forwardRef,
+  HTMLAttributes,
+  Key,
+  useMemo,
+} from 'react';
 
+import { COLUMNS_SORT_MOTION_DURATION } from '../_utils/const';
 import { useColumnSortMotionContext } from './columnSortMotionContext';
 
 type CellContainerProps = HTMLAttributes<HTMLDivElement> & {
   component?: ElementType;
+  motionKeys?: Key[];
+  motionLayoutDependency?: string | number | false;
+};
+
+const hasMotionKey = (
+  motionKeys: Key[] | undefined,
+  sortableMotionKeys: ReadonlySet<Key>,
+) => {
+  if (!motionKeys?.length || !sortableMotionKeys.size) return false;
+
+  return motionKeys.some((key) => sortableMotionKeys.has(key));
 };
 
 const CellContainer = forwardRef<HTMLDivElement, CellContainerProps>(
-  ({ component: Component = 'div', ...rest }, ref) => {
-    const sortingColumns = useColumnSortMotionContext();
+  (
+    {
+      component: Component = 'div',
+      motionKeys,
+      motionLayoutDependency,
+      ...rest
+    },
+    ref,
+  ) => {
+    const { sortingColumns, sortableMotionKeys, sortableMotionVersion } =
+      useColumnSortMotionContext();
+
+    // 列排序预览仍使用 motion layout，但只给 active-over 区间内的 cell 开启。
+    // 非相关 cell 保持普通组件，避免整张表所有 cell 都参与 getBoundingClientRect 测量。
+    const motionEnabled = useMemo(() => {
+      return hasMotionKey(motionKeys, sortableMotionKeys);
+    }, [motionKeys, sortableMotionKeys]);
+    const useMotionLayout = sortingColumns && motionEnabled;
 
     const MotionComponent = useMemo(
-      () => (Component === 'div' ? motion.div : motion.create(Component)),
-      [Component],
+      () =>
+        useMotionLayout
+          ? Component === 'div'
+            ? motion.div
+            : motion.create(Component)
+          : null,
+      [Component, useMotionLayout],
     );
 
     const props = useMemo(() => {
-      if (sortingColumns) {
-        return {
+      if (useMotionLayout) {
+        const motionProps: Record<string, unknown> = {
           ...rest,
           initial: false,
           layout: 'position',
           transition: {
-            duration: 0.15,
+            duration: COLUMNS_SORT_MOTION_DURATION / 1000,
             ease: 'easeOut',
           },
         };
+
+        if (motionLayoutDependency !== false) {
+          // dependency 描述 cell 的真实位置签名；只在 key/span/fixed offset 等位置因素变化时触发布局测量。
+          motionProps.layoutDependency =
+            motionLayoutDependency ?? sortableMotionVersion;
+        }
+
+        return motionProps;
       }
 
       return rest;
-    }, [sortingColumns, rest]);
+    }, [motionLayoutDependency, rest, sortableMotionVersion, useMotionLayout]);
 
     const Container = useMemo(() => {
-      if (sortingColumns) {
-        return MotionComponent;
+      if (useMotionLayout) {
+        return MotionComponent!;
       }
 
       return Component;
-    }, [sortingColumns, MotionComponent, Component]);
+    }, [useMotionLayout, MotionComponent, Component]);
 
     return <Container {...props} ref={ref} />;
   },

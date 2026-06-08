@@ -82,6 +82,18 @@ const HeadFilterCell: FC<HeadFilterCellProps> = ({
     delete restProps.className;
     return restProps;
   }, [cellProps]);
+  const motionKeys = useMemo(() => [column.key], [column.key]);
+  const motionLayoutDependency = useMemo(
+    () =>
+      [
+        // filter cell 是单列覆盖，列 index 和 fixed offset 变化时才需要触发 layout 测量。
+        column.key,
+        columnIndex,
+        fixedInfo.fixStart ?? '',
+        fixedInfo.fixEnd ?? '',
+      ].join('|'),
+    [column.key, columnIndex, fixedInfo.fixStart, fixedInfo.fixEnd],
+  );
 
   return (
     <CellContainer
@@ -102,6 +114,8 @@ const HeadFilterCell: FC<HeadFilterCellProps> = ({
         cellProps.className,
       )}
       style={mergedStyle}
+      motionKeys={motionKeys}
+      motionLayoutDependency={motionLayoutDependency}
       {...restCellProps}
     >
       {column.filterRender?.(column, columnIndex)}

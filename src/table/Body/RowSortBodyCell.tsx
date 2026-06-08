@@ -20,6 +20,8 @@ type BodyCellBaseProps<T = any> = {
   restCellProps: React.HTMLAttributes<any>;
   column: ColumnState<T>;
   fixedInfo: FixedInfo;
+  motionKeys?: Key[];
+  motionLayoutDependency?: string | number | false;
   mergedStyle: CSSProperties;
 };
 
@@ -42,6 +44,8 @@ function RowSortBodyCell<T = any>({
   restCellProps,
   column,
   fixedInfo,
+  motionKeys,
+  motionLayoutDependency,
   indent,
   mergedStyle,
   rowData,
@@ -136,6 +140,8 @@ function RowSortBodyCell<T = any>({
         cellClassName,
       )}
       style={mergedStyle}
+      motionKeys={motionKeys}
+      motionLayoutDependency={motionLayoutDependency}
       {...restCellProps}
       ref={setRowSortNodeRef}
     >

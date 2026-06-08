@@ -6,6 +6,7 @@ import {
   DragOverEvent,
   DragOverlay,
   DragStartEvent,
+  MeasuringStrategy,
   pointerWithin,
   type Modifier,
 } from '@dnd-kit/core';
@@ -15,6 +16,7 @@ import React, {
   Key,
   memo,
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -30,12 +32,22 @@ import HeadCell from './HeadCell';
 import useSortablePreview from './useSortablePreview';
 
 const SORTABLE_SCROLL_IDLE_DELAY = 120;
+// 固定列处于 sticky 层，横向滚动后 dnd-kit 的 droppable rect 容易短暂滞后。
+// 只在“从固定列开始拖拽”时使用 16ms 高频测量，避免普通列拖拽也承担额外测量成本。
+const fixedColumnDroppableMeasuring = {
+  droppable: {
+    strategy: MeasuringStrategy.Always,
+    frequency: 16,
+  },
+};
 
 interface HeadRowProps<T = any> {
   headRows: CellType<T>[][];
   row: CellType<T>[];
   headRowIndex: number;
   getScrollElement?: () => HTMLDivElement | null;
+  isSortableStartLocked?: () => boolean;
+  lockSortableStart?: (duration: number) => void;
   onSortableStart?: () => void;
   onSortableEnd?: () => void;
   onResizeStart?: () => void;
@@ -56,6 +68,8 @@ function HeadRow({
   row: columns,
   headRowIndex,
   getScrollElement,
+  isSortableStartLocked,
+  lockSortableStart,
   onSortableStart,
   onSortableEnd,
   onResizeStart,
@@ -65,6 +79,7 @@ function HeadRow({
     getSortableBaseState,
     updateSortableColumnsState,
     updateSortableDraftState,
+    updateSortableMotionKeys,
   } = useColumnSortableContext();
   const prefixCls = usePrefixClsContext();
   const { getComponent } = useComponentsContext();
@@ -84,14 +99,25 @@ function HeadRow({
   const scrollEndTimerRef = useRef<NodeJS.Timeout | null>(null);
   const scrollLeftRef = useRef(0);
   const scrollingRef = useRef(false);
+  const ignoreSortableDragRef = useRef(false);
+  const sortableFinishTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
 
   const activeColumn = useMemo(() => {
     return columns.find((column) => column.key === activeKey);
   }, [activeKey, columns]);
 
+  const columnDroppableMeasuring = useMemo(() => {
+    return activeColumn?.column?.fixed
+      ? fixedColumnDroppableMeasuring
+      : undefined;
+  }, [activeColumn]);
+
   const sortablePreview = useSortablePreview({
     getBaseState: getSortableBaseState,
     updateDraftState: updateSortableDraftState,
+    updateMotionKeys: updateSortableMotionKeys,
   });
 
   const sortableItems = useMemo(
@@ -123,7 +149,8 @@ function HeadRow({
           coordinates = getEventCoordinates(activatorEvent);
         }
 
-        // 需要保存activeNodeRect，因为排序预览功能会改变rect
+        // 保存拖拽开始时的 active rect。排序预览会改变 header 布局，
+        // overlay 偏移需要基于初始位置计算，避免预览动画反向影响浮层位置。
         if (!activeRectRef.current && activeNodeRect) {
           activeRectRef.current = activeNodeRect;
         }
@@ -182,6 +209,10 @@ function HeadRow({
   };
 
   const cleanupSortable = (clearDraft = true) => {
+    if (sortableFinishTimerRef.current) {
+      clearTimeout(sortableFinishTimerRef.current);
+      sortableFinishTimerRef.current = null;
+    }
     cleanupSortableScrollListener();
     activeRectRef.current = null;
     document.documentElement.style.cursor = '';
@@ -189,8 +220,47 @@ function HeadRow({
     sortablePreview.cleanup(clearDraft);
   };
 
+  const finishSortableAfterMotion = (
+    clearDraft: boolean,
+    afterMotion?: () => void,
+  ) => {
+    if (sortableFinishTimerRef.current) {
+      clearTimeout(sortableFinishTimerRef.current);
+      sortableFinishTimerRef.current = null;
+    }
+
+    cleanupSortableScrollListener();
+    activeRectRef.current = null;
+    document.documentElement.style.cursor = '';
+    setActiveKey(null);
+
+    const delay = sortablePreview.getMotionFinishDelay();
+    if (delay <= 0) {
+      afterMotion?.();
+      onSortableEnd?.();
+      sortablePreview.cleanup(clearDraft);
+      return;
+    }
+
+    // 最后一帧 preview layout 仍有 150ms motion 过渡。
+    // 先锁住新的 dragStart，并延迟提交/清理，避免 drag end 立刻切掉 motionKeys 导致动画直接结束。
+    lockSortableStart?.(delay);
+    sortableFinishTimerRef.current = setTimeout(() => {
+      sortableFinishTimerRef.current = null;
+      afterMotion?.();
+      onSortableEnd?.();
+      sortablePreview.cleanup(clearDraft);
+    }, delay);
+  };
+
   const handleDragStart = (event: DragStartEvent) => {
     if (event.active.data.current?.type === 'sortableColumns') {
+      if (isSortableStartLocked?.()) {
+        ignoreSortableDragRef.current = true;
+        return;
+      }
+
+      ignoreSortableDragRef.current = false;
       onSortableStart?.();
 
       document.documentElement.style.cursor = 'move';
@@ -205,6 +275,8 @@ function HeadRow({
   };
 
   const handleDragOver = (event: DragOverEvent) => {
+    if (ignoreSortableDragRef.current) return;
+
     const activeData = event.active?.data.current;
     const overData = event.over?.data.current;
     if (!activeData || !overData) return;
@@ -230,7 +302,8 @@ function HeadRow({
       return;
     }
 
-    // 滚动过程中禁止与固定列交换顺序，等滚动空闲后再允许正常拖拽排序。
+    // 横向滚动期间 sticky 固定列的视觉位置与普通列滚动层不同步，
+    // 这段时间先不让固定列参与 over 交换，等滚动空闲后再允许正常排序。
     if (scrollingRef.current && overColumn.fixed) {
       return;
     }
@@ -242,7 +315,7 @@ function HeadRow({
       return;
     }
 
-    // 固定列只能 over 到固定列，且 fixed 值必须一致
+    // 固定列只能在相同 fixed 区域内排序，避免 start/normal/end 区域互相穿越。
     if (!canOverByFixed(activeColumn, overColumn)) {
       return;
     }
@@ -251,7 +324,8 @@ function HeadRow({
       return;
     }
 
-    // 获取当前的index，sortable数据由插件提供
+    // dnd-kit 提供当前 SortableContext 中的 index；
+    // draft 计算会再结合 active/over 覆盖的叶子列 key。
     const activeIndex = activeData.sortable.index;
     const overIndex = overData.sortable.index;
 
@@ -267,15 +341,21 @@ function HeadRow({
 
   const handleDragEnd = (event: DragEndEvent) => {
     if (event.active.data.current?.type === 'sortableColumns') {
+      if (ignoreSortableDragRef.current) {
+        ignoreSortableDragRef.current = false;
+        return;
+      }
+
       sortablePreview.flush();
-      onSortableEnd?.();
       const finalDraftState = sortablePreview.getDraftState();
 
       if (sortablePreview.hasDraftChanged() && finalDraftState) {
-        updateSortableColumnsState(finalDraftState);
-        cleanupSortable(false);
+        finishSortableAfterMotion(false, () => {
+          updateSortableColumnsState(finalDraftState);
+        });
       } else {
         cleanupSortable(true);
+        onSortableEnd?.();
       }
     }
 
@@ -286,9 +366,13 @@ function HeadRow({
 
   const handleDragCancel = (event: DragCancelEvent) => {
     if (event.active.data.current?.type === 'sortableColumns') {
-      sortablePreview.cancel();
-      onSortableEnd?.();
-      cleanupSortable(true);
+      if (ignoreSortableDragRef.current) {
+        ignoreSortableDragRef.current = false;
+        return;
+      }
+
+      sortablePreview.rollback();
+      finishSortableAfterMotion(true);
     }
 
     if (event.active.data.current?.type === 'resizableColumns') {
@@ -296,10 +380,22 @@ function HeadRow({
     }
   };
 
+  useEffect(() => {
+    return () => {
+      if (sortableFinishTimerRef.current) {
+        clearTimeout(sortableFinishTimerRef.current);
+        sortableFinishTimerRef.current = null;
+      }
+      cleanupSortableScrollListener();
+      document.documentElement.style.cursor = '';
+    };
+  }, [cleanupSortableScrollListener]);
+
   return (
     <RowComponent className={headRowCls}>
       <DndContext
         collisionDetection={pointerWithin}
+        measuring={columnDroppableMeasuring}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
