@@ -344,6 +344,7 @@ const genBodyStyle = (
     boxShadow: '0 0 16px rgba(0, 0, 0, 0.1)',
     outline: `1px solid ${token.colorBorder}`,
     outlineOffset: -1,
+    pointerEvents: 'none',
   },
 });
 
@@ -492,11 +493,10 @@ const genCellStyle = (
         borderTopColor: 'transparent',
       },
 
-    [`&:not(.${bodySortDraggingOverlayRowCls}):hover .${cellCls}:not(.${noDataCellCls})`]:
-      {
-        backgroundColor: token.cellColorHoverBg,
-        transition: 'background-color 0.3s',
-      },
+    [`&:hover .${cellCls}:not(.${noDataCellCls})`]: {
+      backgroundColor: token.cellColorHoverBg,
+      transition: 'background-color 0.3s',
+    },
 
     [`&.${bodySortFirstRowCls} .${cellCls}`]: {
       borderTopColor: 'transparent',
@@ -527,6 +527,9 @@ const genCellStyle = (
     {
       borderTopColor: token.colorBorder,
     },
+  [`&.${rowSortingCls} .${bodyRowCls} .${cellCls}`]: {
+    pointerEvents: 'none',
+  },
 
   [`.${bodyExpandableRowCls}`]: {
     cursor: 'pointer',
