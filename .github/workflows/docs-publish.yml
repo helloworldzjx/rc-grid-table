@@ -1,9 +1,11 @@
-
 name: Deploy Documentation Site
 
 on:
-  release:
-    types: [published]  # 只在正式发布时触发
+  workflow_run:
+    workflows:
+      - Publish to npm
+    types:
+      - completed
   workflow_dispatch:
 
 permissions:
@@ -17,10 +19,13 @@ concurrency:
 
 jobs:
   build:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -39,6 +44,7 @@ jobs:
           path: ./docs-dist
 
   deploy:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
