@@ -125,6 +125,7 @@ const App: React.FC = () => {
           columns={columns}
           dataSource={data}
           rowSelection={{
+            columnOverlayTitle: '选择列',
             selectedRowKeys,
             checkStrictly,
             onChange: (keys) => setSelectedRowKeys(keys),

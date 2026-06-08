@@ -145,6 +145,7 @@ const App: React.FC = () => {
           expandable
             ? undefined
             : {
+                columnOverlayTitle: '选择列',
                 fixed: 'start',
                 selectedRowKeys,
                 onChange: (keys) => setSelectedRowKeys(keys),
@@ -153,6 +154,7 @@ const App: React.FC = () => {
         expandable={
           expandable
             ? {
+                columnOverlayTitle: '展开列',
                 fixed: 'start',
                 expandedRowRender: (record) => record.note,
                 rowExpandable: (record) => Number(record.key) % 12 === 0,

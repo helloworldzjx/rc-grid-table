@@ -11,7 +11,8 @@ import useConfigActions from './_utils/hooks/useConfigActions';
 
 interface DataType {
   key: React.Key;
-  name: string;
+  firstName: string;
+  lastName: string;
   age: number;
   street: string;
   building: string;
@@ -25,9 +26,23 @@ export default () => {
   const columns: ColumnsType<DataType> = [
     {
       title: 'Name',
-      dataIndex: 'name',
-      width: 100,
+      key: 'name',
       fixed: 'start',
+      children: [
+        {
+          fixed: 'start',
+          title: 'firstName',
+          dataIndex: 'firstName',
+          width: 120,
+        },
+        {
+          fixed: 'start',
+          title: 'lastName',
+          dataIndex: 'lastName',
+          key: 'lastName',
+          width: 120,
+        },
+      ],
     },
     {
       title: 'Other',
@@ -94,7 +109,8 @@ export default () => {
 
   const dataSource = Array.from({ length: 30 }).map<DataType>((_, i) => ({
     key: i,
-    name: 'John Brown',
+    firstName: 'John',
+    lastName: 'Brown',
     age: i + 1,
     street: 'Lake Park',
     building: 'C',

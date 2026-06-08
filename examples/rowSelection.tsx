@@ -129,6 +129,7 @@ const App: React.FC = () => {
           columns={columns}
           dataSource={checkboxData}
           rowSelection={{
+            columnOverlayTitle: '选择列',
             selectedRowKeys,
             checkStrictly: false,
             fixed: 'start',
@@ -140,6 +141,7 @@ const App: React.FC = () => {
             onChange: (keys) => setSelectedRowKeys(keys),
           }}
           expandable={{
+            columnOverlayTitle: '展开列',
             fixed: 'start',
             defaultExpandedRowKeys: ['1'],
             expandedRowRender: (record) => `${record.name} details`,
@@ -150,6 +152,7 @@ const App: React.FC = () => {
           columns={columns}
           dataSource={radioData}
           rowSelection={{
+            columnOverlayTitle: '选择列',
             type: 'radio',
             selectedRowKeys: radioSelectedRowKeys,
             getRadioProps: (record) => ({

@@ -111,6 +111,7 @@ const App: React.FC = () => {
         columns={columns}
         dataSource={data}
         expandable={{
+          columnOverlayTitle: '展开列',
           defaultExpandedRowKeys: ['1'],
           fixed: 'start',
           expandedRowRender: (record) => (

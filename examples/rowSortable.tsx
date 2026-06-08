@@ -153,6 +153,7 @@ const App: React.FC = () => {
           columns={columns}
           dataSource={dataSource}
           rowSortable={{
+            columnOverlayTitle: '拖拽列',
             fixed: 'start',
             allowCrossLevelSort,
             rowDraggable: (record) => record.status !== 'Locked',
@@ -169,12 +170,14 @@ const App: React.FC = () => {
           columns={columns}
           dataSource={dataSource}
           rowSortable={{
+            columnOverlayTitle: '拖拽列',
             fixed: 'start',
             allowCrossLevelSort,
             rowDraggable: (record) => record.status !== 'Locked',
             onChange: setDataSource,
           }}
           expandable={{
+            columnOverlayTitle: '选择列',
             indentSize: 24,
             expandedRowRender(_, index) {
               return index;

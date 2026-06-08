@@ -230,10 +230,12 @@ const App: React.FC = () => {
         }}
         components={components}
         rowSortable={{
+          columnOverlayTitle: '拖拽列',
           fixed: 'start',
           onChange: setDataSource,
         }}
         expandable={{
+          columnOverlayTitle: '展开列',
           fixed: 'start',
           expandedRowRender: (record) => record.note,
           rowExpandable: (record) => Number(record.key) % 11 === 0,
