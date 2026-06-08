@@ -25,9 +25,11 @@ import React, {
 import { COLUMNS_SORT_OVERLAY_POINTER_OFFSET_X } from '../../_utils/const';
 import { useColumnSortableContext } from '../columnSortableContext';
 import { useComponentsContext } from '../componentsContext';
+import useRenderedColumnLayout from '../hooks/useRenderedColumnLayout';
 import { CellType, ColumnState } from '../interface';
 import { usePrefixClsContext } from '../prefixClsContext';
 import { getComponentCls } from '../style/classNames';
+import { getCellFixedInfo } from '../utils/fixedColumns';
 import HeadCell from './HeadCell';
 import useSortablePreview from './useSortablePreview';
 
@@ -63,6 +65,66 @@ const canOverByFixed = <T,>(
   return activeColumn.fixed === overColumn.fixed;
 };
 
+const emptyKeys = new Set<Key>();
+
+const uniqKeys = (keys: Key[]) => Array.from(new Set(keys));
+
+const getCellLeafKeys = <T,>(
+  cell: CellType<T> | undefined,
+  flattenColumns: ColumnState<T>[],
+) => {
+  if (cell?.key === undefined) return [];
+
+  if (cell.hasSubColumns || cell.column?.hasChildren) {
+    return flattenColumns
+      .filter((column) => column.ancestorKeys.includes(cell.key as Key))
+      .map((column) => column.key);
+  }
+
+  if (
+    typeof cell.colStart === 'number' &&
+    typeof cell.colEnd === 'number' &&
+    cell.colEnd >= cell.colStart
+  ) {
+    return flattenColumns
+      .slice(cell.colStart, cell.colEnd + 1)
+      .map((column) => column.key);
+  }
+
+  return [cell.key];
+};
+
+const getHeaderVisualKeys = <T,>(
+  cell: CellType<T> | undefined,
+  headRows: CellType<T>[][],
+) => {
+  if (cell?.key === undefined) return [];
+
+  const keys: Key[] = [];
+  headRows.forEach((row) => {
+    row.forEach((current) => {
+      if (
+        current.key === cell.key ||
+        current.column?.ancestorKeys?.includes(cell.key as Key)
+      ) {
+        keys.push(current.key as Key);
+      }
+    });
+  });
+
+  return keys;
+};
+
+const getColumnVisualKeys = <T,>(
+  cell: CellType<T> | undefined,
+  headRows: CellType<T>[][],
+  flattenColumns: ColumnState<T>[],
+) =>
+  uniqKeys([
+    ...getHeaderVisualKeys(cell, headRows),
+    ...getCellLeafKeys(cell, flattenColumns),
+  ]);
+
 function HeadRow({
   headRows,
   row: columns,
@@ -78,9 +140,12 @@ function HeadRow({
   const {
     getSortableBaseState,
     updateSortableColumnsState,
+    updateSortableActiveKeys,
     updateSortableDraftState,
+    updateSortableHotKeys,
     updateSortableMotionKeys,
   } = useColumnSortableContext();
+  const { flattenColumns = [], fixedOffset } = useRenderedColumnLayout();
   const prefixCls = usePrefixClsContext();
   const { getComponent } = useComponentsContext();
 
@@ -105,7 +170,7 @@ function HeadRow({
   );
 
   const activeColumn = useMemo(() => {
-    return columns.find((column) => column.key === activeKey);
+    return columns.find((column) => `${column.key}` === `${activeKey}`);
   }, [activeKey, columns]);
 
   const columnDroppableMeasuring = useMemo(() => {
@@ -123,6 +188,45 @@ function HeadRow({
   const sortableItems = useMemo(
     () => columns.map((column) => `${column.key}`),
     [columns],
+  );
+
+  const updateFixedSortableHotKeys = useCallback(
+    (column?: ColumnState) => {
+      if (!column?.fixed) {
+        updateSortableHotKeys(emptyKeys);
+        return;
+      }
+
+      const keys = columns.reduce<Key[]>((result, current) => {
+        if (current.column?.parentKey !== column.parentKey) {
+          return result;
+        }
+
+        const fixedInfo = getCellFixedInfo(
+          current.colStart as number,
+          current.colEnd as number,
+          flattenColumns,
+          fixedOffset,
+        );
+        const fixedType =
+          fixedInfo.fixStart !== null
+            ? 'start'
+            : fixedInfo.fixEnd !== null
+            ? 'end'
+            : undefined;
+
+        if (fixedType === column.fixed) {
+          result.push(
+            ...getColumnVisualKeys(current, headRows, flattenColumns),
+          );
+        }
+
+        return result;
+      }, []);
+
+      updateSortableHotKeys(keys.length ? new Set(keys) : emptyKeys);
+    },
+    [columns, fixedOffset, flattenColumns, headRows, updateSortableHotKeys],
   );
 
   const dragOverlayStyle = useMemo<React.CSSProperties>(
@@ -217,6 +321,8 @@ function HeadRow({
     activeRectRef.current = null;
     document.documentElement.style.cursor = '';
     setActiveKey(null);
+    updateSortableActiveKeys(emptyKeys);
+    updateSortableHotKeys(emptyKeys);
     sortablePreview.cleanup(clearDraft);
   };
 
@@ -233,6 +339,8 @@ function HeadRow({
     activeRectRef.current = null;
     document.documentElement.style.cursor = '';
     setActiveKey(null);
+    updateSortableActiveKeys(emptyKeys);
+    updateSortableHotKeys(emptyKeys);
 
     const delay = sortablePreview.getMotionFinishDelay();
     if (delay <= 0) {
@@ -257,6 +365,8 @@ function HeadRow({
     if (event.active.data.current?.type === 'sortableColumns') {
       if (isSortableStartLocked?.()) {
         ignoreSortableDragRef.current = true;
+        updateSortableActiveKeys(emptyKeys);
+        updateSortableHotKeys(emptyKeys);
         return;
       }
 
@@ -266,6 +376,25 @@ function HeadRow({
       document.documentElement.style.cursor = 'move';
       sortablePreview.start();
       startSortableScrollListener();
+      const activeColumn = event.active.data.current.column as
+        | ColumnState
+        | undefined;
+      const activeCell = columns.find(
+        (column) => `${column.key}` === `${event.active.id}`,
+      );
+      const activeColumnKeys = getColumnVisualKeys(
+        activeCell,
+        headRows,
+        flattenColumns,
+      );
+      updateSortableActiveKeys(
+        new Set(
+          activeColumnKeys.length
+            ? activeColumnKeys
+            : ((event.active.data.current.sortKeys || []) as Key[]),
+        ),
+      );
+      updateFixedSortableHotKeys(activeColumn);
       setActiveKey(event.active.id);
     }
 
@@ -305,6 +434,7 @@ function HeadRow({
     // 横向滚动期间 sticky 固定列的视觉位置与普通列滚动层不同步，
     // 这段时间先不让固定列参与 over 交换，等滚动空闲后再允许正常排序。
     if (scrollingRef.current && overColumn.fixed) {
+      updateFixedSortableHotKeys(activeColumn);
       return;
     }
 
@@ -312,13 +442,17 @@ function HeadRow({
       activeColumn.parentKey !== overColumn.parentKey ||
       activeColumn.dragSortDisabled
     ) {
+      updateFixedSortableHotKeys(activeColumn);
       return;
     }
 
     // 固定列只能在相同 fixed 区域内排序，避免 start/normal/end 区域互相穿越。
     if (!canOverByFixed(activeColumn, overColumn)) {
+      updateFixedSortableHotKeys(activeColumn);
       return;
     }
+
+    updateFixedSortableHotKeys(activeColumn);
 
     if (!activeData?.sortable || !overData?.sortable) {
       return;
@@ -388,8 +522,14 @@ function HeadRow({
       }
       cleanupSortableScrollListener();
       document.documentElement.style.cursor = '';
+      updateSortableActiveKeys(emptyKeys);
+      updateSortableHotKeys(emptyKeys);
     };
-  }, [cleanupSortableScrollListener]);
+  }, [
+    cleanupSortableScrollListener,
+    updateSortableActiveKeys,
+    updateSortableHotKeys,
+  ]);
 
   return (
     <RowComponent className={headRowCls}>

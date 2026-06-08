@@ -1,7 +1,8 @@
 import classNames from 'classnames';
-import React, { CSSProperties, FC, useMemo } from 'react';
+import React, { CSSProperties, FC, memo, useMemo } from 'react';
 
 import CellContainer from '../CellContainer';
+import { useColumnSortableContext } from '../columnSortableContext';
 import { useComponentsContext } from '../componentsContext';
 import { useFixedShadowActive } from '../fixedShadowContext';
 import { ColumnState } from '../interface';
@@ -29,6 +30,8 @@ const HeadFilterCell: FC<HeadFilterCellProps> = ({
     cellCls,
     filterCellCls,
     headLastCellCls,
+    columnSortableActiveCellCls,
+    columnSortableHotCellCls,
     fixedStartCellCls,
     fixedStartLastCellCls,
     fixedStartShadowActiveCellCls,
@@ -37,7 +40,10 @@ const HeadFilterCell: FC<HeadFilterCellProps> = ({
     fixedEndShadowActiveCellCls,
   } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
 
+  const { sortableActiveKeys, sortableHotKeys } = useColumnSortableContext();
   const fixedShadowActive = useFixedShadowActive(fixedInfo);
+  const inSortableActiveScope = sortableActiveKeys.has(column.key);
+  const inSortableHotScope = sortableHotKeys.has(column.key);
 
   const CellComponent = useMemo(
     () =>
@@ -103,6 +109,8 @@ const HeadFilterCell: FC<HeadFilterCellProps> = ({
         filterCellCls,
         {
           [headLastCellCls]: last,
+          [columnSortableActiveCellCls]: inSortableActiveScope,
+          [columnSortableHotCellCls]: inSortableHotScope,
           [fixedStartCellCls]: fixedInfo.fixStart !== null,
           [fixedStartLastCellCls]: fixedInfo.fixedStartShadow,
           [fixedStartShadowActiveCellCls]: fixedShadowActive.start,
@@ -123,4 +131,4 @@ const HeadFilterCell: FC<HeadFilterCellProps> = ({
   );
 };
 
-export default HeadFilterCell;
+export default memo(HeadFilterCell);

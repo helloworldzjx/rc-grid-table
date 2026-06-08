@@ -69,6 +69,12 @@ const ColumnSortableProvider = <T,>({
     () => new Set(),
   );
   const [sortableMotionVersion, setSortableMotionVersion] = useState(0);
+  const [sortableActiveKeys, setSortableActiveKeys] = useState<Set<Key>>(
+    () => new Set(),
+  );
+  const [sortableHotKeys, setSortableHotKeys] = useState<Set<Key>>(
+    () => new Set(),
+  );
 
   const updateSortableMotionKeys = useCallback(
     (dispatch: SetStateAction<Set<Key>>) => {
@@ -151,6 +157,10 @@ const ColumnSortableProvider = <T,>({
       sortableMotionKeys,
       updateSortableMotionKeys,
       sortableMotionVersion,
+      sortableActiveKeys,
+      updateSortableActiveKeys: setSortableActiveKeys,
+      sortableHotKeys,
+      updateSortableHotKeys: setSortableHotKeys,
     }),
     [
       sortableColumns,
@@ -161,6 +171,8 @@ const ColumnSortableProvider = <T,>({
       sortableMotionKeys,
       updateSortableMotionKeys,
       sortableMotionVersion,
+      sortableActiveKeys,
+      sortableHotKeys,
     ],
   );
 

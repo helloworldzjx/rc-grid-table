@@ -1,7 +1,7 @@
 import { useDndMonitor } from '@dnd-kit/core';
 import { useSortable } from '@dnd-kit/sortable';
 import classNames from 'classnames';
-import React, { CSSProperties, Key, useMemo, useRef } from 'react';
+import React, { CSSProperties, Key, memo, useMemo, useRef } from 'react';
 
 import CellContainer from '../CellContainer';
 import { useColumnSortableContext } from '../columnSortableContext';
@@ -43,7 +43,8 @@ function HeadCell({
 }: HeadCellProps) {
   const { flattenColumns = [], fixedOffset } = useRenderedColumnLayout();
   const { resizableColumns } = useTableColumnStateContext();
-  const { sortableColumns } = useColumnSortableContext();
+  const { sortableActiveKeys, sortableColumns, sortableHotKeys } =
+    useColumnSortableContext();
   const prefixCls = usePrefixClsContext();
   const { getComponent } = useComponentsContext();
   const { rowSelection, selection } = useRowSelectionContext();
@@ -57,6 +58,8 @@ function HeadCell({
     headResizableCellDisabledCls,
     headSortableCellCls,
     headSortableCellDisabledCls,
+    columnSortableActiveCellCls,
+    columnSortableHotCellCls,
     fixedStartCellCls,
     fixedStartLastCellCls,
     fixedStartShadowActiveCellCls,
@@ -194,6 +197,16 @@ function HeadCell({
 
     return mergedSpanKeys;
   }, [col.hasSubColumns, col.key, flattenColumns, mergedSpanKeys]);
+
+  const inSortableActiveScope = useMemo(
+    () => mergedSpanKeys.some((key) => sortableActiveKeys.has(key)),
+    [mergedSpanKeys, sortableActiveKeys],
+  );
+
+  const inSortableHotScope = useMemo(
+    () => mergedSpanKeys.some((key) => sortableHotKeys.has(key)),
+    [mergedSpanKeys, sortableHotKeys],
+  );
 
   const motionLayoutDependency = useMemo(
     () =>
@@ -348,6 +361,8 @@ function HeadCell({
             !!resizableColumns && !!col.column?.resizeDisabled,
           [headSortableCellCls]: dragEnabled,
           [headSortableCellDisabledCls]: sortDisabled,
+          [columnSortableActiveCellCls]: inSortableActiveScope,
+          [columnSortableHotCellCls]: inSortableHotScope,
         },
         col.column?.className,
         cellProps.className,
@@ -371,4 +386,4 @@ function HeadCell({
   );
 }
 
-export default React.memo(HeadCell);
+export default memo(HeadCell);

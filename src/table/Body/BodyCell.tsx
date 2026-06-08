@@ -15,6 +15,7 @@ import React, {
 
 import { isValidKey } from '../../_utils/validate';
 import CellContainer from '../CellContainer';
+import { useColumnSortableContext } from '../columnSortableContext';
 import { useComponentsContext } from '../componentsContext';
 import { useExpandableContext } from '../expandableContext';
 import { useFixedShadowActive } from '../fixedShadowContext';
@@ -95,6 +96,8 @@ function BodyCell({
     fixedEndCellCls,
     fixedEndFirstCellCls,
     fixedEndShadowActiveCellCls,
+    columnSortableActiveCellCls,
+    columnSortableHotCellCls,
     expandControlCellCls,
     expandControlCls,
     selectionCellCls,
@@ -108,6 +111,7 @@ function BodyCell({
     useExpandableContext();
   const { rowSelection, selection } = useRowSelectionContext();
   const { getComponent } = useComponentsContext();
+  const { sortableActiveKeys, sortableHotKeys } = useColumnSortableContext();
 
   const CellComponent = useMemo(
     () => getComponent(['body', 'cell'], 'div'),
@@ -151,6 +155,16 @@ function BodyCell({
       .slice(startIndex, startIndex + colSpan)
       .map((item) => item.key);
   }, [colIndex, column.key, flattenColumns, spanInfo.colSpan]);
+
+  const inSortableActiveScope = useMemo(
+    () => motionKeys.some((key) => sortableActiveKeys.has(key)),
+    [motionKeys, sortableActiveKeys],
+  );
+
+  const inSortableHotScope = useMemo(
+    () => motionKeys.some((key) => sortableHotKeys.has(key)),
+    [motionKeys, sortableHotKeys],
+  );
 
   const mergedStyle = useMemo(() => {
     const style: CSSProperties = { ...spanInfo.style };
@@ -412,6 +426,8 @@ function BodyCell({
         rowSortDragging={rowSortDragging}
         rowSortIsOver={rowSortIsOver}
         rowSortKey={rowSortKey}
+        sortableActive={inSortableActiveScope}
+        sortableHot={inSortableHotScope}
         rowSortAttributes={rowSortAttributes}
         rowSortListeners={rowSortListeners}
         setRowSortActivatorNodeRef={setRowSortActivatorNodeRef}
@@ -433,6 +449,8 @@ function BodyCell({
           [fixedEndCellCls]: fixedInfo.fixEnd !== null,
           [fixedEndFirstCellCls]: fixedInfo.fixedEndShadow,
           [fixedEndShadowActiveCellCls]: fixedShadowActive.end,
+          [columnSortableActiveCellCls]: inSortableActiveScope,
+          [columnSortableHotCellCls]: inSortableHotScope,
           [expandControlCellCls]: isInternalExpandColumn,
           [selectionCellCls]: isInternalSelectionColumn,
         },

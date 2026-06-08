@@ -588,6 +588,10 @@ export interface ColumnSortableContextProps<T = any> {
   sortableMotionKeys: ReadonlySet<Key>;
   updateSortableMotionKeys: Dispatch<SetStateAction<Set<Key>>>;
   sortableMotionVersion: number;
+  sortableActiveKeys: ReadonlySet<Key>;
+  updateSortableActiveKeys: Dispatch<SetStateAction<Set<Key>>>;
+  sortableHotKeys: ReadonlySet<Key>;
+  updateSortableHotKeys: Dispatch<SetStateAction<Set<Key>>>;
 }
 
 export interface TableSelectionContextProps<T = any> {

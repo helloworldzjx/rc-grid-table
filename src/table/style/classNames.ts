@@ -75,6 +75,8 @@ export type ComponentClsType = {
   headSortableCellCls: string;
   headSortableCellDisabledCls: string;
   headDraggingOverlayCellCls: string;
+  columnSortableActiveCellCls: string;
+  columnSortableHotCellCls: string;
   fixedStartCellCls: string;
   fixedStartLastCellCls: string;
   fixedStartShadowActiveCellCls: string;
@@ -183,6 +185,8 @@ export const getComponentCls = (prefixCls: string): ComponentClsType => {
     headSortableCellCls: `${prefixCls}-head-sortable-cell`,
     headSortableCellDisabledCls: `${prefixCls}-head-sortable-cell-disabled`,
     headDraggingOverlayCellCls: `${prefixCls}-head-dragging-overlay-cell`,
+    columnSortableActiveCellCls: `${prefixCls}-column-sortable-active-cell`,
+    columnSortableHotCellCls: `${prefixCls}-column-sortable-hot-cell`,
     fixedStartCellCls: `${prefixCls}-fixed-start-cell`,
     fixedStartLastCellCls: `${prefixCls}-fixed-start-last-cell`,
     fixedStartShadowActiveCellCls: `${prefixCls}-fixed-start-shadow-active-cell`,

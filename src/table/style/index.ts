@@ -430,6 +430,8 @@ const genCellStyle = (
     headCellResizeHandleCls,
     headSortableCellCls,
     headDraggingOverlayCellCls,
+    columnSortableActiveCellCls,
+    columnSortableHotCellCls,
   }: ComponentClsType,
   token: ComponentToken,
 ): CSSInterpolation => ({
@@ -568,12 +570,13 @@ const genCellStyle = (
 
   [`.${filterCellCls}`]: {
     minWidth: 0,
+  },
 
-    'input, select, textarea': {
-      width: '100%',
-      minWidth: 0,
-      boxSizing: 'border-box',
-    },
+  [`.${columnSortableHotCellCls}`]: {
+    backgroundColor: `${token.overableCellColorBg} !important`,
+  },
+  [`.${columnSortableActiveCellCls}`]: {
+    backgroundColor: `${token.sortableCellColorBg} !important`,
   },
 
   [`.${selectionControlCls}`]: {
@@ -598,7 +601,7 @@ const genCellStyle = (
     transition: 'border-color 0.2s, background-color 0.2s',
   },
 
-  [`.${selectionControlInputCls} input`]: {
+  [`.${selectionControlInputCls} > input`]: {
     position: 'absolute',
     inset: 0,
     width: '100%',
