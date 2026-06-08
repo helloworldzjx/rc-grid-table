@@ -4,6 +4,12 @@ import { isNum, isValidKey } from '../../_utils/validate';
 import { ColumnState } from '../interface';
 import { getColumnKey } from './handle';
 
+const internalColumnFlagKeys = [
+  '__RC_GRID_TABLE_EXPAND_COLUMN',
+  '__RC_GRID_TABLE_SELECTION_COLUMN',
+  '__RC_GRID_TABLE_ROW_SORT_COLUMN',
+] as const;
+
 function completeColumnState<T = any>(
   column: ColumnState<T>,
   children: ColumnState[] = column.children || [],
@@ -130,6 +136,7 @@ function mergeColumnsStateInternal<T = any>(
       ...column,
       ...JSON.parse(JSON.stringify(bColumn)), // 冲突时优先采用b的数据
       key: column.key,
+      dataIndex: column.dataIndex,
       depth: column.depth,
       parentKey: column.parentKey,
       ancestorKeys: column.ancestorKeys,
@@ -139,19 +146,23 @@ function mergeColumnsStateInternal<T = any>(
       dragSortDisabled: column.dragSortDisabled,
     };
 
+    internalColumnFlagKeys.forEach((flagKey) => {
+      if (column[flagKey]) {
+        merged[flagKey] = true;
+      } else {
+        delete merged[flagKey];
+      }
+    });
+
     if (column.resizeDisabled && !column.hasChildren) {
       merged.width = column.width;
       merged.widthManuallyChanged = false;
       merged.autoWidthLocked = false;
     }
 
-    const children =
-      column.children?.length || bColumn.children?.length
-        ? mergeColumnsStateInternal(
-            column.children || [],
-            bColumn.children || [],
-          )
-        : [];
+    const children = column.children?.length
+      ? mergeColumnsStateInternal(column.children, bColumn.children || [])
+      : [];
 
     return completeColumnState(merged, children);
   };
