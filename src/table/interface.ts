@@ -476,11 +476,11 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
    */
   rowSortable?: RowSortableConfig<T>;
   /**
-   * @description 横向滚动条可磁吸
+   * @description 固定表头/滚动条
    */
   sticky?: boolean | TableSticky;
   /**
-   * @description 开启虚拟列表(未实现)
+   * @description 开启虚拟列表
    * @default true
    */
   virtual?: boolean | TableVirtualConfig;
@@ -488,13 +488,6 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
    * @description 覆盖默认的元素
    */
   components?: TableComponents;
-  /**
-   * 滚动条自动隐藏(未实现)
-   */
-  // scroll?: {
-  //   autoHide?: boolean | { delay?: number }
-  //   immediatelyShowOnAutoHide?: boolean
-  // }
   rowClassName?: (record?: T, rowIndex?: number) => string;
 }
 
