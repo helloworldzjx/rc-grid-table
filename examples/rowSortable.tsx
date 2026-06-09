@@ -11,6 +11,11 @@ interface DataType {
   role: string;
   department: string;
   status: 'Active' | 'Pending' | 'Locked';
+  owner: string;
+  location: string;
+  priority: string;
+  budget: string;
+  updatedAt: string;
   children?: DataType[];
 }
 
@@ -21,6 +26,11 @@ const initialData: DataType[] = [
     role: 'Department',
     department: 'Operations',
     status: 'Active',
+    owner: 'Olivia',
+    location: 'New York',
+    priority: 'High',
+    budget: '$12,000',
+    updatedAt: '2026-01-18',
     children: [
       {
         key: '1-1',
@@ -28,6 +38,11 @@ const initialData: DataType[] = [
         role: 'Team Lead',
         department: 'Operations',
         status: 'Active',
+        owner: 'John Brown',
+        location: 'New York',
+        priority: 'High',
+        budget: '$4,200',
+        updatedAt: '2026-01-20',
         children: [
           {
             key: '1-1-1',
@@ -35,6 +50,11 @@ const initialData: DataType[] = [
             role: 'Coordinator',
             department: 'Operations',
             status: 'Pending',
+            owner: 'Lucy Green',
+            location: 'Boston',
+            priority: 'Medium',
+            budget: '$1,800',
+            updatedAt: '2026-01-22',
           },
         ],
       },
@@ -44,6 +64,11 @@ const initialData: DataType[] = [
         role: 'Specialist',
         department: 'Operations',
         status: 'Locked',
+        owner: 'Jim Green',
+        location: 'Chicago',
+        priority: 'Low',
+        budget: '$2,400',
+        updatedAt: '2026-01-16',
       },
     ],
   },
@@ -53,6 +78,11 @@ const initialData: DataType[] = [
     role: 'Department',
     department: 'Product',
     status: 'Active',
+    owner: 'Ethan',
+    location: 'London',
+    priority: 'Medium',
+    budget: '$18,500',
+    updatedAt: '2026-02-03',
     children: [
       {
         key: '2-1',
@@ -60,6 +90,11 @@ const initialData: DataType[] = [
         role: 'Product Manager',
         department: 'Product',
         status: 'Pending',
+        owner: 'Joe Black',
+        location: 'London',
+        priority: 'High',
+        budget: '$8,600',
+        updatedAt: '2026-02-05',
       },
       {
         key: '2-2',
@@ -67,6 +102,11 @@ const initialData: DataType[] = [
         role: 'Designer',
         department: 'Product',
         status: 'Active',
+        owner: 'Lily White',
+        location: 'Paris',
+        priority: 'Medium',
+        budget: '$5,100',
+        updatedAt: '2026-02-01',
       },
     ],
   },
@@ -76,6 +116,11 @@ const initialData: DataType[] = [
     role: 'Department',
     department: 'Operations',
     status: 'Active',
+    owner: 'Mia',
+    location: 'San Francisco',
+    priority: 'High',
+    budget: '$9,300',
+    updatedAt: '2026-02-12',
   },
   {
     key: '4',
@@ -83,6 +128,11 @@ const initialData: DataType[] = [
     role: 'Department',
     department: 'Advertising',
     status: 'Active',
+    owner: 'Noah',
+    location: 'Berlin',
+    priority: 'Low',
+    budget: '$7,700',
+    updatedAt: '2026-02-08',
   },
   {
     key: '5',
@@ -90,6 +140,11 @@ const initialData: DataType[] = [
     role: 'Department',
     department: 'Human Resources',
     status: 'Active',
+    owner: 'Ava',
+    location: 'Singapore',
+    priority: 'Medium',
+    budget: '$6,200',
+    updatedAt: '2026-02-15',
   },
 ];
 
@@ -114,11 +169,13 @@ const App: React.FC = () => {
       title: 'Department',
       dataIndex: 'department',
       key: 'department',
+      width: 160,
     },
     {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
+      width: 120,
       render: (status) => (
         <Tag
           color={
@@ -132,6 +189,42 @@ const App: React.FC = () => {
           {status}
         </Tag>
       ),
+    },
+    {
+      title: 'Owner',
+      dataIndex: 'owner',
+      key: 'owner',
+      width: 140,
+    },
+    {
+      title: 'Location',
+      dataIndex: 'location',
+      key: 'location',
+      width: 160,
+    },
+    {
+      title: 'Priority',
+      dataIndex: 'priority',
+      key: 'priority',
+      width: 120,
+    },
+    {
+      title: 'Budget',
+      dataIndex: 'budget',
+      key: 'budget',
+      width: 120,
+    },
+    {
+      title: 'Updated At',
+      dataIndex: 'updatedAt',
+      key: 'updatedAt',
+      width: 140,
+    },
+    {
+      title: 'Action',
+      key: 'action',
+      fixed: 'end',
+      render: () => <a>Delete</a>,
     },
   ];
 

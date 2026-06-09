@@ -320,6 +320,22 @@ export default function useTableRowSort<T = any>({
     [],
   );
 
+  const rowSortColumnFixed = useMemo(
+    () => flattenColumns.find(isRowSortColumn)?.fixed,
+    [flattenColumns],
+  );
+
+  const getOverlayModifiers = useCallback(
+    (inVirtual: boolean) => {
+      if (!inVirtual && rowSortColumnFixed) {
+        return undefined;
+      }
+
+      return scrollLeftOffsetModifiers;
+    },
+    [rowSortColumnFixed, scrollLeftOffsetModifiers],
+  );
+
   const getAutoScroll = useCallback(
     (inVirtual: boolean) => ({
       canScroll: (element: Element) =>
@@ -362,10 +378,10 @@ export default function useTableRowSort<T = any>({
   const getRuntime = useCallback(
     (inVirtual: boolean) => ({
       autoScroll: getAutoScroll(inVirtual),
-      overlayModifiers: scrollLeftOffsetModifiers,
+      overlayModifiers: getOverlayModifiers(inVirtual),
       overlayRenderOptions: getOverlayRenderOptions(inVirtual),
     }),
-    [getAutoScroll, getOverlayRenderOptions, scrollLeftOffsetModifiers],
+    [getAutoScroll, getOverlayModifiers, getOverlayRenderOptions],
   );
 
   return useMemo(
