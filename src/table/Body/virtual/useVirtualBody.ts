@@ -23,6 +23,15 @@ type KeyedVirtualBodyItem = {
   key: Key;
 };
 
+type ScrollTargetAlign = Exclude<TableScrollToOptions['align'], undefined>;
+
+interface PendingScrollTarget {
+  index: number;
+  align: ScrollTargetAlign;
+  offset: number;
+  syncTimes: number;
+}
+
 interface UseVirtualBodyProps<ItemType extends KeyedVirtualBodyItem> {
   data: ItemType[];
   scrollElement?: HTMLDivElement | null;
@@ -118,6 +127,8 @@ const isFirefox =
   typeof navigator === 'object' && /Firefox/i.test(navigator.userAgent);
 
 const touchSmoothRatio = 14 / 15;
+const scrollToMeasureSyncTimes = 5;
+const scrollToMeasureExpireFrames = 8;
 
 const getPageXY = (event: MouseEvent | TouchEvent, horizontal = false) => {
   const target = 'touches' in event ? event.touches[0] : event;
@@ -161,6 +172,8 @@ export default function useVirtualBody<ItemType extends KeyedVirtualBodyItem>({
   const wheelDirectionCleanRef = useRef<number | null>(null);
   const firefoxWheelValueRef = useRef<number | null>(null);
   const firefoxMouseScrollRef = useRef(false);
+  const pendingScrollTargetRef = useRef<PendingScrollTarget | null>(null);
+  const pendingScrollTargetFrameRef = useRef<number | null>(null);
   const originScrollLockRef = useRef(false);
   const originScrollLockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
@@ -215,6 +228,38 @@ export default function useVirtualBody<ItemType extends KeyedVirtualBodyItem>({
     [maxScrollTop],
   );
 
+  const clearPendingScrollTarget = useCallback(() => {
+    if (
+      pendingScrollTargetRef.current === null &&
+      pendingScrollTargetFrameRef.current === null
+    ) {
+      return;
+    }
+
+    pendingScrollTargetRef.current = null;
+    cancelRaf(pendingScrollTargetFrameRef.current);
+    pendingScrollTargetFrameRef.current = null;
+  }, []);
+
+  const schedulePendingScrollTargetClear = useCallback(() => {
+    cancelRaf(pendingScrollTargetFrameRef.current);
+    pendingScrollTargetFrameRef.current = raf(() => {
+      pendingScrollTargetFrameRef.current = null;
+      pendingScrollTargetRef.current = null;
+    }, scrollToMeasureExpireFrames);
+  }, []);
+
+  const setPendingScrollTarget = useCallback(
+    (target: Omit<PendingScrollTarget, 'syncTimes'>) => {
+      pendingScrollTargetRef.current = {
+        ...target,
+        syncTimes: scrollToMeasureSyncTimes,
+      };
+      schedulePendingScrollTargetClear();
+    },
+    [schedulePendingScrollTargetClear],
+  );
+
   const lockOriginScroll = useCallback(() => {
     if (originScrollLockTimerRef.current) {
       clearTimeout(originScrollLockTimerRef.current);
@@ -228,6 +273,10 @@ export default function useVirtualBody<ItemType extends KeyedVirtualBodyItem>({
 
   const shouldUseOriginScroll = useCallback(
     (delta: number, smoothOffset = false) => {
+      if (pendingScrollTargetRef.current) {
+        return false;
+      }
+
       const originScroll =
         (delta < 0 && scrollTopRef.current <= 0) ||
         (delta > 0 && scrollTopRef.current >= maxScrollTop);
@@ -360,6 +409,7 @@ export default function useVirtualBody<ItemType extends KeyedVirtualBodyItem>({
       cancelRaf(collectFrameRef.current);
       cancelRaf(wheelFrameRef.current);
       cancelRaf(wheelDirectionCleanRef.current);
+      cancelRaf(pendingScrollTargetFrameRef.current);
       if (originScrollLockTimerRef.current) {
         clearTimeout(originScrollLockTimerRef.current);
       }
@@ -427,6 +477,80 @@ export default function useVirtualBody<ItemType extends KeyedVirtualBodyItem>({
     [estimatedRowHeight, keyIndexMap, prefixHeights],
   );
 
+  const getScrollTargetTop = useCallback(
+    (targetIndex: number, align: ScrollTargetAlign, offset: number) => {
+      if (targetIndex < 0 || targetIndex >= data.length) {
+        return undefined;
+      }
+
+      const itemTop = prefixHeights[targetIndex] || 0;
+      const itemBottom =
+        prefixHeights[targetIndex + 1] || itemTop + estimatedRowHeight;
+      const viewTop = scrollTopRef.current;
+      const viewBottom = viewTop + (scrollY || 0);
+
+      if (align === 'top') {
+        return itemTop - offset;
+      }
+      if (align === 'bottom') {
+        return itemBottom - (scrollY || 0) + offset;
+      }
+      if (itemTop < viewTop) {
+        return itemTop - offset;
+      }
+      if (itemBottom > viewBottom) {
+        return itemBottom - (scrollY || 0) + offset;
+      }
+
+      return undefined;
+    },
+    [data.length, estimatedRowHeight, prefixHeights, scrollY],
+  );
+
+  const shouldSyncScrollTargetAfterMeasure = useCallback(
+    (targetIndex: number) => {
+      if (!inVirtual) {
+        return false;
+      }
+
+      const targetItem = data[targetIndex];
+      if (!targetItem) {
+        return false;
+      }
+
+      if (getItemFixedHeight) {
+        return getItemFixedHeight(targetItem) === undefined;
+      }
+
+      return (
+        fixedRowHeight === undefined &&
+        heightsRef.current.get(targetItem.key) === undefined
+      );
+    },
+    [data, fixedRowHeight, getItemFixedHeight, inVirtual],
+  );
+
+  const isScrollTargetHeightResolved = useCallback(
+    (targetIndex: number) => {
+      const targetItem = data[targetIndex];
+      if (!targetItem) {
+        return true;
+      }
+
+      if (getItemFixedHeight) {
+        return (
+          getItemFixedHeight(targetItem) !== undefined ||
+          heightsRef.current.has(targetItem.key)
+        );
+      }
+
+      return (
+        fixedRowHeight !== undefined || heightsRef.current.has(targetItem.key)
+      );
+    },
+    [data, fixedRowHeight, getItemFixedHeight],
+  );
+
   useIsomorphicLayoutEffect(() => {
     const changedRecord = changedHeightsRef.current;
     if (changedRecord.size === 1 && inVirtual) {
@@ -444,18 +568,55 @@ export default function useVirtualBody<ItemType extends KeyedVirtualBodyItem>({
       }
     }
 
+    const pendingTarget = pendingScrollTargetRef.current;
+    if (pendingTarget && inVirtual) {
+      const heightResolved = isScrollTargetHeightResolved(pendingTarget.index);
+      const targetTop = getScrollTargetTop(
+        pendingTarget.index,
+        pendingTarget.align,
+        pendingTarget.offset,
+      );
+
+      if (targetTop === undefined) {
+        clearPendingScrollTarget();
+      } else if (Math.abs(targetTop - scrollTopRef.current) <= 1) {
+        if (heightResolved) {
+          clearPendingScrollTarget();
+        } else {
+          schedulePendingScrollTargetClear();
+        }
+      } else {
+        pendingTarget.syncTimes -= 1;
+        syncScrollTop(targetTop);
+
+        if (pendingTarget.syncTimes <= 0) {
+          clearPendingScrollTarget();
+        } else {
+          schedulePendingScrollTargetClear();
+        }
+      }
+    }
+
     changedRecord.clear();
   }, [
     data,
+    clearPendingScrollTarget,
     estimatedRowHeight,
     heightUpdateMark,
+    getScrollTargetTop,
     inVirtual,
     syncScrollTop,
+    isScrollTargetHeightResolved,
+    schedulePendingScrollTargetClear,
     visibleStart,
   ]);
 
   const handleScroll = useCallback(
     (scrollTop: number, sync = true) => {
+      if (!sync && pendingScrollTargetRef.current) {
+        return;
+      }
+
       if (!inVirtual) {
         if (scrollTopRef.current === scrollTop) {
           return;
@@ -485,6 +646,10 @@ export default function useVirtualBody<ItemType extends KeyedVirtualBodyItem>({
 
   const syncScrollBy = useCallback(
     (delta: number, smoothOffset = false) => {
+      if (pendingScrollTargetRef.current) {
+        return true;
+      }
+
       if (shouldUseOriginScroll(delta, smoothOffset)) {
         return false;
       }
@@ -652,6 +817,15 @@ export default function useVirtualBody<ItemType extends KeyedVirtualBodyItem>({
 
       if (isHorizontal) return;
 
+      if (pendingScrollTargetRef.current) {
+        if (!event._virtualHandled) {
+          event._virtualHandled = true;
+        }
+        preventDefaultIfCancelable(event);
+        clearTouchInterval();
+        return;
+      }
+
       const handled = scrollTouchOffset(offsetY, false, event);
       const prevented = handled && preventDefaultIfCancelable(event);
 
@@ -796,6 +970,7 @@ export default function useVirtualBody<ItemType extends KeyedVirtualBodyItem>({
       if (options === null || options === undefined) return false;
 
       if (typeof options === 'number') {
+        clearPendingScrollTarget();
         syncScrollTop(options);
         return true;
       }
@@ -815,28 +990,36 @@ export default function useVirtualBody<ItemType extends KeyedVirtualBodyItem>({
         targetIndex = keyIndexMap.get(options.key);
       }
 
+      let pendingTarget: Omit<PendingScrollTarget, 'syncTimes'> | null = null;
       if (targetIndex !== undefined) {
         const align = options.align ?? 'auto';
         const offset = options.offset ?? 0;
-        const itemTop = prefixHeights[targetIndex] || 0;
-        const itemBottom =
-          prefixHeights[targetIndex + 1] || itemTop + estimatedRowHeight;
-        const viewTop = scrollTopRef.current;
-        const viewBottom = viewTop + (scrollY || 0);
+        const alignedTop = getScrollTargetTop(targetIndex, align, offset);
 
-        if (align === 'top') {
-          targetTop = itemTop - offset;
-        } else if (align === 'bottom') {
-          targetTop = itemBottom - (scrollY || 0) + offset;
-        } else if (itemTop < viewTop) {
-          targetTop = itemTop - offset;
-        } else if (itemBottom > viewBottom) {
-          targetTop = itemBottom - (scrollY || 0) + offset;
+        if (alignedTop !== undefined) {
+          targetTop = alignedTop;
+          if (shouldSyncScrollTargetAfterMeasure(targetIndex)) {
+            pendingTarget = {
+              index: targetIndex,
+              align,
+              offset,
+            };
+          }
         }
       }
 
       if (targetTop !== undefined) {
+        if (pendingTarget) {
+          setPendingScrollTarget(pendingTarget);
+        } else {
+          clearPendingScrollTarget();
+        }
         syncScrollTop(targetTop);
+        return true;
+      }
+
+      clearPendingScrollTarget();
+      if (targetIndex !== undefined) {
         return true;
       }
 
@@ -844,10 +1027,11 @@ export default function useVirtualBody<ItemType extends KeyedVirtualBodyItem>({
     },
     [
       data.length,
-      estimatedRowHeight,
+      clearPendingScrollTarget,
+      getScrollTargetTop,
       keyIndexMap,
-      prefixHeights,
-      scrollY,
+      setPendingScrollTarget,
+      shouldSyncScrollTargetAfterMeasure,
       syncScrollTop,
     ],
   );
