@@ -3,26 +3,19 @@ import type {
   DraggableSyntheticListeners,
 } from '@dnd-kit/core';
 import classNames from 'classnames';
-import React, {
-  CSSProperties,
-  Key,
-  memo,
-  MouseEvent,
-  ReactNode,
-  useCallback,
-  useMemo,
-} from 'react';
+import React, { CSSProperties, Key, memo, ReactNode, useMemo } from 'react';
 
 import { isValidKey } from '../../_utils/validate';
 import CellContainer from '../CellContainer';
 import { useColumnSortableContext } from '../columnSortableContext';
 import { useComponentsContext } from '../componentsContext';
+import { ExpandControl, TreeCellContent } from '../Expand';
 import { useExpandableContext } from '../expandableContext';
 import { useFixedShadowActive } from '../fixedShadowContext';
 import { ColumnState } from '../interface';
 import { usePrefixClsContext } from '../prefixClsContext';
-import { useRowSelectionContext } from '../rowSelectionContext';
-import { SelectionCheckbox, SelectionRadio } from '../Selection';
+import { RowSortBodyCell } from '../RowSort';
+import { BodySelectionCell } from '../Selection';
 import { getComponentCls } from '../style/classNames';
 import {
   isExpandColumn,
@@ -33,7 +26,6 @@ import { FixedInfo } from '../utils/fixedColumns';
 import { getEllipsisTitle } from '../utils/handle';
 import { getBodyCellSpanInfo } from './cellSpan';
 import type { BodyRenderMode } from './interface';
-import RowSortBodyCell from './RowSortBodyCell';
 
 interface BodyRowProps<T = any> {
   column: ColumnState<T>;
@@ -99,17 +91,10 @@ function BodyCell({
     columnSortableActiveCellCls,
     columnSortableHotCellCls,
     expandControlCellCls,
-    expandControlCls,
     selectionCellCls,
-    expandTreeCellInnerCls,
-    expandIconCls,
-    expandIconExpandedCls,
-    expandIconSpacedCls,
   } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
 
-  const { expandable: expandableConfig, onTriggerExpand } =
-    useExpandableContext();
-  const { rowSelection, selection } = useRowSelectionContext();
+  const { expandable: expandableConfig } = useExpandableContext();
   const { getComponent } = useComponentsContext();
   const { sortableActiveKeys, sortableHotKeys } = useColumnSortableContext();
 
@@ -239,114 +224,9 @@ function BodyCell({
   const isInternalSelectionColumn = isSelectionColumn(column);
   const isInternalRowSortColumn = isRowSortColumn(column);
 
-  const selectionType = rowSelection?.type ?? 'checkbox';
-  const selectionChecked = selection?.isSelected(rowData) ?? false;
-  const selectionControlProps = useMemo(
-    () =>
-      selectionType === 'radio'
-        ? rowSelection?.getRadioProps?.(rowData) || {}
-        : rowSelection?.getCheckboxProps?.(rowData) || {},
-    [rowData, rowSelection, selectionType],
-  );
-  const mergedSelectionControlStyle = useMemo<CSSProperties>(
-    () => ({
-      ...selectionControlProps.style,
-      justifyContent: rowSelection?.align ?? 'center',
-    }),
-    [selectionControlProps.style, rowSelection?.align],
-  );
-
-  const handleExpand = useCallback(
-    (event: MouseEvent<HTMLElement>) => {
-      event.stopPropagation();
-      if (rowSupportExpand) {
-        onTriggerExpand?.(rowData);
-      }
-    },
-    [onTriggerExpand, rowData, rowSupportExpand],
-  );
-
-  const expandIconProps = useMemo(
-    () => ({
-      expanded,
-      expandable: rowSupportExpand,
-      record: rowData,
-      index: rowIndex,
-      indent,
-      onExpand: (_record: any, event: MouseEvent<HTMLElement>) =>
-        handleExpand(event),
-    }),
-    [expanded, handleExpand, indent, rowData, rowIndex, rowSupportExpand],
-  );
-
   if (spanInfo.hidden) {
     return null;
   }
-
-  const renderExpandIcon = (spaced = false) => {
-    const iconNode = expandableConfig?.expandIcon ? (
-      expandableConfig.expandIcon(expandIconProps)
-    ) : (
-      <button
-        type="button"
-        className={classNames(expandIconCls, {
-          [expandIconExpandedCls]: expanded,
-          [expandIconSpacedCls]: spaced || !rowSupportExpand,
-        })}
-        aria-label={expanded ? 'Collapse row' : 'Expand row'}
-        aria-expanded={rowSupportExpand ? expanded : undefined}
-        disabled={!rowSupportExpand}
-        onClick={handleExpand}
-      />
-    );
-
-    return (
-      <div
-        className={expandControlCls}
-        style={{ justifyContent: expandableConfig?.align ?? 'center' }}
-      >
-        {iconNode}
-      </div>
-    );
-  };
-
-  const renderSelectionControl = () => {
-    if (!selection || !rowSelection) return null;
-
-    const disabled = !!selectionControlProps.disabled;
-    const originNode =
-      selectionType === 'radio' ? (
-        <SelectionRadio
-          {...selectionControlProps}
-          style={mergedSelectionControlStyle}
-          checked={selectionChecked}
-          disabled={disabled}
-          onChange={(event) =>
-            selection.onSelectRecord(rowData, rowIndex, event)
-          }
-        />
-      ) : (
-        <SelectionCheckbox
-          {...selectionControlProps}
-          style={mergedSelectionControlStyle}
-          checked={selectionChecked}
-          indeterminate={selection.isHalfSelected(rowData)}
-          disabled={disabled}
-          onChange={(event) =>
-            selection.onSelectRecord(rowData, rowIndex, event)
-          }
-        />
-      );
-
-    return (
-      rowSelection.renderCell?.(
-        selectionChecked,
-        rowData,
-        rowIndex,
-        originNode,
-      ) ?? originNode
-    );
-  };
 
   let cellValue: ReactNode = undefined;
   if (
@@ -368,11 +248,20 @@ function BodyCell({
     cellValue = column.render?.(cellValue, rowData, rowIndex);
   }
 
-  let childrenNode = isInternalExpandColumn
-    ? renderExpandIcon()
-    : isInternalSelectionColumn
-    ? renderSelectionControl()
-    : cellValue;
+  let childrenNode = isInternalExpandColumn ? (
+    <ExpandControl
+      rowData={rowData}
+      rowIndex={rowIndex}
+      indent={indent}
+      expanded={expanded}
+      expandable={rowSupportExpand}
+    />
+  ) : isInternalSelectionColumn ? (
+    <BodySelectionCell rowData={rowData} rowIndex={rowIndex} />
+  ) : (
+    cellValue
+  );
+
   const ellipsis = !!column.ellipsis;
   if (ellipsis) {
     const showTitle =
@@ -398,15 +287,15 @@ function BodyCell({
     !expandableConfig?.expandedRowRender
   ) {
     childrenNode = (
-      <div
-        className={expandTreeCellInnerCls}
-        style={{
-          paddingInlineStart: indent * (expandableConfig?.indentSize ?? 15),
-        }}
+      <TreeCellContent
+        rowData={rowData}
+        rowIndex={rowIndex}
+        indent={indent}
+        expanded={expanded}
+        expandable={rowSupportExpand}
       >
-        {renderExpandIcon(true)}
-        <span>{childrenNode}</span>
-      </div>
+        {childrenNode}
+      </TreeCellContent>
     );
   }
 

@@ -304,31 +304,43 @@ function HeadCell({
     [rowSelection?.align, titleCheckboxProps.style],
   );
 
-  let childrenNode = col.children;
-  if (isInternalSelectionColumn) {
+  const selectionTitleNode = useMemo(() => {
+    if (!isInternalSelectionColumn) {
+      return col.children;
+    }
+
     if (
       (rowSelection?.type ?? 'checkbox') === 'radio' ||
       rowSelection?.hideSelectAll
     ) {
-      childrenNode = null;
-    } else {
-      const disabled = !!titleCheckboxProps.disabled;
-      const originNode = (
-        <SelectionCheckbox
-          {...titleCheckboxProps}
-          style={titleCheckboxStyle}
-          checked={!!selection?.isAllSelected}
-          indeterminate={!!selection?.isPartiallySelected}
-          disabled={disabled}
-          onChange={(event) => selection?.onSelectAll(event)}
-        />
-      );
-      childrenNode =
-        typeof rowSelection?.columnTitle === 'function'
-          ? rowSelection.columnTitle(originNode)
-          : rowSelection?.columnTitle ?? originNode;
+      return null;
     }
-  }
+
+    const disabled = !!titleCheckboxProps.disabled;
+    const originNode = (
+      <SelectionCheckbox
+        {...titleCheckboxProps}
+        style={titleCheckboxStyle}
+        checked={!!selection?.isAllSelected}
+        indeterminate={!!selection?.isPartiallySelected}
+        disabled={disabled}
+        onChange={(event) => selection?.onSelectAll(event)}
+      />
+    );
+
+    return typeof rowSelection?.columnTitle === 'function'
+      ? rowSelection.columnTitle(originNode)
+      : rowSelection?.columnTitle ?? originNode;
+  }, [
+    col.children,
+    isInternalSelectionColumn,
+    rowSelection,
+    selection,
+    titleCheckboxProps,
+    titleCheckboxStyle,
+  ]);
+
+  let childrenNode = selectionTitleNode;
   const ellipsis = !!col.column?.ellipsis;
   if (ellipsis) {
     const showTitle =

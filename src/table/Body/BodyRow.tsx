@@ -9,12 +9,12 @@ import { useExpandableContext } from '../expandableContext';
 import useFixedInfo from '../hooks/useFixedInfo';
 import { ColumnState, StickyOffsets } from '../interface';
 import { usePrefixClsContext } from '../prefixClsContext';
+import { useRowSort } from '../RowSort';
 import { getComponentCls, getCssVar } from '../style/classNames';
 import { isInternalColumn, isRowSortColumn } from '../utils/const';
 import BodyCell from './BodyCell';
 import { isVirtualBodyRenderMode } from './cellSpan';
 import type { BodyRenderMode } from './interface';
-import useRowSort from './useRowSort';
 
 interface BodyRowProps<T = any> {
   rowData: T;

@@ -102,6 +102,11 @@ const HeadFilterCell: FC<HeadFilterCellProps> = ({
     [column.key, columnIndex, fixedInfo.fixStart, fixedInfo.fixEnd],
   );
 
+  const filterNode = useMemo(
+    () => column.filterRender?.(column, columnIndex),
+    [column, columnIndex],
+  );
+
   return (
     <CellContainer
       component={CellComponent}
@@ -127,7 +132,7 @@ const HeadFilterCell: FC<HeadFilterCellProps> = ({
       motionLayoutDependency={motionLayoutDependency}
       {...restCellProps}
     >
-      {column.filterRender?.(column, columnIndex)}
+      {filterNode}
     </CellContainer>
   );
 };

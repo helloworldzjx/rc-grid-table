@@ -35,9 +35,9 @@ export type BodyExpandedItem<T = any> = {
 
 export type BodyItem<T = any> = BodyRowItem<T> | BodyExpandedItem<T>;
 
-export interface BodyRenderOptions {
+export interface BodyRenderOptions<T = any> {
   renderMode?: BodyRenderMode;
-  flattenColumns?: ColumnState[];
+  flattenColumns?: ColumnState<T>[];
   fixedOffset?: StickyOffsets;
   style?: CSSProperties;
   rowRef?: Ref<HTMLDivElement>;
@@ -50,7 +50,7 @@ export interface BodyRenderOptions {
 
 export type BodyItemRenderer<T = any> = (
   bodyItem: BodyItem<T>,
-  options?: BodyRenderOptions,
+  options?: BodyRenderOptions<T>,
 ) => ReactNode;
 
 export interface TableVirtualBodyController<T = any> {

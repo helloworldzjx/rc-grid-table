@@ -55,16 +55,9 @@ const ExpandedRow: FC<ExpandedRowProps> = ({
     [prefixCls],
   );
 
-  const RowComponent = useMemo(
-    () => getComponent(['body', 'row'], 'div'),
-    [getComponent],
-  );
-  const CellComponent = useMemo(
-    () => getComponent(['body', 'cell'], 'div'),
-    [getComponent],
-  );
   const virtual = isVirtualBodyRenderMode(renderMode);
   const hasFixedRowHeight = isNum(rowHeight) && rowHeight > 0;
+
   const mergedStyle = useMemo<CSSProperties | undefined>(() => {
     if (!hasFixedRowHeight) {
       return style;
@@ -75,16 +68,28 @@ const ExpandedRow: FC<ExpandedRowProps> = ({
       [bodyFixedHeightRowCssVar]: `${rowHeight}px`,
     } as CSSProperties;
   }, [bodyFixedHeightRowCssVar, hasFixedRowHeight, rowHeight, style]);
+
   const expandedRowCellWidth = Math.min(
     columnsWidthTotal,
     containerWidth || columnsWidthTotal,
   );
+
   const cellStyle = useMemo<CSSProperties>(
     () => ({
       gridColumn: `span ${flattenColumns.length || 1}`,
       width: expandedRowCellWidth,
     }),
     [expandedRowCellWidth, flattenColumns.length],
+  );
+
+  const RowComponent = useMemo(
+    () => getComponent(['body', 'row'], 'div'),
+    [getComponent],
+  );
+
+  const CellComponent = useMemo(
+    () => getComponent(['body', 'cell'], 'div'),
+    [getComponent],
   );
 
   const rowNode = (

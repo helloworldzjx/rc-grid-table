@@ -4,12 +4,12 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { composeRef } from '@rc-component/util/lib/ref';
-import warning from '@rc-component/util/lib/warning';
 import { Empty, Spin } from 'antd';
 import classNames from 'classnames';
 import React, {
   CSSProperties,
   forwardRef,
+  useCallback,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -17,9 +17,8 @@ import React, {
 
 import { SCROLLBAR_SIZE } from '../_utils/const';
 import { isNum, isObject } from '../_utils/validate';
-import BodyRow from './Body/BodyRow';
-import ExpandedRow from './Body/ExpandedRow';
-import type { BodyItem, BodyRenderOptions } from './Body/interface';
+import BodyItem from './Body/BodyItem';
+import type { BodyItemRenderer } from './Body/interface';
 import useTableVirtualBody from './Body/virtual/useTableVirtualBody';
 import ColumnPreviewStyleScope, {
   getGridTemplateColumns,
@@ -44,7 +43,6 @@ import { getComponentCls, getCssVar } from './style/classNames';
 import { getBodyItems } from './utils/bodyItems';
 import { parseHeaderRows } from './utils/handle';
 import { getVirtualFixedHeightConfig } from './utils/virtual';
-import { warningInvalidRecordKey } from './utils/warning';
 
 const getStickyOffset = (
   sticky: TableProps['sticky'],
@@ -68,7 +66,6 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       containerWidth = 0,
       rowKey,
       className,
-      rowClassName,
       dataSource,
       columns,
       flattenColumns = [],
@@ -326,83 +323,20 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       [columnsWidthTotal, containerWidth],
     );
 
-    const renderBodyItem = (
-      bodyItem: BodyItem,
-      options: BodyRenderOptions = {},
-    ) => {
-      if (bodyItem.type === 'expanded') {
-        return (
-          <ExpandedRow
-            key={options.renderKey ?? bodyItem.reactKey}
-            className={bodyItem.className}
-            indent={1}
-            style={options.style}
-            rowHeight={expandedRowHeight}
-            rowRef={options.rowRef}
-            onRowResize={options.onRowResize}
-            renderMode={options.renderMode}
-          >
-            {expandable?.expandedRowRender?.(
-              bodyItem.record,
-              bodyItem.rowIndex,
-              bodyItem.indent,
-              bodyItem.expanded,
-            )}
-          </ExpandedRow>
-        );
-      }
-
-      const {
-        record: rowData,
-        rowIndex,
-        indent,
-        rowKeyValue: key,
-        expanded,
-        treeExpandable,
-        rowExpandable,
-        invalidRowKey,
-      } = bodyItem;
-
-      warning(
-        !invalidRowKey,
-        'Each record in table should have a unique row key, or set `rowKey` to a string field name or a function that returns a string or finite number.',
-      );
-      if (invalidRowKey) {
-        warningInvalidRecordKey(rowKey, 'row rendering', key);
-      }
-
-      const dragDisabled = rowSort.getDragDisabled(rowData, key);
-      const dropDisabled = rowSort.getDropDisabled(key);
-
-      return (
-        <BodyRow
-          key={options.renderKey ?? bodyItem.reactKey}
-          flattenColumns={options.flattenColumns ?? flattenColumns}
-          fixedOffset={options.fixedOffset ?? fixedOffset}
-          rowData={rowData}
-          rowIndex={rowIndex}
-          rowKeyValue={key}
-          indent={indent}
-          expanded={expanded}
-          expandable={hasTreeData || treeExpandable}
-          rowSupportExpand={rowExpandable}
-          className={classNames(
-            rowClassName?.(rowData, rowIndex),
-            options.className,
-          )}
-          style={options.style}
+    const renderBodyItem: BodyItemRenderer = useCallback(
+      (bodyItem, options) => (
+        <BodyItem
+          key={options?.renderKey ?? bodyItem.reactKey}
+          item={bodyItem}
+          options={options}
           rowHeight={rowHeight}
-          rowRef={options.rowRef}
-          onRowResize={options.onRowResize}
-          rowSortOverlay={options.rowSortOverlay}
-          renderMode={options.renderMode}
-          getRowSpanHeight={options.getRowSpanHeight}
-          rowSortDragDisabled={dragDisabled}
-          rowSortDropDisabled={dropDisabled}
-          rowSortDragging={rowSort.activeKey === key}
+          expandedRowHeight={expandedRowHeight}
+          hasTreeData={hasTreeData}
+          rowSort={rowSort}
         />
-      );
-    };
+      ),
+      [rowHeight, expandedRowHeight, hasTreeData, rowSort],
+    );
 
     return (
       <div

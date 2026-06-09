@@ -117,14 +117,18 @@ function RowSortBodyCell<T = any>({
     [disabled, dragging, indent, rowData, rowIndex],
   );
 
-  const iconNode = rowSortable?.sortIcon ? (
-    rowSortable.sortIcon(iconProps)
-  ) : (
-    <>
-      <span />
-      <span />
-      <span />
-    </>
+  const iconNode = useMemo(
+    () =>
+      rowSortable?.sortIcon ? (
+        rowSortable.sortIcon(iconProps)
+      ) : (
+        <>
+          <span />
+          <span />
+          <span />
+        </>
+      ),
+    [iconProps, rowSortable],
   );
 
   return (
