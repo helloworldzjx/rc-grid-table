@@ -123,6 +123,7 @@ function BodyCell({
     () => column.onCell?.(rowData, rowIndex) || {},
     [column.onCell, rowData, rowIndex],
   );
+
   const spanInfo = useMemo(
     () =>
       getBodyCellSpanInfo({
@@ -225,14 +226,14 @@ function BodyCell({
   );
 
   const restCellProps = useMemo(() => {
-    const restProps = { ...column.onCell?.(rowData, rowIndex) };
+    const restProps = { ...cellProps };
     delete restProps.rowSpan;
     delete restProps.colSpan;
     delete restProps.style;
     delete restProps.align;
     delete restProps.className;
     return restProps;
-  }, [column.onCell, rowData, rowIndex]);
+  }, [cellProps]);
 
   const isInternalExpandColumn = isExpandColumn(column);
   const isInternalSelectionColumn = isSelectionColumn(column);

@@ -55,8 +55,14 @@ const ExpandedRow: FC<ExpandedRowProps> = ({
     [prefixCls],
   );
 
-  const RowComponent = getComponent(['body', 'row'], 'div');
-  const CellComponent = getComponent(['body', 'cell'], 'div');
+  const RowComponent = useMemo(
+    () => getComponent(['body', 'row'], 'div'),
+    [getComponent],
+  );
+  const CellComponent = useMemo(
+    () => getComponent(['body', 'cell'], 'div'),
+    [getComponent],
+  );
   const virtual = isVirtualBodyRenderMode(renderMode);
   const hasFixedRowHeight = isNum(rowHeight) && rowHeight > 0;
   const mergedStyle = useMemo<CSSProperties | undefined>(() => {

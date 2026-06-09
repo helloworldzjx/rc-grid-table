@@ -69,7 +69,10 @@ function HeadCell({
   } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
 
   const resizableRef = useRef<HTMLDivElement | null>(null);
-  const CellComponent = getComponent(['header', 'cell'], 'div');
+  const CellComponent = useMemo(
+    () => getComponent(['header', 'cell'], 'div'),
+    [getComponent],
+  );
 
   const fixedInfo = useMemo(() => {
     return getCellFixedInfo(
@@ -111,7 +114,7 @@ function HeadCell({
 
   const cellProps = useMemo(
     () => col.column?.onHeaderCell?.(col.column, colIndex) || {},
-    [col.column?.onHeaderCell, colIndex],
+    [col.column, colIndex],
   );
 
   const mergedStyle = useMemo(() => {

@@ -153,7 +153,10 @@ function HeadRow({
     () => getComponentCls(prefixCls),
     [prefixCls],
   );
-  const RowComponent = getComponent(['header', 'row'], 'div');
+  const RowComponent = useMemo(
+    () => getComponent(['header', 'row'], 'div'),
+    [getComponent],
+  );
 
   const firstRow = headRows[0] || [];
   const previousRow = headRows[headRowIndex - 1] || [];

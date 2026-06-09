@@ -88,6 +88,7 @@ const HeadFilterCell: FC<HeadFilterCellProps> = ({
     delete restProps.className;
     return restProps;
   }, [cellProps]);
+
   const motionKeys = useMemo(() => [column.key], [column.key]);
   const motionLayoutDependency = useMemo(
     () =>

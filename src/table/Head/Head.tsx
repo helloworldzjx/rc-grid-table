@@ -37,7 +37,10 @@ const Head = forwardRef<HeadRef, HeadProps>(
     const { columns: previewColumns } = useColumnSortPreviewLayoutContext();
     const innerRef = useRef<HTMLDivElement>(null);
     const sortableStartLockedUntilRef = useRef(0);
-    const WrapperComponent = getComponent(['header', 'wrapper'], 'div');
+    const WrapperComponent = useMemo(
+      () => getComponent(['header', 'wrapper'], 'div'),
+      [getComponent],
+    );
     const { headCls, headInnerCls } = useMemo(
       () => getComponentCls(prefixCls),
       [prefixCls],

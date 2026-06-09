@@ -25,10 +25,15 @@ const Summary = forwardRef<HTMLDivElement, SummaryProps>(
       [prefixCls],
     );
 
+    const summaryRows = useMemo(
+      () => summary?.(dataSource, flattenColumns) || [],
+      [summary, dataSource, flattenColumns],
+    );
+
     return (
       <div className={classNames(summaryCls, className)} style={style}>
         <div className={summaryInnerCls} ref={ref}>
-          {summary?.(dataSource, flattenColumns)?.map((row, rowIndex) => (
+          {summaryRows.map((row, rowIndex) => (
             <SummaryRow key={rowIndex} row={row} />
           ))}
         </div>

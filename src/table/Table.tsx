@@ -323,10 +323,22 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       flattenColumnsWidths,
     });
 
-    const TableComponent = getComponent(['table'], 'div');
-    const BodyWrapperComponent = getComponent(['body', 'wrapper'], 'div');
-    const BodyRowComponent = getComponent(['body', 'row'], 'div');
-    const BodyCellComponent = getComponent(['body', 'cell'], 'div');
+    const TableComponent = useMemo(
+      () => getComponent(['table'], 'div'),
+      [getComponent],
+    );
+    const BodyWrapperComponent = useMemo(
+      () => getComponent(['body', 'wrapper'], 'div'),
+      [getComponent],
+    );
+    const BodyRowComponent = useMemo(
+      () => getComponent(['body', 'row'], 'div'),
+      [getComponent],
+    );
+    const BodyCellComponent = useMemo(
+      () => getComponent(['body', 'cell'], 'div'),
+      [getComponent],
+    );
 
     const stickyHeaderStyle = useMemo<CSSProperties | undefined>(() => {
       if (!sticky) return undefined;
