@@ -3,7 +3,6 @@ import React, { Key, useCallback, useMemo } from 'react';
 import { usePrefixClsContext } from '../../prefixClsContext';
 import { getComponentCls } from '../../style/classNames';
 import type { BodyItem, BodyItemRenderer, BodyRowItem } from '../interface';
-import type { VirtualItem } from './useVirtualBody';
 
 export interface VirtualRowSpanItem<T = any> {
   bodyItem: BodyRowItem<T>;
@@ -16,8 +15,8 @@ interface VirtualBodyProps<T = any> {
   inVirtual: boolean;
   scrollHeight: number;
   offsetY: number;
-  visibleItems: VirtualItem<BodyItem<T>>[];
-  preservedItem?: (VirtualItem<BodyItem<T>> & { top: number }) | null;
+  visibleItems: BodyItem<T>[];
+  preservedItem?: (BodyItem<T> & { top: number }) | null;
   rowSpanItems: VirtualRowSpanItem<T>[];
   renderBodyItem: BodyItemRenderer<T>;
   setItemRef: (key: Key, element: HTMLDivElement | null) => void;
@@ -77,15 +76,15 @@ const VirtualBody = <T,>({
         className={bodyVirtualInnerCls}
         style={{ transform: `translateY(${offsetY}px)` }}
       >
-        {visibleItems.map(({ key, item }) =>
+        {visibleItems.map((item) =>
           renderBodyItem(item, {
             renderMode: 'virtual',
-            rowRef: (element) => setItemRef(key, element),
+            rowRef: (element) => setItemRef(item.key, element),
             onRowResize: onItemResize,
           }),
         )}
         {preservedItem &&
-          renderBodyItem(preservedItem.item, {
+          renderBodyItem(preservedItem, {
             renderMode: 'virtual',
             renderKey: `preserved-${preservedItem.key}`,
             className: bodyVirtualPreservedCls,

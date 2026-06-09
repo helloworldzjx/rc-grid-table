@@ -16,7 +16,7 @@ import React, {
 } from 'react';
 
 import { SCROLLBAR_SIZE } from '../_utils/const';
-import { isNum, isObject, isValidKey } from '../_utils/validate';
+import { isNum, isObject } from '../_utils/validate';
 import BodyRow from './Body/BodyRow';
 import ExpandedRow from './Body/ExpandedRow';
 import type { BodyItem, BodyRenderOptions } from './Body/interface';
@@ -41,12 +41,7 @@ import { usePrefixClsContext } from './prefixClsContext';
 import { useRowSortableContext } from './rowSortableContext';
 import { useStyles } from './style';
 import { getComponentCls, getCssVar } from './style/classNames';
-import {
-  flattenDataSource,
-  getRecordChildren,
-  getRecordKey,
-  hasChildrenInData,
-} from './utils/expand';
+import { getBodyItems } from './utils/bodyItems';
 import { parseHeaderRows } from './utils/handle';
 import { getVirtualFixedHeightConfig } from './utils/virtual';
 import { warningInvalidRecordKey } from './utils/warning';
@@ -153,94 +148,36 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
     const childrenColumnName = expandable?.childrenColumnName ?? 'children';
 
     const isTreeMode = !hasExpandedRowRender;
-    const hasTreeData = useMemo(() => {
-      return isTreeMode && hasChildrenInData(dataSource, childrenColumnName);
-    }, [isTreeMode, dataSource, childrenColumnName]);
-
     const headRows = useMemo(() => {
       return parseHeaderRows(columns);
     }, [columns]);
 
-    const flattenData = useMemo(() => {
-      return isTreeMode
-        ? flattenDataSource(
-            dataSource || [],
-            rowKey,
-            childrenColumnName,
-            mergedExpandedRowKeys,
-          )
-        : (dataSource || []).map((record, rowIndex) => ({
-            record,
-            rowIndex,
-            indent: 0,
-            key: getRecordKey(record, rowKey),
-          }));
-    }, [
-      isTreeMode,
-      dataSource,
-      rowKey,
-      childrenColumnName,
-      mergedExpandedRowKeys,
-    ]);
+    const expandedRowKeySet = useMemo(
+      () => new Set(mergedExpandedRowKeys),
+      [mergedExpandedRowKeys],
+    );
 
-    const bodyItems = useMemo<BodyItem[]>(() => {
-      return flattenData.reduce<BodyItem[]>(
-        (items, { record: rowData, rowIndex, indent, key }) => {
-          const hasValidKey = isValidKey(key);
-          const rowReactKey = hasValidKey ? key : rowIndex;
-          const expanded = hasValidKey
-            ? mergedExpandedRowKeys.includes(key)
-            : false;
-          const children = getRecordChildren(rowData, childrenColumnName);
-          const treeExpandable = isTreeMode && children.length > 0;
-          const rowExpandable = hasExpandedRowRender
-            ? expandable?.rowExpandable?.(rowData) !== false
-            : treeExpandable;
-
-          items.push({
-            type: 'row',
-            key: `row-${rowReactKey}`,
-            reactKey: rowReactKey,
-            record: rowData,
-            rowIndex,
-            indent,
-            rowKeyValue: key,
-            expanded,
-            treeExpandable,
-            rowExpandable,
-            invalidRowKey: !hasValidKey,
-          });
-
-          if (hasExpandedRowRender && expanded && rowExpandable) {
-            const expandedRowClassName =
-              typeof expandable?.expandedRowClassName === 'function'
-                ? expandable.expandedRowClassName(rowData, rowIndex, indent)
-                : expandable?.expandedRowClassName;
-
-            items.push({
-              type: 'expanded',
-              key: `expanded-${rowReactKey}`,
-              reactKey: `${rowReactKey}-expanded`,
-              record: rowData,
-              rowIndex,
-              indent,
-              expanded,
-              className: expandedRowClassName,
-            });
-          }
-
-          return items;
-        },
-        [],
-      );
-    }, [
-      childrenColumnName,
-      expandable,
-      flattenData,
-      hasExpandedRowRender,
-      isTreeMode,
-      mergedExpandedRowKeys,
-    ]);
+    const { bodyItems, rowDataItemCount, hasTreeData } = useMemo(
+      () =>
+        getBodyItems({
+          dataSource,
+          rowKey,
+          childrenColumnName,
+          expandedRowKeySet,
+          expandable,
+          hasExpandedRowRender,
+          isTreeMode,
+        }),
+      [
+        childrenColumnName,
+        dataSource,
+        expandable,
+        expandedRowKeySet,
+        hasExpandedRowRender,
+        isTreeMode,
+        rowKey,
+      ],
+    );
 
     const {
       tableHeadRef,
@@ -269,7 +206,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       showSummary,
       onScroll,
       deps: [
-        flattenData.length,
+        rowDataItemCount,
         mergedExpandedRowKeys,
         flattenColumnsWidths,
         scrollY,
@@ -278,7 +215,6 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
 
     const rowSort = useTableRowSort({
       bodyItems,
-      flattenData,
       dataSource,
       rowKey,
       childrenColumnName,
@@ -290,7 +226,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
 
     const virtualBody = useTableVirtualBody({
       bodyItems,
-      flattenDataLength: flattenData.length,
+      flattenDataLength: rowDataItemCount,
       flattenColumns,
       preserveItemKey: rowSort.preserveItemKey,
       scrollElement: bodyScrollElement,

@@ -23,6 +23,21 @@ interface UseSelectionProps<T = any> {
   childrenColumnName?: string;
 }
 
+interface SelectionRecordEntities<T = any> {
+  allKeys: Key[];
+  keyRecordMap: Map<Key, T>;
+  keyChildrenMap: Map<Key, Key[]>;
+  keyParentMap: Map<Key, Key>;
+  keyDisabledMap?: Map<Key, boolean>;
+}
+
+const emptyRecordEntities: SelectionRecordEntities<never> = {
+  allKeys: [],
+  keyRecordMap: new Map<Key, never>(),
+  keyChildrenMap: new Map<Key, Key[]>(),
+  keyParentMap: new Map<Key, Key>(),
+};
+
 const uniqKeys = (keys: Key[]) => Array.from(new Set(keys));
 
 function useSelection<T = any>({
@@ -52,6 +67,8 @@ function useSelection<T = any>({
   const type = rowSelection?.type ?? 'checkbox';
   const checkStrictly = rowSelection?.checkStrictly ?? true;
   const selectAllMode = rowSelection?.selectAllMode ?? 'all';
+  const selectionEnabled = !!rowSelection;
+  const getCheckboxProps = rowSelection?.getCheckboxProps;
   const controlled = !!rowSelection && 'selectedRowKeys' in rowSelection;
   const selectedRowKeys = useMemo(() => {
     const keys = controlled
@@ -60,12 +77,20 @@ function useSelection<T = any>({
     return type === 'radio' ? keys.slice(0, 1) : keys;
   }, [controlled, innerSelectedRowKeys, rowSelection?.selectedRowKeys, type]);
 
-  const recordEntities = useMemo(() => {
+  const recordEntities = useMemo<SelectionRecordEntities<T>>(() => {
+    if (!selectionEnabled) {
+      return emptyRecordEntities as SelectionRecordEntities<T>;
+    }
+
     const keyRecordMap = new Map<Key, T>();
     const keyChildrenMap = new Map<Key, Key[]>();
     const keyParentMap = new Map<Key, Key>();
-    const keyDisabledMap = new Map<Key, boolean>();
+    const keyDisabledMap =
+      type === 'checkbox' && selectAllMode === 'enabled'
+        ? new Map<Key, boolean>()
+        : undefined;
     const allKeys: Key[] = [];
+    const collectTreeLinks = type === 'checkbox' && !checkStrictly;
 
     const traverse = (records: T[], parentKey?: Key) => {
       records.forEach((record) => {
@@ -77,19 +102,20 @@ function useSelection<T = any>({
         const children = getRecordChildren(record, childrenColumnName);
         allKeys.push(key);
         keyRecordMap.set(key, record);
-        if (parentKey !== undefined) {
+        if (collectTreeLinks && parentKey !== undefined) {
           keyParentMap.set(key, parentKey);
         }
-        keyDisabledMap.set(
-          key,
-          !!rowSelection?.getCheckboxProps?.(record)?.disabled,
-        );
-        keyChildrenMap.set(
-          key,
-          children
-            .map((child) => getRecordKey(child, rowKey))
-            .filter(isValidKey),
-        );
+        if (keyDisabledMap) {
+          keyDisabledMap.set(key, !!getCheckboxProps?.(record)?.disabled);
+        }
+        if (collectTreeLinks) {
+          keyChildrenMap.set(
+            key,
+            children
+              .map((child) => getRecordKey(child, rowKey))
+              .filter(isValidKey),
+          );
+        }
         if (children.length) {
           traverse(children, key);
         }
@@ -105,7 +131,16 @@ function useSelection<T = any>({
       keyParentMap,
       keyDisabledMap,
     };
-  }, [childrenColumnName, dataSource, rowKey, rowSelection]);
+  }, [
+    checkStrictly,
+    childrenColumnName,
+    dataSource,
+    getCheckboxProps,
+    rowKey,
+    selectionEnabled,
+    selectAllMode,
+    type,
+  ]);
 
   const getSelectedRows = useCallback(
     (keys: Key[]) => {
@@ -272,8 +307,12 @@ function useSelection<T = any>({
       return [];
     }
 
+    if (selectAllMode === 'all') {
+      return recordEntities.allKeys;
+    }
+
     return recordEntities.allKeys.filter((key) => {
-      return selectAllMode === 'all' || !recordEntities.keyDisabledMap.get(key);
+      return !recordEntities.keyDisabledMap?.get(key);
     });
   }, [
     recordEntities.allKeys,

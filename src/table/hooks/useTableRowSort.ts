@@ -19,12 +19,14 @@ import type {
   StickyOffsets,
 } from '../interface';
 import { isInternalColumn, isRowSortColumn } from '../utils/const';
-import type { FlattenRecord } from '../utils/expand';
-import { getRowSortEntities, reorderDataSource } from '../utils/rowSortable';
+import {
+  getRowSortEntities,
+  reorderDataSource,
+  type RowSortEntities,
+} from '../utils/rowSortable';
 
 interface UseTableRowSortProps<T = any> {
   bodyItems: BodyItem<T>[];
-  flattenData: FlattenRecord<T>[];
   dataSource?: T[];
   rowKey: RowKey<T>;
   childrenColumnName: string;
@@ -87,9 +89,10 @@ const getStaticOffset = (widths: readonly number[]): StickyOffsets => ({
   fixColumnsGapped: false,
 });
 
+const emptyRowSortEntities: RowSortEntities<never> = new Map();
+
 export default function useTableRowSort<T = any>({
   bodyItems,
-  flattenData,
   dataSource,
   rowKey,
   childrenColumnName,
@@ -98,6 +101,7 @@ export default function useTableRowSort<T = any>({
   bodyScrollElement,
   bodyScrollLeft,
 }: UseTableRowSortProps<T>) {
+  const rowSortableEnabled = !!rowSortable;
   const allowCrossLevelSort = !!rowSortable?.allowCrossLevelSort;
   const [activeKey, setActiveKey] = useState<Key | null>(null);
   const activeDataRef = useRef<{
@@ -119,17 +123,25 @@ export default function useTableRowSort<T = any>({
   );
 
   const entities = useMemo(
-    () => getRowSortEntities(dataSource, rowKey, childrenColumnName),
-    [childrenColumnName, dataSource, rowKey],
+    () =>
+      rowSortableEnabled
+        ? getRowSortEntities(dataSource, rowKey, childrenColumnName)
+        : (emptyRowSortEntities as RowSortEntities<T>),
+    [childrenColumnName, dataSource, rowKey, rowSortableEnabled],
   );
 
-  const items = useMemo(
-    () =>
-      flattenData
-        .map(({ key }) => key)
-        .filter((key): key is UniqueIdentifier => isValidRowSortId(key)),
-    [flattenData],
-  );
+  const items = useMemo(() => {
+    if (!rowSortableEnabled) {
+      return [];
+    }
+
+    return bodyItems.reduce<UniqueIdentifier[]>((keys, item) => {
+      if (item.type === 'row' && isValidRowSortId(item.rowKeyValue)) {
+        keys.push(item.rowKeyValue);
+      }
+      return keys;
+    }, []);
+  }, [bodyItems, rowSortableEnabled]);
 
   const lastItem = useMemo(() => items[items.length - 1], [items]);
 
@@ -253,6 +265,7 @@ export default function useTableRowSort<T = any>({
             overKey,
             placement,
             allowCrossLevelSort,
+            entities,
           });
 
           if (result) {

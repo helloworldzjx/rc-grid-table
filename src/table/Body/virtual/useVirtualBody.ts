@@ -19,13 +19,12 @@ type VirtualTouchEvent = TouchEvent & {
   _virtualHandled?: boolean;
 };
 
-export type VirtualItem<ItemType = unknown> = {
+type KeyedVirtualBodyItem = {
   key: Key;
-  item: ItemType;
 };
 
-interface UseVirtualBodyProps<ItemType> {
-  data: VirtualItem<ItemType>[];
+interface UseVirtualBodyProps<ItemType extends KeyedVirtualBodyItem> {
+  data: ItemType[];
   scrollElement?: HTMLDivElement | null;
   scrollY?: number;
   virtual?: boolean | TableVirtualConfig;
@@ -37,7 +36,7 @@ interface UseVirtualBodyProps<ItemType> {
 const getDefaultEstimatedRowHeight = getDefaultInternalColumnWidth;
 
 const getVirtualConfig = (
-  virtual: UseVirtualBodyProps<unknown>['virtual'],
+  virtual: boolean | TableVirtualConfig | undefined,
   size: SizeType | undefined,
   scrollY: number | undefined,
 ) => {
@@ -131,7 +130,7 @@ const getPageXY = (event: MouseEvent | TouchEvent, horizontal = false) => {
 const getDragScrollOffset = (offset: number) =>
   Math.floor(Math.sqrt(Math.max(offset, 0)));
 
-export default function useVirtualBody<ItemType>({
+export default function useVirtualBody<ItemType extends KeyedVirtualBodyItem>({
   data,
   scrollElement,
   scrollY,
@@ -170,25 +169,18 @@ export default function useVirtualBody<ItemType>({
 
   const keyIndexMap = useMemo(() => {
     const map = new Map<Key, number>();
-    data.forEach(({ key }, index) => {
-      map.set(key, index);
+    data.forEach((item, index) => {
+      map.set(item.key, index);
     });
     return map;
   }, [data]);
 
   const heights = heightsRef.current;
 
-  const itemMap = useMemo(() => {
-    const map = new Map<Key, ItemType>();
-    data.forEach(({ key, item }) => {
-      map.set(key, item);
-    });
-    return map;
-  }, [data]);
-
   const getRowHeight = useCallback(
     (key: Key) => {
-      const item = itemMap.get(key);
+      const index = keyIndexMap.get(key);
+      const item = index === undefined ? undefined : data[index];
       if (item !== undefined && getItemFixedHeight) {
         const fixedHeight = getItemFixedHeight(item);
         return fixedHeight ?? heights.get(key) ?? estimatedRowHeight;
@@ -196,13 +188,20 @@ export default function useVirtualBody<ItemType>({
 
       return fixedRowHeight ?? heights.get(key) ?? estimatedRowHeight;
     },
-    [estimatedRowHeight, fixedRowHeight, getItemFixedHeight, heights, itemMap],
+    [
+      data,
+      estimatedRowHeight,
+      fixedRowHeight,
+      getItemFixedHeight,
+      heights,
+      keyIndexMap,
+    ],
   );
 
   const prefixHeights = useMemo(() => {
     const list: number[] = [0];
-    data.forEach(({ key }, index) => {
-      list[index + 1] = list[index] + getRowHeight(key);
+    data.forEach((item, index) => {
+      list[index + 1] = list[index] + getRowHeight(item.key);
     });
     return list;
   }, [data, getRowHeight, heightUpdateMark]);
@@ -315,7 +314,8 @@ export default function useVirtualBody<ItemType>({
         instancesRef.current.forEach((element, key) => {
           if (!element || !element.offsetParent) return;
 
-          const item = itemMap.get(key);
+          const itemIndex = keyIndexMap.get(key);
+          const item = itemIndex === undefined ? undefined : data[itemIndex];
           if (item !== undefined && getItemFixedHeight?.(item) !== undefined) {
             return;
           }
@@ -340,7 +340,7 @@ export default function useVirtualBody<ItemType>({
         collectFrameRef.current = raf(doCollect);
       }
     },
-    [fixedRowHeight, getItemFixedHeight, itemMap],
+    [data, fixedRowHeight, getItemFixedHeight, keyIndexMap],
   );
 
   const setItemRef = useCallback(
@@ -398,7 +398,7 @@ export default function useVirtualBody<ItemType>({
   const visibleStart = start;
   const visibleEnd = end;
   const visibleItems = useMemo(
-    () => (inVirtual ? data.slice(start, end + 1) : data),
+    () => (inVirtual ? data.slice(start, end + 1) : []),
     [data, end, inVirtual, start],
   );
 
@@ -433,7 +433,8 @@ export default function useVirtualBody<ItemType>({
       const [changedKey, previousHeight] = Array.from(
         changedRecord.entries(),
       )[0];
-      const startKey = data[visibleStart]?.key;
+      const startItem = data[visibleStart];
+      const startKey = startItem?.key;
 
       if (changedKey === startKey && !isNum(previousHeight)) {
         const nextHeight = heightsRef.current.get(changedKey);

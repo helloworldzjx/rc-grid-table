@@ -55,15 +55,6 @@ export default function useTableVirtualBody<T = any>({
     expandedRowHeight: fixedExpandedRowHeight,
   } = useMemo(() => getVirtualFixedHeightConfig(virtual), [virtual]);
 
-  const virtualData = useMemo(
-    () =>
-      bodyItems.map((item) => ({
-        key: item.key,
-        item,
-      })),
-    [bodyItems],
-  );
-
   const getItemFixedHeight = useCallback(
     (item: BodyItem<T>) => {
       if (item.type === 'row') {
@@ -88,7 +79,7 @@ export default function useTableVirtualBody<T = any>({
     handleScroll,
     scrollTo: scrollVirtualTo,
   } = useVirtualBody({
-    data: virtualData,
+    data: bodyItems,
     scrollElement,
     scrollY,
     virtual,
@@ -105,12 +96,12 @@ export default function useTableVirtualBody<T = any>({
       return null;
     }
 
-    const rendered = visibleItems.some(({ key }) => key === preserveItemKey);
+    const rendered = visibleItems.some((item) => item.key === preserveItemKey);
     if (rendered) {
       return null;
     }
 
-    const item = virtualData.find(({ key }) => key === preserveItemKey);
+    const item = bodyItems.find(({ key }) => key === preserveItemKey);
     if (!item) {
       return null;
     }
@@ -119,7 +110,7 @@ export default function useTableVirtualBody<T = any>({
       ...item,
       top: getItemSize(preserveItemKey).top,
     };
-  }, [getItemSize, inVirtual, preserveItemKey, virtualData, visibleItems]);
+  }, [bodyItems, getItemSize, inVirtual, preserveItemKey, visibleItems]);
 
   const rowItemIndexMap = useMemo(() => {
     const map = new Map<number, number>();

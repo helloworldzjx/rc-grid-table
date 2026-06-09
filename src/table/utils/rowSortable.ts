@@ -13,18 +13,7 @@ export interface RowSortEntity<T = any> {
   parentPath: number[];
 }
 
-const cloneRecords = <T>(records: T[], childrenColumnName: string): T[] =>
-  records.map((record) => {
-    const children = getRecordChildren(record, childrenColumnName);
-    if (!children.length) {
-      return record;
-    }
-
-    return {
-      ...(record as object),
-      [childrenColumnName]: cloneRecords(children, childrenColumnName),
-    } as T;
-  });
+export type RowSortEntities<T = any> = ReadonlyMap<Key, RowSortEntity<T>>;
 
 export const getRowSortEntities = <T = any>(
   dataSource: T[] = [],
@@ -65,20 +54,56 @@ export const getRowSortEntities = <T = any>(
   return keyEntities;
 };
 
-const getMutableSiblings = <T>(
+const getPathKey = (path: readonly number[]) => path.join('/');
+
+const cloneRecordWithChildren = <T>(
+  record: T,
+  children: T[],
+  childrenColumnName: string,
+): T =>
+  ({
+    ...(record as object),
+    [childrenColumnName]: children,
+  } as T);
+
+const createMutableTreeDraft = <T>(
   dataSource: T[],
-  parentPath: number[],
   childrenColumnName: string,
 ) => {
-  let siblings = dataSource;
+  const nextDataSource = dataSource.slice();
+  // Cache cloned sibling arrays so shared paths are copied only once.
+  const siblingsMap = new Map<string, T[]>([['', nextDataSource]]);
 
-  parentPath.forEach((pathIndex) => {
-    const parent = siblings[pathIndex] as Record<string, unknown>;
-    const children = parent?.[childrenColumnName];
-    siblings = Array.isArray(children) ? (children as T[]) : [];
-  });
+  const getMutableSiblings = (parentPath: number[]) => {
+    let siblings = nextDataSource;
+    const currentPath: number[] = [];
 
-  return siblings;
+    parentPath.forEach((pathIndex) => {
+      currentPath.push(pathIndex);
+      const pathKey = getPathKey(currentPath);
+      let childSiblings = siblingsMap.get(pathKey);
+
+      if (!childSiblings) {
+        const parent = siblings[pathIndex];
+        childSiblings = getRecordChildren(parent, childrenColumnName).slice();
+        siblings[pathIndex] = cloneRecordWithChildren(
+          parent,
+          childSiblings,
+          childrenColumnName,
+        );
+        siblingsMap.set(pathKey, childSiblings);
+      }
+
+      siblings = childSiblings;
+    });
+
+    return siblings;
+  };
+
+  return {
+    dataSource: nextDataSource,
+    getMutableSiblings,
+  };
 };
 
 const isSamePath = (a: number[], b: number[]) =>
@@ -99,6 +124,7 @@ export const reorderDataSource = <T = any>({
   overKey,
   placement,
   allowCrossLevelSort = false,
+  entities: inputEntities,
 }: {
   dataSource: T[];
   rowKey: RowKey<T>;
@@ -107,12 +133,14 @@ export const reorderDataSource = <T = any>({
   overKey: Key;
   placement: RowSortPlacement;
   allowCrossLevelSort?: boolean;
+  entities?: RowSortEntities<T>;
 }): { dataSource: T[]; info: RowSortChangeInfo<T> } | null => {
   if (activeKey === overKey) {
     return null;
   }
 
-  const entities = getRowSortEntities(dataSource, rowKey, childrenColumnName);
+  const entities =
+    inputEntities ?? getRowSortEntities(dataSource, rowKey, childrenColumnName);
   const activeEntity = entities.get(activeKey);
   const overEntity = entities.get(overKey);
 
@@ -134,20 +162,12 @@ export const reorderDataSource = <T = any>({
     return null;
   }
 
-  const nextDataSource = cloneRecords(dataSource, childrenColumnName);
   const sameParent = isSamePath(activeEntity.parentPath, overEntity.parentPath);
-  const fromSiblings = getMutableSiblings(
-    nextDataSource,
-    activeEntity.parentPath,
-    childrenColumnName,
-  );
+  const draft = createMutableTreeDraft(dataSource, childrenColumnName);
+  const fromSiblings = draft.getMutableSiblings(activeEntity.parentPath);
   const toSiblings = sameParent
     ? fromSiblings
-    : getMutableSiblings(
-        nextDataSource,
-        overEntity.parentPath,
-        childrenColumnName,
-      );
+    : draft.getMutableSiblings(overEntity.parentPath);
   const [activeRecord] = fromSiblings.splice(activeEntity.index, 1);
 
   if (!activeRecord) {
@@ -166,7 +186,7 @@ export const reorderDataSource = <T = any>({
   toSiblings.splice(insertIndex, 0, activeRecord);
 
   return {
-    dataSource: nextDataSource,
+    dataSource: draft.dataSource,
     info: {
       activeKey,
       overKey,
