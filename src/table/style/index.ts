@@ -407,6 +407,9 @@ const genCellStyle = (
     noDataCellCls,
     ellipsisCellCls,
     ellipsisCellInnerCls,
+    dataSortCellInnerCls,
+    dataSortContentCls,
+    dataSortControlCls,
     expandControlCls,
     rowSortHandleCls,
     rowSortHandleDisabledCls,
@@ -565,7 +568,31 @@ const genCellStyle = (
     boxSizing: 'border-box',
   },
 
-  [`.${ellipsisCellCls} .${ellipsisCellInnerCls}`]: {
+  [`.${ellipsisCellCls} .${ellipsisCellInnerCls}:not(.${dataSortCellInnerCls})`]:
+    {
+      overflow: 'hidden',
+      whiteSpace: 'nowrap',
+      textOverflow: 'ellipsis',
+    },
+
+  [`.${dataSortCellInnerCls}`]: {
+    display: 'flex',
+    alignItems: 'center',
+    minWidth: 0,
+    gap: 8,
+  },
+
+  [`.${dataSortContentCls}`]: {
+    flex: 1,
+    minWidth: 0,
+  },
+
+  [`.${dataSortControlCls}`]: {
+    display: 'flex',
+    alignItems: 'center',
+  },
+
+  [`.${ellipsisCellCls} .${dataSortContentCls}`]: {
     overflow: 'hidden',
     whiteSpace: 'nowrap',
     textOverflow: 'ellipsis',

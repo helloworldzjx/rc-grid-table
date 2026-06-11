@@ -16,11 +16,13 @@ import { isNum, isValidKey } from '../_utils/validate';
 import ColumnSortableProvider from './ColumnSortableProvider';
 import ComponentsContext from './componentsContext';
 import TableContext from './context';
+import DataSortContext from './dataSortContext';
 import ExpandableContext from './expandableContext';
 import useSelection from './hooks/useSelection';
 import useStickyOffsets from './hooks/useStickyOffsets';
 import {
   ColumnState,
+  DataSortContextProps,
   ExpandColumnType,
   GetComponent,
   RowSortColumnType,
@@ -57,6 +59,11 @@ import {
   parseMiddleState,
 } from './utils/handle';
 import { mergeColumnsState } from './utils/mergedColumnsState';
+import {
+  filterLeafDataSortOrder,
+  normalizeDataSortOrder,
+  sortDataSource,
+} from './utils/sort';
 import { warningInvalidRecordKey } from './utils/warning';
 
 export type { TableProps, TableRef } from './interface';
@@ -76,6 +83,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     prefixCls = 'rc-grid-table',
     columns = [],
     dataSource = [],
+    dataSort,
     expandable,
     rowSelection,
     rowSortable,
@@ -157,6 +165,21 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     );
   }, [flattenColumnsWidths]);
 
+  const normalizedDataSortOrders = useMemo(
+    () => normalizeDataSortOrder(dataSort?.sortOrder),
+    [dataSort?.sortOrder],
+  );
+
+  const mergedDataSortOrders = useMemo(
+    () => filterLeafDataSortOrder(cols, normalizedDataSortOrders),
+    [cols, normalizedDataSortOrders],
+  );
+
+  const sortedDataSource = useMemo(
+    () => sortDataSource(dataSource, cols, mergedDataSortOrders),
+    [cols, dataSource, mergedDataSortOrders],
+  );
+
   const mergedExpandedRowKeys = useMemo(
     () => expandable?.expandedRowKeys ?? innerExpandedRowKeys,
     [expandable?.expandedRowKeys, innerExpandedRowKeys],
@@ -164,7 +187,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
 
   const selection = useSelection({
     rowKey,
-    dataSource,
+    dataSource: sortedDataSource,
     rowSelection,
     childrenColumnName: expandable?.childrenColumnName,
   });
@@ -395,7 +418,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
       containerWidth,
       containerHeight,
       rowKey,
-      dataSource,
+      dataSource: sortedDataSource,
       columns: cols,
       flattenColumnsWidths: flattenColumnsWidths,
       columnsWidthTotal,
@@ -421,7 +444,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     containerWidth,
     containerHeight,
     rowKey,
-    dataSource,
+    sortedDataSource,
     cols,
     flattenColumnsWidths,
     columnsWidthTotal,
@@ -444,9 +467,17 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
   const tableDataContextValue = useMemo<TableDataContextProps<T>>(
     () => ({
       rowKey,
-      dataSource,
+      dataSource: sortedDataSource,
     }),
-    [dataSource, rowKey],
+    [rowKey, sortedDataSource],
+  );
+
+  const dataSortContextValue = useMemo<DataSortContextProps>(
+    () => ({
+      dataSort,
+      dataSortOrders: mergedDataSortOrders,
+    }),
+    [dataSort, mergedDataSortOrders],
   );
 
   const tableLayoutContextValue = useMemo<TableLayoutContextProps<T>>(
@@ -572,39 +603,43 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
   return (
     <PrefixClsContext.Provider value={prefixCls}>
       <TableContext.Provider value={tableContextValue}>
-        <TableDataContext.Provider value={tableDataContextValue}>
-          <TableLayoutContext.Provider value={tableLayoutContextValue}>
-            <TableColumnStateContext.Provider
-              value={tableColumnStateContextValue}
-            >
-              <ComponentsContext.Provider value={componentsContextValue}>
-                <ExpandableContext.Provider value={expandableContextValue}>
-                  <RowSelectionContext.Provider
-                    value={rowSelectionContextValue}
-                  >
-                    <RowSortableContext.Provider
-                      value={rowSortableContextValue}
+        <DataSortContext.Provider value={dataSortContextValue}>
+          <TableDataContext.Provider value={tableDataContextValue}>
+            <TableLayoutContext.Provider value={tableLayoutContextValue}>
+              <TableColumnStateContext.Provider
+                value={tableColumnStateContextValue}
+              >
+                <ComponentsContext.Provider value={componentsContextValue}>
+                  <ExpandableContext.Provider value={expandableContextValue}>
+                    <RowSelectionContext.Provider
+                      value={rowSelectionContextValue}
                     >
-                      <ColumnSortableProvider
-                        sortableColumns={sortableColumns}
-                        baseColumnsState={getSortableBaseState()}
-                        updateSortableColumnsState={updateSortableColumnsState}
-                        previewSource={sortablePreviewSource}
+                      <RowSortableContext.Provider
+                        value={rowSortableContextValue}
                       >
-                        <ResizeObserver onResize={onResize}>
-                          <InternalTable
-                            nativeProps={nativeProps}
-                            tableRef={ref}
-                          />
-                        </ResizeObserver>
-                      </ColumnSortableProvider>
-                    </RowSortableContext.Provider>
-                  </RowSelectionContext.Provider>
-                </ExpandableContext.Provider>
-              </ComponentsContext.Provider>
-            </TableColumnStateContext.Provider>
-          </TableLayoutContext.Provider>
-        </TableDataContext.Provider>
+                        <ColumnSortableProvider
+                          sortableColumns={sortableColumns}
+                          baseColumnsState={getSortableBaseState()}
+                          updateSortableColumnsState={
+                            updateSortableColumnsState
+                          }
+                          previewSource={sortablePreviewSource}
+                        >
+                          <ResizeObserver onResize={onResize}>
+                            <InternalTable
+                              nativeProps={nativeProps}
+                              tableRef={ref}
+                            />
+                          </ResizeObserver>
+                        </ColumnSortableProvider>
+                      </RowSortableContext.Provider>
+                    </RowSelectionContext.Provider>
+                  </ExpandableContext.Provider>
+                </ComponentsContext.Provider>
+              </TableColumnStateContext.Provider>
+            </TableLayoutContext.Provider>
+          </TableDataContext.Provider>
+        </DataSortContext.Provider>
       </TableContext.Provider>
     </PrefixClsContext.Provider>
   );

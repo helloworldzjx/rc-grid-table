@@ -1,4 +1,4 @@
-import { isValidElement, Key, type ReactNode } from 'react';
+import { Key } from 'react';
 
 import { isNum } from '../../_utils/validate';
 import type {
@@ -17,20 +17,6 @@ import {
   storageKeys,
 } from './const';
 import { warningFallbackColumnKey, warningInvalidColumnKey } from './warning';
-
-export const getEllipsisTitle = (children: ReactNode) => {
-  let title = children;
-  if (typeof children === 'string' || typeof children === 'number') {
-    title = children.toString();
-  } else if (
-    isValidElement(children) &&
-    typeof children.props.children === 'string'
-  ) {
-    title = children?.props?.children;
-  }
-
-  return title;
-};
 
 export const getColumnKey = (
   column: { key?: unknown; dataIndex?: unknown },

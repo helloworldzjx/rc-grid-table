@@ -9,6 +9,7 @@ import { isValidKey } from '../../_utils/validate';
 import CellContainer from '../CellContainer';
 import { useColumnSortableContext } from '../columnSortableContext';
 import { useComponentsContext } from '../componentsContext';
+import { useDataSortContext } from '../dataSortContext';
 import { ExpandControl, TreeCellContent } from '../Expand';
 import { useExpandableContext } from '../expandableContext';
 import { useFixedShadowActive } from '../fixedShadowContext';
@@ -22,8 +23,9 @@ import {
   isRowSortColumn,
   isSelectionColumn,
 } from '../utils/const';
+import { getEllipsisTitle } from '../utils/ellipsis';
 import { FixedInfo } from '../utils/fixedColumns';
-import { getEllipsisTitle } from '../utils/handle';
+import { getDataSortColumnKey } from '../utils/sort';
 import { getBodyCellSpanInfo } from './cellSpan';
 import type { BodyRenderMode } from './interface';
 
@@ -82,6 +84,7 @@ function BodyCell({
     cellCls,
     ellipsisCellCls,
     ellipsisCellInnerCls,
+    dataSortActiveCellCls,
     fixedStartCellCls,
     fixedStartLastCellCls,
     fixedStartShadowActiveCellCls,
@@ -96,6 +99,7 @@ function BodyCell({
 
   const { expandable: expandableConfig } = useExpandableContext();
   const { getComponent } = useComponentsContext();
+  const { dataSortOrders = [] } = useDataSortContext();
   const { sortableActiveKeys, sortableHotKeys } = useColumnSortableContext();
 
   const CellComponent = useMemo(
@@ -223,6 +227,10 @@ function BodyCell({
   const isInternalExpandColumn = isExpandColumn(column);
   const isInternalSelectionColumn = isSelectionColumn(column);
   const isInternalRowSortColumn = isRowSortColumn(column);
+  const dataSortColumnKey = getDataSortColumnKey(column);
+  const hasSortValue = dataSortOrders.some(
+    (item) => item.columnKey === dataSortColumnKey,
+  );
 
   if (spanInfo.hidden) {
     return null;
@@ -333,6 +341,7 @@ function BodyCell({
         cellCls,
         {
           [ellipsisCellCls]: ellipsis,
+          [dataSortActiveCellCls]: hasSortValue,
           [fixedStartCellCls]: fixedInfo.fixStart !== null,
           [fixedStartLastCellCls]: fixedInfo.fixedStartShadow,
           [fixedStartShadowActiveCellCls]: fixedShadowActive.start,

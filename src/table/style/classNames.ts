@@ -45,6 +45,11 @@ export type ComponentClsType = {
   filterCellCls: string;
   ellipsisCellCls: string;
   ellipsisCellInnerCls: string;
+  dataSortCellCls: string;
+  dataSortActiveCellCls: string;
+  dataSortCellInnerCls: string;
+  dataSortContentCls: string;
+  dataSortControlCls: string;
   expandControlCellCls: string;
   expandControlCls: string;
   rowSortCellCls: string;
@@ -155,6 +160,11 @@ export const getComponentCls = (prefixCls: string): ComponentClsType => {
     filterCellCls: `${prefixCls}-filter-cell`,
     ellipsisCellCls: `${prefixCls}-ellipsis-cell`,
     ellipsisCellInnerCls: `${prefixCls}-ellipsis-cell-inner`,
+    dataSortCellCls: `${prefixCls}-data-sort-cell`,
+    dataSortActiveCellCls: `${prefixCls}-data-sort-active-cell`,
+    dataSortCellInnerCls: `${prefixCls}-data-sort-cell-inner`,
+    dataSortContentCls: `${prefixCls}-data-sort-content`,
+    dataSortControlCls: `${prefixCls}-data-sort-control`,
     expandControlCellCls: `${prefixCls}-expand-control-cell`,
     expandControlCls: `${prefixCls}-expand-control`,
     rowSortCellCls: `${prefixCls}-row-sort-cell`,

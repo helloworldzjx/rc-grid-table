@@ -6,6 +6,7 @@ import React, { CSSProperties, Key, memo, useMemo, useRef } from 'react';
 import CellContainer from '../CellContainer';
 import { useColumnSortableContext } from '../columnSortableContext';
 import { useComponentsContext } from '../componentsContext';
+import { useDataSortContext } from '../dataSortContext';
 import { useFixedShadowActive } from '../fixedShadowContext';
 import useRenderedColumnLayout from '../hooks/useRenderedColumnLayout';
 import { CellType } from '../interface';
@@ -16,9 +17,11 @@ import { getComponentCls } from '../style/classNames';
 import { useTableColumnStateContext } from '../tableColumnStateContext';
 import { getMergedSpanKeys } from '../utils/calc';
 import { isSelectionColumn } from '../utils/const';
+import { getEllipsisShowTitle, getEllipsisTitle } from '../utils/ellipsis';
 import { getCellFixedInfo } from '../utils/fixedColumns';
 import { getNormalSpanStyle } from '../utils/gridPlacement';
-import { filterSpan, getEllipsisTitle } from '../utils/handle';
+import { filterSpan } from '../utils/handle';
+import { getDataSortTitleRender } from '../utils/sort';
 import Resizable from './Resizable';
 
 interface HeadCellProps<T = any> {
@@ -47,12 +50,18 @@ function HeadCell({
     useColumnSortableContext();
   const prefixCls = usePrefixClsContext();
   const { getComponent } = useComponentsContext();
+  const { dataSort, dataSortOrders = [] } = useDataSortContext();
   const { rowSelection, selection } = useRowSelectionContext();
 
   const {
     cellCls,
     ellipsisCellCls,
     ellipsisCellInnerCls,
+    dataSortCellCls,
+    dataSortActiveCellCls,
+    dataSortCellInnerCls,
+    dataSortContentCls,
+    dataSortControlCls,
     selectionCellCls,
     headLastCellCls,
     headResizableCellDisabledCls,
@@ -305,19 +314,10 @@ function HeadCell({
   );
 
   const selectionTitleNode = useMemo(() => {
-    if (!isInternalSelectionColumn) {
-      return col.children;
-    }
-
-    if (
-      (rowSelection?.type ?? 'checkbox') === 'radio' ||
-      rowSelection?.hideSelectAll
-    ) {
-      return null;
-    }
-
+    const type = rowSelection?.type ?? 'checkbox';
+    const showSelectAll = type === 'checkbox' && !rowSelection?.hideSelectAll;
     const disabled = !!titleCheckboxProps.disabled;
-    const originNode = (
+    const originNode = showSelectAll ? (
       <SelectionCheckbox
         {...titleCheckboxProps}
         style={titleCheckboxStyle}
@@ -326,13 +326,12 @@ function HeadCell({
         disabled={disabled}
         onChange={(event) => selection?.onSelectAll(event)}
       />
-    );
+    ) : null;
 
     return typeof rowSelection?.columnTitle === 'function'
       ? rowSelection.columnTitle(originNode)
       : rowSelection?.columnTitle ?? originNode;
   }, [
-    col.children,
     isInternalSelectionColumn,
     rowSelection,
     selection,
@@ -340,19 +339,43 @@ function HeadCell({
     titleCheckboxStyle,
   ]);
 
-  let childrenNode = selectionTitleNode;
-  const ellipsis = !!col.column?.ellipsis;
-  if (ellipsis) {
-    const showTitle =
-      typeof col.column?.ellipsis === 'boolean'
-        ? col.column?.ellipsis
-        : col.column?.ellipsis?.showTitle;
-    const elTitle = showTitle
-      ? (getEllipsisTitle(childrenNode) as string)
+  const { hasSortRender, hasSortValue, sortRenderNode } =
+    getDataSortTitleRender({
+      column: col.column,
+      columnIndex: colIndex,
+      dataSort,
+      dataSortOrders,
+      hasSubColumns: col.hasSubColumns,
+    });
+
+  let childrenNode = col.children;
+  if (isInternalSelectionColumn) {
+    childrenNode = selectionTitleNode;
+  }
+
+  const hasEllipsis = !!col.column?.ellipsis;
+  const elTitle =
+    hasEllipsis && getEllipsisShowTitle(col.column?.ellipsis)
+      ? getEllipsisTitle(childrenNode)
       : undefined;
+
+  if (hasEllipsis || hasSortRender) {
     childrenNode = (
-      <div title={elTitle} className={ellipsisCellInnerCls}>
-        {childrenNode}
+      <div
+        title={elTitle}
+        className={classNames({
+          [ellipsisCellInnerCls]: hasEllipsis,
+          [dataSortCellInnerCls]: hasSortRender,
+        })}
+      >
+        {hasSortRender ? (
+          <>
+            <div className={dataSortContentCls}>{childrenNode}</div>
+            <div className={dataSortControlCls}>{sortRenderNode}</div>
+          </>
+        ) : (
+          childrenNode
+        )}
       </div>
     );
   }
@@ -363,7 +386,9 @@ function HeadCell({
       className={classNames(
         cellCls,
         {
-          [ellipsisCellCls]: ellipsis,
+          [ellipsisCellCls]: hasEllipsis,
+          [dataSortCellCls]: hasSortRender,
+          [dataSortActiveCellCls]: hasSortValue,
           [headLastCellCls]: hasHeadLastCellCls,
           [fixedStartCellCls]: fixedInfo.fixStart !== null,
           [fixedStartLastCellCls]: fixedInfo.fixedStartShadow,

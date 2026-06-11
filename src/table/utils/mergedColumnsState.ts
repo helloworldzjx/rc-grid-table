@@ -134,15 +134,15 @@ function mergeColumnsStateInternal<T = any>(
 
     const merged: ColumnState = {
       ...column,
-      ...JSON.parse(JSON.stringify(bColumn)), // 冲突时优先采用b的数据
+      // 冲突时优先采用b的数据
+      ...JSON.parse(JSON.stringify(bColumn)),
+      // 以下input数据/派生数据以实际传入的为准
       key: column.key,
       dataIndex: column.dataIndex,
       depth: column.depth,
       parentKey: column.parentKey,
       ancestorKeys: column.ancestorKeys,
-      title: column.title,
       resizeDisabled: column.resizeDisabled,
-      resizeMinWidth: column.resizeMinWidth,
       dragSortDisabled: column.dragSortDisabled,
     };
 

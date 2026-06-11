@@ -92,6 +92,13 @@ export interface StickyOffsets {
 export type SizeType = 'small' | 'middle' | 'large';
 export type FixedType = 'start' | 'end';
 export type RowKey<T = any> = string | ((record: T) => Key);
+export type SortOrder = 'ascend' | 'descend';
+export type SortDirection = SortOrder | null;
+export type DataSortOrder = {
+  columnKey: Key;
+  order: SortDirection;
+};
+export type DataSortOrderType = DataSortOrder | DataSortOrder[] | null;
 export type AlignType =
   | 'start'
   | 'end'
@@ -257,11 +264,37 @@ export interface TableRowSelection<T = any> {
   selectAllMode?: SelectionSelectAllMode;
 }
 
+export type ColumnSorter<T = any> = (a: T, b: T) => number;
+export type ColumnSorterInput<T = any> = boolean | ColumnSorter<T>;
+
+export interface DataSortRenderInfo {
+  columnKey: Key;
+  columnIndex: number;
+  active: boolean;
+  sortOrder: SortDirection;
+  sortPriority?: number;
+  sortOrders: DataSortOrder[];
+  sortDirections: SortDirection[];
+}
+
+export interface DataSortConfig {
+  sortOrder?: DataSortOrderType;
+  sortRender?: (info: DataSortRenderInfo) => ReactNode;
+}
+
+export interface DataSortContextProps {
+  dataSort?: DataSortConfig;
+  dataSortOrders?: DataSortOrder[];
+}
+
 export interface ColumnProps<T = any> {
   __RC_GRID_TABLE_EXPAND_COLUMN?: true;
   __RC_GRID_TABLE_SELECTION_COLUMN?: true;
   __RC_GRID_TABLE_ROW_SORT_COLUMN?: true;
   title?: ReactNode;
+  sorter?: ColumnSorterInput<T>;
+  sortDirections?: SortDirection[];
+  sortRender?: (info: DataSortRenderInfo) => ReactNode;
   render?: (value: any, record: T, rowIndex: number) => ReactNode;
   filterRender?: (column: ColumnState<T>, columnIndex: number) => ReactNode;
   /** 列宽，仅支持数字和百分比数字，不支持px的字符串写法 */
@@ -274,7 +307,7 @@ export interface ColumnProps<T = any> {
   dragSortDisabled?: boolean;
   align?: AlignType;
   fixed?: FixedType;
-  /** 是否完全消失在表格中，连管理列显隐的时候也不会出现 */
+  /** 是否完全消失在表格中，一般用于控制数据权限 */
   hidden?: boolean;
   className?: string;
   style?: CSSProperties;
@@ -406,6 +439,10 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
    */
   dataSource?: T[];
   /**
+   * @description 受控的排序配置
+   */
+  dataSort?: DataSortConfig;
+  /**
    * @description 列初始最小列宽
    * @default 100
    */
@@ -494,6 +531,7 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
 type TableFeatureContextKey =
   | 'prefixCls'
   | 'components'
+  | 'dataSort'
   | 'expandable'
   | 'rowSelection'
   | 'rowSortable'

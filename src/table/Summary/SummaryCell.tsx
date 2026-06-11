@@ -7,9 +7,9 @@ import useRenderedColumnLayout from '../hooks/useRenderedColumnLayout';
 import { TableSummaryRowCell } from '../interface';
 import { usePrefixClsContext } from '../prefixClsContext';
 import { getComponentCls } from '../style/classNames';
+import { getEllipsisTitle } from '../utils/ellipsis';
 import { getCellFixedInfo } from '../utils/fixedColumns';
 import { getNormalSpanStyle } from '../utils/gridPlacement';
-import { getEllipsisTitle } from '../utils/handle';
 
 interface SummaryCellProps {
   column: TableSummaryRowCell;
