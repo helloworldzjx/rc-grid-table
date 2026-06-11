@@ -7,8 +7,8 @@ import React, {
   useMemo,
 } from 'react';
 
-import { COLUMNS_SORT_MOTION_DURATION } from '../_utils/const';
-import { useColumnSortMotionContext } from './columnSortMotionContext';
+import { COLUMNS_SORT_MOTION_DURATION } from '../../_utils/const';
+import { useColumnSortMotionContext } from '../contexts/ColumnSortMotionContext';
 
 type CellContainerProps = HTMLAttributes<HTMLDivElement> & {
   component?: ElementType;

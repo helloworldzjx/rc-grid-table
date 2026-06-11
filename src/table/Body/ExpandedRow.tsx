@@ -3,11 +3,11 @@ import classNames from 'classnames';
 import React, { CSSProperties, FC, ReactNode, Ref, useMemo } from 'react';
 
 import { isNum } from '../../_utils/validate';
-import { useComponentsContext } from '../componentsContext';
-import { useExpandableContext } from '../expandableContext';
-import { usePrefixClsContext } from '../prefixClsContext';
+import { useComponentsContext } from '../contexts/ComponentsContext';
+import { useExpandableContext } from '../contexts/ExpandableContext';
+import { usePrefixClsContext } from '../contexts/PrefixClsContext';
+import { useTableLayoutContext } from '../contexts/TableLayoutContext';
 import { getComponentCls, getCssVar } from '../style/classNames';
-import { useTableLayoutContext } from '../tableLayoutContext';
 import { isVirtualBodyRenderMode } from './cellSpan';
 import type { BodyRenderMode } from './interface';
 

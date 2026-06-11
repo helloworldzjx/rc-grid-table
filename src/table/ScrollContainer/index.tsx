@@ -2,7 +2,7 @@ import { useIsomorphicLayoutEffect } from 'ahooks';
 import clsx from 'classnames';
 import React, { forwardRef, useImperativeHandle, useMemo } from 'react';
 
-import { usePrefixClsContext } from '../prefixClsContext';
+import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import { getScrollbarCls } from '../style/classNames';
 import useScroll from './hooks/useScroll';
 import { ScrollBarContainerProps, ScrollBarContainerRef } from './interface';

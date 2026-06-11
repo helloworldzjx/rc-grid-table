@@ -1,9 +1,9 @@
 import classNames from 'classnames';
 import React, { MouseEvent, useCallback, useMemo } from 'react';
 
-import { useExpandableContext } from '../expandableContext';
+import { useExpandableContext } from '../contexts/ExpandableContext';
+import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import type { ExpandIconProps as TableExpandIconProps } from '../interface';
-import { usePrefixClsContext } from '../prefixClsContext';
 import { getComponentCls } from '../style/classNames';
 
 interface ExpandControlProps<T = any> {

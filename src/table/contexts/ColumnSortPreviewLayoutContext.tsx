@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
 
-import type { ColumnState, StickyOffsets } from './interface';
+import type { ColumnState, StickyOffsets } from '../interface';
 
 export interface ColumnSortPreviewLayoutContextProps<T = any> {
   columns?: ColumnState<T>[];

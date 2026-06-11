@@ -1,6 +1,6 @@
 import { createContext, useContext, useMemo } from 'react';
 
-import type { FixedInfo } from './utils/fixedColumns';
+import type { FixedInfo } from '../utils/fixedColumns';
 
 export interface FixedShadowContextProps {
   scrollLeft: number;
@@ -10,16 +10,16 @@ export interface FixedShadowContextProps {
   activeFixedEndShadowOffset?: number;
 }
 
-interface FixedShadowActive {
-  start: boolean;
-  end: boolean;
-}
-
 const FixedShadowContext = createContext<FixedShadowContextProps>({
   scrollLeft: 0,
   maxScrollLeft: 0,
   fixColumnsGapped: false,
 });
+
+interface FixedShadowActive {
+  start: boolean;
+  end: boolean;
+}
 
 const useFixedShadowContext = () => useContext(FixedShadowContext);
 
@@ -55,5 +55,7 @@ export const useFixedShadowActive = (
     ],
   );
 };
+
+export { useFixedShadowContext };
 
 export default FixedShadowContext;

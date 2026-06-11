@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 
 import { isNum } from '../../_utils/validate';
-import type { FixedShadowContextProps } from '../fixedShadowContext';
+import type { FixedShadowContextProps } from '../contexts/FixedShadowContext';
 import type { ColumnState } from '../interface';
 
 interface UseFixedShadowProps<T = any> {

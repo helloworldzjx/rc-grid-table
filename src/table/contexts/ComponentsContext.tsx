@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
 
-import { type ComponentsContextProps } from './interface';
+import { type ComponentsContextProps } from '../interface';
 
 const defaultGetComponent: ComponentsContextProps['getComponent'] = (
   _path,

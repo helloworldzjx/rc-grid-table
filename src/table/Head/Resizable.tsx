@@ -10,10 +10,10 @@ import React, {
   useRef,
 } from 'react';
 
-import { usePrefixClsContext } from '../prefixClsContext';
+import { usePrefixClsContext } from '../contexts/PrefixClsContext';
+import { useTableColumnStateContext } from '../contexts/TableColumnStateContext';
+import { useTableLayoutContext } from '../contexts/TableLayoutContext';
 import { getComponentCls } from '../style/classNames';
-import { useTableColumnStateContext } from '../tableColumnStateContext';
-import { useTableLayoutContext } from '../tableLayoutContext';
 import { DEFAULT_RESIZE_MIN_WIDTH } from '../utils/const';
 import { batchUpdateColumns } from '../utils/handle';
 

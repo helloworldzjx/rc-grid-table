@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
 
-import { type RowSelectionContextProps } from './interface';
+import { type RowSelectionContextProps } from '../interface';
 
 const RowSelectionContext = createContext<RowSelectionContextProps>({});
 

@@ -1,11 +1,11 @@
 import React, { FC, memo, useEffect, useMemo, useRef } from 'react';
 
 import { isNum } from '../../_utils/validate';
-import { useColumnSortableContext } from '../columnSortableContext';
-import { usePrefixClsContext } from '../prefixClsContext';
+import { useColumnSortableContext } from '../contexts/ColumnSortableContext';
+import { usePrefixClsContext } from '../contexts/PrefixClsContext';
+import { useTableColumnStateContext } from '../contexts/TableColumnStateContext';
+import { useTableLayoutContext } from '../contexts/TableLayoutContext';
 import { getComponentCls } from '../style/classNames';
-import { useTableColumnStateContext } from '../tableColumnStateContext';
-import { useTableLayoutContext } from '../tableLayoutContext';
 import { distribute } from '../utils/calc';
 import { batchUpdateColumns } from '../utils/handle';
 

@@ -13,11 +13,16 @@ import React, {
 } from 'react';
 
 import { isNum, isValidKey } from '../_utils/validate';
-import ColumnSortableProvider from './ColumnSortableProvider';
-import ComponentsContext from './componentsContext';
-import TableContext from './context';
-import DataSortContext from './dataSortContext';
-import ExpandableContext from './expandableContext';
+import ComponentsContext from './contexts/ComponentsContext';
+import DataSortContext from './contexts/DataSortContext';
+import ExpandableContext from './contexts/ExpandableContext';
+import PrefixClsContext from './contexts/PrefixClsContext';
+import RowSelectionContext from './contexts/RowSelectionContext';
+import RowSortableContext from './contexts/RowSortableContext';
+import TableColumnStateContext from './contexts/TableColumnStateContext';
+import TableContext from './contexts/TableContext';
+import TableDataContext from './contexts/TableDataContext';
+import TableLayoutContext from './contexts/TableLayoutContext';
 import useSelection from './hooks/useSelection';
 import useStickyOffsets from './hooks/useStickyOffsets';
 import {
@@ -34,13 +39,8 @@ import {
   type TableProps,
   type TableRef,
 } from './interface';
-import PrefixClsContext from './prefixClsContext';
-import RowSelectionContext from './rowSelectionContext';
-import RowSortableContext from './rowSortableContext';
+import ColumnSortableProvider from './providers/ColumnSortableProvider';
 import InternalTable from './Table';
-import TableColumnStateContext from './tableColumnStateContext';
-import TableDataContext from './tableDataContext';
-import TableLayoutContext from './tableLayoutContext';
 import { columnsWidthDistribute } from './utils/calc';
 import {
   EXPAND_COLUMN,

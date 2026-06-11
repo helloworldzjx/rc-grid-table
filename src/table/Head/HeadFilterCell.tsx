@@ -2,11 +2,11 @@ import classNames from 'classnames';
 import React, { CSSProperties, FC, memo, useMemo } from 'react';
 
 import CellContainer from '../CellContainer';
-import { useColumnSortableContext } from '../columnSortableContext';
-import { useComponentsContext } from '../componentsContext';
-import { useFixedShadowActive } from '../fixedShadowContext';
+import { useColumnSortableContext } from '../contexts/ColumnSortableContext';
+import { useComponentsContext } from '../contexts/ComponentsContext';
+import { useFixedShadowActive } from '../contexts/FixedShadowContext';
+import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import { ColumnState } from '../interface';
-import { usePrefixClsContext } from '../prefixClsContext';
 import { getComponentCls } from '../style/classNames';
 import { FixedInfo } from '../utils/fixedColumns';
 

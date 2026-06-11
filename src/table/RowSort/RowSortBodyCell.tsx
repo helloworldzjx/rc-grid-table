@@ -7,11 +7,11 @@ import React, { CSSProperties, Key, memo, useMemo } from 'react';
 
 import { isValidKey } from '../../_utils/validate';
 import CellContainer from '../CellContainer';
-import { useComponentsContext } from '../componentsContext';
-import { useFixedShadowActive } from '../fixedShadowContext';
+import { useComponentsContext } from '../contexts/ComponentsContext';
+import { useFixedShadowActive } from '../contexts/FixedShadowContext';
+import { usePrefixClsContext } from '../contexts/PrefixClsContext';
+import { useRowSortableContext } from '../contexts/RowSortableContext';
 import { ColumnState } from '../interface';
-import { usePrefixClsContext } from '../prefixClsContext';
-import { useRowSortableContext } from '../rowSortableContext';
 import { getComponentCls } from '../style/classNames';
 import { FixedInfo } from '../utils/fixedColumns';
 

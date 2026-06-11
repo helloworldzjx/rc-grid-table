@@ -1,6 +1,6 @@
 import React, { CSSProperties, ElementType, ReactNode, useMemo } from 'react';
 
-import { useColumnSortPreviewLayoutContext } from './columnSortPreviewLayoutContext';
+import { useColumnSortPreviewLayoutContext } from './contexts/ColumnSortPreviewLayoutContext';
 
 const getGridTemplateColumns = (widths?: number[]) =>
   widths?.length ? `${widths.join('px ')}px` : '';

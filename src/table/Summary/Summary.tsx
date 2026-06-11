@@ -1,11 +1,11 @@
 import classNames from 'classnames';
 import React, { CSSProperties, forwardRef, memo, useMemo } from 'react';
 
+import { usePrefixClsContext } from '../contexts/PrefixClsContext';
+import { useTableDataContext } from '../contexts/TableDataContext';
 import useRenderedColumnLayout from '../hooks/useRenderedColumnLayout';
 import type { TableProps } from '../interface';
-import { usePrefixClsContext } from '../prefixClsContext';
 import { getComponentCls } from '../style/classNames';
-import { useTableDataContext } from '../tableDataContext';
 import SummaryRow from './SummaryRow';
 
 interface SummaryProps {

@@ -10,8 +10,8 @@ import type { CSSProperties, Key, Ref } from 'react';
 import { useCallback, useMemo } from 'react';
 
 import { isValidKey } from '../../_utils/validate';
+import { useRowSortableContext } from '../contexts/RowSortableContext';
 import type { ColumnState } from '../interface';
-import { useRowSortableContext } from '../rowSortableContext';
 import { isRowSortColumn } from '../utils/const';
 
 interface UseRowSortProps<T = any> {

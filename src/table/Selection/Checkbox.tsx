@@ -7,7 +7,7 @@ import React, {
   useMemo,
 } from 'react';
 
-import { usePrefixClsContext } from '../prefixClsContext';
+import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import { getComponentCls } from '../style/classNames';
 
 type CheckboxProps = Omit<LabelHTMLAttributes<HTMLLabelElement>, 'onChange'> & {

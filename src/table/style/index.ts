@@ -8,12 +8,12 @@ import { useMemo } from 'react';
 
 import { COLUMNS_SORT_OVERLAY_POINTER_OFFSET_X } from '../../_utils/const';
 import useToken from '../../theme/hooks/useToken';
+import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import {
   darkTableToken,
   lightTableToken,
   type ComponentToken,
 } from '../design';
-import { usePrefixClsContext } from '../prefixClsContext';
 import {
   ComponentClsType,
   CssVarType,

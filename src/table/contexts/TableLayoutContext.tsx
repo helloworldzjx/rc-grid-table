@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
 
-import { type TableLayoutContextProps } from './interface';
+import { type TableLayoutContextProps } from '../interface';
 
 const TableLayoutContext = createContext<TableLayoutContextProps>(
   {} as TableLayoutContextProps,

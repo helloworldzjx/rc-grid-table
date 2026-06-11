@@ -8,19 +8,19 @@ import React, {
   useState,
 } from 'react';
 
-import { isNum } from '../_utils/validate';
-import ColumnSortableContext from './columnSortableContext';
-import ColumnSortMotionContext from './columnSortMotionContext';
+import { isNum } from '../../_utils/validate';
+import ColumnSortableContext from '../contexts/ColumnSortableContext';
+import ColumnSortMotionContext from '../contexts/ColumnSortMotionContext';
 import ColumnSortPreviewLayoutContext, {
   type ColumnSortPreviewLayoutContextProps,
-} from './columnSortPreviewLayoutContext';
-import useStickyOffsets from './hooks/useStickyOffsets';
-import type { ColumnState } from './interface';
+} from '../contexts/ColumnSortPreviewLayoutContext';
+import useStickyOffsets from '../hooks/useStickyOffsets';
+import type { ColumnState } from '../interface';
 import {
   columnsSort,
   getSortablePreviewColumns,
   isColumnsOrderEqual,
-} from './utils/handle';
+} from '../utils/handle';
 
 interface ColumnSortableProviderProps<T = any> {
   children?: ReactNode;

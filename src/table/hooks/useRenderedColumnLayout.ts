@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 
-import { useColumnSortPreviewLayoutContext } from '../columnSortPreviewLayoutContext';
-import { useTableLayoutContext } from '../tableLayoutContext';
+import { useColumnSortPreviewLayoutContext } from '../contexts/ColumnSortPreviewLayoutContext';
+import { useTableLayoutContext } from '../contexts/TableLayoutContext';
 
 const useRenderedColumnLayout = <T = any>() => {
   const tableLayout = useTableLayoutContext<T>();

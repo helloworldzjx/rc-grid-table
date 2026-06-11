@@ -9,11 +9,11 @@ import React, {
   useRef,
 } from 'react';
 
-import { useColumnSortPreviewLayoutContext } from '../columnSortPreviewLayoutContext';
-import { useColumnSortableContext } from '../columnSortableContext';
-import { useComponentsContext } from '../componentsContext';
+import { useColumnSortPreviewLayoutContext } from '../contexts/ColumnSortPreviewLayoutContext';
+import { useColumnSortableContext } from '../contexts/ColumnSortableContext';
+import { useComponentsContext } from '../contexts/ComponentsContext';
+import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import { CellType } from '../interface';
-import { usePrefixClsContext } from '../prefixClsContext';
 import { getComponentCls } from '../style/classNames';
 import { parseHeaderRows } from '../utils/handle';
 import HeadFilterRow from './HeadFilterRow';

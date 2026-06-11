@@ -1,10 +1,10 @@
 import classNames from 'classnames';
 import React, { FC, memo, useMemo } from 'react';
 
-import { useComponentsContext } from '../componentsContext';
+import { useComponentsContext } from '../contexts/ComponentsContext';
+import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import useFixedInfo from '../hooks/useFixedInfo';
 import useRenderedColumnLayout from '../hooks/useRenderedColumnLayout';
-import { usePrefixClsContext } from '../prefixClsContext';
 import { getComponentCls } from '../style/classNames';
 import HeadFilterCell from './HeadFilterCell';
 

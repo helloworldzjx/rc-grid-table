@@ -1,6 +1,6 @@
 import React, { CSSProperties, useMemo } from 'react';
 
-import { useRowSelectionContext } from '../rowSelectionContext';
+import { useRowSelectionContext } from '../contexts/RowSelectionContext';
 import SelectionCheckbox from './Checkbox';
 import SelectionRadio from './Radio';
 

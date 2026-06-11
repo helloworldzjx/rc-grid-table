@@ -2,10 +2,10 @@ import classNames from 'classnames';
 import React, { CSSProperties, FC, memo, useMemo } from 'react';
 
 import CellContainer from '../CellContainer';
-import { useFixedShadowActive } from '../fixedShadowContext';
+import { useFixedShadowActive } from '../contexts/FixedShadowContext';
+import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import useRenderedColumnLayout from '../hooks/useRenderedColumnLayout';
 import { TableSummaryRowCell } from '../interface';
-import { usePrefixClsContext } from '../prefixClsContext';
 import { getComponentCls } from '../style/classNames';
 import { getEllipsisTitle } from '../utils/ellipsis';
 import { getCellFixedInfo } from '../utils/fixedColumns';

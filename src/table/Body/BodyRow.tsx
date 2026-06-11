@@ -3,12 +3,12 @@ import classNames from 'classnames';
 import React, { CSSProperties, Ref, memo, useMemo } from 'react';
 
 import { isNum } from '../../_utils/validate';
-import { useColumnSortPreviewLayoutContext } from '../columnSortPreviewLayoutContext';
-import { useComponentsContext } from '../componentsContext';
-import { useExpandableContext } from '../expandableContext';
+import { useColumnSortPreviewLayoutContext } from '../contexts/ColumnSortPreviewLayoutContext';
+import { useComponentsContext } from '../contexts/ComponentsContext';
+import { useExpandableContext } from '../contexts/ExpandableContext';
+import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import useFixedInfo from '../hooks/useFixedInfo';
 import { ColumnState, StickyOffsets } from '../interface';
-import { usePrefixClsContext } from '../prefixClsContext';
 import { useRowSort } from '../RowSort';
 import { getComponentCls, getCssVar } from '../style/classNames';
 import { isInternalColumn, isRowSortColumn } from '../utils/const';

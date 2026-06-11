@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
 
-import { type TableColumnStateContextProps } from './interface';
+import { type TableColumnStateContextProps } from '../interface';
 
 const TableColumnStateContext = createContext<TableColumnStateContextProps>(
   {} as TableColumnStateContextProps,

@@ -2,8 +2,8 @@ import warning from '@rc-component/util/lib/warning';
 import classNames from 'classnames';
 import React, { Key, useMemo } from 'react';
 
-import { useTableContext } from '../context';
-import { useExpandableContext } from '../expandableContext';
+import { useExpandableContext } from '../contexts/ExpandableContext';
+import { useTableContext } from '../contexts/TableContext';
 import { warningInvalidRecordKey } from '../utils/warning';
 import BodyRow from './BodyRow';
 import ExpandedRow from './ExpandedRow';

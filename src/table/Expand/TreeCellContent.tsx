@@ -1,7 +1,7 @@
 import React, { ReactNode, useMemo } from 'react';
 
-import { useExpandableContext } from '../expandableContext';
-import { usePrefixClsContext } from '../prefixClsContext';
+import { useExpandableContext } from '../contexts/ExpandableContext';
+import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import { getComponentCls } from '../style/classNames';
 import ExpandControl from './ExpandControl';
 

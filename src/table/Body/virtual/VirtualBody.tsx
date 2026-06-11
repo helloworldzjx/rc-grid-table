@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import React, { Key, useCallback, useMemo } from 'react';
-import { usePrefixClsContext } from '../../prefixClsContext';
+import { usePrefixClsContext } from '../../contexts/PrefixClsContext';
 import { getComponentCls } from '../../style/classNames';
 import type { BodyItem, BodyItemRenderer, BodyRowItem } from '../interface';
 

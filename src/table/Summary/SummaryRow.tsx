@@ -1,7 +1,7 @@
 import React, { FC, memo, useMemo } from 'react';
 
+import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import { TableSummaryRowCell } from '../interface';
-import { usePrefixClsContext } from '../prefixClsContext';
 import { getComponentCls } from '../style/classNames';
 import { filterSpan } from '../utils/handle';
 import SummaryCell from './SummaryCell';

@@ -23,11 +23,11 @@ import React, {
 } from 'react';
 
 import { COLUMNS_SORT_OVERLAY_POINTER_OFFSET_X } from '../../_utils/const';
-import { useColumnSortableContext } from '../columnSortableContext';
-import { useComponentsContext } from '../componentsContext';
+import { useColumnSortableContext } from '../contexts/ColumnSortableContext';
+import { useComponentsContext } from '../contexts/ComponentsContext';
+import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import useRenderedColumnLayout from '../hooks/useRenderedColumnLayout';
 import { CellType, ColumnState } from '../interface';
-import { usePrefixClsContext } from '../prefixClsContext';
 import { getComponentCls } from '../style/classNames';
 import { getCellFixedInfo } from '../utils/fixedColumns';
 import HeadCell from './HeadCell';
