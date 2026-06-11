@@ -29,6 +29,11 @@ import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import useRenderedColumnLayout from '../hooks/useRenderedColumnLayout';
 import { CellType, ColumnState } from '../interface';
 import { getComponentCls } from '../style/classNames';
+import {
+  isSortableColumnsData,
+  isResizableColumnsData,
+  type SortableColumnType,
+} from '../utils/dnd';
 import { getCellFixedInfo } from '../utils/fixedColumns';
 import HeadCell from './HeadCell';
 import useSortablePreview from './useSortablePreview';
@@ -57,8 +62,8 @@ interface HeadRowProps<T = any> {
 }
 
 const canOverByFixed = <T,>(
-  activeColumn: ColumnState<T>,
-  overColumn: ColumnState<T>,
+  activeColumn: SortableColumnType<T>,
+  overColumn: SortableColumnType<T>,
 ) => {
   if (!activeColumn.fixed) return true;
 
@@ -194,7 +199,7 @@ function HeadRow({
   );
 
   const updateFixedSortableHotKeys = useCallback(
-    (column?: ColumnState) => {
+    (column?: SortableColumnType) => {
       if (!column?.fixed) {
         updateSortableHotKeys(emptyKeys);
         return;
@@ -365,7 +370,9 @@ function HeadRow({
   };
 
   const handleDragStart = (event: DragStartEvent) => {
-    if (event.active.data.current?.type === 'sortableColumns') {
+    const activeData = event.active.data.current;
+
+    if (isSortableColumnsData(activeData)) {
       if (isSortableStartLocked?.()) {
         ignoreSortableDragRef.current = true;
         updateSortableActiveKeys(emptyKeys);
@@ -379,9 +386,7 @@ function HeadRow({
       document.documentElement.style.cursor = 'move';
       sortablePreview.start();
       startSortableScrollListener();
-      const activeColumn = event.active.data.current.column as
-        | ColumnState
-        | undefined;
+      const activeColumn = activeData.column;
       const activeCell = columns.find(
         (column) => `${column.key}` === `${event.active.id}`,
       );
@@ -394,14 +399,14 @@ function HeadRow({
         new Set(
           activeColumnKeys.length
             ? activeColumnKeys
-            : ((event.active.data.current.sortKeys || []) as Key[]),
+            : activeData.sortKeys,
         ),
       );
       updateFixedSortableHotKeys(activeColumn);
       setActiveKey(event.active.id);
     }
 
-    if (event.active.data.current?.type === 'resizableColumns') {
+    if (isResizableColumnsData(activeData)) {
       onResizeStart?.();
     }
   };
@@ -411,19 +416,18 @@ function HeadRow({
 
     const activeData = event.active?.data.current;
     const overData = event.over?.data.current;
-    if (!activeData || !overData) return;
     if (
-      activeData.type !== 'sortableColumns' ||
-      overData.type !== 'sortableColumns'
+      !isSortableColumnsData(activeData) ||
+      !isSortableColumnsData(overData)
     ) {
       return;
     }
     if (event.active?.id === event.over?.id) return;
 
-    const activeColumn = activeData?.column as ColumnState | undefined;
-    const overColumn = overData?.column as ColumnState | undefined;
-    const activeKeys = (activeData?.sortKeys || []) as Key[];
-    const overKeys = (overData?.sortKeys || []) as Key[];
+    const activeColumn = activeData.column;
+    const overColumn = overData.column;
+    const activeKeys = activeData.sortKeys;
+    const overKeys = overData.sortKeys;
 
     if (
       !activeColumn ||
@@ -477,7 +481,9 @@ function HeadRow({
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    if (event.active.data.current?.type === 'sortableColumns') {
+    const activeData = event.active.data.current;
+
+    if (isSortableColumnsData(activeData)) {
       if (ignoreSortableDragRef.current) {
         ignoreSortableDragRef.current = false;
         return;
@@ -496,13 +502,15 @@ function HeadRow({
       }
     }
 
-    if (event.active.data.current?.type === 'resizableColumns') {
+    if (isResizableColumnsData(activeData)) {
       onResizeEnd?.();
     }
   };
 
   const handleDragCancel = (event: DragCancelEvent) => {
-    if (event.active.data.current?.type === 'sortableColumns') {
+    const activeData = event.active.data.current;
+
+    if (isSortableColumnsData(activeData)) {
       if (ignoreSortableDragRef.current) {
         ignoreSortableDragRef.current = false;
         return;
@@ -512,7 +520,7 @@ function HeadRow({
       finishSortableAfterMotion(true);
     }
 
-    if (event.active.data.current?.type === 'resizableColumns') {
+    if (isResizableColumnsData(activeData)) {
       onResizeEnd?.();
     }
   };

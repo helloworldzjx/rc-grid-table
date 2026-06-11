@@ -19,6 +19,7 @@ import type {
   StickyOffsets,
 } from '../interface';
 import { isInternalColumn, isRowSortColumn } from '../utils/const';
+import { isRowSortableData } from '../utils/dnd';
 import {
   getRowSortEntities,
   reorderDataSource,
@@ -36,18 +37,8 @@ interface UseTableRowSortProps<T = any> {
   bodyScrollLeft: number;
 }
 
-interface RowSortDragData<T = any> {
-  type: 'rowSortable';
-  key?: Key;
-  record?: T;
-  index?: number;
-}
-
 const isValidRowSortId = (key: Key | undefined): key is UniqueIdentifier =>
   isValidKey(key);
-
-const isRowSortDragData = <T>(data: unknown): data is RowSortDragData<T> =>
-  (data as RowSortDragData<T> | undefined)?.type === 'rowSortable';
 
 const isDescendantOrSelfPath = (
   parentPath: number[],
@@ -207,7 +198,7 @@ export default function useTableRowSort<T = any>({
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
     const activeData = event.active.data.current;
-    if (!isRowSortDragData<T>(activeData) || !isValidKey(activeData.key)) {
+    if (!isRowSortableData<T>(activeData) || !isValidKey(activeData.key)) {
       return;
     }
 
@@ -222,11 +213,11 @@ export default function useTableRowSort<T = any>({
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       const activeEventData = event.active.data.current;
-      const activeEntity = isRowSortDragData<T>(activeEventData)
+      const activeEntity = isRowSortableData<T>(activeEventData)
         ? activeEventData
         : activeDataRef.current;
       const isRowSortEvent =
-        isRowSortDragData<T>(activeEventData) || activeDataRef.current !== null;
+        isRowSortableData<T>(activeEventData) || activeDataRef.current !== null;
 
       if (!isRowSortEvent) {
         return;
@@ -238,7 +229,7 @@ export default function useTableRowSort<T = any>({
         }
 
         const overEventData = event.over?.data.current;
-        const overEntity = isRowSortDragData<T>(overEventData)
+        const overEntity = isRowSortableData<T>(overEventData)
           ? overEventData
           : null;
         const activeRowKey = activeEntity.key;

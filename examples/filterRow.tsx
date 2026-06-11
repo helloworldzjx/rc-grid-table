@@ -353,7 +353,7 @@ export default () => {
     <Space direction="vertical" size={20} style={{ width: '100%' }}>
       <ConfigActions value={state} onChange={onChange} />
       <Space wrap>
-        <Typography.Link>搜索模式：</Typography.Link>
+        <Typography.Link>筛选模式：</Typography.Link>
         <Segmented<FilterMode>
           value={filterMode}
           options={[

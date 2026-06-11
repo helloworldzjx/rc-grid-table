@@ -1,6 +1,6 @@
 import { isValidElement, ReactNode } from 'react';
 
-import { ColumnProps } from '../interface';
+import { TitleEllipsisType } from '../interface';
 
 export const getEllipsisTitle = (children: ReactNode) => {
   let title: string | undefined = undefined;
@@ -17,5 +17,5 @@ export const getEllipsisTitle = (children: ReactNode) => {
   return title;
 };
 
-export const getEllipsisShowTitle = (ellipsis?: ColumnProps['ellipsis']) =>
+export const getEllipsisShowTitle = (ellipsis?: TitleEllipsisType) =>
   typeof ellipsis === 'boolean' ? ellipsis : ellipsis?.showTitle;

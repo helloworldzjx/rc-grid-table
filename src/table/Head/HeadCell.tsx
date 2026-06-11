@@ -17,6 +17,7 @@ import { SelectionCheckbox } from '../Selection';
 import { getComponentCls } from '../style/classNames';
 import { getMergedSpanKeys } from '../utils/calc';
 import { isSelectionColumn } from '../utils/const';
+import type { SortableColumnsData } from '../utils/dnd';
 import { getEllipsisShowTitle, getEllipsisTitle } from '../utils/ellipsis';
 import { getCellFixedInfo } from '../utils/fixedColumns';
 import { getNormalSpanStyle } from '../utils/gridPlacement';
@@ -270,16 +271,16 @@ function HeadCell({
     data: {
       type: 'sortableColumns',
       column: {
-        key: col.key,
-        parentKey: col.column?.parentKey,
+        key: col.key as Key,
+        parentKey: col.column?.parentKey as Key,
         colSpan: col.column?.colSpan,
-        order: col.column?.order,
-        hasChildren: col.column?.hasChildren,
+        order: col.column?.order as number,
+        hasChildren: !!col.column?.hasChildren,
         fixed: fixedType,
         dragSortDisabled,
       },
       sortKeys: sortEnabled ? mergedSpanKeys : [],
-    },
+    } satisfies SortableColumnsData,
   });
 
   /** 列拖拽排序 end */

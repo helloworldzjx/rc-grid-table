@@ -3,13 +3,14 @@ import { Dispatch, Key, SetStateAction, useEffect, useRef } from 'react';
 import { COLUMNS_SORT_MOTION_DURATION } from '../../_utils/const';
 import { cancelRaf, raf } from '../../_utils/raf';
 import { ColumnState } from '../interface';
+import type { SortableColumnType } from '../utils/dnd';
 import { reorderColumnsState, SortablePlacement } from '../utils/sortable';
 
 export type SortablePreviewPayload<T = any> = {
   activeIndex: number;
   overIndex: number;
-  activeColumn: ColumnState<T>;
-  overColumn: ColumnState<T>;
+  activeColumn: SortableColumnType<T>;
+  overColumn: SortableColumnType<T>;
   activeKeys: Key[];
   overKeys: Key[];
 };

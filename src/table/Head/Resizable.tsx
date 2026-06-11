@@ -15,6 +15,10 @@ import { useTableColumnStateContext } from '../contexts/TableColumnStateContext'
 import { useTableLayoutContext } from '../contexts/TableLayoutContext';
 import { getComponentCls } from '../style/classNames';
 import { DEFAULT_RESIZE_MIN_WIDTH } from '../utils/const';
+import {
+  isResizableColumnsData,
+  type ResizableColumnsData,
+} from '../utils/dnd';
 import { batchUpdateColumns } from '../utils/handle';
 
 interface ResizableProps {
@@ -50,7 +54,7 @@ const Resizable = forwardRef<HTMLDivElement, ResizableProps>(
 
     const { listeners, setNodeRef } = useDraggable({
       id,
-      data: { type: 'resizableColumns' },
+      data: { type: 'resizableColumns' } satisfies ResizableColumnsData,
     });
 
     const setRefs = useCallback(
@@ -142,7 +146,7 @@ const Resizable = forwardRef<HTMLDivElement, ResizableProps>(
       onDragStart(event) {
         if (
           event.active.id !== id ||
-          event.active.data.current?.type !== 'resizableColumns'
+          !isResizableColumnsData(event.active.data.current)
         )
           return;
         updateLockContainerWidth(true);
@@ -153,7 +157,7 @@ const Resizable = forwardRef<HTMLDivElement, ResizableProps>(
       onDragMove(event) {
         if (
           event.active.id !== id ||
-          event.active.data.current?.type !== 'resizableColumns'
+          !isResizableColumnsData(event.active.data.current)
         )
           return;
         const distance = event.delta.x - appliedDistanceTotal.current;
@@ -163,7 +167,7 @@ const Resizable = forwardRef<HTMLDivElement, ResizableProps>(
       onDragEnd(event) {
         if (
           event.active.id !== id ||
-          event.active.data.current?.type !== 'resizableColumns'
+          !isResizableColumnsData(event.active.data.current)
         )
           return;
         updateLockContainerWidth(false);

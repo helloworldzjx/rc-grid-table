@@ -7,7 +7,7 @@ import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import useRenderedColumnLayout from '../hooks/useRenderedColumnLayout';
 import { TableSummaryRowCell } from '../interface';
 import { getComponentCls } from '../style/classNames';
-import { getEllipsisTitle } from '../utils/ellipsis';
+import { getEllipsisShowTitle, getEllipsisTitle } from '../utils/ellipsis';
 import { getCellFixedInfo } from '../utils/fixedColumns';
 import { getNormalSpanStyle } from '../utils/gridPlacement';
 
@@ -103,13 +103,8 @@ const SummaryCell: FC<SummaryCellProps> = ({ column, colEnd }) => {
   let childrenNode = column.children;
   const ellipsis = !!column?.ellipsis;
   if (ellipsis) {
-    const showTitle =
-      typeof column?.ellipsis === 'boolean'
-        ? column?.ellipsis
-        : column?.ellipsis?.showTitle;
-    const elTitle = showTitle
-      ? (getEllipsisTitle(childrenNode) as string)
-      : undefined;
+    const showTitle = getEllipsisShowTitle(column?.ellipsis);
+    const elTitle = showTitle ? getEllipsisTitle(childrenNode) : undefined;
     childrenNode = (
       <div title={elTitle} className={ellipsisCellInnerCls}>
         {childrenNode}

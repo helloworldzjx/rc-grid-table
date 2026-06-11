@@ -13,6 +13,7 @@ import { isValidKey } from '../../_utils/validate';
 import { useRowSortableContext } from '../contexts/RowSortableContext';
 import type { ColumnState } from '../interface';
 import { isRowSortColumn } from '../utils/const';
+import type { RowSortableData } from '../utils/dnd';
 
 interface UseRowSortProps<T = any> {
   rowData: T;
@@ -99,7 +100,7 @@ export default function useRowSort<T = any>({
       key: rowKeyValue,
       record: rowData,
       index: rowIndex,
-    },
+    } satisfies RowSortableData<T>,
   });
 
   const transformStyle = rowSortOverlay

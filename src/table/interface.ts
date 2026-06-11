@@ -90,6 +90,7 @@ export interface StickyOffsets {
 }
 
 export type SizeType = 'small' | 'middle' | 'large';
+export type TitleEllipsisType = boolean | { showTitle?: boolean; }
 export type FixedType = 'start' | 'end';
 export type RowKey<T = any> = string | ((record: T) => Key);
 export type SortOrder = 'ascend' | 'descend';
@@ -307,15 +308,11 @@ export interface ColumnProps<T = any> {
   dragSortDisabled?: boolean;
   align?: AlignType;
   fixed?: FixedType;
-  /** 是否完全消失在表格中，一般用于控制数据权限 */
+  /** 是否完全消失在表格中，一般用于整列的数据权限控制 */
   hidden?: boolean;
   className?: string;
   style?: CSSProperties;
-  ellipsis?:
-    | boolean
-    | {
-        showTitle?: boolean;
-      };
+  ellipsis?: TitleEllipsisType;
   rowSpan?: number;
   colSpan?: number;
   onCell?: GetBodyCellProps<T>;
@@ -344,18 +341,17 @@ export type RowSortColumnType = ColumnProps<any> & {
   __RC_GRID_TABLE_ROW_SORT_COLUMN: true;
 };
 
-export type ColumnType<T> = ColumnProps<T> & { children?: ColumnType<T>[] } & (
-    | {
+export type ColumnKeyType = {
         key?: Key;
-        /** 数据key，数据层级较深时使用render */
+  /** 数据索引，数据层级较深时使用render */
         dataIndex: Key;
-      }
-    | {
+} | {
         key: Key;
-        /** 数据key，数据层级较深时使用render */
+  /** 数据索引，数据层级较深时使用render */
         dataIndex?: Key;
       }
-  );
+
+export type ColumnType<T> = ColumnProps<T> & ColumnKeyType & { children?: ColumnType<T>[] };
 
 export type ColumnsType<T = any> = ColumnType<T>[];
 
@@ -363,11 +359,7 @@ export interface TableSummaryRowCell {
   key?: Key;
   rowSpan?: number;
   colSpan?: number;
-  ellipsis?:
-    | boolean
-    | {
-        showTitle?: boolean;
-      };
+  ellipsis?: TitleEllipsisType;
   children?: ReactNode;
 }
 

@@ -23,7 +23,7 @@ import {
   isRowSortColumn,
   isSelectionColumn,
 } from '../utils/const';
-import { getEllipsisTitle } from '../utils/ellipsis';
+import { getEllipsisTitle, getEllipsisShowTitle } from '../utils/ellipsis';
 import { FixedInfo } from '../utils/fixedColumns';
 import { getDataSortColumnKey } from '../utils/sort';
 import { getBodyCellSpanInfo } from './cellSpan';
@@ -272,13 +272,8 @@ function BodyCell({
 
   const ellipsis = !!column.ellipsis;
   if (ellipsis) {
-    const showTitle =
-      typeof column.ellipsis === 'boolean'
-        ? column.ellipsis
-        : column.ellipsis?.showTitle;
-    const elTitle = showTitle
-      ? (getEllipsisTitle(childrenNode) as string)
-      : undefined;
+    const showTitle = getEllipsisShowTitle(column.ellipsis);
+    const elTitle = showTitle ? getEllipsisTitle(childrenNode) : undefined;
     childrenNode = (
       <div title={elTitle} className={ellipsisCellInnerCls}>
         {childrenNode}
