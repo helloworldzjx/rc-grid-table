@@ -1,7 +1,8 @@
 import warning from '@rc-component/util/lib/warning';
 
-import { isValidColumnKey, isValidKey } from '../../_utils/validate';
+import { isValidKey } from '../../_utils/validate';
 import type { RowKey } from '../interface';
+import { isValidColumnKey } from '../utils/validate';
 
 export const warningInvalidColumnKey = (column: {
   key?: unknown;

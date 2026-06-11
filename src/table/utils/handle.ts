@@ -1,6 +1,6 @@
 import { isValidElement, Key, type ReactNode } from 'react';
 
-import { isNum, isValidColumnKey } from '../../_utils/validate';
+import { isNum } from '../../_utils/validate';
 import type {
   CellType,
   ColumnState,
@@ -9,6 +9,7 @@ import type {
   PercentColumnWidthType,
   SizeType,
 } from '../interface';
+import { isValidColumnKey } from '../utils/validate';
 import {
   DEFAULT_RESIZE_MIN_WIDTH,
   getDefaultInternalColumnWidth,

@@ -49,7 +49,7 @@ const App: React.FC = () => {
         columns={columns}
         sticky={{ offsetHeader: 76 }}
         dataSource={data}
-        scrollY={800}
+        scrollY={350}
       />
     </>
   );

@@ -25,7 +25,7 @@ interface UseTableVirtualBodyProps<T = any> {
   preserveItemKey?: React.Key | null;
   scrollElement?: HTMLDivElement | null;
   scrollY?: number;
-  virtual?: boolean | TableVirtualConfig;
+  virtual: boolean | TableVirtualConfig;
   size?: SizeType;
   onBodyScroll: React.UIEventHandler<HTMLDivElement>;
   scrollBodyTo: (options?: ScrollToOptions) => void;
@@ -43,7 +43,7 @@ export default function useTableVirtualBody<T = any>({
   preserveItemKey,
   scrollElement,
   scrollY,
-  virtual = true,
+  virtual,
   size,
   onBodyScroll,
   scrollBodyTo,

@@ -10,6 +10,3 @@ export const isObject = (
 
 export const isValidKey = (input: unknown): input is Key =>
   typeof input === 'string' || isNum(input);
-
-export const isValidColumnKey = (input: unknown): input is Key =>
-  isValidKey(input) && input !== '';

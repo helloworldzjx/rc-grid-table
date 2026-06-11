@@ -1,11 +1,11 @@
-import { isNum } from '../../_utils/validate';
+import { isNum, isObject } from '../../_utils/validate';
 import type { TableVirtualConfig } from '../interface';
 
 export const getVirtualFixedHeightConfig = (
-  virtual: boolean | TableVirtualConfig | undefined,
+  virtual: boolean | TableVirtualConfig,
   useRowHeight = true,
 ) => {
-  if (typeof virtual !== 'object' || virtual === null) {
+  if (!isObject(virtual)) {
     return {
       rowHeight: undefined,
       expandedRowHeight: undefined,
