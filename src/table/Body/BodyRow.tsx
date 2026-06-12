@@ -8,7 +8,7 @@ import { useComponentsContext } from '../contexts/ComponentsContext';
 import { useExpandableContext } from '../contexts/ExpandableContext';
 import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import useFixedInfo from '../hooks/useFixedInfo';
-import { InternalColumnState, StickyOffsets } from '../interface';
+import type { InternalColumnState, StickyOffsets } from '../internalInterface';
 import { useRowSort } from '../RowSort';
 import { getComponentCls, getCssVar } from '../style/classNames';
 import { isInternalColumn, isRowSortColumn } from '../utils/const';

@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
 
-import { type ExpandableContextProps } from '../interface';
+import { type ExpandableContextProps } from '../internalInterface';
 
 const ExpandableContext = createContext<ExpandableContextProps>({
   mergedExpandedRowKeys: [],

@@ -27,11 +27,11 @@ import { useColumnSortableContext } from '../contexts/ColumnSortableContext';
 import { useComponentsContext } from '../contexts/ComponentsContext';
 import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import useRenderedColumnLayout from '../hooks/useRenderedColumnLayout';
-import { CellType, InternalColumnState } from '../interface';
+import type { CellType, InternalColumnState } from '../internalInterface';
 import { getComponentCls } from '../style/classNames';
 import {
-  isSortableColumnsData,
   isResizableColumnsData,
+  isSortableColumnsData,
   type SortableColumnType,
 } from '../utils/dnd';
 import { getCellFixedInfo } from '../utils/fixedColumns';
@@ -397,9 +397,7 @@ function HeadRow({
       );
       updateSortableActiveKeys(
         new Set(
-          activeColumnKeys.length
-            ? activeColumnKeys
-            : activeData.sortKeys,
+          activeColumnKeys.length ? activeColumnKeys : activeData.sortKeys,
         ),
       );
       updateFixedSortableHotKeys(activeColumn);

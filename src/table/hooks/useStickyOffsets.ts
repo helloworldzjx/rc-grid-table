@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
 
 import { isNum } from '../../_utils/validate';
-import type { ColumnType, StickyOffsets } from '../interface';
+import type { ColumnType } from '../interface';
+import type { StickyOffsets } from '../internalInterface';
 
 /**
  * Get sticky column offset width

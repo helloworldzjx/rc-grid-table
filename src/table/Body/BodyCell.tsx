@@ -14,7 +14,7 @@ import { useExpandableContext } from '../contexts/ExpandableContext';
 import { useFixedShadowActive } from '../contexts/FixedShadowContext';
 import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import { ExpandControl, TreeCellContent } from '../Expand';
-import { InternalColumnState } from '../interface';
+import type { InternalColumnState } from '../internalInterface';
 import { RowSortBodyCell } from '../RowSort';
 import { BodySelectionCell } from '../Selection';
 import { getComponentCls } from '../style/classNames';
@@ -23,7 +23,7 @@ import {
   isRowSortColumn,
   isSelectionColumn,
 } from '../utils/const';
-import { getEllipsisTitle, getEllipsisShowTitle } from '../utils/ellipsis';
+import { getEllipsisShowTitle, getEllipsisTitle } from '../utils/ellipsis';
 import { FixedInfo } from '../utils/fixedColumns';
 import { getDataSortColumnKey } from '../utils/sort';
 import { getBodyCellSpanInfo } from './cellSpan';

@@ -1,7 +1,8 @@
 import { Key } from 'react';
 
 import { isNum } from '../../_utils/validate';
-import type { ColumnsType, InternalColumnState, SizeType } from '../interface';
+import type { ColumnsType, SizeType } from '../interface';
+import type { InternalColumnState } from '../internalInterface';
 import {
   filterSpan,
   flattenColumnsWithTotalWidth,

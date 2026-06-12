@@ -12,7 +12,7 @@ import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import { useRowSelectionContext } from '../contexts/RowSelectionContext';
 import { useTableColumnStateContext } from '../contexts/TableColumnStateContext';
 import useRenderedColumnLayout from '../hooks/useRenderedColumnLayout';
-import { CellType } from '../interface';
+import type { CellType } from '../internalInterface';
 import { SelectionCheckbox } from '../Selection';
 import { getComponentCls } from '../style/classNames';
 import { getMergedSpanKeys } from '../utils/calc';

@@ -6,10 +6,10 @@ import type {
   DataSortConfig,
   DataSortOrder,
   DataSortOrderType,
-  InternalColumnState,
   SortDirection,
   SortOrder,
 } from '../interface';
+import type { InternalColumnState } from '../internalInterface';
 
 export type ActiveDataSortOrder = DataSortOrder & { order: SortOrder };
 

@@ -2,14 +2,13 @@ import { Key } from 'react';
 
 import { isNum } from '../../_utils/validate';
 import type {
-  CellType,
   ColumnState,
   ColumnsType,
   ColumnType,
-  InternalColumnState,
   PercentColumnWidthType,
   SizeType,
 } from '../interface';
+import type { CellType, InternalColumnState } from '../internalInterface';
 import { isValidColumnKey } from '../utils/validate';
 import {
   DEFAULT_RESIZE_MIN_WIDTH,

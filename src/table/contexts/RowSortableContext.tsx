@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
 
-import { type RowSortableContextProps } from '../interface';
+import { type RowSortableContextProps } from '../internalInterface';
 
 const RowSortableContext = createContext<RowSortableContextProps>({});
 

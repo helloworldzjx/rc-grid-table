@@ -1,5 +1,6 @@
 import { isNum } from '../../_utils/validate';
-import type { FixedType, StickyOffsets } from '../interface';
+import type { FixedType } from '../interface';
+import type { StickyOffsets } from '../internalInterface';
 
 export interface FixedInfo {
   fixStart: number | false;

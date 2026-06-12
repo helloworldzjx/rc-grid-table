@@ -2,11 +2,11 @@ import React, { useCallback, useMemo } from 'react';
 
 import { isNum } from '../../../_utils/validate';
 import type {
-  InternalColumnState,
   SizeType,
   TableScrollToOptions,
   TableVirtualConfig,
 } from '../../interface';
+import type { InternalColumnState } from '../../internalInterface';
 import { getCellSpan } from '../../utils/handle';
 import { getVirtualFixedHeightConfig } from '../../utils/virtual';
 import type {

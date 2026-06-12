@@ -1,6 +1,6 @@
 import { Key } from 'react';
 
-import { InternalColumnState } from '../interface';
+import type { InternalColumnState } from '../internalInterface';
 import { findNodeByKey, replaceTreeNode } from './handle';
 
 export type SortablePlacement = 'start' | 'end';

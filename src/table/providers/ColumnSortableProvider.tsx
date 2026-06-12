@@ -15,7 +15,7 @@ import ColumnSortPreviewLayoutContext, {
   type ColumnSortPreviewLayoutContextProps,
 } from '../contexts/ColumnSortPreviewLayoutContext';
 import useStickyOffsets from '../hooks/useStickyOffsets';
-import type { InternalColumnState } from '../interface';
+import type { InternalColumnState } from '../internalInterface';
 import {
   columnsSort,
   getSortablePreviewColumns,

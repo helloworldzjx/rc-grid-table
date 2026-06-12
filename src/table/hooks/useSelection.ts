@@ -8,11 +8,8 @@ import {
 } from 'react';
 
 import { isValidKey } from '../../_utils/validate';
-import type {
-  RowKey,
-  TableProps,
-  TableSelectionContextProps,
-} from '../interface';
+import type { RowKey, TableProps } from '../interface';
+import type { TableSelectionContextProps } from '../internalInterface';
 import { getRecordChildren, getRecordKey } from '../utils/expand';
 import { warningInvalidRecordKey } from '../utils/warning';
 

@@ -12,12 +12,8 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { isNum, isValidKey } from '../../_utils/validate';
 import type { BodyItem, BodyRenderOptions } from '../Body/interface';
-import type {
-  InternalColumnState,
-  RowKey,
-  RowSortableConfig,
-  StickyOffsets,
-} from '../interface';
+import type { RowKey, RowSortableConfig } from '../interface';
+import type { InternalColumnState, StickyOffsets } from '../internalInterface';
 import { isInternalColumn, isRowSortColumn } from '../utils/const';
 import { isRowSortableData } from '../utils/dnd';
 import {

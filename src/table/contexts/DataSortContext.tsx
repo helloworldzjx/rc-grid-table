@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
 
-import { type DataSortContextProps } from '../interface';
+import { type DataSortContextProps } from '../internalInterface';
 
 const DataSortContext = createContext<DataSortContextProps>(
   {} as DataSortContextProps,

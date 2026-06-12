@@ -11,7 +11,7 @@ import { useCallback, useMemo } from 'react';
 
 import { isValidKey } from '../../_utils/validate';
 import { useRowSortableContext } from '../contexts/RowSortableContext';
-import type { InternalColumnState } from '../interface';
+import type { InternalColumnState } from '../internalInterface';
 import { isRowSortColumn } from '../utils/const';
 import type { RowSortableData } from '../utils/dnd';
 

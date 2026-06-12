@@ -6,7 +6,10 @@ import {
   useContext,
 } from 'react';
 
-import type { ColumnSortableContextProps, InternalColumnState } from '../interface';
+import type {
+  ColumnSortableContextProps,
+  InternalColumnState,
+} from '../internalInterface';
 
 const noop = () => {};
 const emptyMotionKeys = new Set<Key>();

@@ -1,12 +1,10 @@
 import type {
   CSSProperties,
-  Dispatch,
   ElementType,
   HTMLAttributes,
   Key,
   MouseEvent,
   ReactNode,
-  SetStateAction,
 } from 'react';
 
 import { ScrollBarContainerRef } from './ScrollContainer/interface';
@@ -39,20 +37,6 @@ export interface TableVirtualConfig {
   expandedRowHeight?: number | false;
 }
 
-export interface CellType<T = any> {
-  key?: Key;
-  className?: string;
-  style?: CSSProperties;
-  children?: ReactNode;
-  column?: InternalColumnState<T>;
-  colSpan?: number;
-  rowSpan?: number;
-  /** Only used for table header */
-  hasSubColumns?: boolean;
-  colStart?: number;
-  colEnd?: number;
-}
-
 // ================= Customized =================
 
 export type CustomizeComponent = ElementType<any>;
@@ -73,25 +57,8 @@ export interface TableComponents {
   };
 }
 
-export type GetComponent = (
-  path: readonly string[],
-  defaultComponent?: CustomizeComponent,
-) => CustomizeComponent;
-
-// ================= Fixed Column =================
-export interface StickyOffsets {
-  start: readonly number[];
-  end: readonly number[];
-  widths: readonly number[];
-  isSticky?: boolean;
-  hasFixColumns: boolean;
-  hasFixStartColumns: boolean;
-  hasFixEndColumns: boolean;
-  fixColumnsGapped: boolean;
-}
-
 export type SizeType = 'small' | 'middle' | 'large';
-export type TitleEllipsisType = boolean | { showTitle?: boolean; }
+export type TitleEllipsisType = boolean | { showTitle?: boolean };
 export type FixedType = 'start' | 'end';
 export type RowKey<T = any> = string | ((record: T) => Key);
 export type SortOrder = 'ascend' | 'descend';
@@ -284,11 +251,6 @@ export interface DataSortConfig {
   sortRender?: (info: DataSortRenderInfo) => ReactNode;
 }
 
-export interface DataSortContextProps {
-  dataSort?: DataSortConfig;
-  dataSortOrders?: DataSortOrder[];
-}
-
 export interface ColumnProps<T = any> {
   __RC_GRID_TABLE_EXPAND_COLUMN?: true;
   __RC_GRID_TABLE_SELECTION_COLUMN?: true;
@@ -342,19 +304,43 @@ export type RowSortColumnType = ColumnProps<any> & {
   __RC_GRID_TABLE_ROW_SORT_COLUMN: true;
 };
 
-export type ColumnKeyType = {
-  key?: Key;
-  /** 数据索引，数据层级较深时使用render */
-  dataIndex: Key;
-} | {
-  key: Key;
-  /** 数据索引，数据层级较深时使用render */
-  dataIndex?: Key;
-}
+export type ColumnKeyType =
+  | {
+      key?: Key;
+      /** 数据索引，数据层级较深时使用render */
+      dataIndex: Key;
+    }
+  | {
+      key: Key;
+      /** 数据索引，数据层级较深时使用render */
+      dataIndex?: Key;
+    };
 
-export type ColumnType<T> = ColumnProps<T> & ColumnKeyType & { children?: ColumnType<T>[] };
+export type ColumnType<T> = ColumnProps<T> &
+  ColumnKeyType & { children?: ColumnType<T>[] };
 
 export type ColumnsType<T = any> = ColumnType<T>[];
+
+type ColumnInfoState = {
+  key: Key;
+  parentKey: Key;
+  ancestorKeys: Key[];
+  depth: number;
+  order: number;
+  distribute: boolean;
+  visible: boolean;
+  hasChildren: boolean;
+  widthManuallyChanged: boolean;
+  autoWidthLocked: boolean;
+};
+
+export type ColumnInfo<T = any> = Omit<ColumnType<T>, 'children'> &
+  ColumnInfoState & {
+    columnOverlayTitle?: ReactNode;
+    width?: number;
+    resizeMinWidth?: number;
+    children?: ColumnInfo<T>[];
+  };
 
 export interface TableSummaryRowCell {
   key?: Key;
@@ -373,36 +359,13 @@ export interface TableSticky {
   offsetStickyScroller?: number;
 }
 
-export type ColumnStateConfigType = {
-  key: Key;
-  parentKey: Key;
-  ancestorKeys: Key[];
-  depth: number;
-  order: number;
-  distribute: boolean;
-  visible: boolean;
-  hasChildren: boolean;
-  widthManuallyChanged: boolean;
-  autoWidthLocked: boolean;
-};
-
-export type InternalColumnState<T = any> = Omit<ColumnType<T>, 'children'> &
-  ColumnStateConfigType & {
-    columnOverlayTitle?: ReactNode;
-    width?: number;
-    resizeMinWidth?: number;
-    children?: InternalColumnState<T>[];
-  };
-
-export type ColumnInfo<T = any> = InternalColumnState<T>;
-
 type ColumnStorageStateKey = Exclude<
-  Extract<(typeof storageKeys)[number], keyof InternalColumnState>,
+  Extract<(typeof storageKeys)[number], keyof ColumnInfo>,
   'children'
 >;
 
 export type ColumnState<T = any> = Pick<
-  InternalColumnState<T>,
+  ColumnInfo<T>,
   ColumnStorageStateKey
 > & {
   children?: ColumnState<T>[];
@@ -533,117 +496,4 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
    */
   components?: TableComponents;
   rowClassName?: (record?: T, rowIndex?: number) => string;
-}
-
-type TableFeatureContextKey =
-  | 'prefixCls'
-  | 'components'
-  | 'dataSort'
-  | 'expandable'
-  | 'rowSelection'
-  | 'rowSortable'
-  | 'sortableColumns';
-
-export interface TableContextProps<T = any>
-  extends Omit<TableProps<T>, TableFeatureContextKey> {
-  // base props
-  rowKey: RowKey<T>;
-
-  updateLockContainerWidth: Dispatch<SetStateAction<boolean>>;
-  containerWidth?: number;
-  containerHeight?: number;
-  initialized?: boolean;
-  columns?: InternalColumnState<T>[];
-  flattenColumns?: InternalColumnState<T>[];
-  flattenColumnsWidths?: number[];
-  columnsWidthTotal: number;
-  updateFlattenColumnsWidths: Dispatch<SetStateAction<number[]>>;
-  fixedOffset: StickyOffsets;
-  hasFixedColumns: boolean;
-  fixColumnsGapped: boolean;
-  columnsState: ColumnState<T>[];
-  updateColumnsState: Dispatch<SetStateAction<ColumnState<T>[]>>;
-}
-
-export interface TableDataContextProps<T = any> {
-  rowKey: RowKey<T>;
-  dataSource?: T[];
-}
-
-export interface TableLayoutContextProps<T = any> {
-  containerWidth?: number;
-  containerHeight?: number;
-  columns?: InternalColumnState<T>[];
-  flattenColumns?: InternalColumnState<T>[];
-  flattenColumnsWidths?: number[];
-  columnsWidthTotal: number;
-  fixedOffset: StickyOffsets;
-  hasFixedColumns: boolean;
-  fixColumnsGapped: boolean;
-}
-
-export interface TableColumnStateContextProps<T = any> {
-  resizableColumns?: boolean;
-  fixableColumns?: boolean;
-  visibleColumns?: boolean;
-  columnMinWidth?: number;
-  leafColumnMinWidth?: number;
-  columnsState: ColumnState<T>[];
-  columnsConfig?: ColumnsConfig<T>;
-  updateLockContainerWidth: Dispatch<SetStateAction<boolean>>;
-  updateFlattenColumnsWidths: Dispatch<SetStateAction<number[]>>;
-  updateColumnsState: Dispatch<SetStateAction<ColumnState<T>[]>>;
-}
-
-export interface ComponentsContextProps {
-  components?: TableComponents;
-  getComponent: GetComponent;
-}
-
-export interface ExpandableContextProps<T = any> {
-  expandable?: ExpandableConfig<T>;
-  mergedExpandedRowKeys?: Key[];
-  onTriggerExpand?: (record: T) => void;
-}
-
-export interface RowSelectionContextProps<T = any> {
-  rowSelection?: TableRowSelection<T>;
-  selection?: TableSelectionContextProps<T>;
-}
-
-export interface RowSortableContextProps<T = any> {
-  rowSortable?: RowSortableConfig<T>;
-}
-
-export interface ColumnSortableContextProps<T = any> {
-  sortableColumns?: boolean;
-  sortableDraftState?: InternalColumnState<T>[] | null;
-  updateSortableDraftState: Dispatch<
-    SetStateAction<InternalColumnState<T>[] | null>
-  >;
-  getSortableBaseState: () => InternalColumnState<T>[];
-  updateSortableColumnsState: (columnsState: InternalColumnState<T>[]) => void;
-  sortingColumns: boolean;
-  updateSortingColumns: Dispatch<SetStateAction<boolean>>;
-  sortableMotionKeys: ReadonlySet<Key>;
-  updateSortableMotionKeys: Dispatch<SetStateAction<Set<Key>>>;
-  sortableMotionVersion: number;
-  sortableActiveKeys: ReadonlySet<Key>;
-  updateSortableActiveKeys: Dispatch<SetStateAction<Set<Key>>>;
-  sortableHotKeys: ReadonlySet<Key>;
-  updateSortableHotKeys: Dispatch<SetStateAction<Set<Key>>>;
-}
-
-export interface TableSelectionContextProps<T = any> {
-  selectedRowKeys: Key[];
-  isSelected: (record: T) => boolean;
-  isHalfSelected: (record: T) => boolean;
-  isAllSelected: boolean;
-  isPartiallySelected: boolean;
-  onSelectRecord: (
-    record: T,
-    rowIndex: number,
-    nativeEvent: MouseEvent<HTMLElement>,
-  ) => void;
-  onSelectAll: (nativeEvent: MouseEvent<HTMLElement>) => void;
 }

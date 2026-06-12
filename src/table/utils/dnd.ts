@@ -3,7 +3,7 @@ import type { SortableData } from '@dnd-kit/sortable';
 import type { Key } from 'react';
 
 import { isObject, isValidKey } from '../../_utils/validate';
-import type { InternalColumnState } from '../interface';
+import type { InternalColumnState } from '../internalInterface';
 
 export type ResizableColumnsData = Data<{
   type: 'resizableColumns';
@@ -51,5 +51,4 @@ export const isSortableColumnsData = <T = any>(
 
 export const isRowSortableData = <T = any>(
   data: unknown,
-): data is RowSortableData<T> =>
-  isObject(data) && data.type === 'rowSortable';
+): data is RowSortableData<T> => isObject(data) && data.type === 'rowSortable';

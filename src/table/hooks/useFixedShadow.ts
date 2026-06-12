@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 
 import { isNum } from '../../_utils/validate';
 import type { FixedShadowContextProps } from '../contexts/FixedShadowContext';
-import type { InternalColumnState } from '../interface';
+import type { InternalColumnState } from '../internalInterface';
 
 interface UseFixedShadowProps<T = any> {
   scrollLeft: number;

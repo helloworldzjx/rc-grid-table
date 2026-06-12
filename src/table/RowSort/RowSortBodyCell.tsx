@@ -11,7 +11,7 @@ import { useComponentsContext } from '../contexts/ComponentsContext';
 import { useFixedShadowActive } from '../contexts/FixedShadowContext';
 import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import { useRowSortableContext } from '../contexts/RowSortableContext';
-import { InternalColumnState } from '../interface';
+import type { InternalColumnState } from '../internalInterface';
 import { getComponentCls } from '../style/classNames';
 import { FixedInfo } from '../utils/fixedColumns';
 

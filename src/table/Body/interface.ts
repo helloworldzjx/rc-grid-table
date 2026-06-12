@@ -1,10 +1,7 @@
 import type { CSSProperties, Key, ReactNode, Ref, UIEventHandler } from 'react';
 
-import type {
-  InternalColumnState,
-  StickyOffsets,
-  TableScrollToOptions,
-} from '../interface';
+import type { TableScrollToOptions } from '../interface';
+import type { InternalColumnState, StickyOffsets } from '../internalInterface';
 
 export type BodyRenderMode = 'normal' | 'virtual' | 'rowSpanOverlay';
 

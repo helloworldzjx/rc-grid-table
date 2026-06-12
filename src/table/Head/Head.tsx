@@ -13,7 +13,7 @@ import { useColumnSortPreviewLayoutContext } from '../contexts/ColumnSortPreview
 import { useColumnSortableContext } from '../contexts/ColumnSortableContext';
 import { useComponentsContext } from '../contexts/ComponentsContext';
 import { usePrefixClsContext } from '../contexts/PrefixClsContext';
-import { CellType } from '../interface';
+import type { CellType } from '../internalInterface';
 import { getComponentCls } from '../style/classNames';
 import { parseHeaderRows } from '../utils/handle';
 import HeadFilterRow from './HeadFilterRow';

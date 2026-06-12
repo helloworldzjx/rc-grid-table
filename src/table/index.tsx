@@ -25,21 +25,23 @@ import TableDataContext from './contexts/TableDataContext';
 import TableLayoutContext from './contexts/TableLayoutContext';
 import useSelection from './hooks/useSelection';
 import useStickyOffsets from './hooks/useStickyOffsets';
-import {
+import type {
   ColumnState,
-  DataSortContextProps,
   ExpandColumnType,
-  GetComponent,
-  InternalColumnState,
   RowSortColumnType,
   SelectionColumnType,
+  TableProps,
+  TableRef,
+} from './interface';
+import type {
+  DataSortContextProps,
+  GetComponent,
+  InternalColumnState,
   TableColumnStateContextProps,
   TableContextProps,
   TableDataContextProps,
   TableLayoutContextProps,
-  type TableProps,
-  type TableRef,
-} from './interface';
+} from './internalInterface';
 import ColumnSortableProvider from './providers/ColumnSortableProvider';
 import InternalTable from './Table';
 import { columnsWidthDistribute } from './utils/calc';
@@ -310,7 +312,12 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
       parseUpdateColumnsState(mergedColumnsConfig.columnsState);
       columnsStateUpdated.current = true;
     }
-  }, [ready, enableColumnsConfig, mergedColumnsConfig, parseUpdateColumnsState]);
+  }, [
+    ready,
+    enableColumnsConfig,
+    mergedColumnsConfig,
+    parseUpdateColumnsState,
+  ]);
 
   useIsomorphicLayoutEffect(() => {
     if (

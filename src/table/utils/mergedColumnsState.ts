@@ -1,7 +1,8 @@
 import { Key } from 'react';
 
 import { isNum, isValidKey } from '../../_utils/validate';
-import { ColumnState, InternalColumnState } from '../interface';
+import type { ColumnState } from '../interface';
+import type { InternalColumnState } from '../internalInterface';
 import { getColumnKey } from './handle';
 
 const internalColumnFlagKeys = [
