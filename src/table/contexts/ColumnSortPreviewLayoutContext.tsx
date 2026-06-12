@@ -1,10 +1,10 @@
 import { createContext, useContext } from 'react';
 
-import type { ColumnState, StickyOffsets } from '../interface';
+import type { InternalColumnState, StickyOffsets } from '../interface';
 
 export interface ColumnSortPreviewLayoutContextProps<T = any> {
-  columns?: ColumnState<T>[];
-  flattenColumns?: ColumnState<T>[];
+  columns?: InternalColumnState<T>[];
+  flattenColumns?: InternalColumnState<T>[];
   flattenColumnsWidths?: number[];
   columnsWidthTotal?: number;
   fixedOffset?: StickyOffsets;

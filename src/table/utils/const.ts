@@ -92,4 +92,4 @@ export const storageKeys = [
   'widthManuallyChanged',
   'autoWidthLocked',
   'children',
-];
+] as const;

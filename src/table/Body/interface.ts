@@ -1,7 +1,7 @@
 import type { CSSProperties, Key, ReactNode, Ref, UIEventHandler } from 'react';
 
 import type {
-  ColumnState,
+  InternalColumnState,
   StickyOffsets,
   TableScrollToOptions,
 } from '../interface';
@@ -37,7 +37,7 @@ export type BodyItem<T = any> = BodyRowItem<T> | BodyExpandedItem<T>;
 
 export interface BodyRenderOptions<T = any> {
   renderMode?: BodyRenderMode;
-  flattenColumns?: ColumnState<T>[];
+  flattenColumns?: InternalColumnState<T>[];
   fixedOffset?: StickyOffsets;
   style?: CSSProperties;
   rowRef?: Ref<HTMLDivElement>;

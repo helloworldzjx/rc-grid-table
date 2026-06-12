@@ -1,7 +1,7 @@
 import { Key } from 'react';
 
 import { isNum, isValidKey } from '../../_utils/validate';
-import { ColumnState } from '../interface';
+import { ColumnState, InternalColumnState } from '../interface';
 import { getColumnKey } from './handle';
 
 const internalColumnFlagKeys = [
@@ -11,9 +11,9 @@ const internalColumnFlagKeys = [
 ] as const;
 
 function completeColumnState<T = any>(
-  column: ColumnState<T>,
-  children: ColumnState[] = column.children || [],
-): ColumnState {
+  column: InternalColumnState<T>,
+  children: InternalColumnState[] = column.children || [],
+): InternalColumnState {
   const hasChildren = children.length > 0;
 
   const width = hasChildren ? undefined : column.width;
@@ -50,25 +50,23 @@ function completeColumnState<T = any>(
     autoWidthLocked,
     hasChildren,
     children,
-  } as ColumnState;
+  } as InternalColumnState;
 }
 
-function createKeyMap<T = any>(
-  columns: ColumnState<T>[],
-): Map<Key, ColumnState<T>> {
-  const map = new Map<Key, ColumnState<T>>();
-  const traverse = (cols: ColumnState<T>[]) => {
-    cols.forEach((column, index) => {
+function createKeyMap(storageColumns: ColumnState[]): Map<Key, ColumnState> {
+  const map = new Map<Key, ColumnState>();
+  const traverse = (columns: ColumnState[]) => {
+    columns.forEach((column, index) => {
       map.set(getColumnKey(column, index), column);
       if (column.children?.length) traverse(column.children);
     });
   };
-  traverse(columns);
+  traverse(storageColumns);
   return map;
 }
 
 function normalizeColumnsOrder<T = any>(
-  columns: ColumnState<T>[],
+  columns: InternalColumnState<T>[],
   storedColumns: ColumnState[] = [],
 ) {
   const storedSiblingKeySet = new Set<Key>(
@@ -119,13 +117,13 @@ function normalizeColumnsOrder<T = any>(
 }
 
 function mergeColumnsStateInternal<T = any>(
-  a: ColumnState<T>[],
-  b: ColumnState[],
-): ColumnState[] {
-  const bKeyMap = createKeyMap(b);
-  const mergeColumn = (column: ColumnState<T>): ColumnState => {
-    const bColumn = bKeyMap.get(column.key as Key);
-    if (!bColumn) {
+  columns: InternalColumnState<T>[],
+  storageColumns: ColumnState[],
+): InternalColumnState[] {
+  const storageColumnsKeyMap = createKeyMap(storageColumns);
+  const mergeColumn = (column: InternalColumnState<T>): InternalColumnState => {
+    const storeColumn = storageColumnsKeyMap.get(column.key);
+    if (!storeColumn) {
       const children = column.children?.length
         ? mergeColumnsStateInternal(column.children, [])
         : [];
@@ -135,7 +133,7 @@ function mergeColumnsStateInternal<T = any>(
     const merged: ColumnState = {
       ...column,
       // 冲突时优先采用b的数据
-      ...JSON.parse(JSON.stringify(bColumn)),
+      ...JSON.parse(JSON.stringify(storeColumn)),
       // 以下input数据/派生数据以实际传入的为准
       key: column.key,
       dataIndex: column.dataIndex,
@@ -161,24 +159,19 @@ function mergeColumnsStateInternal<T = any>(
     }
 
     const children = column.children?.length
-      ? mergeColumnsStateInternal(column.children, bColumn.children || [])
+      ? mergeColumnsStateInternal(column.children, storeColumn.children || [])
       : [];
 
     return completeColumnState(merged, children);
   };
-  const mergedColumns = a.map((column) => mergeColumn(column));
-  return normalizeColumnsOrder(mergedColumns, b);
+  const mergedColumns = columns.map((column) => mergeColumn(column));
+  return normalizeColumnsOrder(mergedColumns, storageColumns);
 }
 
-/**
- * 将传入组件的columns数据和存储中的columnsState数据进行合并
- * @param a 组件columns参数
- * @param b middleState
- * @returns a和b合并后的columnsState
- */
+/** 处理columns数据和存储中的columnsState数据，根据columns增删columnsState中的列，最后合并两种数据 */
 export function mergeColumnsState<T = any>(
-  a: ColumnState<T>[],
-  b: ColumnState[],
-): ColumnState[] {
-  return mergeColumnsStateInternal(a, b);
+  columns: InternalColumnState<T>[],
+  storageColumns: ColumnState[],
+): InternalColumnState[] {
+  return mergeColumnsStateInternal(columns, storageColumns);
 }

@@ -1,7 +1,7 @@
 import { Key } from 'react';
 
 import { isNum } from '../../_utils/validate';
-import type { ColumnState, ColumnsType, SizeType } from '../interface';
+import type { ColumnsType, InternalColumnState, SizeType } from '../interface';
 import {
   filterSpan,
   flattenColumnsWithTotalWidth,
@@ -56,11 +56,14 @@ export function columnsWidthDistribute<T>(
   topMinWidth: number,
   leafMinWidth: number,
   size?: SizeType,
-): { flattenColumns: ColumnState<T>[]; treeColumns: ColumnState<T>[] } {
+): {
+  flattenColumns: InternalColumnState<T>[];
+  treeColumns: InternalColumnState<T>[];
+} {
   // 第一次分配列宽，只是给width没有值的列设置默认宽度
   const { flattenColumns, usedWidthTotal } = flattenColumnsWithTotalWidth(
     containerWidth,
-    columns as ColumnState<T>[],
+    columns as InternalColumnState<T>[],
     topMinWidth,
     leafMinWidth,
     size,
@@ -143,7 +146,7 @@ export function columnsWidthDistribute<T>(
 
 export const getMergedSpanKeys = (
   col: { key: Key; hasChildren?: boolean; colSpan?: number },
-  flattenColumns: ColumnState[],
+  flattenColumns: InternalColumnState[],
 ) => {
   let ks = [col.key];
   let colSpan = col.colSpan;

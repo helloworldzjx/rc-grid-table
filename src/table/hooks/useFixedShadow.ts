@@ -2,13 +2,13 @@ import { useMemo } from 'react';
 
 import { isNum } from '../../_utils/validate';
 import type { FixedShadowContextProps } from '../contexts/FixedShadowContext';
-import type { ColumnState } from '../interface';
+import type { InternalColumnState } from '../interface';
 
 interface UseFixedShadowProps<T = any> {
   scrollLeft: number;
   maxScrollLeft: number;
   fixColumnsGapped?: boolean;
-  flattenColumns: ColumnState<T>[];
+  flattenColumns: InternalColumnState<T>[];
   flattenColumnsWidths: number[];
 }
 

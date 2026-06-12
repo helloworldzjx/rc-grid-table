@@ -3,18 +3,18 @@ import type { SortableData } from '@dnd-kit/sortable';
 import type { Key } from 'react';
 
 import { isObject, isValidKey } from '../../_utils/validate';
-import type { ColumnState } from '../interface';
+import type { InternalColumnState } from '../interface';
 
 export type ResizableColumnsData = Data<{
   type: 'resizableColumns';
 }>;
 
 export type SortableColumnType<T = any> = Pick<
-  ColumnState<T>,
+  InternalColumnState<T>,
   'key' | 'parentKey' | 'order' | 'hasChildren'
 > &
   Pick<
-    Partial<ColumnState<T>>,
+    Partial<InternalColumnState<T>>,
     'colSpan' | 'fixed' | 'dragSortDisabled'
   >;
 

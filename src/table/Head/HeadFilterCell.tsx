@@ -6,12 +6,12 @@ import { useColumnSortableContext } from '../contexts/ColumnSortableContext';
 import { useComponentsContext } from '../contexts/ComponentsContext';
 import { useFixedShadowActive } from '../contexts/FixedShadowContext';
 import { usePrefixClsContext } from '../contexts/PrefixClsContext';
-import { ColumnState } from '../interface';
+import { InternalColumnState } from '../interface';
 import { getComponentCls } from '../style/classNames';
 import { FixedInfo } from '../utils/fixedColumns';
 
 interface HeadFilterCellProps<T = any> {
-  column: ColumnState<T>;
+  column: InternalColumnState<T>;
   columnIndex: number;
   fixedInfo: FixedInfo;
   last?: boolean;

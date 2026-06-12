@@ -20,6 +20,9 @@ export default defineConfig({
   themeConfig: {
     name: 'rc-grid-table',
     logo: false,
+    prefersColor: {
+      default: 'auto',
+    },
     socialLinks: {
       github: 'https://github.com/helloworldzjx/rc-grid-table',
     },

@@ -14,7 +14,7 @@ import { useExpandableContext } from '../contexts/ExpandableContext';
 import { useFixedShadowActive } from '../contexts/FixedShadowContext';
 import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import { ExpandControl, TreeCellContent } from '../Expand';
-import { ColumnState } from '../interface';
+import { InternalColumnState } from '../interface';
 import { RowSortBodyCell } from '../RowSort';
 import { BodySelectionCell } from '../Selection';
 import { getComponentCls } from '../style/classNames';
@@ -30,11 +30,11 @@ import { getBodyCellSpanInfo } from './cellSpan';
 import type { BodyRenderMode } from './interface';
 
 interface BodyRowProps<T = any> {
-  column: ColumnState<T>;
+  column: InternalColumnState<T>;
   rowData: T;
   rowIndex: number;
   fixedInfo: FixedInfo;
-  flattenColumns: ColumnState<T>[];
+  flattenColumns: InternalColumnState<T>[];
   renderMode?: BodyRenderMode;
   colIndex?: number;
   getRowSpanHeight?: (rowSpan: number) => number;

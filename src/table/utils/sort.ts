@@ -3,10 +3,10 @@ import { Key, ReactNode } from 'react';
 import { isValidKey } from '../../_utils/validate';
 import type {
   ColumnSorter,
-  ColumnState,
   DataSortConfig,
   DataSortOrder,
   DataSortOrderType,
+  InternalColumnState,
   SortDirection,
   SortOrder,
 } from '../interface';
@@ -14,7 +14,7 @@ import type {
 export type ActiveDataSortOrder = DataSortOrder & { order: SortOrder };
 
 type DataSortTitleRender<T = any> = {
-  column?: ColumnState<T>;
+  column?: InternalColumnState<T>;
   columnIndex: number;
   dataSort?: DataSortConfig;
   dataSortOrders: DataSortOrder[];
@@ -44,18 +44,18 @@ export const normalizeDataSortOrder = (
   );
 };
 
-export const isLeafColumn = <T>(column?: ColumnState<T> | null) =>
+export const isLeafColumn = <T>(column?: InternalColumnState<T> | null) =>
   !!column && !column.hasChildren && !column.children?.length;
 
-export const getDataSortColumnKey = <T>(column: ColumnState<T>): Key =>
+export const getDataSortColumnKey = <T>(column: InternalColumnState<T>): Key =>
   column.key;
 
 const collectLeafColumnMap = <T>(
-  columns: ColumnState<T>[] = [],
-): Map<Key, ColumnState<T>> => {
-  const map = new Map<Key, ColumnState<T>>();
+  columns: InternalColumnState<T>[] = [],
+): Map<Key, InternalColumnState<T>> => {
+  const map = new Map<Key, InternalColumnState<T>>();
 
-  const traverse = (items: ColumnState<T>[]) => {
+  const traverse = (items: InternalColumnState<T>[]) => {
     items.forEach((column) => {
       if (isLeafColumn(column)) {
         map.set(getDataSortColumnKey(column), column);
@@ -70,7 +70,7 @@ const collectLeafColumnMap = <T>(
 };
 
 export const filterLeafDataSortOrder = <T>(
-  columns: ColumnState<T>[] = [],
+  columns: InternalColumnState<T>[] = [],
   sortOrders: ActiveDataSortOrder[] = normalizeDataSortOrder(),
 ): ActiveDataSortOrder[] => {
   if (!columns.length || !sortOrders.length) return [];
@@ -80,14 +80,14 @@ export const filterLeafDataSortOrder = <T>(
 };
 
 const getSortFunction = <T>(
-  sorter: ColumnState<T>['sorter'],
+  sorter: InternalColumnState<T>['sorter'],
 ): ColumnSorter<T> | null => {
   return typeof sorter === 'function' ? sorter : null;
 };
 
 export const sortDataSource = <T>(
   dataSource: T[] = [],
-  columns: ColumnState<T>[] = [],
+  columns: InternalColumnState<T>[] = [],
   sortOrders = normalizeDataSortOrder(),
 ): T[] => {
   if (!dataSource.length || !sortOrders.length) return dataSource;

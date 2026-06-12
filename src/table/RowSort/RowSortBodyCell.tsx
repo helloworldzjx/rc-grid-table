@@ -11,14 +11,14 @@ import { useComponentsContext } from '../contexts/ComponentsContext';
 import { useFixedShadowActive } from '../contexts/FixedShadowContext';
 import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import { useRowSortableContext } from '../contexts/RowSortableContext';
-import { ColumnState } from '../interface';
+import { InternalColumnState } from '../interface';
 import { getComponentCls } from '../style/classNames';
 import { FixedInfo } from '../utils/fixedColumns';
 
 type BodyCellBaseProps<T = any> = {
   cellClassName?: string;
   restCellProps: React.HTMLAttributes<any>;
-  column: ColumnState<T>;
+  column: InternalColumnState<T>;
   fixedInfo: FixedInfo;
   motionKeys?: Key[];
   motionLayoutDependency?: string | number | false;

@@ -13,7 +13,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { isNum, isValidKey } from '../../_utils/validate';
 import type { BodyItem, BodyRenderOptions } from '../Body/interface';
 import type {
-  ColumnState,
+  InternalColumnState,
   RowKey,
   RowSortableConfig,
   StickyOffsets,
@@ -32,7 +32,7 @@ interface UseTableRowSortProps<T = any> {
   rowKey: RowKey<T>;
   childrenColumnName: string;
   rowSortable?: RowSortableConfig<T>;
-  flattenColumns: ColumnState<T>[];
+  flattenColumns: InternalColumnState<T>[];
   bodyScrollElement?: HTMLDivElement | null;
   bodyScrollLeft: number;
 }
@@ -47,11 +47,11 @@ const isDescendantOrSelfPath = (
   parentPath.length <= maybeDescendantPath.length &&
   parentPath.every((value, index) => value === maybeDescendantPath[index]);
 
-const getColumnMatchKeys = (column: ColumnState) =>
+const getColumnMatchKeys = (column: InternalColumnState) =>
   [column.key, column.dataIndex].filter(isValidKey);
 
 const getRowSortOverlayColumns = <T>(
-  columns: ColumnState<T>[],
+  columns: InternalColumnState<T>[],
   overlayColumnKeys?: readonly Key[],
 ) => {
   const rowSortColumn = columns.find(isRowSortColumn);
@@ -66,7 +66,7 @@ const getRowSortOverlayColumns = <T>(
     : columns.filter((column) => !isInternalColumn(column)).slice(0, 1);
 
   return [rowSortColumn, ...overlayBusinessColumns].filter(
-    (column): column is ColumnState<T> => !!column,
+    (column): column is InternalColumnState<T> => !!column,
   );
 };
 

@@ -27,7 +27,7 @@ import { useColumnSortableContext } from '../contexts/ColumnSortableContext';
 import { useComponentsContext } from '../contexts/ComponentsContext';
 import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import useRenderedColumnLayout from '../hooks/useRenderedColumnLayout';
-import { CellType, ColumnState } from '../interface';
+import { CellType, InternalColumnState } from '../interface';
 import { getComponentCls } from '../style/classNames';
 import {
   isSortableColumnsData,
@@ -76,7 +76,7 @@ const uniqKeys = (keys: Key[]) => Array.from(new Set(keys));
 
 const getCellLeafKeys = <T,>(
   cell: CellType<T> | undefined,
-  flattenColumns: ColumnState<T>[],
+  flattenColumns: InternalColumnState<T>[],
 ) => {
   if (cell?.key === undefined) return [];
 
@@ -123,7 +123,7 @@ const getHeaderVisualKeys = <T,>(
 const getColumnVisualKeys = <T,>(
   cell: CellType<T> | undefined,
   headRows: CellType<T>[][],
-  flattenColumns: ColumnState<T>[],
+  flattenColumns: InternalColumnState<T>[],
 ) =>
   uniqKeys([
     ...getHeaderVisualKeys(cell, headRows),

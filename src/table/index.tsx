@@ -30,6 +30,7 @@ import {
   DataSortContextProps,
   ExpandColumnType,
   GetComponent,
+  InternalColumnState,
   RowSortColumnType,
   SelectionColumnType,
   TableColumnStateContextProps,
@@ -54,9 +55,9 @@ import {
 } from './utils/expand';
 import {
   columnsSort,
-  filterColumns,
+  filterHiddenColumns,
   isColumnsOrderEqual,
-  parseMiddleState,
+  parseColumnsState,
 } from './utils/handle';
 import { mergeColumnsState } from './utils/mergedColumnsState';
 import {
@@ -116,18 +117,18 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
   const [containerHeight, setContainerHeight] = useState(0);
   const [initialized, setInitialized] = useState(false);
   /** 列 */
-  const [cols, setCols] = useState<ColumnState<T>[]>([]);
+  const [cols, setCols] = useState<InternalColumnState<T>[]>([]);
   /** 列宽数组 */
   const [flattenColumnsWidths, setFlattenColumnsWidths] = useState<number[]>(
     [],
   );
   /** 展平后的列 */
-  const [flattenCols, setFlattenCols] = useState<ColumnState<T>[]>([]);
+  const [flattenCols, setFlattenCols] = useState<InternalColumnState<T>[]>([]);
   /** 列隐藏，列拖拽排序，列宽拖拽、固定列 */
-  const [innerColumnsState, setInnerColumnsState] = useState<ColumnState<T>[]>(
-    [],
-  );
-  const [middleState, setMiddleState] = useState<ColumnState<T>[]>([]);
+  const [innerColumnsState, setInnerColumnsState] = useState<
+    InternalColumnState<T>[]
+  >([]);
+  const [columnsState, setColumnsState] = useState<ColumnState<T>[]>([]);
   const [innerExpandedRowKeys, setInnerExpandedRowKeys] = useState<Key[]>(
     () => {
       if (expandable?.expandedRowKeys) return expandable.expandedRowKeys;
@@ -138,8 +139,8 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
       return [];
     },
   );
-  /** 是否进行了修改表格外观的操作，操作后不再允许通过原columns修改middleState */
-  const middleStateUpdated = useRef(false);
+  /** 是否进行了修改表格外观的操作，操作后不再允许通过原columns修改columnsState */
+  const columnsStateUpdated = useRef(false);
   const enableColumnsConfig = useMemo(() => {
     return (
       resizableColumns || sortableColumns || fixableColumns || visibleColumns
@@ -185,29 +186,6 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     [expandable?.expandedRowKeys, innerExpandedRowKeys],
   );
 
-  const selection = useSelection({
-    rowKey,
-    dataSource: sortedDataSource,
-    rowSelection,
-    childrenColumnName: expandable?.childrenColumnName,
-  });
-
-  const getComponent: GetComponent = useCallback(
-    (path, defaultComponent = 'div') => {
-      let component: any = components;
-
-      for (let i = 0; i < path.length; i += 1) {
-        component = component?.[path[i]];
-        if (component === undefined) {
-          return defaultComponent;
-        }
-      }
-
-      return component || defaultComponent;
-    },
-    [components],
-  );
-
   const onTriggerExpand = useCallback(
     (record: any) => {
       const key = getRecordKey(record, rowKey);
@@ -241,6 +219,29 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     [],
   );
 
+  const selection = useSelection({
+    rowKey,
+    dataSource: sortedDataSource,
+    rowSelection,
+    childrenColumnName: expandable?.childrenColumnName,
+  });
+
+  const getComponent: GetComponent = useCallback(
+    (path, defaultComponent = 'div') => {
+      let component: any = components;
+
+      for (let i = 0; i < path.length; i += 1) {
+        component = component?.[path[i]];
+        if (component === undefined) {
+          return defaultComponent;
+        }
+      }
+
+      return component || defaultComponent;
+    },
+    [components],
+  );
+
   const { run: onResize } = useDebounceFn<OnResize>(
     ({ width, height }) => {
       if (!lockContainerWidth.current) {
@@ -252,42 +253,49 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
   );
 
   // 统一处理
-  const parseUpdateMiddleState = useCallback((input: ColumnState[]) => {
-    const state = parseMiddleState(input);
-    setMiddleState(state);
-  }, []);
+  const parseUpdateColumnsState = useCallback(
+    (input: Array<ColumnState<T> | InternalColumnState<T>>) => {
+      const state = parseColumnsState(input);
+      setColumnsState(state);
+    },
+    [],
+  );
 
   // 统一处理
   const mergedColumnsConfig = useMemo(() => {
     return {
       ...columnsConfig,
-      onChange: (columnsState: ColumnState<T>[]) => {
-        const state = parseMiddleState(columnsState);
+      onChange: (
+        columnsState: Array<ColumnState<T> | InternalColumnState<T>>,
+      ) => {
+        const state = parseColumnsState(columnsState);
         columnsConfig?.onChange?.(state);
       },
     };
   }, [columnsConfig]);
 
-  const updateMiddleState = useCallback(
+  const updateColumnsState = useCallback(
     (dispatch: SetStateAction<ColumnState<T>[]>) => {
-      middleStateUpdated.current = true;
-      const state =
-        typeof dispatch === 'function' ? dispatch(middleState) : dispatch;
-      parseUpdateMiddleState(state);
+      columnsStateUpdated.current = true;
+      setColumnsState((prevState) => {
+        const nextState =
+          typeof dispatch === 'function' ? dispatch(prevState) : dispatch;
+        return parseColumnsState(nextState);
+      });
     },
-    [parseUpdateMiddleState],
+    [],
   );
 
   const getSortableBaseState = useCallback(() => {
-    return innerColumnsState.length ? innerColumnsState : middleState;
-  }, [innerColumnsState, middleState]);
+    return innerColumnsState;
+  }, [innerColumnsState]);
 
   const updateSortableColumnsState = useCallback(
-    (columnsState: ColumnState<T>[]) => {
-      updateMiddleState(columnsState);
+    (columnsState: InternalColumnState<T>[]) => {
+      updateColumnsState(columnsState);
       mergedColumnsConfig?.onChange?.(columnsState);
     },
-    [mergedColumnsConfig, updateMiddleState],
+    [mergedColumnsConfig, updateColumnsState],
   );
 
   /** 使用了列配置的处理 start ***************************************************************************/
@@ -299,14 +307,14 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
       mergedColumnsConfig?.useStorage &&
       mergedColumnsConfig?.columnsState?.length
     ) {
-      parseUpdateMiddleState(mergedColumnsConfig.columnsState);
-      middleStateUpdated.current = true;
+      parseUpdateColumnsState(mergedColumnsConfig.columnsState);
+      columnsStateUpdated.current = true;
     }
-  }, [ready, enableColumnsConfig, mergedColumnsConfig, parseUpdateMiddleState]);
+  }, [ready, enableColumnsConfig, mergedColumnsConfig, parseUpdateColumnsState]);
 
   useIsomorphicLayoutEffect(() => {
     if (
-      !middleStateUpdated.current &&
+      !columnsStateUpdated.current &&
       containerWidth &&
       ready &&
       enableColumnsConfig &&
@@ -321,7 +329,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
         leafColumnMinWidth,
         size,
       );
-      parseUpdateMiddleState(treeColumns);
+      parseUpdateColumnsState(treeColumns);
     }
   }, [
     containerWidth,
@@ -332,25 +340,26 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     columnMinWidth,
     leafColumnMinWidth,
     size,
-    parseUpdateMiddleState,
+    parseUpdateColumnsState,
   ]);
 
   useIsomorphicLayoutEffect(() => {
-    if (containerWidth && middleState.length) {
-      const realColumns = filterColumns(size, mergedColumns);
-      const mergedColumnsState = mergeColumnsState(realColumns, middleState);
+    if (containerWidth && columnsState.length) {
+      const realColumns = filterHiddenColumns(size, mergedColumns);
+      const mergedColumnsState = mergeColumnsState(realColumns, columnsState);
 
-      if (!isColumnsOrderEqual(mergedColumnsState, middleState)) {
-        parseUpdateMiddleState(mergedColumnsState);
+      if (!isColumnsOrderEqual(mergedColumnsState, columnsState)) {
+        // 如果input columns对比columnsState有增删，则立刻更新columnsState
+        parseUpdateColumnsState(mergedColumnsState);
       }
       setInnerColumnsState(columnsSort(mergedColumnsState));
     }
   }, [
     containerWidth,
     mergedColumns,
-    middleState,
+    columnsState,
     size,
-    parseUpdateMiddleState,
+    parseUpdateColumnsState,
   ]);
 
   useIsomorphicLayoutEffect(() => {
@@ -433,8 +442,8 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
       resizableColumns,
       fixableColumns,
       visibleColumns,
-      middleState,
-      updateMiddleState,
+      columnsState,
+      updateColumnsState,
       columnsConfig: mergedColumnsConfig,
       onScroll,
     };
@@ -458,8 +467,8 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     resizableColumns,
     fixableColumns,
     visibleColumns,
-    middleState,
-    updateMiddleState,
+    columnsState,
+    updateColumnsState,
     mergedColumnsConfig,
     onScroll,
   ]);
@@ -512,11 +521,11 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
       visibleColumns,
       columnMinWidth,
       leafColumnMinWidth,
-      middleState,
+      columnsState,
       columnsConfig: mergedColumnsConfig,
       updateLockContainerWidth,
       updateFlattenColumnsWidths: setFlattenColumnsWidths,
-      updateMiddleState,
+      updateColumnsState,
     }),
     [
       resizableColumns,
@@ -524,10 +533,10 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
       visibleColumns,
       columnMinWidth,
       leafColumnMinWidth,
-      middleState,
+      columnsState,
       mergedColumnsConfig,
       updateLockContainerWidth,
-      updateMiddleState,
+      updateColumnsState,
     ],
   );
 

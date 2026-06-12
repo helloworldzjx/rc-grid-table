@@ -2,7 +2,7 @@ import { Dispatch, Key, SetStateAction, useEffect, useRef } from 'react';
 
 import { COLUMNS_SORT_MOTION_DURATION } from '../../_utils/const';
 import { cancelRaf, raf } from '../../_utils/raf';
-import { ColumnState } from '../interface';
+import { InternalColumnState } from '../interface';
 import type { SortableColumnType } from '../utils/dnd';
 import { reorderColumnsState, SortablePlacement } from '../utils/sortable';
 
@@ -16,8 +16,8 @@ export type SortablePreviewPayload<T = any> = {
 };
 
 interface UseSortablePreviewProps<T = any> {
-  getBaseState: () => ColumnState<T>[];
-  updateDraftState: Dispatch<SetStateAction<ColumnState<T>[] | null>>;
+  getBaseState: () => InternalColumnState<T>[];
+  updateDraftState: Dispatch<SetStateAction<InternalColumnState<T>[] | null>>;
   updateMotionKeys: Dispatch<SetStateAction<Set<Key>>>;
 }
 
@@ -64,10 +64,10 @@ const areKeySetsEqual = (a: ReadonlySet<Key>, b: ReadonlySet<Key>) => {
   return equal;
 };
 
-const collectLeafKeys = <T>(columns: ColumnState<T>[]) => {
+const collectLeafKeys = <T>(columns: InternalColumnState<T>[]) => {
   const keys: Key[] = [];
 
-  const traverse = (cols: ColumnState<T>[]) => {
+  const traverse = (cols: InternalColumnState<T>[]) => {
     [...cols]
       .sort((a, b) => a.order - b.order)
       .forEach((column) => {
@@ -85,13 +85,13 @@ const collectLeafKeys = <T>(columns: ColumnState<T>[]) => {
 };
 
 const collectCoveredLeafKeys = <T>(
-  columns: ColumnState<T>[],
+  columns: InternalColumnState<T>[],
   targetKeys: Key[],
 ) => {
   const targetKeySet = new Set(targetKeys);
   const keys: Key[] = [];
 
-  const pushLeafKeys = (column: ColumnState<T>) => {
+  const pushLeafKeys = (column: InternalColumnState<T>) => {
     if (column.children?.length) {
       [...column.children]
         .sort((a, b) => a.order - b.order)
@@ -102,7 +102,7 @@ const collectCoveredLeafKeys = <T>(
     keys.push(column.key);
   };
 
-  const traverse = (cols: ColumnState<T>[]) => {
+  const traverse = (cols: InternalColumnState<T>[]) => {
     [...cols]
       .sort((a, b) => a.order - b.order)
       .forEach((column) => {
@@ -122,7 +122,7 @@ const collectCoveredLeafKeys = <T>(
 };
 
 const getSortableMotionKeys = <T>(
-  columnsState: ColumnState<T>[],
+  columnsState: InternalColumnState<T>[],
   payload: SortablePreviewPayload<T>,
 ) => {
   const leafKeys = collectLeafKeys(columnsState);
@@ -162,7 +162,7 @@ const useSortablePreview = <T>({
   const getBaseStateRef = useRef(getBaseState);
   const updateDraftStateRef = useRef(updateDraftState);
   const updateMotionKeysRef = useRef(updateMotionKeys);
-  const draftStateRef = useRef<ColumnState<T>[] | null>(null);
+  const draftStateRef = useRef<InternalColumnState<T>[] | null>(null);
   const draftChangedRef = useRef(false);
   const previewFrameRef = useRef<number | null>(null);
   const previewPayloadRef = useRef<SortablePreviewPayload<T> | null>(null);
@@ -276,10 +276,10 @@ const useSortablePreview = <T>({
 
     if (nextState) {
       draftChangedRef.current = true;
-      draftStateRef.current = nextState as ColumnState<T>[];
+      draftStateRef.current = nextState as InternalColumnState<T>[];
       previewSignatureRef.current = signature;
       markMotionTransition();
-      updateDraftStateRef.current(nextState as ColumnState<T>[]);
+      updateDraftStateRef.current(nextState as InternalColumnState<T>[]);
     }
 
     return true;

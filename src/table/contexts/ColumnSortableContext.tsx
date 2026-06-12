@@ -6,7 +6,7 @@ import {
   useContext,
 } from 'react';
 
-import type { ColumnSortableContextProps, ColumnState } from '../interface';
+import type { ColumnSortableContextProps, InternalColumnState } from '../interface';
 
 const noop = () => {};
 const emptyMotionKeys = new Set<Key>();
@@ -15,7 +15,7 @@ const emptySortableHotKeys = new Set<Key>();
 
 const ColumnSortableContext = createContext<ColumnSortableContextProps>({
   updateSortableDraftState: noop as Dispatch<
-    SetStateAction<ColumnState[] | null>
+    SetStateAction<InternalColumnState[] | null>
   >,
   getSortableBaseState: () => [],
   updateSortableColumnsState: noop,

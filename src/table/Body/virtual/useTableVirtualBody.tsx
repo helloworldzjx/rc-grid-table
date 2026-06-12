@@ -2,7 +2,7 @@ import React, { useCallback, useMemo } from 'react';
 
 import { isNum } from '../../../_utils/validate';
 import type {
-  ColumnState,
+  InternalColumnState,
   SizeType,
   TableScrollToOptions,
   TableVirtualConfig,
@@ -21,7 +21,7 @@ import useVirtualBody from './useVirtualBody';
 interface UseTableVirtualBodyProps<T = any> {
   bodyItems: BodyItem<T>[];
   flattenDataLength: number;
-  flattenColumns: ColumnState<T>[];
+  flattenColumns: InternalColumnState<T>[];
   preserveItemKey?: React.Key | null;
   scrollElement?: HTMLDivElement | null;
   scrollY?: number;

@@ -20,9 +20,9 @@ const Placeholder: FC = () => {
     flattenColumnsWidths = [],
   } = useTableLayoutContext();
   const {
-    middleState,
+    columnsState,
     updateFlattenColumnsWidths,
-    updateMiddleState,
+    updateColumnsState,
     columnsConfig,
   } = useTableColumnStateContext();
   const { sortableDraftState } = useColumnSortableContext();
@@ -42,9 +42,9 @@ const Placeholder: FC = () => {
     flattenColumns,
     flattenColumnsWidths,
     sortableDraftState,
-    middleState,
+    columnsState,
     updateFlattenColumnsWidths,
-    updateMiddleState,
+    updateColumnsState,
     columnsConfig,
   });
 
@@ -54,9 +54,9 @@ const Placeholder: FC = () => {
     flattenColumns,
     flattenColumnsWidths,
     sortableDraftState,
-    middleState,
+    columnsState,
     updateFlattenColumnsWidths,
-    updateMiddleState,
+    updateColumnsState,
     columnsConfig,
   };
 
@@ -79,9 +79,9 @@ const Placeholder: FC = () => {
       flattenColumns,
       flattenColumnsWidths,
       sortableDraftState,
-      middleState,
+      columnsState,
       updateFlattenColumnsWidths,
-      updateMiddleState,
+      updateColumnsState,
       columnsConfig,
     } = latestAutoFillStateRef.current;
 
@@ -91,7 +91,7 @@ const Placeholder: FC = () => {
     const remainingWidth = containerWidth - columnsWidthTotal;
     if (
       remainingWidth <= PLACEHOLDER_VISIBLE_TOLERANCE ||
-      !middleState.length
+      !columnsState.length
     ) {
       return false;
     }
@@ -150,9 +150,9 @@ const Placeholder: FC = () => {
 
     updateFlattenColumnsWidths(nextWidths);
 
-    const updatedMiddleState = batchUpdateColumns(middleState, updates);
-    updateMiddleState(updatedMiddleState);
-    columnsConfig?.onChange?.(updatedMiddleState);
+    const updatedColumnsState = batchUpdateColumns(columnsState, updates);
+    updateColumnsState(updatedColumnsState);
+    columnsConfig?.onChange?.(updatedColumnsState);
     // 立即更新 ref，防止下一帧在 React render 前基于旧 columnsWidthTotal 重复累加。
     latestAutoFillStateRef.current = {
       ...latestAutoFillStateRef.current,
@@ -161,7 +161,7 @@ const Placeholder: FC = () => {
         0,
       ),
       flattenColumnsWidths: nextWidths,
-      middleState: updatedMiddleState,
+      columnsState: updatedColumnsState,
     };
 
     return true;

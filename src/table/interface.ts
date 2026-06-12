@@ -10,6 +10,7 @@ import type {
 } from 'react';
 
 import { ScrollBarContainerRef } from './ScrollContainer/interface';
+import type { storageKeys } from './utils/const';
 
 export interface TableRef {
   nativeElement: HTMLDivElement;
@@ -43,7 +44,7 @@ export interface CellType<T = any> {
   className?: string;
   style?: CSSProperties;
   children?: ReactNode;
-  column?: ColumnState<T>;
+  column?: InternalColumnState<T>;
   colSpan?: number;
   rowSpan?: number;
   /** Only used for table header */
@@ -119,7 +120,7 @@ export type GetBodyCellProps<DataType> = (
 };
 
 export type GetHeaderCellProps<T> = (
-  column: ColumnType<T>,
+  column: ColumnInfo<T>,
   columnIndex?: number,
 ) => React.HTMLAttributes<any> & {
   rowSpan?: number;
@@ -128,7 +129,7 @@ export type GetHeaderCellProps<T> = (
 };
 
 export type GetFilterCellProps<T> = (
-  column: ColumnState<T>,
+  column: ColumnInfo<T>,
   columnIndex?: number,
 ) => React.HTMLAttributes<any> & {
   align?: AlignType;
@@ -297,7 +298,7 @@ export interface ColumnProps<T = any> {
   sortDirections?: SortDirection[];
   sortRender?: (info: DataSortRenderInfo) => ReactNode;
   render?: (value: any, record: T, rowIndex: number) => ReactNode;
-  filterRender?: (column: ColumnState<T>, columnIndex: number) => ReactNode;
+  filterRender?: (column: ColumnInfo<T>, columnIndex: number) => ReactNode;
   /** 列宽，仅支持数字和百分比数字，不支持px的字符串写法 */
   width?: number | PercentColumnWidthType;
   /** 禁止表格重新调整叶子列宽度 */
@@ -342,14 +343,14 @@ export type RowSortColumnType = ColumnProps<any> & {
 };
 
 export type ColumnKeyType = {
-        key?: Key;
+  key?: Key;
   /** 数据索引，数据层级较深时使用render */
-        dataIndex: Key;
+  dataIndex: Key;
 } | {
-        key: Key;
+  key: Key;
   /** 数据索引，数据层级较深时使用render */
-        dataIndex?: Key;
-      }
+  dataIndex?: Key;
+}
 
 export type ColumnType<T> = ColumnProps<T> & ColumnKeyType & { children?: ColumnType<T>[] };
 
@@ -385,13 +386,27 @@ export type ColumnStateConfigType = {
   autoWidthLocked: boolean;
 };
 
-export type ColumnState<T = any> = Omit<ColumnType<T>, 'children'> &
+export type InternalColumnState<T = any> = Omit<ColumnType<T>, 'children'> &
   ColumnStateConfigType & {
     columnOverlayTitle?: ReactNode;
     width?: number;
     resizeMinWidth?: number;
-    children?: ColumnState<T>[];
+    children?: InternalColumnState<T>[];
   };
+
+export type ColumnInfo<T = any> = InternalColumnState<T>;
+
+type ColumnStorageStateKey = Exclude<
+  Extract<(typeof storageKeys)[number], keyof InternalColumnState>,
+  'children'
+>;
+
+export type ColumnState<T = any> = Pick<
+  InternalColumnState<T>,
+  ColumnStorageStateKey
+> & {
+  children?: ColumnState<T>[];
+};
 
 export type ColumnsConfig<T> = {
   /** 启用storage后才会使用columnsState中的数据，且可以使用onChange事件 */
@@ -490,7 +505,7 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
    */
   summary?: (
     dataSource: T[],
-    flattenColumns?: ColumnState<T>[],
+    flattenColumns?: ColumnInfo<T>[],
   ) => TableSummaryRowCell[][];
   /**
    * @description 展开配置，支持额外展开行和树形数据展示
@@ -538,16 +553,16 @@ export interface TableContextProps<T = any>
   containerWidth?: number;
   containerHeight?: number;
   initialized?: boolean;
-  columns?: ColumnState<T>[];
-  flattenColumns?: ColumnState<T>[];
+  columns?: InternalColumnState<T>[];
+  flattenColumns?: InternalColumnState<T>[];
   flattenColumnsWidths?: number[];
   columnsWidthTotal: number;
   updateFlattenColumnsWidths: Dispatch<SetStateAction<number[]>>;
   fixedOffset: StickyOffsets;
   hasFixedColumns: boolean;
   fixColumnsGapped: boolean;
-  middleState: ColumnState<T>[];
-  updateMiddleState: Dispatch<SetStateAction<ColumnState<T>[]>>;
+  columnsState: ColumnState<T>[];
+  updateColumnsState: Dispatch<SetStateAction<ColumnState<T>[]>>;
 }
 
 export interface TableDataContextProps<T = any> {
@@ -558,8 +573,8 @@ export interface TableDataContextProps<T = any> {
 export interface TableLayoutContextProps<T = any> {
   containerWidth?: number;
   containerHeight?: number;
-  columns?: ColumnState<T>[];
-  flattenColumns?: ColumnState<T>[];
+  columns?: InternalColumnState<T>[];
+  flattenColumns?: InternalColumnState<T>[];
   flattenColumnsWidths?: number[];
   columnsWidthTotal: number;
   fixedOffset: StickyOffsets;
@@ -573,11 +588,11 @@ export interface TableColumnStateContextProps<T = any> {
   visibleColumns?: boolean;
   columnMinWidth?: number;
   leafColumnMinWidth?: number;
-  middleState: ColumnState<T>[];
+  columnsState: ColumnState<T>[];
   columnsConfig?: ColumnsConfig<T>;
   updateLockContainerWidth: Dispatch<SetStateAction<boolean>>;
   updateFlattenColumnsWidths: Dispatch<SetStateAction<number[]>>;
-  updateMiddleState: Dispatch<SetStateAction<ColumnState<T>[]>>;
+  updateColumnsState: Dispatch<SetStateAction<ColumnState<T>[]>>;
 }
 
 export interface ComponentsContextProps {
@@ -602,10 +617,12 @@ export interface RowSortableContextProps<T = any> {
 
 export interface ColumnSortableContextProps<T = any> {
   sortableColumns?: boolean;
-  sortableDraftState?: ColumnState<T>[] | null;
-  updateSortableDraftState: Dispatch<SetStateAction<ColumnState<T>[] | null>>;
-  getSortableBaseState: () => ColumnState<T>[];
-  updateSortableColumnsState: (columnsState: ColumnState<T>[]) => void;
+  sortableDraftState?: InternalColumnState<T>[] | null;
+  updateSortableDraftState: Dispatch<
+    SetStateAction<InternalColumnState<T>[] | null>
+  >;
+  getSortableBaseState: () => InternalColumnState<T>[];
+  updateSortableColumnsState: (columnsState: InternalColumnState<T>[]) => void;
   sortingColumns: boolean;
   updateSortingColumns: Dispatch<SetStateAction<boolean>>;
   sortableMotionKeys: ReadonlySet<Key>;

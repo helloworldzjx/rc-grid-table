@@ -6,6 +6,7 @@ import type {
   ColumnState,
   ColumnsType,
   ColumnType,
+  InternalColumnState,
   PercentColumnWidthType,
   SizeType,
 } from '../interface';
@@ -94,12 +95,12 @@ const getEffectiveResizeMinWidth = (
 };
 
 export function parseHeaderRows<T>(
-  columns: ColumnState<T>[] = [],
+  columns: InternalColumnState<T>[] = [],
 ): CellType<T>[][] {
   const rows: CellType<T>[][] = [];
 
   function fillRowCells(
-    cols: ColumnState<T>[],
+    cols: InternalColumnState<T>[],
     colIndex: number,
     rowIndex: number = 0,
   ): number[] {
@@ -163,7 +164,7 @@ export function parseHeaderRows<T>(
   return rows;
 }
 
-export function filterColumns<T = any>(
+export function filterHiddenColumns<T = any>(
   size: SizeType,
   columns: ColumnsType<T>,
   parentKey: Key = '',
@@ -173,7 +174,11 @@ export function filterColumns<T = any>(
   if (!Array.isArray(columns)) return [];
 
   return columns.reduce(
-    (result: ColumnState<T>[], column: ColumnType<T>, index: number) => {
+    (
+      result: InternalColumnState<T>[],
+      column: ColumnType<T>,
+      index: number,
+    ) => {
       if (isInternalColumn(column)) {
         const width = column.width ?? getDefaultInternalColumnWidth(size);
         result.push({
@@ -190,7 +195,7 @@ export function filterColumns<T = any>(
           autoWidthLocked: false,
           hasChildren: false,
           children: [],
-        } as ColumnState<T>);
+        } as InternalColumnState<T>);
         return result;
       }
 
@@ -203,7 +208,7 @@ export function filterColumns<T = any>(
         return result;
       let children: ColumnsType<T> = [];
       if (column.children?.length) {
-        children = filterColumns(
+        children = filterHiddenColumns(
           size,
           column.children,
           currentKey,
@@ -220,26 +225,30 @@ export function filterColumns<T = any>(
         depth,
       };
       if (children.length) newNode.children = children;
-      result.push(newNode as ColumnState<T>);
+      result.push(newNode as InternalColumnState<T>);
       return result;
     },
     [],
   );
 }
 
-export function parseMiddleState(input: ColumnState[]) {
-  return JSON.parse(JSON.stringify(input, storageKeys));
+export function parseColumnsState<T = any>(
+  input: Array<ColumnState<T> | InternalColumnState<T>>,
+): ColumnState<T>[] {
+  return JSON.parse(JSON.stringify(input, storageKeys.slice()));
 }
 
 /**
- * 展平middleState数组
- * @param columns middleState
- * @returns 展平后的middleState数组
+ * 展平columnsState数组
+ * @param columns columnsState
+ * @returns 展平后的columnsState数组
  */
-export function flattenMiddleState(middleState: ColumnState[]): ColumnState[] {
-  return middleState.reduce((result: ColumnState[], state) => {
+export function flattenColumnsState<T = any>(
+  columnsState: ColumnState<T>[],
+): ColumnState<T>[] {
+  return columnsState.reduce((result: ColumnState<T>[], state) => {
     if (state.hasChildren) {
-      result.push(...flattenMiddleState(state.children as ColumnState[]));
+      result.push(...flattenColumnsState(state.children || []));
     }
     result.push(state);
 
@@ -271,7 +280,7 @@ export function flattenColumnsWithFilterChildren<T>(
   return result;
 }
 
-export type FnColumnType<T> = Partial<Omit<ColumnState<T>, 'width'>> & {
+export type FnColumnType<T> = Partial<Omit<InternalColumnState<T>, 'width'>> & {
   width?: ColumnType<T>['width'];
 };
 
@@ -281,8 +290,8 @@ export function flattenColumnsWithTotalWidth<T>(
   topMinWidth: number,
   leafMinWidth: number,
   size?: SizeType,
-): { flattenColumns: ColumnState<T>[]; usedWidthTotal: number } {
-  const result: ColumnState<T>[] = [];
+): { flattenColumns: InternalColumnState<T>[]; usedWidthTotal: number } {
+  const result: InternalColumnState<T>[] = [];
   let usedWidthTotal = 0;
 
   function traverse(
@@ -316,7 +325,7 @@ export function flattenColumnsWithTotalWidth<T>(
           autoWidthLocked: false,
           hasChildren: false,
           children: [],
-        } as ColumnState<T>);
+        } as InternalColumnState<T>);
         return;
       }
 
@@ -410,12 +419,12 @@ export function flattenColumnsWithTotalWidth<T>(
 }
 
 export function rebuildColumns<T>(
-  flattenedColumns: ColumnState<T>[],
-): ColumnState<T>[] {
+  flattenedColumns: InternalColumnState<T>[],
+): InternalColumnState<T>[] {
   const columns = flattenedColumns.slice();
   // 创建节点映射表
-  const columnMap = new Map<Key, ColumnState<T>>();
-  const rootColumns: ColumnState<T>[] = [];
+  const columnMap = new Map<Key, InternalColumnState<T>>();
+  const rootColumns: InternalColumnState<T>[] = [];
 
   // 先按深度排序确保父节点先处理
   columns.sort((a, b) => a.depth - b.depth);
@@ -488,11 +497,13 @@ export function batchUpdateColumns(
  * @param compareFn 排序比较函数
  * @returns 排序后的列数组
  */
-export function columnsSort<T>(columns: ColumnState<T>[]) {
+export function columnsSort<T>(columns: InternalColumnState<T>[]) {
   if (!Array.isArray(columns)) return columns;
 
   // 深度优先递归排序
-  const deepSort = (cols: ColumnState<T>[]): ColumnState<T>[] => {
+  const deepSort = (
+    cols: InternalColumnState<T>[],
+  ): InternalColumnState<T>[] => {
     // 1. 排序当前层级
     const sorted = [...cols].sort((a, b) => a.order - b.order);
 
@@ -519,14 +530,14 @@ export function columnsSort<T>(columns: ColumnState<T>[]) {
  * @returns 处理后的新树
  */
 export function replaceTreeNode(
-  tree: ColumnState[],
+  tree: InternalColumnState[],
   targetKeys: Key[],
-  replaceNodes: ColumnState[],
+  replaceNodes: InternalColumnState[],
   replaced: boolean = false,
 ) {
   let hasReplaced = replaced;
 
-  return tree.reduce((result: ColumnState[], column) => {
+  return tree.reduce((result: InternalColumnState[], column) => {
     if (targetKeys.includes(column.key)) {
       if (!hasReplaced) {
         result.push(...replaceNodes);
@@ -557,24 +568,33 @@ export function replaceTreeNode(
  * @returns 找到的节点或null
  */
 export function findNodeByKey(
-  tree: ColumnState[],
+  tree: InternalColumnState[],
   targetKey: Key,
-): ColumnState | null {
+): InternalColumnState | null {
   for (const node of tree) {
     if (node.key === targetKey) {
       return node;
     }
     if (node.hasChildren) {
-      const found = findNodeByKey(node.children as ColumnState[], targetKey);
+      const found = findNodeByKey(
+        node.children as InternalColumnState[],
+        targetKey,
+      );
       if (found) return found;
     }
   }
   return null;
 }
 
+type ColumnOrderState = {
+  key: Key;
+  order: number;
+  children?: ColumnOrderState[];
+};
+
 export const isColumnsOrderEqual = (
-  a: ColumnState[] = [],
-  b: ColumnState[] = [],
+  a: ColumnOrderState[] = [],
+  b: ColumnOrderState[] = [],
 ): boolean => {
   if (a.length !== b.length) return false;
 
@@ -601,11 +621,11 @@ export const isColumnsOrderEqual = (
 };
 
 export const getSortablePreviewColumns = <T>(
-  columnsState: ColumnState<T>[],
-  sourceFlattenColumns: ColumnState<T>[],
+  columnsState: InternalColumnState<T>[],
+  sourceFlattenColumns: InternalColumnState<T>[],
   sourceWidths: number[],
 ) => {
-  const sourceColumnMap = new Map<Key, ColumnState<T>>();
+  const sourceColumnMap = new Map<Key, InternalColumnState<T>>();
   const sourceWidthMap = new Map<Key, number>();
 
   sourceFlattenColumns.forEach((column, index) => {
@@ -617,9 +637,11 @@ export const getSortablePreviewColumns = <T>(
     }
   });
 
-  const flattenColumns: ColumnState<T>[] = [];
+  const flattenColumns: InternalColumnState<T>[] = [];
 
-  const cloneColumns = (columns: ColumnState<T>[]): ColumnState<T>[] =>
+  const cloneColumns = (
+    columns: InternalColumnState<T>[],
+  ): InternalColumnState<T>[] =>
     columns.map((column) => {
       const children = column.children?.length
         ? cloneColumns(column.children)

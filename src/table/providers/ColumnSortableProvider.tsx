@@ -15,7 +15,7 @@ import ColumnSortPreviewLayoutContext, {
   type ColumnSortPreviewLayoutContextProps,
 } from '../contexts/ColumnSortPreviewLayoutContext';
 import useStickyOffsets from '../hooks/useStickyOffsets';
-import type { ColumnState } from '../interface';
+import type { InternalColumnState } from '../interface';
 import {
   columnsSort,
   getSortablePreviewColumns,
@@ -25,15 +25,15 @@ import {
 interface ColumnSortableProviderProps<T = any> {
   children?: ReactNode;
   sortableColumns?: boolean;
-  baseColumnsState: ColumnState<T>[];
-  updateSortableColumnsState: (columnsState: ColumnState<T>[]) => void;
+  baseColumnsState: InternalColumnState<T>[];
+  updateSortableColumnsState: (columnsState: InternalColumnState<T>[]) => void;
   previewSource: {
-    flattenColumns: ColumnState<T>[];
+    flattenColumns: InternalColumnState<T>[];
     flattenColumnsWidths: number[];
   };
 }
 
-const emptyColumns: ColumnState[] = [];
+const emptyColumns: InternalColumnState[] = [];
 const emptyWidths: number[] = [];
 const emptyPreviewLayout: ColumnSortPreviewLayoutContextProps = {};
 
@@ -62,7 +62,7 @@ const ColumnSortableProvider = <T,>({
   previewSource,
 }: ColumnSortableProviderProps<T>) => {
   const [sortableDraftState, setSortableDraftState] = useState<
-    ColumnState<T>[] | null
+    InternalColumnState<T>[] | null
   >(null);
   const [sortingColumns, setSortingColumns] = useState(false);
   const [sortableMotionKeys, setSortableMotionKeys] = useState<Set<Key>>(

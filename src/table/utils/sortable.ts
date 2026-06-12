@@ -1,6 +1,6 @@
 import { Key } from 'react';
 
-import { ColumnState } from '../interface';
+import { InternalColumnState } from '../interface';
 import { findNodeByKey, replaceTreeNode } from './handle';
 
 export type SortablePlacement = 'start' | 'end';
@@ -11,7 +11,7 @@ const hasIntersect = (a: Key[], b: Key[]) => {
 };
 
 export function reorderColumnsState(
-  columnsState: ColumnState[],
+  columnsState: InternalColumnState[],
   parentKey: Key,
   activeKeys: Key[],
   overKeys: Key[],

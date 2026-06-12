@@ -31,10 +31,10 @@ const Resizable = forwardRef<HTMLDivElement, ResizableProps>(
     const { flattenColumns = [], flattenColumnsWidths = [] } =
       useTableLayoutContext();
     const {
-      middleState,
+      columnsState,
       updateLockContainerWidth,
       updateFlattenColumnsWidths,
-      updateMiddleState,
+      updateColumnsState,
       columnsConfig,
     } = useTableColumnStateContext();
     const prefixCls = usePrefixClsContext();
@@ -137,9 +137,9 @@ const Resizable = forwardRef<HTMLDivElement, ResizableProps>(
         ],
         value: [widths[idx], true, true],
       }));
-      const updatedMiddleState = batchUpdateColumns(middleState, updates);
-      updateMiddleState(updatedMiddleState);
-      columnsConfig?.onChange?.(updatedMiddleState);
+      const updatedColumnsState = batchUpdateColumns(columnsState, updates);
+      updateColumnsState(updatedColumnsState);
+      columnsConfig?.onChange?.(updatedColumnsState);
     };
 
     useDndMonitor({

@@ -11,7 +11,7 @@ import { useCallback, useMemo } from 'react';
 
 import { isValidKey } from '../../_utils/validate';
 import { useRowSortableContext } from '../contexts/RowSortableContext';
-import type { ColumnState } from '../interface';
+import type { InternalColumnState } from '../interface';
 import { isRowSortColumn } from '../utils/const';
 import type { RowSortableData } from '../utils/dnd';
 
@@ -41,7 +41,7 @@ interface UseRowSortResult {
   attributes?: DraggableAttributes;
   listeners?: DraggableSyntheticListeners;
   setActivatorNodeRef?: (element: HTMLElement | null) => void;
-  getNodeRef: (column: ColumnState) => RowSortNodeRef | undefined;
+  getNodeRef: (column: InternalColumnState) => RowSortNodeRef | undefined;
 }
 
 const getSortableId = (
@@ -147,7 +147,7 @@ export default function useRowSort<T = any>({
   }, [style, transformStyle, transition]);
 
   const getNodeRef = useCallback(
-    (column: ColumnState) =>
+    (column: InternalColumnState) =>
       !rowSortOverlay && !virtual && isRowSortColumn(column)
         ? setNodeRef
         : undefined,

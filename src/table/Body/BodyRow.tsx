@@ -8,7 +8,7 @@ import { useComponentsContext } from '../contexts/ComponentsContext';
 import { useExpandableContext } from '../contexts/ExpandableContext';
 import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import useFixedInfo from '../hooks/useFixedInfo';
-import { ColumnState, StickyOffsets } from '../interface';
+import { InternalColumnState, StickyOffsets } from '../interface';
 import { useRowSort } from '../RowSort';
 import { getComponentCls, getCssVar } from '../style/classNames';
 import { isInternalColumn, isRowSortColumn } from '../utils/const';
@@ -20,7 +20,7 @@ interface BodyRowProps<T = any> {
   rowData: T;
   rowIndex: number;
   rowKeyValue?: React.Key;
-  flattenColumns: ColumnState<T>[];
+  flattenColumns: InternalColumnState<T>[];
   fixedOffset: StickyOffsets;
   className?: string;
   style?: CSSProperties;

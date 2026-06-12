@@ -1,6 +1,6 @@
 import { Divider, Space, Tag, Typography } from 'antd';
 import { Table } from 'rc-grid-table';
-import { ColumnState, ColumnsType } from 'rc-grid-table/es/table/interface';
+import { ColumnInfo, ColumnsType } from 'rc-grid-table/es/table/interface';
 import React from 'react';
 import ConfigActions from './_utils/components/ConfigActions';
 import useConfigActions from './_utils/hooks/useConfigActions';
@@ -90,7 +90,7 @@ const getTotals = (pageData: DataType[]) => {
 
 const renderColumnSummary = (
   pageData: DataType[],
-  flattenColumns: ColumnState<DataType>[] = [],
+  flattenColumns: ColumnInfo<DataType>[] = [],
 ) => {
   const totals = getTotals(pageData);
 
@@ -127,7 +127,7 @@ const renderColumnSummary = (
 
 const renderMergedMetricSummary = (
   pageData: DataType[],
-  flattenColumns: ColumnState<DataType>[] = [],
+  flattenColumns: ColumnInfo<DataType>[] = [],
 ) => {
   const totals = getTotals(pageData);
   const row = [];
@@ -169,7 +169,7 @@ const renderMergedMetricSummary = (
 
 const renderFullWidthSummary = (
   pageData: DataType[],
-  flattenColumns: ColumnState<DataType>[] = [],
+  flattenColumns: ColumnInfo<DataType>[] = [],
 ) => {
   return [
     [
