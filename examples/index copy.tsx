@@ -1,5 +1,5 @@
-import { Table, Theme } from 'rc-grid-table';
-import { ColumnState, ColumnsType } from 'rc-grid-table/es/table/interface';
+import { Table, Theme, type ColumnState } from 'rc-grid-table';
+import { ColumnsType } from 'rc-grid-table/es/table/interface';
 import React, { useState } from 'react';
 import ConfigActions from './_utils/components/ConfigActions';
 import useConfigActions from './_utils/hooks/useConfigActions';
@@ -202,10 +202,8 @@ export default () => {
         scrollY={400}
         columnsConfig={
           {
-            // useStorage: true,
-            // columnsState: columnsState,
-            // onChange(columnsState) {
-            //   if(!useStorage) return
+            // storageColumnsState: columnsState,
+            // onColumnsStateChange(columnsState) {
             //   localStorage.setItem(storageKey, JSON.stringify(columnsState))
             // },
           }

@@ -3,8 +3,10 @@ import { Key } from 'react';
 import { isNum } from '../../_utils/validate';
 import type {
   ColumnState,
+  ColumnStatePatch,
   ColumnsType,
   ColumnType,
+  ColumnViewState,
   PercentColumnWidthType,
   SizeType,
 } from '../interface';
@@ -14,7 +16,6 @@ import {
   DEFAULT_RESIZE_MIN_WIDTH,
   getDefaultInternalColumnWidth,
   isInternalColumn,
-  storageKeys,
 } from './const';
 import { warningFallbackColumnKey, warningInvalidColumnKey } from './warning';
 
@@ -234,7 +235,36 @@ export function filterHiddenColumns<T = any>(
 export function parseColumnsState<T = any>(
   input: Array<ColumnState<T> | InternalColumnState<T>>,
 ): ColumnState<T>[] {
-  return JSON.parse(JSON.stringify(input, storageKeys.slice()));
+  if (!Array.isArray(input)) return [];
+
+  return input.reduce((result: ColumnState<T>[], column) => {
+    const key = column.key;
+    if (key === undefined || key === null) return result;
+
+    const state: ColumnState<T> = { key };
+
+    if (column.dataIndex !== undefined) state.dataIndex = column.dataIndex;
+    if (isNum(column.order)) state.order = column.order;
+    if (typeof column.visible === 'boolean') state.visible = column.visible;
+    if (column.fixed === 'start' || column.fixed === 'end') {
+      state.fixed = column.fixed;
+    } else if (column.fixed === false) {
+      state.fixed = false;
+    }
+    if (isNum(column.width)) state.width = column.width;
+    if (isNum(column.resizeMinWidth)) {
+      state.resizeMinWidth = column.resizeMinWidth;
+    }
+    if (typeof column.widthManuallyChanged === 'boolean') {
+      state.widthManuallyChanged = column.widthManuallyChanged;
+    }
+
+    const children = parseColumnsState(column.children || []);
+    if (children.length) state.children = children;
+
+    result.push(state);
+    return result;
+  }, []);
 }
 
 /**
@@ -246,7 +276,7 @@ export function flattenColumnsState<T = any>(
   columnsState: ColumnState<T>[],
 ): ColumnState<T>[] {
   return columnsState.reduce((result: ColumnState<T>[], state) => {
-    if (state.hasChildren) {
+    if (state.children?.length) {
       result.push(...flattenColumnsState(state.children || []));
     }
     result.push(state);
@@ -452,13 +482,6 @@ const cloneColumnsState = (tree: ColumnState[]): ColumnState[] => {
   }));
 };
 
-type UpdateColumnState = Omit<ColumnState, 'children'>;
-export type BatchUpdateType = {
-  targetKey: Key;
-  prop: (keyof UpdateColumnState)[];
-  value: ColumnState[keyof UpdateColumnState][];
-};
-
 /**
  * 修改树形结构中的数据
  * @param tree - 原始树数据
@@ -466,28 +489,82 @@ export type BatchUpdateType = {
  * @param updates - 要修改的key和数据
  * @returns 新树结构
  */
-export function batchUpdateColumns(
-  tree: ColumnState[],
-  updates: BatchUpdateType[],
-): ColumnState[] {
-  const cloneTree = cloneColumnsState(tree);
+export function batchPatchColumns<T = any>(
+  tree: ColumnState<T>[],
+  patches: ColumnStatePatch<T>[],
+): ColumnState<T>[] {
+  const cloneTree = cloneColumnsState(tree) as ColumnState<T>[];
+  const patchMap = new Map(patches.map((patch) => [patch.key, patch.partial]));
 
-  const updateMap = new Map(updates.map((u) => [u.targetKey, u]));
-
-  function traverse(cols: ColumnState[]) {
+  function traverse(cols: ColumnState<T>[]) {
     cols.forEach((column) => {
-      if (updateMap.has(column.key)) {
-        const { prop, value } = updateMap.get(column.key)!;
-        for (let i = 0; i < prop.length; i++) {
-          (column[prop[i]] as ColumnState[keyof UpdateColumnState]) = value[i];
-        }
+      const partial = patchMap.get(column.key);
+      if (partial) {
+        Object.assign(column, partial);
       }
       if (column.children?.length) traverse(column.children);
     });
   }
 
   traverse(cloneTree);
-  return cloneTree;
+  return parseColumnsState(cloneTree);
+}
+
+export function pickColumnsStatePatches<T = any>(
+  tree: ColumnState<T>[],
+  patches: ColumnStatePatch<T>[],
+): ColumnState<T>[] {
+  const patchMap = new Map(patches.map((patch) => [patch.key, patch.partial]));
+
+  const traverse = (columns: ColumnState<T>[]): ColumnState<T>[] => {
+    return columns.reduce((result: ColumnState<T>[], column) => {
+      const partial = patchMap.get(column.key);
+      const children = column.children?.length ? traverse(column.children) : [];
+
+      if (!partial && !children.length) return result;
+
+      const state: ColumnState<T> = { key: column.key };
+      if (column.dataIndex !== undefined) state.dataIndex = column.dataIndex;
+      if (partial) Object.assign(state, partial);
+      if (children.length) state.children = children;
+
+      result.push(state);
+      return result;
+    }, []);
+  };
+
+  return parseColumnsState(traverse(tree));
+}
+
+export function getColumnsViewState<T = any>(
+  columns: InternalColumnState<T>[] = [],
+): ColumnViewState<T>[] {
+  return columns.map((column) => {
+    const children = column.children?.length
+      ? getColumnsViewState(column.children)
+      : [];
+
+    const viewState: ColumnViewState<T> = {
+      key: column.key,
+      dataIndex: column.dataIndex,
+      title: column.title,
+      parentKey: column.parentKey,
+      ancestorKeys: column.ancestorKeys,
+      depth: column.depth,
+      order: column.order,
+      visible: column.visible,
+      fixed: column.fixed,
+      width: column.width,
+      resizeMinWidth: column.resizeMinWidth,
+      widthManuallyChanged: column.widthManuallyChanged,
+      hasChildren: column.hasChildren,
+      internal: isInternalColumn(column),
+    };
+
+    if (children.length) viewState.children = children;
+
+    return viewState;
+  });
 }
 
 /**
@@ -587,7 +664,7 @@ export function findNodeByKey(
 
 type ColumnOrderState = {
   key: Key;
-  order: number;
+  order?: number;
   children?: ColumnOrderState[];
 };
 

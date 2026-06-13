@@ -16,31 +16,20 @@ function completeColumnState<T = any>(
   children: InternalColumnState[] = column.children || [],
 ): InternalColumnState {
   const hasChildren = children.length > 0;
-
   const width = hasChildren ? undefined : column.width;
 
-  let widthManuallyChanged = false;
-  if (!hasChildren) {
-    widthManuallyChanged = column.resizeDisabled
-      ? false
-      : !!column.widthManuallyChanged;
-  }
-
-  let autoWidthLocked = false;
-  if (!hasChildren) {
-    autoWidthLocked = column.resizeDisabled
-      ? false
-      : !!column.autoWidthLocked || widthManuallyChanged;
-  }
-
-  let distribute = false;
-  if (!hasChildren) {
-    distribute = column.resizeDisabled
-      ? false
-      : autoWidthLocked
-      ? false
-      : column.distribute ?? false;
-  }
+  const widthManuallyChanged =
+    !hasChildren && !column.resizeDisabled
+      ? !!column.widthManuallyChanged
+      : false;
+  const autoWidthLocked =
+    !hasChildren && !column.resizeDisabled
+      ? !!column.autoWidthLocked || widthManuallyChanged
+      : false;
+  const distribute =
+    !hasChildren && !column.resizeDisabled && !autoWidthLocked
+      ? column.distribute ?? false
+      : false;
 
   return {
     ...column,
@@ -64,6 +53,49 @@ function createKeyMap(storageColumns: ColumnState[]): Map<Key, ColumnState> {
   };
   traverse(storageColumns);
   return map;
+}
+
+function applyColumnState<T = any>(
+  column: InternalColumnState<T>,
+  state?: ColumnState<T>,
+): InternalColumnState<T> {
+  const merged: InternalColumnState<T> = {
+    ...column,
+    key: column.key,
+    dataIndex: column.dataIndex,
+    parentKey: column.parentKey,
+    ancestorKeys: column.ancestorKeys,
+    depth: column.depth,
+    resizeDisabled: column.resizeDisabled,
+    dragSortDisabled: column.dragSortDisabled,
+  };
+
+  if (!state) return merged;
+
+  if (isNum(state.order)) merged.order = state.order;
+  if (typeof state.visible === 'boolean') merged.visible = state.visible;
+  if (state.fixed === 'start' || state.fixed === 'end') {
+    merged.fixed = state.fixed;
+  } else if (state.fixed === false) {
+    delete merged.fixed;
+  }
+  if (isNum(state.width)) merged.width = state.width;
+  if (isNum(state.resizeMinWidth)) {
+    merged.resizeMinWidth = state.resizeMinWidth;
+  }
+  if (typeof state.widthManuallyChanged === 'boolean') {
+    merged.widthManuallyChanged = state.widthManuallyChanged;
+  }
+
+  internalColumnFlagKeys.forEach((flagKey) => {
+    if (column[flagKey]) {
+      merged[flagKey] = true;
+    } else {
+      delete merged[flagKey];
+    }
+  });
+
+  return merged;
 }
 
 function normalizeColumnsOrder<T = any>(
@@ -124,34 +156,7 @@ function mergeColumnsStateInternal<T = any>(
   const storageColumnsKeyMap = createKeyMap(storageColumns);
   const mergeColumn = (column: InternalColumnState<T>): InternalColumnState => {
     const storeColumn = storageColumnsKeyMap.get(column.key);
-    if (!storeColumn) {
-      const children = column.children?.length
-        ? mergeColumnsStateInternal(column.children, [])
-        : [];
-      return completeColumnState(column, children);
-    }
-
-    const merged: ColumnState = {
-      ...column,
-      // 冲突时优先采用b的数据
-      ...JSON.parse(JSON.stringify(storeColumn)),
-      // 以下input数据/派生数据以实际传入的为准
-      key: column.key,
-      dataIndex: column.dataIndex,
-      depth: column.depth,
-      parentKey: column.parentKey,
-      ancestorKeys: column.ancestorKeys,
-      resizeDisabled: column.resizeDisabled,
-      dragSortDisabled: column.dragSortDisabled,
-    };
-
-    internalColumnFlagKeys.forEach((flagKey) => {
-      if (column[flagKey]) {
-        merged[flagKey] = true;
-      } else {
-        delete merged[flagKey];
-      }
-    });
+    const merged = applyColumnState(column, storeColumn);
 
     if (column.resizeDisabled && !column.hasChildren) {
       merged.width = column.width;
@@ -160,16 +165,16 @@ function mergeColumnsStateInternal<T = any>(
     }
 
     const children = column.children?.length
-      ? mergeColumnsStateInternal(column.children, storeColumn.children || [])
+      ? mergeColumnsStateInternal(column.children, storeColumn?.children || [])
       : [];
 
     return completeColumnState(merged, children);
   };
+
   const mergedColumns = columns.map((column) => mergeColumn(column));
   return normalizeColumnsOrder(mergedColumns, storageColumns);
 }
 
-/** 处理columns数据和存储中的columnsState数据，根据columns增删columnsState中的列，最后合并两种数据 */
 export function mergeColumnsState<T = any>(
   columns: InternalColumnState<T>[],
   storageColumns: ColumnState[],

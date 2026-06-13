@@ -8,7 +8,6 @@ import type {
 } from 'react';
 
 import { ScrollBarContainerRef } from './ScrollContainer/interface';
-import type { storageKeys } from './utils/const';
 
 export interface TableRef {
   nativeElement: HTMLDivElement;
@@ -359,24 +358,86 @@ export interface TableSticky {
   offsetStickyScroller?: number;
 }
 
-type ColumnStorageStateKey = Exclude<
-  Extract<(typeof storageKeys)[number], keyof ColumnInfo>,
-  'children'
->;
-
-export type ColumnState<T = any> = Pick<
-  ColumnInfo<T>,
-  ColumnStorageStateKey
-> & {
+export type ColumnState<T = any> = {
+  key: Key;
+  dataIndex?: Key;
+  order?: number;
+  visible?: boolean;
+  fixed?: FixedType | false;
+  width?: number;
+  resizeMinWidth?: number;
+  widthManuallyChanged?: boolean;
   children?: ColumnState<T>[];
 };
 
+export type ColumnViewState<T = any> = {
+  key: Key;
+  dataIndex?: Key;
+  title?: ReactNode;
+  parentKey: Key;
+  ancestorKeys: Key[];
+  depth: number;
+  order: number;
+  visible: boolean;
+  fixed?: FixedType;
+  width?: number;
+  resizeMinWidth?: number;
+  widthManuallyChanged: boolean;
+  hasChildren: boolean;
+  internal: boolean;
+  children?: ColumnViewState<T>[];
+};
+
+export type ColumnStatePatch<T = any> = {
+  key: Key;
+  partial: Partial<Omit<ColumnState<T>, 'key' | 'children'>>;
+};
+
+export type ColumnsStateChangeType =
+  | 'resizeWidth'
+  | 'autoFillWidth'
+  | 'sort'
+  | 'visible'
+  | 'fixed';
+
+export type ColumnsWidthCommitDecision = 'persist' | 'temporary' | 'cancel';
+
+export interface ColumnsStateChangeInfo<T = any> {
+  type: ColumnsStateChangeType;
+  patches: ColumnStatePatch<T>[];
+  previousState: ColumnState<T>[];
+  nextState: ColumnState<T>[];
+  viewState: ColumnViewState<T>[];
+}
+
+export interface ColumnsWidthCommitInfo<T = any> {
+  type: 'resizeWidth' | 'autoFillWidth';
+  patches: ColumnStatePatch<T>[];
+  previousState: ColumnState<T>[];
+  nextState: ColumnState<T>[];
+  viewState: ColumnViewState<T>[];
+  changedKeys: Key[];
+  containerWidth: number;
+}
+
 export type ColumnsConfig<T> = {
-  /** 启用storage后才会使用columnsState中的数据，且可以使用onChange事件 */
-  useStorage?: boolean;
+  /** storage/localStorage 读取后的初始化快照，只在 ready 后首次消费 */
+  storageColumnsState?: ColumnState<T>[];
+  /** 外部控制覆盖态，每次 render 都参与合并 */
   columnsState?: ColumnState<T>[];
-  /** 当外部修改了宽度、顺序、固定列，以及修改了列显隐状态后会触发onChange */
-  onChange?: (columnsState: ColumnState<T>[]) => void;
+  /** temporary 宽度缓存的失效边界，变化时清空 temporary 宽度 */
+  widthScopeKey?: Key | boolean | null;
+  onColumnsStateReady?: (payload: {
+    columnsState: ColumnState<T>[];
+    viewState: ColumnViewState<T>[];
+  }) => void;
+  onColumnsStateChange?: (
+    columnsState: ColumnState<T>[],
+    info: ColumnsStateChangeInfo<T>,
+  ) => void;
+  onBeforeWidthCommit?: (
+    info: ColumnsWidthCommitInfo<T>,
+  ) => ColumnsWidthCommitDecision | Promise<ColumnsWidthCommitDecision>;
 };
 
 export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {

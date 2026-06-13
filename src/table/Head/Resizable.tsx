@@ -13,13 +13,14 @@ import React, {
 import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import { useTableColumnStateContext } from '../contexts/TableColumnStateContext';
 import { useTableLayoutContext } from '../contexts/TableLayoutContext';
+import type { ColumnStatePatch } from '../interface';
 import { getComponentCls } from '../style/classNames';
 import { DEFAULT_RESIZE_MIN_WIDTH } from '../utils/const';
 import {
   isResizableColumnsData,
   type ResizableColumnsData,
 } from '../utils/dnd';
-import { batchUpdateColumns } from '../utils/handle';
+import { batchPatchColumns, parseColumnsState } from '../utils/handle';
 
 interface ResizableProps {
   id: string;
@@ -28,14 +29,16 @@ interface ResizableProps {
 
 const Resizable = forwardRef<HTMLDivElement, ResizableProps>(
   ({ id, keys }, ref) => {
-    const { flattenColumns = [], flattenColumnsWidths = [] } =
-      useTableLayoutContext();
+    const {
+      columns = [],
+      flattenColumns = [],
+      flattenColumnsWidths = [],
+    } = useTableLayoutContext();
     const {
       columnsState,
       updateLockContainerWidth,
       updateFlattenColumnsWidths,
-      updateColumnsState,
-      columnsConfig,
+      commitWidthColumnsState,
     } = useTableColumnStateContext();
     const prefixCls = usePrefixClsContext();
 
@@ -47,6 +50,7 @@ const Resizable = forwardRef<HTMLDivElement, ResizableProps>(
     const updated = useRef(false);
     const appliedDistanceTotal = useRef(0);
     const latestWidths = useRef(flattenColumnsWidths);
+    const dragStartWidths = useRef(flattenColumnsWidths);
     const { run: setFlattenColumnsWidths } = useDebounceFn(
       updateFlattenColumnsWidths,
       { wait: 0 },
@@ -126,20 +130,40 @@ const Resizable = forwardRef<HTMLDivElement, ResizableProps>(
       return appliedDistance;
     };
 
-    const updateState = () => {
+    const updateState = async () => {
       const widths = latestWidths.current;
-      const updates = idxs.map((idx) => ({
-        targetKey: flattenColumns[idx].key,
-        prop: [
-          'width' as const,
-          'widthManuallyChanged' as const,
-          'autoWidthLocked' as const,
-        ],
-        value: [widths[idx], true, true],
-      }));
-      const updatedColumnsState = batchUpdateColumns(columnsState, updates);
-      updateColumnsState(updatedColumnsState);
-      columnsConfig?.onChange?.(updatedColumnsState);
+      const patches = idxs.reduce<ColumnStatePatch[]>((result, idx) => {
+        const column = flattenColumns[idx];
+        if (!column) return result;
+
+        result.push({
+          key: column.key,
+          partial: {
+            width: widths[idx],
+            resizeMinWidth: column.resizeMinWidth,
+            widthManuallyChanged: true,
+          },
+        });
+
+        return result;
+      }, []);
+
+      if (!patches.length) return;
+
+      const baseColumnsState = parseColumnsState(
+        columns.length ? columns : columnsState,
+      );
+      const updatedColumnsState = batchPatchColumns(baseColumnsState, patches);
+      const decision = await commitWidthColumnsState(
+        updatedColumnsState,
+        'resizeWidth',
+        patches,
+      );
+
+      if (decision === 'cancel') {
+        latestWidths.current = dragStartWidths.current;
+        updateFlattenColumnsWidths(dragStartWidths.current);
+      }
     };
 
     useDndMonitor({
@@ -151,6 +175,7 @@ const Resizable = forwardRef<HTMLDivElement, ResizableProps>(
           return;
         updateLockContainerWidth(true);
         latestWidths.current = flattenColumnsWidths;
+        dragStartWidths.current = flattenColumnsWidths;
         appliedDistanceTotal.current = 0;
         document.documentElement.style.cursor = 'e-resize';
       },
@@ -174,7 +199,7 @@ const Resizable = forwardRef<HTMLDivElement, ResizableProps>(
         document.documentElement.style.cursor = '';
         if (updated.current) {
           updateFlattenColumnsWidths(latestWidths.current);
-          updateState();
+          void updateState();
           appliedDistanceTotal.current = 0;
           updated.current = false;
         }

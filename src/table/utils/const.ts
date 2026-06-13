@@ -72,24 +72,3 @@ export const isInternalColumn = (column: unknown) =>
 /** 特殊列默认配置 end */
 
 export const DEFAULT_RESIZE_MIN_WIDTH = 50;
-
-export const storageKeys = [
-  '__RC_GRID_TABLE_EXPAND_COLUMN',
-  '__RC_GRID_TABLE_SELECTION_COLUMN',
-  '__RC_GRID_TABLE_ROW_SORT_COLUMN',
-  'width',
-  'resizeMinWidth',
-  'order',
-  'visible',
-  'fixed',
-  'key',
-  'dataIndex',
-  'parentKey',
-  'ancestorKeys',
-  'depth',
-  'distribute',
-  'hasChildren',
-  'widthManuallyChanged',
-  'autoWidthLocked',
-  'children',
-] as const;

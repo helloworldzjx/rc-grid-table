@@ -10,7 +10,10 @@ import type {
 import type {
   ColumnInfo,
   ColumnsConfig,
+  ColumnsStateChangeType,
   ColumnState,
+  ColumnStatePatch,
+  ColumnsWidthCommitDecision,
   CustomizeComponent,
   DataSortConfig,
   DataSortOrder,
@@ -102,7 +105,16 @@ export interface TableContextProps<T = any>
   hasFixedColumns: boolean;
   fixColumnsGapped: boolean;
   columnsState: ColumnState<T>[];
-  updateColumnsState: Dispatch<SetStateAction<ColumnState<T>[]>>;
+  commitColumnsStateChange: (
+    nextState: ColumnState<T>[],
+    type: ColumnsStateChangeType,
+    patches: ColumnStatePatch<T>[],
+  ) => void;
+  commitWidthColumnsState: (
+    nextState: ColumnState<T>[],
+    type: 'resizeWidth' | 'autoFillWidth',
+    patches: ColumnStatePatch<T>[],
+  ) => Promise<ColumnsWidthCommitDecision>;
 }
 
 export interface TableDataContextProps<T = any> {
@@ -132,7 +144,16 @@ export interface TableColumnStateContextProps<T = any> {
   columnsConfig?: ColumnsConfig<T>;
   updateLockContainerWidth: Dispatch<SetStateAction<boolean>>;
   updateFlattenColumnsWidths: Dispatch<SetStateAction<number[]>>;
-  updateColumnsState: Dispatch<SetStateAction<ColumnState<T>[]>>;
+  commitColumnsStateChange: (
+    nextState: ColumnState<T>[],
+    type: ColumnsStateChangeType,
+    patches: ColumnStatePatch<T>[],
+  ) => void;
+  commitWidthColumnsState: (
+    nextState: ColumnState<T>[],
+    type: 'resizeWidth' | 'autoFillWidth',
+    patches: ColumnStatePatch<T>[],
+  ) => Promise<ColumnsWidthCommitDecision>;
 }
 
 export interface ComponentsContextProps {

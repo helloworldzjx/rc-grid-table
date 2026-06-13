@@ -121,28 +121,24 @@ export default () => {
   }));
 
   const [size, setSize] = useState<SizeType>('large');
-
-  // 持久化存储属性控制
   const storageKey = 'use-storage-demo';
   const [columnsState, setColumnsState] = useState<ColumnState[]>(
     JSON.parse(localStorage.getItem(storageKey) || '[]'),
   );
+  const [storageEnabled, setStorageEnabled] = useState(columnsState.length > 0);
 
-  const [useStorage, setUseStorage] = useState(columnsState.length > 0);
-
-  // 动态控制 bordered、stripe、resizableColumns、sortableColumns 属性
   const {
     baseProps,
     state,
     onChange: setState,
   } = useConfigActions(
-    useStorage ? { resizableColumns: true, sortableColumns: true } : {},
+    storageEnabled ? { resizableColumns: true, sortableColumns: true } : {},
   );
 
   const clear = () => {
     setColumnsState([]);
     localStorage.removeItem(storageKey);
-    setUseStorage(false);
+    setStorageEnabled(false);
   };
 
   return (
@@ -150,10 +146,10 @@ export default () => {
       <ConfigActions value={state} onChange={setState} />
       <Flex align="center" style={{ marginBottom: 20 }}>
         <Checkbox
-          checked={useStorage}
-          disabled={useStorage}
+          checked={storageEnabled}
+          disabled={storageEnabled}
           onChange={({ target }) => {
-            if (!useStorage) {
+            if (!storageEnabled) {
               setState((prevData) =>
                 Array.from(
                   new Set([
@@ -163,15 +159,15 @@ export default () => {
                   ]),
                 ),
               );
-              setUseStorage(target.checked);
+              setStorageEnabled(target.checked);
             }
           }}
         >
-          useStorage（配置持久化）
+          storageColumnsState
         </Checkbox>
-        <Tooltip title="清除持久化数据">
+        <Tooltip title="Clear stored columns state">
           <Button size="small" onClick={clear}>
-            清除
+            Clear
           </Button>
         </Tooltip>
 
@@ -186,12 +182,11 @@ export default () => {
       </Flex>
       <Table
         {...baseProps}
-        // 持久化存储
         columnsConfig={{
-          useStorage,
-          columnsState,
-          onChange(value) {
-            if (!useStorage) return;
+          storageColumnsState: columnsState,
+          onColumnsStateChange(value) {
+            if (!storageEnabled) return;
+            setColumnsState(value);
             localStorage.setItem(storageKey, JSON.stringify(value));
           },
         }}
