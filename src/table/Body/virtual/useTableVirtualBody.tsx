@@ -11,11 +11,10 @@ import { getCellSpan } from '../../utils/handle';
 import { getVirtualFixedHeightConfig } from '../../utils/virtual';
 import type {
   BodyItem,
-  BodyItemRenderer,
   BodyRowItem,
   TableVirtualBodyController,
+  VirtualRowSpanItem,
 } from '../interface';
-import VirtualBody, { VirtualRowSpanItem } from './VirtualBody';
 import useVirtualBody from './useVirtualBody';
 
 interface UseTableVirtualBodyProps<T = any> {
@@ -377,31 +376,28 @@ export default function useTableVirtualBody<T = any>({
     [bodyItems.length, extraUpdateDeps, inVirtual, scrollHeight, scrollY],
   );
 
-  const render = useCallback(
-    (renderBodyItem: BodyItemRenderer<T>) => (
-      <VirtualBody
-        bodyItems={bodyItems}
-        inVirtual={inVirtual}
-        scrollHeight={scrollHeight}
-        offsetY={offsetY}
-        visibleItems={visibleItems}
-        preservedItem={preservedItem}
-        rowSpanItems={rowSpanItems}
-        renderBodyItem={renderBodyItem}
-        setItemRef={setItemRef}
-        onItemResize={collectHeight}
-      />
-    ),
+  const virtualBodyProps = useMemo(
+    () => ({
+      bodyItems,
+      inVirtual,
+      scrollHeight,
+      offsetY,
+      visibleItems,
+      preservedItem,
+      rowSpanItems,
+      setItemRef,
+      onItemResize: collectHeight,
+    }),
     [
       bodyItems,
       collectHeight,
       inVirtual,
       offsetY,
+      preservedItem,
       rowSpanItems,
       scrollHeight,
       setItemRef,
       visibleItems,
-      preservedItem,
     ],
   );
 
@@ -409,11 +405,11 @@ export default function useTableVirtualBody<T = any>({
     inVirtual,
     scrollHeight,
     bodyStyle,
+    virtualBodyProps,
     updateDeps,
     handleBodyScroll,
     handleVerticalScroll: inVirtual ? handleVerticalScroll : undefined,
     scrollTo,
     scrollToTop,
-    render,
   };
 }

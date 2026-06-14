@@ -1,26 +1,15 @@
 import classNames from 'classnames';
-import React, { Key, useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { usePrefixClsContext } from '../../contexts/PrefixClsContext';
 import { getComponentCls } from '../../style/classNames';
-import type { BodyItem, BodyItemRenderer, BodyRowItem } from '../interface';
+import type {
+  BodyNodeRenderer,
+  BodyRowItem,
+  VirtualBodyRenderProps,
+} from '../interface';
 
-export interface VirtualRowSpanItem<T = any> {
-  bodyItem: BodyRowItem<T>;
-  top: number;
-  getHeight: (rowSpan: number) => number;
-}
-
-interface VirtualBodyProps<T = any> {
-  bodyItems: BodyItem<T>[];
-  inVirtual: boolean;
-  scrollHeight: number;
-  offsetY: number;
-  visibleItems: BodyItem<T>[];
-  preservedItem?: (BodyItem<T> & { top: number }) | null;
-  rowSpanItems: VirtualRowSpanItem<T>[];
-  renderBodyItem: BodyItemRenderer<T>;
-  setItemRef: (key: Key, element: HTMLDivElement | null) => void;
-  onItemResize: () => void;
+interface VirtualBodyProps<T = any> extends VirtualBodyRenderProps<T> {
+  renderBodyNode: BodyNodeRenderer<T>;
 }
 
 const VirtualBody = <T,>({
@@ -31,7 +20,7 @@ const VirtualBody = <T,>({
   visibleItems,
   preservedItem,
   rowSpanItems,
-  renderBodyItem,
+  renderBodyNode,
   setItemRef,
   onItemResize,
 }: VirtualBodyProps<T>) => {
@@ -44,7 +33,7 @@ const VirtualBody = <T,>({
     bodyVirtualRowSpanTopCls,
   } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
 
-  const getRowSpanRenderOptions = useCallback(
+  const getRowSpanRenderInfo = useCallback(
     (
       bodyItem: BodyRowItem<T>,
       top: number,
@@ -53,13 +42,16 @@ const VirtualBody = <T,>({
       const offsetTop = top - offsetY;
 
       return {
+        kind: 'rowSpanOverlay' as const,
         renderMode: 'rowSpanOverlay' as const,
         renderKey: `rowspan-${bodyItem.reactKey}`,
         className: classNames(bodyVirtualRowSpanCls, {
           [bodyVirtualRowSpanTopCls]: offsetTop === 0,
         }),
         style: { top: offsetTop },
-        getRowSpanHeight: getHeight,
+        rowSpan: {
+          getHeight,
+        },
         onRowResize: onItemResize,
       };
     },
@@ -67,7 +59,16 @@ const VirtualBody = <T,>({
   );
 
   if (!inVirtual) {
-    return <>{bodyItems.map((item) => renderBodyItem(item))}</>;
+    return (
+      <>
+        {bodyItems.map((item) =>
+          renderBodyNode(item, {
+            kind: 'normal',
+            renderMode: 'normal',
+          }),
+        )}
+      </>
+    );
   }
 
   return (
@@ -77,14 +78,16 @@ const VirtualBody = <T,>({
         style={{ transform: `translateY(${offsetY}px)` }}
       >
         {visibleItems.map((item) =>
-          renderBodyItem(item, {
+          renderBodyNode(item, {
+            kind: 'virtual',
             renderMode: 'virtual',
             rowRef: (element) => setItemRef(item.key, element),
             onRowResize: onItemResize,
           }),
         )}
         {preservedItem &&
-          renderBodyItem(preservedItem, {
+          renderBodyNode(preservedItem, {
+            kind: 'preserved',
             renderMode: 'virtual',
             renderKey: `preserved-${preservedItem.key}`,
             className: bodyVirtualPreservedCls,
@@ -93,9 +96,9 @@ const VirtualBody = <T,>({
             onRowResize: onItemResize,
           })}
         {rowSpanItems.map(({ bodyItem, top, getHeight }) =>
-          renderBodyItem(
+          renderBodyNode(
             bodyItem,
-            getRowSpanRenderOptions(bodyItem, top, getHeight),
+            getRowSpanRenderInfo(bodyItem, top, getHeight),
           ),
         )}
       </div>

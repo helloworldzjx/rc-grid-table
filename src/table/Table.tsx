@@ -18,7 +18,8 @@ import React, {
 import { SCROLLBAR_SIZE } from '../_utils/const';
 import { isNum, isObject } from '../_utils/validate';
 import BodyItem from './Body/BodyItem';
-import type { BodyItemRenderer } from './Body/interface';
+import type { BodyNodeRenderer } from './Body/interface';
+import VirtualBody from './Body/virtual/VirtualBody';
 import useTableVirtualBody from './Body/virtual/useTableVirtualBody';
 import ColumnPreviewStyleScope, {
   getGridTemplateColumns,
@@ -323,12 +324,12 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       [columnsWidthTotal, containerWidth],
     );
 
-    const renderBodyItem: BodyItemRenderer = useCallback(
-      (bodyItem, options) => (
+    const renderBodyNode: BodyNodeRenderer = useCallback(
+      (bodyItem, renderInfo) => (
         <BodyItem
-          key={options?.renderKey ?? bodyItem.reactKey}
+          key={renderInfo.renderKey ?? bodyItem.reactKey}
           item={bodyItem}
-          options={options}
+          renderInfo={renderInfo}
           rowHeight={rowHeight}
           expandedRowHeight={expandedRowHeight}
           hasTreeData={hasTreeData}
@@ -432,7 +433,12 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
                     items={rowSort.items}
                     strategy={verticalListSortingStrategy}
                   >
-                    {hasData && virtualBody.render(renderBodyItem)}
+                    {hasData && (
+                      <VirtualBody
+                        {...virtualBody.virtualBodyProps}
+                        renderBodyNode={renderBodyNode}
+                      />
+                    )}
                   </SortableContext>
                   <DragOverlay
                     adjustScale={false}
@@ -440,10 +446,10 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
                     modifiers={rowSortRuntime.overlayModifiers}
                   >
                     {rowSort.activeBodyItem &&
-                      rowSortRuntime.overlayRenderOptions &&
-                      renderBodyItem(
+                      rowSortRuntime.overlayRenderInfo &&
+                      renderBodyNode(
                         rowSort.activeBodyItem,
-                        rowSortRuntime.overlayRenderOptions,
+                        rowSortRuntime.overlayRenderInfo,
                       )}
                   </DragOverlay>
                 </DndContext>

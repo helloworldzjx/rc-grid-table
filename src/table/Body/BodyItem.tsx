@@ -7,7 +7,7 @@ import { useTableContext } from '../contexts/TableContext';
 import { warningInvalidRecordKey } from '../utils/warning';
 import BodyRow from './BodyRow';
 import ExpandedRow from './ExpandedRow';
-import type { BodyItem as BodyItemData, BodyRenderOptions } from './interface';
+import type { BodyItem as BodyItemData, BodyNodeRenderInfo } from './interface';
 
 interface BodyItemRowSort<T = any> {
   activeKey: Key | null;
@@ -17,7 +17,7 @@ interface BodyItemRowSort<T = any> {
 
 interface BodyItemProps<T = any> {
   item: BodyItemData<T>;
-  options?: BodyRenderOptions<T>;
+  renderInfo: BodyNodeRenderInfo<T>;
   rowHeight?: number;
   expandedRowHeight?: number;
   hasTreeData: boolean;
@@ -26,7 +26,7 @@ interface BodyItemProps<T = any> {
 
 function BodyItem<T = any>({
   item,
-  options = {},
+  renderInfo,
   rowHeight,
   expandedRowHeight,
   hasTreeData,
@@ -56,11 +56,11 @@ function BodyItem<T = any>({
       <ExpandedRow
         className={item.className}
         indent={1}
-        style={options.style}
+        style={renderInfo.style}
         rowHeight={expandedRowHeight}
-        rowRef={options.rowRef}
-        onRowResize={options.onRowResize}
-        renderMode={options.renderMode}
+        rowRef={renderInfo.rowRef}
+        onRowResize={renderInfo.onRowResize}
+        renderMode={renderInfo.renderMode}
       >
         {expandedNode}
       </ExpandedRow>
@@ -91,8 +91,8 @@ function BodyItem<T = any>({
 
   return (
     <BodyRow
-      flattenColumns={options.flattenColumns ?? flattenColumns}
-      fixedOffset={options.fixedOffset ?? fixedOffset}
+      flattenColumns={renderInfo.columns?.flattenColumns ?? flattenColumns}
+      fixedOffset={renderInfo.columns?.fixedOffset ?? fixedOffset}
       rowData={rowData}
       rowIndex={rowIndex}
       rowKeyValue={key}
@@ -102,15 +102,15 @@ function BodyItem<T = any>({
       rowSupportExpand={rowExpandable}
       className={classNames(
         rowClassName?.(rowData, rowIndex),
-        options.className,
+        renderInfo.className,
       )}
-      style={options.style}
+      style={renderInfo.style}
       rowHeight={rowHeight}
-      rowRef={options.rowRef}
-      onRowResize={options.onRowResize}
-      rowSortOverlay={options.rowSortOverlay}
-      renderMode={options.renderMode}
-      getRowSpanHeight={options.getRowSpanHeight}
+      rowRef={renderInfo.rowRef}
+      onRowResize={renderInfo.onRowResize}
+      rowSortOverlay={renderInfo.rowSort?.overlay}
+      renderMode={renderInfo.renderMode}
+      getRowSpanHeight={renderInfo.rowSpan?.getHeight}
       rowSortDragDisabled={dragDisabled}
       rowSortDropDisabled={dropDisabled}
       rowSortDragging={rowSort.activeKey === key}

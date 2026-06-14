@@ -11,7 +11,7 @@ import type { Key } from 'react';
 import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { isNum, isValidKey } from '../../_utils/validate';
-import type { BodyItem, BodyRenderOptions } from '../Body/interface';
+import type { BodyItem, BodyNodeRenderInfo } from '../Body/interface';
 import type { RowKey, RowSortableConfig } from '../interface';
 import type { InternalColumnState, StickyOffsets } from '../internalInterface';
 import { isInternalColumn, isRowSortColumn } from '../utils/const';
@@ -345,16 +345,19 @@ export default function useTableRowSort<T = any>({
     [bodyScrollElement, lastItem],
   );
 
-  const getOverlayRenderOptions = useCallback(
-    (inVirtual: boolean): BodyRenderOptions | undefined => {
+  const getOverlayRenderInfo = useCallback(
+    (inVirtual: boolean): BodyNodeRenderInfo<T> | undefined => {
       if (!activeBodyItem) {
         return undefined;
       }
 
       return {
+        kind: 'rowSortOverlay',
         renderMode: inVirtual ? 'virtual' : 'normal',
-        flattenColumns: overlayColumns,
-        fixedOffset: overlayFixedOffset,
+        columns: {
+          flattenColumns: overlayColumns,
+          fixedOffset: overlayFixedOffset,
+        },
         renderKey: `row-sort-overlay-${activeBodyItem.reactKey}`,
         style: {
           display: 'grid',
@@ -363,7 +366,9 @@ export default function useTableRowSort<T = any>({
             .join(' '),
           width: overlayColumnsWidthTotal,
         },
-        rowSortOverlay: true,
+        rowSort: {
+          overlay: true,
+        },
       };
     },
     [
@@ -379,9 +384,9 @@ export default function useTableRowSort<T = any>({
     (inVirtual: boolean) => ({
       autoScroll: getAutoScroll(inVirtual),
       overlayModifiers: getOverlayModifiers(inVirtual),
-      overlayRenderOptions: getOverlayRenderOptions(inVirtual),
+      overlayRenderInfo: getOverlayRenderInfo(inVirtual),
     }),
-    [getAutoScroll, getOverlayModifiers, getOverlayRenderOptions],
+    [getAutoScroll, getOverlayModifiers, getOverlayRenderInfo],
   );
 
   return useMemo(
