@@ -12,6 +12,7 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext } from '@dnd-kit/sortable';
 import { Coordinates, getEventCoordinates } from '@dnd-kit/utilities';
+import classNames from 'classnames';
 import React, {
   Key,
   memo,
@@ -26,6 +27,7 @@ import { COLUMNS_SORT_OVERLAY_POINTER_OFFSET_X } from '../../_utils/const';
 import { useColumnSortableContext } from '../contexts/ColumnSortableContext';
 import { useComponentsContext } from '../contexts/ComponentsContext';
 import { usePrefixClsContext } from '../contexts/PrefixClsContext';
+import { useTableContext } from '../contexts/TableContext';
 import useRenderedColumnLayout from '../hooks/useRenderedColumnLayout';
 import type { CellType, InternalColumnState } from '../internalInterface';
 import { getComponentCls } from '../style/classNames';
@@ -150,6 +152,7 @@ function HeadRow({
     updateSortableHotKeys,
     updateSortableMotionKeys,
   } = useColumnSortableContext();
+  const { onHeaderRow } = useTableContext();
   const { flattenColumns = [], fixedOffset } = useRenderedColumnLayout();
   const prefixCls = usePrefixClsContext();
   const { getComponent } = useComponentsContext();
@@ -197,6 +200,21 @@ function HeadRow({
     () => columns.map((column) => `${column.key}`),
     [columns],
   );
+
+  const rowProps = useMemo(() => {
+    const headerColumns = columns.reduce<InternalColumnState[]>(
+      (result, current) => {
+        if (current.column) {
+          result.push(current.column);
+        }
+
+        return result;
+      },
+      [],
+    );
+
+    return onHeaderRow?.(headerColumns, headRowIndex);
+  }, [columns, onHeaderRow, headRowIndex]);
 
   const updateFixedSortableHotKeys = useCallback(
     (column?: SortableColumnType) => {
@@ -541,7 +559,10 @@ function HeadRow({
   ]);
 
   return (
-    <RowComponent className={headRowCls}>
+    <RowComponent
+      {...rowProps}
+      className={classNames(headRowCls, rowProps?.className)}
+    >
       <DndContext
         collisionDetection={pointerWithin}
         measuring={columnDroppableMeasuring}

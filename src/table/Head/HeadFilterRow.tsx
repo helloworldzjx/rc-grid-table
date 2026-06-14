@@ -3,13 +3,19 @@ import React, { FC, memo, useMemo } from 'react';
 
 import { useComponentsContext } from '../contexts/ComponentsContext';
 import { usePrefixClsContext } from '../contexts/PrefixClsContext';
+import { useTableContext } from '../contexts/TableContext';
 import useFixedInfo from '../hooks/useFixedInfo';
 import useRenderedColumnLayout from '../hooks/useRenderedColumnLayout';
 import { getComponentCls } from '../style/classNames';
 import HeadFilterCell from './HeadFilterCell';
 
-const HeadFilterRow: FC = () => {
+interface HeadFilterRowProps {
+  headRowIndex: number;
+}
+
+const HeadFilterRow: FC<HeadFilterRowProps> = ({ headRowIndex }) => {
   const { flattenColumns = [], fixedOffset } = useRenderedColumnLayout();
+  const { onHeaderRow } = useTableContext();
   const prefixCls = usePrefixClsContext();
   const { headRowCls, filterRowCls } = useMemo(
     () => getComponentCls(prefixCls),
@@ -35,12 +41,19 @@ const HeadFilterRow: FC = () => {
     );
   }, [flattenColumns]);
 
+  const rowProps = useMemo(() => {
+    return onHeaderRow?.(flattenColumns, headRowIndex);
+  }, [onHeaderRow, flattenColumns, headRowIndex]);
+
   if (!hasFilter) {
     return null;
   }
 
   return (
-    <RowComponent className={classNames(headRowCls, filterRowCls)}>
+    <RowComponent
+      {...rowProps}
+      className={classNames(headRowCls, filterRowCls, rowProps?.className)}
+    >
       {flattenColumns.map((column, columnIndex) => (
         <HeadFilterCell
           key={column.key}

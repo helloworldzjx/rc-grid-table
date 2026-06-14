@@ -12,9 +12,6 @@ interface BodyCellSpanInfoProps {
   getRowSpanHeight?: (rowSpan: number) => number;
 }
 
-export const isVirtualBodyRenderMode = (renderMode: BodyRenderMode) =>
-  renderMode !== 'normal';
-
 export const getBodyCellSpanInfo = ({
   renderMode,
   rowSpan: rawRowSpan,

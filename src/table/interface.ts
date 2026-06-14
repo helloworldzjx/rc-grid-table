@@ -556,5 +556,19 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
    * @description 覆盖默认的元素
    */
   components?: TableComponents;
+  /**
+   * @description 设置头部行属性
+   */
+  onHeaderRow?: (
+    columns: ColumnInfo<T>[],
+    index?: number,
+  ) => HTMLAttributes<any>;
+  /**
+   * @description 设置body行属性
+   */
+  onRow?: (record: T, index?: number) => HTMLAttributes<any>;
+  /**
+   * @description 设置body行的类名
+   */
   rowClassName?: (record?: T, rowIndex?: number) => string;
 }

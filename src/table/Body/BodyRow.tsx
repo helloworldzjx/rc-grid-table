@@ -1,6 +1,14 @@
 import ResizeObserver from '@rc-component/resize-observer';
 import classNames from 'classnames';
-import React, { CSSProperties, Ref, memo, useMemo } from 'react';
+import React, {
+  CSSProperties,
+  HTMLAttributes,
+  MouseEvent,
+  Ref,
+  memo,
+  useCallback,
+  useMemo,
+} from 'react';
 
 import { isNum } from '../../_utils/validate';
 import { useColumnSortPreviewLayoutContext } from '../contexts/ColumnSortPreviewLayoutContext';
@@ -13,7 +21,6 @@ import { useRowSort } from '../RowSort';
 import { getComponentCls, getCssVar } from '../style/classNames';
 import { isInternalColumn, isRowSortColumn } from '../utils/const';
 import BodyCell from './BodyCell';
-import { isVirtualBodyRenderMode } from './cellSpan';
 import type { BodyRenderMode } from './interface';
 
 interface BodyRowProps<T = any> {
@@ -23,6 +30,7 @@ interface BodyRowProps<T = any> {
   flattenColumns: InternalColumnState<T>[];
   fixedOffset: StickyOffsets;
   className?: string;
+  rowProps?: HTMLAttributes<any>;
   style?: CSSProperties;
   rowHeight?: number;
   rowRef?: Ref<HTMLDivElement>;
@@ -46,6 +54,7 @@ function BodyRow({
   flattenColumns,
   fixedOffset,
   className,
+  rowProps,
   style,
   rowHeight,
   rowRef,
@@ -97,19 +106,31 @@ function BodyRow({
 
   const expandByClick =
     !!expandableConfig?.expandRowByClick && rowSupportExpand;
-  const virtual = isVirtualBodyRenderMode(renderMode);
+  const virtual = renderMode !== 'normal';
   const hasFixedRowHeight =
     renderMode !== 'rowSpanOverlay' && isNum(rowHeight) && rowHeight > 0;
+
   const mergedRowStyle = useMemo<CSSProperties | undefined>(() => {
     if (!hasFixedRowHeight) {
-      return style;
+      return {
+        ...rowProps?.style,
+        ...style,
+      };
     }
 
     return {
+      ...rowProps?.style,
       ...style,
       [bodyFixedHeightRowCssVar]: `${rowHeight}px`,
     } as CSSProperties;
-  }, [bodyFixedHeightRowCssVar, hasFixedRowHeight, rowHeight, style]);
+  }, [
+    bodyFixedHeightRowCssVar,
+    hasFixedRowHeight,
+    rowHeight,
+    rowProps?.style,
+    style,
+  ]);
+
   const firstDataColumnIndex = renderedFlattenColumns.findIndex(
     (column) => !isInternalColumn(column),
   );
@@ -127,14 +148,35 @@ function BodyRow({
     rowSortDragging,
   });
 
-  const handleClick = () => {
+  const handleClick = useCallback(
+    (event: MouseEvent<HTMLElement>) => {
+      rowProps?.onClick?.(event);
+      if (event.defaultPrevented) return;
+
+      if (expandByClick) {
+        onTriggerExpand?.(rowData);
+      }
+    },
+    [expandByClick, onTriggerExpand, rowData, rowProps],
+  );
+
+  const restRowProps = useMemo(() => {
+    const restProps = { ...rowProps };
+    delete restProps.className;
+    delete restProps.style;
+    delete restProps.onClick;
+    return restProps;
+  }, [rowProps]);
+
+  const handleInternalClick = useCallback(() => {
     if (expandByClick) {
       onTriggerExpand?.(rowData);
     }
-  };
+  }, [expandByClick, onTriggerExpand, rowData]);
 
   const rowNode = (
     <RowComponent
+      {...restRowProps}
       className={classNames(
         bodyRowCls,
         {
@@ -147,9 +189,10 @@ function BodyRow({
           [bodySortLastRowCls]: rowSort.last && !rowSortOverlay,
         },
         className,
+        rowProps?.className,
       )}
       style={rowSort.rowStyle}
-      onClick={handleClick}
+      onClick={rowProps?.onClick ? handleClick : handleInternalClick}
       ref={rowSort.rowRef}
     >
       {renderedFlattenColumns.map((column, colIndex) => {

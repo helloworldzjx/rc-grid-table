@@ -115,6 +115,8 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     size = 'large',
     components,
     onScroll,
+    onHeaderRow,
+    onRow,
     className,
     rowClassName,
     bordered,
@@ -695,6 +697,8 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     () => ({
       ...baseProps,
       className,
+      onHeaderRow,
+      onRow,
       rowClassName,
       bordered,
       stripe,
@@ -708,6 +712,8 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     [
       baseProps,
       className,
+      onHeaderRow,
+      onRow,
       rowClassName,
       bordered,
       stripe,

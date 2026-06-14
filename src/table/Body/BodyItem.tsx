@@ -35,6 +35,7 @@ function BodyItem<T = any>({
   const {
     rowKey,
     rowClassName,
+    onRow,
     flattenColumns = [],
     fixedOffset,
   } = useTableContext();
@@ -88,6 +89,10 @@ function BodyItem<T = any>({
 
   const dragDisabled = rowSort.getDragDisabled(rowData, key);
   const dropDisabled = rowSort.getDropDisabled(key);
+  const rowProps =
+    renderInfo.kind === 'normal' || renderInfo.kind === 'virtual'
+      ? onRow?.(rowData, rowIndex)
+      : undefined;
 
   return (
     <BodyRow
@@ -104,6 +109,7 @@ function BodyItem<T = any>({
         rowClassName?.(rowData, rowIndex),
         renderInfo.className,
       )}
+      rowProps={rowProps}
       style={renderInfo.style}
       rowHeight={rowHeight}
       rowRef={renderInfo.rowRef}

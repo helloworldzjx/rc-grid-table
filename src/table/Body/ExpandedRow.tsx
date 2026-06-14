@@ -8,7 +8,6 @@ import { useExpandableContext } from '../contexts/ExpandableContext';
 import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import { useTableLayoutContext } from '../contexts/TableLayoutContext';
 import { getComponentCls, getCssVar } from '../style/classNames';
-import { isVirtualBodyRenderMode } from './cellSpan';
 import type { BodyRenderMode } from './interface';
 
 interface ExpandedRowProps {
@@ -55,7 +54,7 @@ const ExpandedRow: FC<ExpandedRowProps> = ({
     [prefixCls],
   );
 
-  const virtual = isVirtualBodyRenderMode(renderMode);
+  const virtual = renderMode !== 'normal';
   const hasFixedRowHeight = isNum(rowHeight) && rowHeight > 0;
 
   const mergedStyle = useMemo<CSSProperties | undefined>(() => {

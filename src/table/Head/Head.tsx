@@ -121,7 +121,7 @@ const Head = forwardRef<HeadRef, HeadProps>(
               onResizeEnd={handleResizeEnd}
             />
           ))}
-          <HeadFilterRow />
+          <HeadFilterRow headRowIndex={renderedRows.length} />
         </WrapperComponent>
       </div>
     );
