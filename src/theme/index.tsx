@@ -33,17 +33,23 @@ export function lightDerivative(designToken: DesignToken): DerivativeToken {
   return {
     ...designToken,
     ...defaultDerivativeToken,
-    colorText: new TinyColor(designToken.colorTextBase).lighten(15).toString(),
+    colorText: new TinyColor(designToken.colorTextBase)
+      .lighten(15)
+      .toRgbString(),
     primaryColorHover: new TinyColor(designToken.colorPrimary)
       .lighten(40)
-      .toString(),
+      .toRgbString(),
     primaryColorDisabled: new TinyColor(designToken.colorPrimary)
       .desaturate(100)
       .setAlpha(0.7)
-      .toString(),
+      .toRgbString(),
     colorBgContainer: '#fff',
-    colorBgLayout: new TinyColor(designToken.colorBgBase).darken(3).toString(),
-    colorBorder: new TinyColor(designToken.colorBgBase).darken(13).toString(),
+    colorBgLayout: new TinyColor(designToken.colorBgBase)
+      .darken(3)
+      .toRgbString(),
+    colorBorder: new TinyColor(designToken.colorBgBase)
+      .darken(13)
+      .toRgbString(),
   };
 }
 
@@ -52,19 +58,25 @@ export function darkDerivative(designToken: DesignToken): DerivativeToken {
   return {
     ...designToken,
     ...defaultDerivativeToken,
-    colorText: new TinyColor(designToken.colorTextBase).lighten(92).toString(),
+    colorText: new TinyColor(designToken.colorTextBase)
+      .lighten(92)
+      .toRgbString(),
     primaryColorHover: new TinyColor(designToken.colorPrimary)
       .setAlpha(0.7)
-      .toString(),
+      .toRgbString(),
     primaryColorDisabled: new TinyColor(designToken.colorPrimary)
       .desaturate(100)
       .setAlpha(0.7)
-      .toString(),
+      .toRgbString(),
     colorBgContainer: new TinyColor(designToken.colorBgBase)
       .darken(84)
-      .toString(),
-    colorBgLayout: new TinyColor(designToken.colorBgBase).darken(88).toString(),
-    colorBorder: new TinyColor(designToken.colorBgBase).darken(76).toString(),
+      .toRgbString(),
+    colorBgLayout: new TinyColor(designToken.colorBgBase)
+      .darken(88)
+      .toRgbString(),
+    colorBorder: new TinyColor(designToken.colorBgBase)
+      .darken(76)
+      .toRgbString(),
   };
 }
 
