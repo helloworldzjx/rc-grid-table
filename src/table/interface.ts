@@ -8,13 +8,11 @@ import type {
   ReactNode,
 } from 'react';
 
-import { ScrollBarContainerRef } from './ScrollContainer/interface';
-
 export interface TableRef {
   nativeElement: HTMLDivElement;
   scrollTo: (options?: TableScrollToOptions | number | null) => void;
-  scrollToTop: ScrollBarContainerRef['scrollToTop'];
-  scrollToLeft: ScrollBarContainerRef['scrollToLeft'];
+  scrollToTop: () => void;
+  scrollToLeft: () => void;
   startColumnsStatePreview: (options?: ColumnsStatePreviewOptions) => boolean;
   saveColumnsStatePreview: () => boolean;
   cancelColumnsStatePreview: () => void;

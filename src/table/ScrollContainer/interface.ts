@@ -29,9 +29,9 @@ export interface ScrollBarContainerRef {
   nativeScrollElement: HTMLDivElement;
   nativeVerticalTrackElement: HTMLDivElement;
   nativeVerticalThumbElement: HTMLDivElement;
-  scrollTo: (options?: ScrollToOptions) => void;
-  scrollToTop: () => void;
-  scrollToBottom: () => void;
-  scrollToLeft: () => void;
-  scrollToRight: () => void;
+  scrollTo: (options?: ScrollToOptions) => HTMLDivElement | undefined;
+  scrollToTop: () => HTMLDivElement | undefined;
+  scrollToBottom: () => HTMLDivElement | undefined;
+  scrollToLeft: () => HTMLDivElement | undefined;
+  scrollToRight: () => HTMLDivElement | undefined;
 }

@@ -298,33 +298,48 @@ const useScroll = ({
     };
   }, []);
 
-  const scrollTo = (options?: ScrollToOptions) => {
-    contentElement?.scrollTo(options);
-  };
-
-  const scrollToTop = () => {
-    if (contentElement) {
-      contentElement.scrollTop = 0;
+  const scrollTo = useCallback((options?: ScrollToOptions) => {
+    const content = contentElementRef.current;
+    content?.scrollTo(options);
+    if (content && options?.top !== undefined) {
+      syncVerticalScrollbarRef.current(content);
     }
-  };
+    return content || undefined;
+  }, []);
 
-  const scrollToBottom = () => {
-    if (contentElement) {
-      contentElement.scrollTop = contentElement.scrollHeight;
+  const scrollToTop = useCallback(() => {
+    const content = contentElementRef.current;
+    if (content) {
+      content.scrollTop = 0;
+      syncVerticalScrollbarRef.current(content);
     }
-  };
+    return content || undefined;
+  }, []);
 
-  const scrollToLeft = () => {
-    if (contentElement) {
-      contentElement.scrollLeft = 0;
+  const scrollToBottom = useCallback(() => {
+    const content = contentElementRef.current;
+    if (content) {
+      content.scrollTop = content.scrollHeight;
+      syncVerticalScrollbarRef.current(content);
     }
-  };
+    return content || undefined;
+  }, []);
 
-  const scrollToRight = () => {
-    if (contentElement) {
-      contentElement.scrollLeft = contentElement.scrollWidth;
+  const scrollToLeft = useCallback(() => {
+    const content = contentElementRef.current;
+    if (content) {
+      content.scrollLeft = 0;
     }
-  };
+    return content || undefined;
+  }, []);
+
+  const scrollToRight = useCallback(() => {
+    const content = contentElementRef.current;
+    if (content) {
+      content.scrollLeft = content.scrollWidth;
+    }
+    return content || undefined;
+  }, []);
 
   return {
     wrapperRef,

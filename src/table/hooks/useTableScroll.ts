@@ -268,9 +268,16 @@ export const useTableScroll = ({
     ],
   );
 
-  const scrollTo = useCallback((options?: ScrollToOptions) => {
-    tableBodyRef.current?.scrollTo(options);
-  }, []);
+  const scrollTo = useCallback(
+    (options?: ScrollToOptions) => {
+      const sourceElement = tableBodyRef.current?.scrollTo(options);
+
+      if (options?.left !== undefined) {
+        syncScrollLeft(sourceElement);
+      }
+    },
+    [syncScrollLeft],
+  );
 
   const scrollToTop = useCallback(() => {
     tableBodyRef.current?.scrollToTop();
@@ -281,12 +288,14 @@ export const useTableScroll = ({
   }, []);
 
   const scrollToLeft = useCallback(() => {
-    tableBodyRef.current?.scrollToLeft();
-  }, []);
+    const sourceElement = tableBodyRef.current?.scrollToLeft();
+    syncScrollLeft(sourceElement);
+  }, [syncScrollLeft]);
 
   const scrollToRight = useCallback(() => {
-    tableBodyRef.current?.scrollToRight();
-  }, []);
+    const sourceElement = tableBodyRef.current?.scrollToRight();
+    syncScrollLeft(sourceElement);
+  }, [syncScrollLeft]);
 
   useEffect(() => {
     return () => {

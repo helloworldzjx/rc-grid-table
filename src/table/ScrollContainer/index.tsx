@@ -73,17 +73,31 @@ const ScrollContainer = forwardRef<
       [verticalThumbHeight],
     );
 
-    useImperativeHandle(ref, () => ({
-      nativeElement: wrapperElement!,
-      nativeScrollElement: contentElement!,
-      nativeVerticalTrackElement: verticalTrackElement!,
-      nativeVerticalThumbElement: verticalThumbElement!,
-      scrollTo,
-      scrollToTop,
-      scrollToBottom,
-      scrollToLeft,
-      scrollToRight,
-    }));
+    useImperativeHandle(
+      ref,
+      () => ({
+        nativeElement: wrapperElement!,
+        nativeScrollElement: contentElement!,
+        nativeVerticalTrackElement: verticalTrackElement!,
+        nativeVerticalThumbElement: verticalThumbElement!,
+        scrollTo,
+        scrollToTop,
+        scrollToBottom,
+        scrollToLeft,
+        scrollToRight,
+      }),
+      [
+        contentElement,
+        scrollTo,
+        scrollToBottom,
+        scrollToLeft,
+        scrollToRight,
+        scrollToTop,
+        verticalThumbElement,
+        verticalTrackElement,
+        wrapperElement,
+      ],
+    );
 
     useIsomorphicLayoutEffect(() => {
       onVerticalVisibleChange?.(showVerticalScrollbar);
