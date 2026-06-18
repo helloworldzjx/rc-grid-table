@@ -58,10 +58,26 @@ const getStickyOffset = (
 interface GridTableProps {
   nativeProps?: React.HTMLAttributes<HTMLDivElement>;
   tableRef?: React.Ref<TableRef>;
+  startColumnsStatePreview?: TableRef['startColumnsStatePreview'];
+  saveColumnsStatePreview?: TableRef['saveColumnsStatePreview'];
+  cancelColumnsStatePreview?: TableRef['cancelColumnsStatePreview'];
+  setColumnVisible?: TableRef['setColumnVisible'];
+  setColumnFixed?: TableRef['setColumnFixed'];
 }
 
 const Table = forwardRef<HTMLDivElement, GridTableProps>(
-  ({ nativeProps, tableRef }, ref) => {
+  (
+    {
+      nativeProps,
+      tableRef,
+      startColumnsStatePreview,
+      saveColumnsStatePreview,
+      cancelColumnsStatePreview,
+      setColumnVisible,
+      setColumnFixed,
+    },
+    ref,
+  ) => {
     const {
       initialized,
       containerWidth = 0,
@@ -242,6 +258,21 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       scrollTo: virtualBody.scrollTo,
       scrollToTop: virtualBody.scrollToTop,
       scrollToLeft,
+      startColumnsStatePreview: (options) => {
+        return startColumnsStatePreview?.(options) ?? false;
+      },
+      saveColumnsStatePreview: () => {
+        return saveColumnsStatePreview?.() ?? false;
+      },
+      cancelColumnsStatePreview: () => {
+        cancelColumnsStatePreview?.();
+      },
+      setColumnVisible: (key, visible) => {
+        setColumnVisible?.(key, visible);
+      },
+      setColumnFixed: (key, fixed) => {
+        setColumnFixed?.(key, fixed);
+      },
     }));
 
     const rowSortRuntime = useMemo(

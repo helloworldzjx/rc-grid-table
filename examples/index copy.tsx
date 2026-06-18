@@ -1,5 +1,5 @@
-import { Table, Theme, type ColumnState } from 'rc-grid-table';
-import { ColumnsType } from 'rc-grid-table/es/table/interface';
+import { Table, Theme } from 'rc-grid-table';
+import { ColumnState, ColumnsType } from 'rc-grid-table/es/table/interface';
 import React, { useState } from 'react';
 import ConfigActions from './_utils/components/ConfigActions';
 import useConfigActions from './_utils/hooks/useConfigActions';

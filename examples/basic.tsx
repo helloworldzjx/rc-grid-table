@@ -1,7 +1,9 @@
+import { useSize } from 'ahooks';
 import { Space, Tag } from 'antd';
 import { Table, TableRef } from 'rc-grid-table';
 import { ColumnsType } from 'rc-grid-table/es/table/interface';
 import React, { useEffect, useRef } from 'react';
+
 import ConfigActions from './_utils/components/ConfigActions';
 import useConfigActions from './_utils/hooks/useConfigActions';
 
@@ -92,16 +94,23 @@ const App: React.FC = () => {
   // 动态控制 bordered、stripe、resizableColumns、sortableColumns 属性
   const { baseProps, state, onChange } = useConfigActions();
 
-  const ref = useRef<TableRef>(null);
+  const tableRef = useRef<TableRef>(null);
+
+  useSize(tableRef.current?.nativeElement);
 
   useEffect(() => {
-    console.log(ref);
+    console.log(tableRef);
   }, []);
 
   return (
     <>
       <ConfigActions value={state} onChange={onChange} />
-      <Table {...baseProps} columns={columns} dataSource={data} ref={ref} />
+      <Table
+        {...baseProps}
+        columns={columns}
+        dataSource={data}
+        ref={tableRef}
+      />
     </>
   );
 };

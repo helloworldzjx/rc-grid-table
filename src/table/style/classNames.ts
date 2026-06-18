@@ -2,6 +2,7 @@ export type ComponentClsType = {
   wrapperCls: string;
   wrapperInitializedCls: string;
   placeholderCls: string;
+  placeholderDisabledCls: string;
   componentCls: string;
   componentSMCls: string;
   componentMDCls: string;
@@ -76,12 +77,15 @@ export type ComponentClsType = {
   expandedRowContentCls: string;
   headLastCellCls: string;
   headCellResizeHandleCls: string;
+  headCellResizeHandleDisabledCls: string;
   headResizableCellDisabledCls: string;
   headSortableCellCls: string;
   headSortableCellDisabledCls: string;
   headDraggingOverlayCellCls: string;
   columnSortableActiveCellCls: string;
   columnSortableHotCellCls: string;
+  previewHiddenCellCls: string;
+  previewRestoredCellCls: string;
   fixedStartCellCls: string;
   fixedStartLastCellCls: string;
   fixedStartShadowActiveCellCls: string;
@@ -117,6 +121,7 @@ export const getComponentCls = (prefixCls: string): ComponentClsType => {
     wrapperCls: `${prefixCls}-wrapper`,
     wrapperInitializedCls: `${prefixCls}-wrapper-initialized`,
     placeholderCls: `${prefixCls}-placeholder`,
+    placeholderDisabledCls: `${prefixCls}-placeholder-disabled`,
     componentCls: prefixCls,
     componentSMCls: `${prefixCls}-wrapper-small`,
     componentMDCls: `${prefixCls}-wrapper-middle`,
@@ -191,12 +196,15 @@ export const getComponentCls = (prefixCls: string): ComponentClsType => {
     expandedRowContentCls: `${prefixCls}-expanded-row-content`,
     headLastCellCls: `${prefixCls}-head-last-cell`,
     headCellResizeHandleCls: `${prefixCls}-head-cell-resize-handle`,
+    headCellResizeHandleDisabledCls: `${prefixCls}-head-cell-resize-handle-disabled`,
     headResizableCellDisabledCls: `${prefixCls}-head-resizable-cell-disabled`,
     headSortableCellCls: `${prefixCls}-head-sortable-cell`,
     headSortableCellDisabledCls: `${prefixCls}-head-sortable-cell-disabled`,
     headDraggingOverlayCellCls: `${prefixCls}-head-dragging-overlay-cell`,
     columnSortableActiveCellCls: `${prefixCls}-column-sortable-active-cell`,
     columnSortableHotCellCls: `${prefixCls}-column-sortable-hot-cell`,
+    previewHiddenCellCls: `${prefixCls}-preview-hidden-cell`,
+    previewRestoredCellCls: `${prefixCls}-preview-restored-cell`,
     fixedStartCellCls: `${prefixCls}-fixed-start-cell`,
     fixedStartLastCellCls: `${prefixCls}-fixed-start-last-cell`,
     fixedStartShadowActiveCellCls: `${prefixCls}-fixed-start-shadow-active-cell`,

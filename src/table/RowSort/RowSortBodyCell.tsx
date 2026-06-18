@@ -35,6 +35,8 @@ type RowSortBodyCellProps<T = any> = BodyCellBaseProps<T> & {
   rowSortIsOver?: boolean;
   sortableActive?: boolean;
   sortableHot?: boolean;
+  previewHidden?: boolean;
+  previewRestored?: boolean;
   rowSortAttributes?: DraggableAttributes;
   rowSortListeners?: DraggableSyntheticListeners;
   setRowSortActivatorNodeRef?: (element: HTMLElement | null) => void;
@@ -58,6 +60,8 @@ function RowSortBodyCell<T = any>({
   rowSortIsOver = false,
   sortableActive = false,
   sortableHot = false,
+  previewHidden = false,
+  previewRestored = false,
   rowSortAttributes,
   rowSortListeners,
   setRowSortActivatorNodeRef,
@@ -75,6 +79,8 @@ function RowSortBodyCell<T = any>({
     fixedEndShadowActiveCellCls,
     columnSortableActiveCellCls,
     columnSortableHotCellCls,
+    previewHiddenCellCls,
+    previewRestoredCellCls,
     rowSortCellCls,
     rowSortOverCellCls,
     rowSortControlCls,
@@ -145,6 +151,8 @@ function RowSortBodyCell<T = any>({
           [fixedEndShadowActiveCellCls]: fixedShadowActive.end,
           [columnSortableActiveCellCls]: sortableActive,
           [columnSortableHotCellCls]: sortableHot,
+          [previewHiddenCellCls]: previewHidden,
+          [previewRestoredCellCls]: previewRestored,
           [rowSortCellCls]: true,
           [rowSortOverCellCls]: rowSortIsOver,
         },

@@ -7,7 +7,6 @@ import type {
   ColumnsType,
   ColumnType,
   ColumnViewState,
-  PercentColumnWidthType,
   SizeType,
 } from '../interface';
 import type { CellType, InternalColumnState } from '../internalInterface';
@@ -83,13 +82,12 @@ const parseColumnWidth = (
 };
 
 const getEffectiveResizeMinWidth = (
-  resizeMinWidth: PercentColumnWidthType | number | undefined,
+  resizeMinWidth: number | undefined,
   width: number,
-  containerWidth: number,
 ) => {
-  const minWidth =
-    parseColumnWidth(resizeMinWidth, containerWidth) ??
-    DEFAULT_RESIZE_MIN_WIDTH;
+  const minWidth = isNum(resizeMinWidth)
+    ? resizeMinWidth
+    : DEFAULT_RESIZE_MIN_WIDTH;
 
   return Math.min(minWidth, width);
 };
@@ -252,9 +250,6 @@ export function parseColumnsState<T = any>(
       state.fixed = false;
     }
     if (isNum(column.width)) state.width = column.width;
-    if (isNum(column.resizeMinWidth)) {
-      state.resizeMinWidth = column.resizeMinWidth;
-    }
     if (typeof column.widthManuallyChanged === 'boolean') {
       state.widthManuallyChanged = column.widthManuallyChanged;
     }
@@ -313,12 +308,18 @@ export type FnColumnType<T> = Partial<Omit<InternalColumnState<T>, 'width'>> & {
   width?: ColumnType<T>['width'];
 };
 
+export type FlattenColumnsOptions = {
+  previewHiddenColumns?: boolean;
+  previewRestoredKeys?: ReadonlySet<Key>;
+};
+
 export function flattenColumnsWithTotalWidth<T>(
   containerWidth: number,
   columns: FnColumnType<T>[],
   topMinWidth: number,
   leafMinWidth: number,
   size?: SizeType,
+  options: FlattenColumnsOptions = {},
 ): { flattenColumns: InternalColumnState<T>[]; usedWidthTotal: number } {
   const result: InternalColumnState<T>[] = [];
   let usedWidthTotal = 0;
@@ -342,7 +343,6 @@ export function flattenColumnsWithTotalWidth<T>(
           resizeMinWidth: getEffectiveResizeMinWidth(
             column.resizeMinWidth,
             width,
-            containerWidth,
           ),
           parentKey,
           ancestorKeys,
@@ -358,20 +358,30 @@ export function flattenColumnsWithTotalWidth<T>(
         return;
       }
 
-      if (
-        column.hidden ||
-        !(column.visible ?? true) ||
-        (column.children?.length &&
-          column.children.every(
-            (subColumn) => subColumn.hidden || !(subColumn.visible ?? true),
-          ))
-      ) {
+      const columnVisible = column.visible ?? true;
+      const previewVisible = !!options.previewHiddenColumns && !columnVisible;
+      const childrenAllHidden = column.children?.length
+        ? column.children.every(
+            (subColumn) =>
+              subColumn.hidden ||
+              (!options.previewHiddenColumns && !(subColumn.visible ?? true)),
+          )
+        : false;
+
+      if (column.hidden) {
+        return;
+      }
+
+      if (childrenAllHidden) {
         return;
       }
 
       const currentKey = getColumnKey(column, index);
 
       const hasChildren = !!column.children?.length;
+      if (!hasChildren && !previewVisible && !columnVisible) {
+        return;
+      }
 
       if (hasChildren) {
         traverse(
@@ -398,11 +408,7 @@ export function flattenColumnsWithTotalWidth<T>(
 
         resizeMinWidth =
           typeof width === 'number'
-            ? getEffectiveResizeMinWidth(
-                column.resizeMinWidth,
-                width,
-                containerWidth,
-              )
+            ? getEffectiveResizeMinWidth(column.resizeMinWidth, width)
             : column.resizeMinWidth;
 
         widthManuallyChanged = column.resizeDisabled
@@ -429,7 +435,13 @@ export function flattenColumnsWithTotalWidth<T>(
         ancestorKeys,
         depth,
         order: isNum(column.order) ? column.order : index,
-        visible: column.visible ?? true,
+        visible: columnVisible,
+        previewVisible,
+        previewHidden: previewVisible,
+        previewRestored:
+          !!options.previewHiddenColumns &&
+          columnVisible &&
+          options.previewRestoredKeys?.has(currentKey),
         distribute,
         widthManuallyChanged,
         autoWidthLocked,
@@ -510,22 +522,55 @@ export function batchPatchColumns<T = any>(
   return parseColumnsState(cloneTree);
 }
 
-export function pickColumnsStatePatches<T = any>(
+export function syncColumnsStateRuntimeWidths<T = any>(
   tree: ColumnState<T>[],
-  patches: ColumnStatePatch<T>[],
+  flattenColumns: InternalColumnState<T>[],
+  flattenColumnsWidths: number[],
 ): ColumnState<T>[] {
-  const patchMap = new Map(patches.map((patch) => [patch.key, patch.partial]));
+  const patches = flattenColumns.reduce<ColumnStatePatch<T>[]>(
+    (result, column, index) => {
+      const partial: ColumnStatePatch<T>['partial'] = {};
+      const width = flattenColumnsWidths[index] ?? column.width;
 
+      if (isNum(width)) partial.width = width;
+      if (typeof column.widthManuallyChanged === 'boolean') {
+        partial.widthManuallyChanged = column.widthManuallyChanged;
+      }
+
+      if (Object.keys(partial).length) {
+        result.push({ key: column.key, partial });
+      }
+
+      return result;
+    },
+    [],
+  );
+
+  return patches.length
+    ? batchPatchColumns(tree, patches)
+    : parseColumnsState(tree);
+}
+
+export function pickColumnsStateWidths<T = any>(
+  tree: ColumnState<T>[],
+): ColumnState<T>[] {
   const traverse = (columns: ColumnState<T>[]): ColumnState<T>[] => {
     return columns.reduce((result: ColumnState<T>[], column) => {
-      const partial = patchMap.get(column.key);
       const children = column.children?.length ? traverse(column.children) : [];
+      const hasWidth = isNum(column.width);
+      const hasWidthManuallyChanged =
+        typeof column.widthManuallyChanged === 'boolean';
 
-      if (!partial && !children.length) return result;
+      if (!hasWidth && !hasWidthManuallyChanged && !children.length) {
+        return result;
+      }
 
       const state: ColumnState<T> = { key: column.key };
       if (column.dataIndex !== undefined) state.dataIndex = column.dataIndex;
-      if (partial) Object.assign(state, partial);
+      if (hasWidth) state.width = column.width;
+      if (hasWidthManuallyChanged) {
+        state.widthManuallyChanged = column.widthManuallyChanged;
+      }
       if (children.length) state.children = children;
 
       result.push(state);
@@ -559,6 +604,9 @@ export function getColumnsViewState<T = any>(
       widthManuallyChanged: column.widthManuallyChanged,
       hasChildren: column.hasChildren,
       internal: isInternalColumn(column),
+      previewVisible: column.previewVisible,
+      previewHidden: column.previewHidden,
+      previewRestored: column.previewRestored,
     };
 
     if (children.length) viewState.children = children;
@@ -702,15 +750,13 @@ export const getSortablePreviewColumns = <T>(
   sourceWidths: number[],
 ) => {
   const sourceColumnMap = new Map<Key, InternalColumnState<T>>();
-  const sourceWidthMap = new Map<Key, number>();
 
   sourceFlattenColumns.forEach((column, index) => {
-    sourceColumnMap.set(column.key, column);
-
     const width = sourceWidths[index] ?? column.width;
-    if (isNum(width)) {
-      sourceWidthMap.set(column.key, width);
-    }
+    sourceColumnMap.set(
+      column.key,
+      isNum(width) && width !== column.width ? { ...column, width } : column,
+    );
   });
 
   const flattenColumns: InternalColumnState<T>[] = [];
@@ -718,39 +764,28 @@ export const getSortablePreviewColumns = <T>(
   const cloneColumns = (
     columns: InternalColumnState<T>[],
   ): InternalColumnState<T>[] =>
-    columns.map((column) => {
+    columns.reduce<InternalColumnState<T>[]>((result, column) => {
       const children = column.children?.length
         ? cloneColumns(column.children)
         : [];
 
       if (children.length) {
-        return {
+        result.push({
           ...column,
           width: undefined,
           hasChildren: true,
           children,
-        };
+        });
+        return result;
       }
 
       const sourceColumn = sourceColumnMap.get(column.key);
-      const width =
-        sourceWidthMap.get(column.key) ?? sourceColumn?.width ?? column.width;
+      if (!sourceColumn) return result;
 
-      if (sourceColumn) {
-        flattenColumns.push(sourceColumn);
-        return sourceColumn;
-      }
-
-      const nextColumn = {
-        ...column,
-        width,
-        hasChildren: false,
-        children: [],
-      };
-
-      flattenColumns.push(nextColumn);
-      return nextColumn;
-    });
+      flattenColumns.push(sourceColumn);
+      result.push(sourceColumn);
+      return result;
+    }, []);
 
   const treeColumns = cloneColumns(columnsState);
 

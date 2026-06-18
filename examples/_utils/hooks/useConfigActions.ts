@@ -1,12 +1,20 @@
-import { useState } from "react"
+import { useState } from 'react';
 
-type Props = 'bordered' | 'stripe' | 'resizableColumns' | 'sortableColumns'
+type Props =
+  | 'bordered'
+  | 'stripe'
+  | 'resizableColumns'
+  | 'sortableColumns'
+  | 'fixableColumns'
+  | 'visibleColumns';
 
-type UseConfigActionsProps = Partial<Record<Props, boolean>>
+type UseConfigActionsProps = Partial<Record<Props, boolean>>;
 
 const useConfigActions = (props?: UseConfigActionsProps) => {
-  const [state, setState] = useState<Props[]>(Object.keys(props || {}).filter(Boolean) as Props[])
-  
+  const [state, setState] = useState<Props[]>(
+    Object.keys(props || {}).filter(Boolean) as Props[],
+  );
+
   return {
     state,
     onChange: setState,
@@ -14,9 +22,11 @@ const useConfigActions = (props?: UseConfigActionsProps) => {
       bordered: state?.includes('bordered'),
       stripe: state?.includes('stripe'),
       resizableColumns: state?.includes('resizableColumns'),
-      sortableColumns: state?.includes('sortableColumns')
-    }
-  }
-}
+      sortableColumns: state?.includes('sortableColumns'),
+      fixableColumns: state?.includes('fixableColumns'),
+      visibleColumns: state?.includes('visibleColumns'),
+    },
+  };
+};
 
-export default useConfigActions
+export default useConfigActions;

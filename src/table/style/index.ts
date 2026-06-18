@@ -43,7 +43,7 @@ const genInitialStyle = ({
 });
 
 const genPlaceholderStyle = (
-  { componentCls, placeholderCls }: ComponentClsType,
+  { componentCls, placeholderCls, placeholderDisabledCls }: ComponentClsType,
   token: ComponentToken,
 ): CSSInterpolation => ({
   [`.${componentCls}`]: {
@@ -58,12 +58,16 @@ const genPlaceholderStyle = (
       userSelect: 'none',
       zIndex: 4,
 
-      '&:hover': {
+      [`&:not(.${placeholderDisabledCls}):hover`]: {
         backgroundColor: token.cellColorHoverBg,
       },
 
-      '&:active': {
+      [`&:not(.${placeholderDisabledCls}):active`]: {
         backgroundColor: token.cellColorActiveBg,
+      },
+
+      [`&.${placeholderDisabledCls}`]: {
+        cursor: 'not-allowed',
       },
     },
   },
@@ -157,6 +161,7 @@ const genBorderedStyle = (
     cellCls,
     pingStartCls,
     pingEndCls,
+    headCellResizeHandleCls,
   }: ComponentClsType,
   token: ComponentToken,
 ): CSSInterpolation => ({
@@ -208,6 +213,10 @@ const genBorderedStyle = (
       [`.${headInnerCls}`]: {
         borderTopLeftRadius: token.borderRadius,
         borderTopRightRadius: token.borderRadius,
+      },
+
+      [`.${headRowCls} .${headCellResizeHandleCls}`]: {
+        insetBlock: 0,
       },
     },
 
@@ -323,7 +332,6 @@ const genBodyStyle = (
   [`.${bodyInnerCls}`]: {
     display: 'grid',
     gridTemplateColumns: `var(${columnsWidthCssVar})`,
-    height: '100%',
     boxSizing: 'border-box',
     overflow: 'auto',
     scrollbarWidth: 'none',
@@ -360,6 +368,7 @@ const genSummaryCls = (
 ): CSSInterpolation => ({
   [`.${summaryCls}`]: {
     position: 'relative',
+    boxSizing: 'border-box',
 
     '&::before': {
       content: "' '",
@@ -382,6 +391,7 @@ const genSummaryCls = (
     [`.${summaryInnerCls}`]: {
       display: 'grid',
       gridTemplateColumns: `var(${columnsWidthCssVar})`,
+      boxSizing: 'border-box',
       overflow: 'auto hidden',
       scrollbarWidth: 'none',
     },
@@ -432,10 +442,13 @@ const genCellStyle = (
     expandedRowContentCls,
     headLastCellCls,
     headCellResizeHandleCls,
+    headCellResizeHandleDisabledCls,
     headSortableCellCls,
     headDraggingOverlayCellCls,
     columnSortableActiveCellCls,
     columnSortableHotCellCls,
+    previewHiddenCellCls,
+    previewRestoredCellCls,
   }: ComponentClsType,
   token: ComponentToken,
 ): CSSInterpolation => ({
@@ -465,6 +478,9 @@ const genCellStyle = (
       width: 10,
       backgroundColor: 'transparent',
       cursor: 'e-resize',
+    },
+    [`.${headCellResizeHandleDisabledCls}`]: {
+      cursor: 'default',
     },
     [`.${headSortableCellCls}`]: {
       userSelect: 'none',
@@ -607,6 +623,12 @@ const genCellStyle = (
   },
   [`.${columnSortableActiveCellCls}`]: {
     backgroundColor: `${token.sortableCellColorBg} !important`,
+  },
+  [`.${previewHiddenCellCls}`]: {
+    backgroundColor: `${token.previewHiddenCellColorBg} !important`,
+  },
+  [`.${previewRestoredCellCls}`]: {
+    backgroundColor: `${token.previewRestoredCellColorBg} !important`,
   },
 
   [`.${selectionControlCls}`]: {

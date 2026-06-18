@@ -11,11 +11,13 @@ import { useFixedShadowActive } from '../contexts/FixedShadowContext';
 import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import { useRowSelectionContext } from '../contexts/RowSelectionContext';
 import { useTableColumnStateContext } from '../contexts/TableColumnStateContext';
+import { useTableContext } from '../contexts/TableContext';
 import useRenderedColumnLayout from '../hooks/useRenderedColumnLayout';
 import type { CellType } from '../internalInterface';
 import { SelectionCheckbox } from '../Selection';
 import { getComponentCls } from '../style/classNames';
 import { getMergedSpanKeys } from '../utils/calc';
+import { mergeCellProps } from '../utils/cellProps';
 import { isSelectionColumn } from '../utils/const';
 import type { SortableColumnsData } from '../utils/dnd';
 import { getEllipsisShowTitle, getEllipsisTitle } from '../utils/ellipsis';
@@ -46,13 +48,15 @@ function HeadCell({
   firstRowLastCellKey,
 }: HeadCellProps) {
   const { flattenColumns = [], fixedOffset } = useRenderedColumnLayout();
-  const { resizableColumns } = useTableColumnStateContext();
+  const { resizableColumns, columnsStatePreviewMode } =
+    useTableColumnStateContext();
   const { sortableActiveKeys, sortableColumns, sortableHotKeys } =
     useColumnSortableContext();
   const prefixCls = usePrefixClsContext();
   const { getComponent } = useComponentsContext();
   const { dataSort, dataSortOrders = [] } = useDataSortContext();
   const { rowSelection, selection } = useRowSelectionContext();
+  const { onHeaderCell } = useTableContext();
 
   const {
     cellCls,
@@ -70,6 +74,8 @@ function HeadCell({
     headSortableCellDisabledCls,
     columnSortableActiveCellCls,
     columnSortableHotCellCls,
+    previewHiddenCellCls,
+    previewRestoredCellCls,
     fixedStartCellCls,
     fixedStartLastCellCls,
     fixedStartShadowActiveCellCls,
@@ -122,10 +128,14 @@ function HeadCell({
     firstRowLastCellKey,
   ]);
 
-  const cellProps = useMemo(
-    () => col.column?.onHeaderCell?.(col.column, colIndex) || {},
-    [col.column, colIndex],
-  );
+  const cellProps = useMemo(() => {
+    if (!col.column) return {};
+
+    return mergeCellProps(
+      onHeaderCell?.(col.column, colIndex),
+      col.column.onHeaderCell?.(col.column, colIndex),
+    );
+  }, [col.column, colIndex, onHeaderCell]);
 
   const mergedStyle = useMemo(() => {
     const rowSpan = cellProps?.rowSpan ?? col.rowSpan;
@@ -258,9 +268,10 @@ function HeadCell({
   /** 列拖拽排序 start ***************************************************************************/
 
   const dragSortDisabled = !!col.column?.dragSortDisabled;
-  const sortEnabled = !!sortableColumns;
+  const sortEnabled =
+    !!sortableColumns && columnsStatePreviewMode !== 'visibleHotOnly';
   const dragEnabled = sortEnabled && !dragSortDisabled;
-  const sortDisabled = sortEnabled && dragSortDisabled;
+  const dragDisabled = sortEnabled && dragSortDisabled;
 
   const { listeners, setNodeRef } = useSortable({
     id: `${col.key}`,
@@ -401,9 +412,11 @@ function HeadCell({
           [headResizableCellDisabledCls]:
             !!resizableColumns && !!col.column?.resizeDisabled,
           [headSortableCellCls]: dragEnabled,
-          [headSortableCellDisabledCls]: sortDisabled,
+          [headSortableCellDisabledCls]: dragDisabled,
           [columnSortableActiveCellCls]: inSortableActiveScope,
           [columnSortableHotCellCls]: inSortableHotScope,
+          [previewHiddenCellCls]: col.column?.previewHidden,
+          [previewRestoredCellCls]: col.column?.previewRestored,
         },
         col.column?.className,
         cellProps.className,

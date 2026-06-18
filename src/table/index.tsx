@@ -1,5 +1,5 @@
 import ResizeObserver, { OnResize } from '@rc-component/resize-observer';
-import { useDebounceFn, useIsomorphicLayoutEffect } from 'ahooks';
+import { useDebounceFn } from 'ahooks';
 import React, {
   ForwardedRef,
   Key,
@@ -23,13 +23,10 @@ import TableColumnStateContext from './contexts/TableColumnStateContext';
 import TableContext from './contexts/TableContext';
 import TableDataContext from './contexts/TableDataContext';
 import TableLayoutContext from './contexts/TableLayoutContext';
+import useColumnsStateController from './hooks/useColumnsStateController';
 import useSelection from './hooks/useSelection';
 import useStickyOffsets from './hooks/useStickyOffsets';
 import type {
-  ColumnState,
-  ColumnStatePatch,
-  ColumnsStateChangeType,
-  ColumnsWidthCommitDecision,
   ExpandColumnType,
   RowSortColumnType,
   SelectionColumnType,
@@ -39,7 +36,6 @@ import type {
 import type {
   DataSortContextProps,
   GetComponent,
-  InternalColumnState,
   TableColumnStateContextProps,
   TableContextProps,
   TableDataContextProps,
@@ -47,7 +43,6 @@ import type {
 } from './internalInterface';
 import ColumnSortableProvider from './providers/ColumnSortableProvider';
 import InternalTable from './Table';
-import { columnsWidthDistribute } from './utils/calc';
 import {
   EXPAND_COLUMN,
   ROW_SORT_COLUMN,
@@ -59,32 +54,13 @@ import {
   getRecordKey,
 } from './utils/expand';
 import {
-  columnsSort,
-  filterHiddenColumns,
-  getColumnsViewState,
-  isColumnsOrderEqual,
-  parseColumnsState,
-  pickColumnsStatePatches,
-} from './utils/handle';
-import { mergeColumnsState } from './utils/mergedColumnsState';
-import {
   filterLeafDataSortOrder,
   normalizeDataSortOrder,
   sortDataSource,
 } from './utils/sort';
 import { warningInvalidRecordKey } from './utils/warning';
 
-export type {
-  ColumnState,
-  ColumnStatePatch,
-  ColumnViewState,
-  ColumnsStateChangeInfo,
-  ColumnsStateChangeType,
-  ColumnsWidthCommitDecision,
-  ColumnsWidthCommitInfo,
-  TableProps,
-  TableRef,
-} from './interface';
+export type { TableProps, TableRef } from './interface';
 
 type TableComponent = (<T = any>(
   props: TableProps<T> & React.RefAttributes<TableRef>,
@@ -116,6 +92,9 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     components,
     onScroll,
     onHeaderRow,
+    onHeaderCell,
+    onFilterCell,
+    onCell,
     onRow,
     className,
     rowClassName,
@@ -134,23 +113,6 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
   const lockContainerWidth = useRef(false);
   const [containerWidth, setContainerWidth] = useState(0);
   const [containerHeight, setContainerHeight] = useState(0);
-  const [initialized, setInitialized] = useState(false);
-  /** 列 */
-  const [cols, setCols] = useState<InternalColumnState<T>[]>([]);
-  /** 列宽数组 */
-  const [flattenColumnsWidths, setFlattenColumnsWidths] = useState<number[]>(
-    [],
-  );
-  /** 展平后的列 */
-  const [flattenCols, setFlattenCols] = useState<InternalColumnState<T>[]>([]);
-  /** 列隐藏，列拖拽排序，列宽拖拽、固定列 */
-  const [innerColumnsState, setInnerColumnsState] = useState<
-    InternalColumnState<T>[]
-  >([]);
-  const [columnsState, setColumnsState] = useState<ColumnState<T>[]>([]);
-  const [temporaryColumnsState, setTemporaryColumnsState] = useState<
-    ColumnState<T>[]
-  >([]);
   const [innerExpandedRowKeys, setInnerExpandedRowKeys] = useState<Key[]>(
     () => {
       if (expandable?.expandedRowKeys) return expandable.expandedRowKeys;
@@ -161,16 +123,6 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
       return [];
     },
   );
-  /** 初始化后不再允许通过原columns修改columnsState */
-  const storageColumnsStateInitialized = useRef(false);
-  const columnsStateReadyEmitted = useRef(false);
-  const prevWidthScopeKey = useRef(columnsConfig?.widthScopeKey);
-  const enableColumnsConfig = useMemo(() => {
-    return (
-      resizableColumns || sortableColumns || fixableColumns || visibleColumns
-    );
-  }, [resizableColumns, sortableColumns, fixableColumns, visibleColumns]);
-
   const mergedColumns = useMemo(() => {
     return getColumnsWithInternalColumns(
       columns,
@@ -180,6 +132,38 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
       size,
     );
   }, [columns, expandable, rowSelection, rowSortable, size]);
+
+  const {
+    initialized,
+    columns: cols,
+    flattenColumns: flattenCols,
+    flattenColumnsWidths,
+    updateFlattenColumnsWidths,
+    clearFlattenColumnsWidthPreview,
+    columnsState,
+    commitColumnsStateChange,
+    getSortableBaseState,
+    updateSortableColumnsState,
+    columnsStatePreviewing,
+    columnsStatePreviewMode,
+    startColumnsStatePreview,
+    saveColumnsStatePreview,
+    cancelColumnsStatePreview,
+    setColumnVisible,
+    setColumnFixed,
+  } = useColumnsStateController({
+    ready,
+    containerWidth,
+    mergedColumns,
+    columnsConfig,
+    columnMinWidth,
+    leafColumnMinWidth,
+    size,
+    resizableColumns,
+    sortableColumns,
+    fixableColumns,
+    visibleColumns,
+  });
 
   const fixedOffset = useStickyOffsets(flattenColumnsWidths, flattenCols);
 
@@ -276,263 +260,9 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     { wait: 5 },
   );
 
-  // 统一处理
-  const parseUpdateColumnsState = useCallback(
-    (input: Array<ColumnState<T> | InternalColumnState<T>>) => {
-      setColumnsState(parseColumnsState(input));
-    },
-    [],
-  );
-
-  // 统一处理
-  const mergedColumnsConfig = columnsConfig;
-
-  const getCurrentViewState = useCallback(() => {
-    return getColumnsViewState(cols);
-  }, [cols]);
-
-  const commitColumnsStateChange = useCallback(
-    (
-      nextState: ColumnState<T>[],
-      type: ColumnsStateChangeType,
-      patches: ColumnStatePatch<T>[],
-    ) => {
-      const state = parseColumnsState(nextState);
-      const previousState = columnsState;
-      setColumnsState(state);
-      columnsConfig?.onColumnsStateChange?.(state, {
-        type,
-        patches,
-        previousState,
-        nextState: state,
-        viewState: getCurrentViewState(),
-      });
-    },
-    [columnsConfig, columnsState, getCurrentViewState],
-  );
-
-  const commitWidthColumnsState = useCallback(
-    async (
-      nextState: ColumnState<T>[],
-      type: 'resizeWidth' | 'autoFillWidth',
-      patches: ColumnStatePatch<T>[],
-    ): Promise<ColumnsWidthCommitDecision> => {
-      const state = parseColumnsState(nextState);
-      const previousState = columnsState;
-      const viewState = getCurrentViewState();
-      const changedKeys = patches.map((patch) => patch.key);
-      const nextDecision =
-        (await columnsConfig?.onBeforeWidthCommit?.({
-          type,
-          patches,
-          previousState,
-          nextState: state,
-          viewState,
-          changedKeys,
-          containerWidth,
-        })) ?? 'persist';
-      const decision: ColumnsWidthCommitDecision = [
-        'persist',
-        'temporary',
-        'cancel',
-      ].includes(nextDecision)
-        ? nextDecision
-        : 'persist';
-
-      if (decision === 'persist') {
-        setColumnsState(state);
-        columnsConfig?.onColumnsStateChange?.(state, {
-          type,
-          patches,
-          previousState,
-          nextState: state,
-          viewState,
-        });
-      } else if (decision === 'temporary') {
-        setTemporaryColumnsState(pickColumnsStatePatches(state, patches));
-      }
-
-      return decision;
-    },
-    [columnsConfig, columnsState, containerWidth, getCurrentViewState],
-  );
-
-  const getSortableBaseState = useCallback(() => {
-    return innerColumnsState;
-  }, [innerColumnsState]);
-
-  const updateSortableColumnsState = useCallback(
-    (nextColumnsState: InternalColumnState<T>[]) => {
-      const state = parseColumnsState(nextColumnsState);
-      const patches: ColumnStatePatch<T>[] = state.map((column) => ({
-        key: column.key,
-        partial: { order: column.order },
-      }));
-      commitColumnsStateChange(state, 'sort', patches);
-    },
-    [commitColumnsStateChange],
-  );
-
-  /** 使用了列配置的处理 start ***************************************************************************/
-
-  useIsomorphicLayoutEffect(() => {
-    if (prevWidthScopeKey.current !== mergedColumnsConfig?.widthScopeKey) {
-      prevWidthScopeKey.current = mergedColumnsConfig?.widthScopeKey;
-      setTemporaryColumnsState([]);
-    }
-  }, [mergedColumnsConfig?.widthScopeKey]);
-
-  useIsomorphicLayoutEffect(() => {
-    if (
-      !storageColumnsStateInitialized.current &&
-      containerWidth &&
-      ready &&
-      enableColumnsConfig
-    ) {
-      if (
-        mergedColumnsConfig &&
-        'storageColumnsState' in mergedColumnsConfig &&
-        !mergedColumnsConfig.storageColumnsState
-      ) {
-        return;
-      }
-
-      const { treeColumns } = columnsWidthDistribute(
-        containerWidth,
-        mergedColumns,
-        columnMinWidth,
-        leafColumnMinWidth,
-        size,
-      );
-      const initialColumnsState = mergedColumnsConfig?.storageColumnsState
-        ?.length
-        ? mergeColumnsState(
-            treeColumns,
-            mergedColumnsConfig.storageColumnsState,
-          )
-        : treeColumns;
-      parseUpdateColumnsState(initialColumnsState);
-      storageColumnsStateInitialized.current = true;
-    }
-  }, [
-    containerWidth,
-    ready,
-    enableColumnsConfig,
-    mergedColumnsConfig,
-    mergedColumns,
-    columnMinWidth,
-    leafColumnMinWidth,
-    size,
-    parseUpdateColumnsState,
-  ]);
-
-  useIsomorphicLayoutEffect(() => {
-    if (containerWidth && columnsState.length) {
-      const realColumns = filterHiddenColumns(size, mergedColumns);
-      let mergedColumnsState = mergeColumnsState(realColumns, columnsState);
-      if (mergedColumnsConfig?.columnsState?.length) {
-        mergedColumnsState = mergeColumnsState(
-          mergedColumnsState,
-          mergedColumnsConfig.columnsState,
-        );
-      }
-      if (temporaryColumnsState.length) {
-        mergedColumnsState = mergeColumnsState(
-          mergedColumnsState,
-          temporaryColumnsState,
-        );
-      }
-
-      if (
-        !mergedColumnsConfig?.columnsState?.length &&
-        !isColumnsOrderEqual(mergedColumnsState, columnsState)
-      ) {
-        // 如果input columns对比columnsState有增删，则立刻更新columnsState
-        parseUpdateColumnsState(mergedColumnsState);
-      }
-      setInnerColumnsState(columnsSort(mergedColumnsState));
-    }
-  }, [
-    containerWidth,
-    mergedColumns,
-    columnsState,
-    mergedColumnsConfig,
-    temporaryColumnsState,
-    size,
-    parseUpdateColumnsState,
-  ]);
-
-  useIsomorphicLayoutEffect(() => {
-    if (containerWidth && innerColumnsState.length) {
-      const { flattenColumns, treeColumns } = columnsWidthDistribute(
-        containerWidth,
-        innerColumnsState,
-        columnMinWidth,
-        leafColumnMinWidth,
-        size,
-      );
-      const nextFlattenColumnsWidths = flattenColumns.map(
-        (column) => column.width as number,
-      );
-
-      setCols(treeColumns);
-      setFlattenCols(flattenColumns);
-      setFlattenColumnsWidths(nextFlattenColumnsWidths);
-      setInitialized(true);
-
-      if (!columnsStateReadyEmitted.current) {
-        columnsStateReadyEmitted.current = true;
-        mergedColumnsConfig?.onColumnsStateReady?.({
-          columnsState: parseColumnsState(treeColumns),
-          viewState: getColumnsViewState(treeColumns),
-        });
-      }
-    }
-  }, [
-    containerWidth,
-    innerColumnsState,
-    columnMinWidth,
-    leafColumnMinWidth,
-    size,
-    mergedColumnsConfig,
-  ]);
-
-  /** 使用了列配置的处理 end */
-
-  /** 未使用列配置的处理 start ***************************************************************************/
-
-  useIsomorphicLayoutEffect(() => {
-    if (containerWidth && ready && !enableColumnsConfig) {
-      const { flattenColumns, treeColumns } = columnsWidthDistribute(
-        containerWidth,
-        mergedColumns,
-        columnMinWidth,
-        leafColumnMinWidth,
-        size,
-      );
-      setCols(treeColumns);
-      setFlattenCols(flattenColumns);
-      setFlattenColumnsWidths(
-        flattenColumns.map((column) => column.width as number),
-      );
-      setInitialized(true);
-    }
-  }, [
-    containerWidth,
-    ready,
-    enableColumnsConfig,
-    mergedColumns,
-    columnMinWidth,
-    leafColumnMinWidth,
-    size,
-  ]);
-
-  /** 未使用列配置的处理 end */
-
   const baseProps: TableContextProps<T> = useMemo(() => {
     return {
       initialized,
-      updateLockContainerWidth,
       containerWidth,
       containerHeight,
       rowKey,
@@ -540,7 +270,6 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
       columns: cols,
       flattenColumnsWidths: flattenColumnsWidths,
       columnsWidthTotal,
-      updateFlattenColumnsWidths: setFlattenColumnsWidths,
       flattenColumns: flattenCols,
       columnMinWidth,
       leafColumnMinWidth,
@@ -551,15 +280,11 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
       resizableColumns,
       fixableColumns,
       visibleColumns,
-      columnsState,
-      commitColumnsStateChange,
-      commitWidthColumnsState,
-      columnsConfig: mergedColumnsConfig,
+      columnsConfig,
       onScroll,
     };
   }, [
     initialized,
-    updateLockContainerWidth,
     containerWidth,
     containerHeight,
     rowKey,
@@ -577,10 +302,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     resizableColumns,
     fixableColumns,
     visibleColumns,
-    columnsState,
-    commitColumnsStateChange,
-    commitWidthColumnsState,
-    mergedColumnsConfig,
+    columnsConfig,
     onScroll,
   ]);
 
@@ -633,11 +355,16 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
       columnMinWidth,
       leafColumnMinWidth,
       columnsState,
-      columnsConfig: mergedColumnsConfig,
+      columnsStatePreviewing,
+      columnsStatePreviewMode,
+      columnsConfig,
       updateLockContainerWidth,
-      updateFlattenColumnsWidths: setFlattenColumnsWidths,
+      updateFlattenColumnsWidths,
+      clearFlattenColumnsWidthPreview,
       commitColumnsStateChange,
-      commitWidthColumnsState,
+      startColumnsStatePreview,
+      saveColumnsStatePreview,
+      cancelColumnsStatePreview,
     }),
     [
       resizableColumns,
@@ -646,10 +373,16 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
       columnMinWidth,
       leafColumnMinWidth,
       columnsState,
-      mergedColumnsConfig,
+      columnsStatePreviewing,
+      columnsStatePreviewMode,
+      columnsConfig,
       updateLockContainerWidth,
+      updateFlattenColumnsWidths,
+      clearFlattenColumnsWidthPreview,
       commitColumnsStateChange,
-      commitWidthColumnsState,
+      startColumnsStatePreview,
+      saveColumnsStatePreview,
+      cancelColumnsStatePreview,
     ],
   );
 
@@ -698,6 +431,9 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
       ...baseProps,
       className,
       onHeaderRow,
+      onHeaderCell,
+      onFilterCell,
+      onCell,
       onRow,
       rowClassName,
       bordered,
@@ -713,6 +449,9 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
       baseProps,
       className,
       onHeaderRow,
+      onHeaderCell,
+      onFilterCell,
+      onCell,
       onRow,
       rowClassName,
       bordered,
@@ -755,6 +494,15 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
                             <InternalTable
                               nativeProps={nativeProps}
                               tableRef={ref}
+                              startColumnsStatePreview={
+                                startColumnsStatePreview
+                              }
+                              saveColumnsStatePreview={saveColumnsStatePreview}
+                              cancelColumnsStatePreview={
+                                cancelColumnsStatePreview
+                              }
+                              setColumnVisible={setColumnVisible}
+                              setColumnFixed={setColumnFixed}
                             />
                           </ResizeObserver>
                         </ColumnSortableProvider>

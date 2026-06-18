@@ -13,11 +13,13 @@ import { useDataSortContext } from '../contexts/DataSortContext';
 import { useExpandableContext } from '../contexts/ExpandableContext';
 import { useFixedShadowActive } from '../contexts/FixedShadowContext';
 import { usePrefixClsContext } from '../contexts/PrefixClsContext';
+import { useTableContext } from '../contexts/TableContext';
 import { ExpandControl, TreeCellContent } from '../Expand';
 import type { InternalColumnState } from '../internalInterface';
 import { RowSortBodyCell } from '../RowSort';
 import { BodySelectionCell } from '../Selection';
 import { getComponentCls } from '../style/classNames';
+import { mergeCellProps } from '../utils/cellProps';
 import {
   isExpandColumn,
   isRowSortColumn,
@@ -93,6 +95,8 @@ function BodyCell({
     fixedEndShadowActiveCellCls,
     columnSortableActiveCellCls,
     columnSortableHotCellCls,
+    previewHiddenCellCls,
+    previewRestoredCellCls,
     expandControlCellCls,
     selectionCellCls,
   } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
@@ -101,6 +105,7 @@ function BodyCell({
   const { getComponent } = useComponentsContext();
   const { dataSortOrders = [] } = useDataSortContext();
   const { sortableActiveKeys, sortableHotKeys } = useColumnSortableContext();
+  const { onCell } = useTableContext();
 
   const CellComponent = useMemo(
     () => getComponent(['body', 'cell'], 'div'),
@@ -109,8 +114,12 @@ function BodyCell({
   const fixedShadowActive = useFixedShadowActive(fixedInfo);
 
   const cellProps = useMemo(
-    () => column.onCell?.(rowData, rowIndex) || {},
-    [column.onCell, rowData, rowIndex],
+    () =>
+      mergeCellProps(
+        onCell?.(rowData, rowIndex, column, colIndex),
+        column.onCell?.(rowData, rowIndex),
+      ),
+    [colIndex, column, onCell, rowData, rowIndex],
   );
 
   const spanInfo = useMemo(
@@ -321,6 +330,8 @@ function BodyCell({
         rowSortKey={rowSortKey}
         sortableActive={inSortableActiveScope}
         sortableHot={inSortableHotScope}
+        previewHidden={column.previewHidden}
+        previewRestored={column.previewRestored}
         rowSortAttributes={rowSortAttributes}
         rowSortListeners={rowSortListeners}
         setRowSortActivatorNodeRef={setRowSortActivatorNodeRef}
@@ -345,6 +356,8 @@ function BodyCell({
           [fixedEndShadowActiveCellCls]: fixedShadowActive.end,
           [columnSortableActiveCellCls]: inSortableActiveScope,
           [columnSortableHotCellCls]: inSortableHotScope,
+          [previewHiddenCellCls]: column.previewHidden,
+          [previewRestoredCellCls]: column.previewRestored,
           [expandControlCellCls]: isInternalExpandColumn,
           [selectionCellCls]: isInternalSelectionColumn,
         },

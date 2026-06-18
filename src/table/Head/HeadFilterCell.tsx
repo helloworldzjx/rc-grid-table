@@ -6,8 +6,10 @@ import { useColumnSortableContext } from '../contexts/ColumnSortableContext';
 import { useComponentsContext } from '../contexts/ComponentsContext';
 import { useFixedShadowActive } from '../contexts/FixedShadowContext';
 import { usePrefixClsContext } from '../contexts/PrefixClsContext';
+import { useTableContext } from '../contexts/TableContext';
 import type { InternalColumnState } from '../internalInterface';
 import { getComponentCls } from '../style/classNames';
+import { mergeCellProps } from '../utils/cellProps';
 import { FixedInfo } from '../utils/fixedColumns';
 
 interface HeadFilterCellProps<T = any> {
@@ -25,6 +27,7 @@ const HeadFilterCell: FC<HeadFilterCellProps> = ({
 }) => {
   const prefixCls = usePrefixClsContext();
   const { getComponent } = useComponentsContext();
+  const { onFilterCell } = useTableContext();
 
   const {
     cellCls,
@@ -32,6 +35,8 @@ const HeadFilterCell: FC<HeadFilterCellProps> = ({
     headLastCellCls,
     columnSortableActiveCellCls,
     columnSortableHotCellCls,
+    previewHiddenCellCls,
+    previewRestoredCellCls,
     fixedStartCellCls,
     fixedStartLastCellCls,
     fixedStartShadowActiveCellCls,
@@ -55,8 +60,12 @@ const HeadFilterCell: FC<HeadFilterCellProps> = ({
   );
 
   const cellProps = useMemo(
-    () => column.onFilterCell?.(column, columnIndex) || {},
-    [column, columnIndex],
+    () =>
+      mergeCellProps(
+        onFilterCell?.(column, columnIndex),
+        column.onFilterCell?.(column, columnIndex),
+      ),
+    [column, columnIndex, onFilterCell],
   );
 
   const mergedStyle = useMemo(() => {
@@ -117,6 +126,8 @@ const HeadFilterCell: FC<HeadFilterCellProps> = ({
           [headLastCellCls]: last,
           [columnSortableActiveCellCls]: inSortableActiveScope,
           [columnSortableHotCellCls]: inSortableHotScope,
+          [previewHiddenCellCls]: column.previewHidden,
+          [previewRestoredCellCls]: column.previewRestored,
           [fixedStartCellCls]: fixedInfo.fixStart !== null,
           [fixedStartLastCellCls]: fixedInfo.fixedStartShadow,
           [fixedStartShadowActiveCellCls]: fixedShadowActive.start,

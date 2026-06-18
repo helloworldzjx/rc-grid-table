@@ -5,6 +5,7 @@ import type { ColumnsType, SizeType } from '../interface';
 import type { InternalColumnState } from '../internalInterface';
 import {
   filterSpan,
+  FlattenColumnsOptions,
   flattenColumnsWithTotalWidth,
   rebuildColumns,
 } from './handle';
@@ -57,6 +58,7 @@ export function columnsWidthDistribute<T>(
   topMinWidth: number,
   leafMinWidth: number,
   size?: SizeType,
+  options?: FlattenColumnsOptions,
 ): {
   flattenColumns: InternalColumnState<T>[];
   treeColumns: InternalColumnState<T>[];
@@ -68,6 +70,7 @@ export function columnsWidthDistribute<T>(
     topMinWidth,
     leafMinWidth,
     size,
+    options,
   );
   const leafColumns = flattenColumns.filter((column) => !column.hasChildren);
 

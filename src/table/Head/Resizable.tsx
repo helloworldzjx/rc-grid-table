@@ -1,5 +1,6 @@
 import { useDndMonitor, useDraggable } from '@dnd-kit/core';
 import { useDebounceFn } from 'ahooks';
+import classNames from 'classnames';
 import React, {
   forwardRef,
   Key,
@@ -20,7 +21,10 @@ import {
   isResizableColumnsData,
   type ResizableColumnsData,
 } from '../utils/dnd';
-import { batchPatchColumns, parseColumnsState } from '../utils/handle';
+import {
+  batchPatchColumns,
+  syncColumnsStateRuntimeWidths,
+} from '../utils/handle';
 
 interface ResizableProps {
   id: string;
@@ -29,35 +33,33 @@ interface ResizableProps {
 
 const Resizable = forwardRef<HTMLDivElement, ResizableProps>(
   ({ id, keys }, ref) => {
-    const {
-      columns = [],
-      flattenColumns = [],
-      flattenColumnsWidths = [],
-    } = useTableLayoutContext();
+    const { flattenColumns = [], flattenColumnsWidths = [] } =
+      useTableLayoutContext();
     const {
       columnsState,
+      columnsStatePreviewMode,
       updateLockContainerWidth,
       updateFlattenColumnsWidths,
-      commitWidthColumnsState,
+      clearFlattenColumnsWidthPreview,
+      commitColumnsStateChange,
     } = useTableColumnStateContext();
     const prefixCls = usePrefixClsContext();
+    const disabled = columnsStatePreviewMode === 'visibleHotOnly';
 
-    const { headCellResizeHandleCls } = useMemo(
-      () => getComponentCls(prefixCls),
-      [prefixCls],
-    );
+    const { headCellResizeHandleCls, headCellResizeHandleDisabledCls } =
+      useMemo(() => getComponentCls(prefixCls), [prefixCls]);
 
     const updated = useRef(false);
     const appliedDistanceTotal = useRef(0);
     const latestWidths = useRef(flattenColumnsWidths);
-    const dragStartWidths = useRef(flattenColumnsWidths);
-    const { run: setFlattenColumnsWidths } = useDebounceFn(
-      updateFlattenColumnsWidths,
-      { wait: 0 },
-    );
+    const {
+      cancel: cancelSetFlattenColumnsWidths,
+      run: setFlattenColumnsWidths,
+    } = useDebounceFn(updateFlattenColumnsWidths, { wait: 0 });
 
     const { listeners, setNodeRef } = useDraggable({
       id,
+      disabled,
       data: { type: 'resizableColumns' } satisfies ResizableColumnsData,
     });
 
@@ -130,7 +132,7 @@ const Resizable = forwardRef<HTMLDivElement, ResizableProps>(
       return appliedDistance;
     };
 
-    const updateState = async () => {
+    const updateState = () => {
       const widths = latestWidths.current;
       const patches = idxs.reduce<ColumnStatePatch[]>((result, idx) => {
         const column = flattenColumns[idx];
@@ -140,7 +142,6 @@ const Resizable = forwardRef<HTMLDivElement, ResizableProps>(
           key: column.key,
           partial: {
             width: widths[idx],
-            resizeMinWidth: column.resizeMinWidth,
             widthManuallyChanged: true,
           },
         });
@@ -150,20 +151,14 @@ const Resizable = forwardRef<HTMLDivElement, ResizableProps>(
 
       if (!patches.length) return;
 
-      const baseColumnsState = parseColumnsState(
-        columns.length ? columns : columnsState,
+      const baseColumnsState = syncColumnsStateRuntimeWidths(
+        columnsState,
+        flattenColumns,
+        widths,
       );
       const updatedColumnsState = batchPatchColumns(baseColumnsState, patches);
-      const decision = await commitWidthColumnsState(
-        updatedColumnsState,
-        'resizeWidth',
-        patches,
-      );
-
-      if (decision === 'cancel') {
-        latestWidths.current = dragStartWidths.current;
-        updateFlattenColumnsWidths(dragStartWidths.current);
-      }
+      commitColumnsStateChange(updatedColumnsState, 'resizeWidth', patches);
+      clearFlattenColumnsWidthPreview(widths);
     };
 
     useDndMonitor({
@@ -175,7 +170,6 @@ const Resizable = forwardRef<HTMLDivElement, ResizableProps>(
           return;
         updateLockContainerWidth(true);
         latestWidths.current = flattenColumnsWidths;
-        dragStartWidths.current = flattenColumnsWidths;
         appliedDistanceTotal.current = 0;
         document.documentElement.style.cursor = 'e-resize';
       },
@@ -197,9 +191,10 @@ const Resizable = forwardRef<HTMLDivElement, ResizableProps>(
           return;
         updateLockContainerWidth(false);
         document.documentElement.style.cursor = '';
+        cancelSetFlattenColumnsWidths();
         if (updated.current) {
           updateFlattenColumnsWidths(latestWidths.current);
-          void updateState();
+          updateState();
           appliedDistanceTotal.current = 0;
           updated.current = false;
         }
@@ -207,7 +202,14 @@ const Resizable = forwardRef<HTMLDivElement, ResizableProps>(
     });
 
     return (
-      <div className={headCellResizeHandleCls} ref={setRefs} {...listeners} />
+      <div
+        aria-disabled={disabled}
+        className={classNames(headCellResizeHandleCls, {
+          [headCellResizeHandleDisabledCls]: disabled,
+        })}
+        ref={setRefs}
+        {...listeners}
+      />
     );
   },
 );

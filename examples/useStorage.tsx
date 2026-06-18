@@ -126,6 +126,7 @@ export default () => {
     JSON.parse(localStorage.getItem(storageKey) || '[]'),
   );
   const [storageEnabled, setStorageEnabled] = useState(columnsState.length > 0);
+  const [columnsStateKey, setColumnsStateKey] = useState(0);
 
   const {
     baseProps,
@@ -139,6 +140,7 @@ export default () => {
     setColumnsState([]);
     localStorage.removeItem(storageKey);
     setStorageEnabled(false);
+    setColumnsStateKey((key) => key + 1);
   };
 
   return (
@@ -163,11 +165,11 @@ export default () => {
             }
           }}
         >
-          storageColumnsState
+          使用持久化存储
         </Checkbox>
-        <Tooltip title="Clear stored columns state">
+        <Tooltip title="清除持久化存储">
           <Button size="small" onClick={clear}>
-            Clear
+            清除
           </Button>
         </Tooltip>
 
@@ -184,6 +186,7 @@ export default () => {
         {...baseProps}
         columnsConfig={{
           storageColumnsState: columnsState,
+          columnsStateKey,
           onColumnsStateChange(value) {
             if (!storageEnabled) return;
             setColumnsState(value);
@@ -194,7 +197,7 @@ export default () => {
         dataSource={dataSource}
         rowSelection={{ fixed: 'start' }}
         sticky={{ offsetHeader: 76 }}
-        scrollY={1000}
+        scrollY={500}
         size={size}
       />
     </>

@@ -15,6 +15,8 @@ export interface ComponentToken extends Partial<DerivativeToken> {
   cellColorActiveBg: string;
   sortableCellColorBg: string;
   overableCellColorBg: string;
+  previewHiddenCellColorBg: string;
+  previewRestoredCellColorBg: string;
 }
 
 const baseTableToken = {
@@ -43,6 +45,12 @@ export const lightTableToken: ComponentToken = {
   overableCellColorBg: new TinyColor(defaultDesignToken.colorPrimary)
     .lighten(43)
     .toRgbString(),
+  previewHiddenCellColorBg: new TinyColor(defaultDesignToken.colorPrimary)
+    .lighten(43)
+    .toRgbString(),
+  previewRestoredCellColorBg: new TinyColor(defaultDesignToken.colorPrimary)
+    .lighten(40)
+    .toRgbString(),
 };
 
 export const darkTableToken: ComponentToken = {
@@ -61,5 +69,11 @@ export const darkTableToken: ComponentToken = {
     .toRgbString(),
   overableCellColorBg: new TinyColor(defaultDesignToken.colorBgBase)
     .darken(80)
+    .toRgbString(),
+  previewHiddenCellColorBg: new TinyColor(defaultDesignToken.colorPrimary)
+    .darken(80)
+    .toRgbString(),
+  previewRestoredCellColorBg: new TinyColor(defaultDesignToken.colorBgBase)
+    .darken(82)
     .toRgbString(),
 };

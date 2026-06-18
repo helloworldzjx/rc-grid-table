@@ -1,4 +1,12 @@
-import React, { FC, memo, useEffect, useMemo, useRef } from 'react';
+import classNames from 'classnames';
+import React, {
+  CSSProperties,
+  FC,
+  memo,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
 
 import { isNum } from '../../_utils/validate';
 import { useColumnSortableContext } from '../contexts/ColumnSortableContext';
@@ -8,7 +16,10 @@ import { useTableLayoutContext } from '../contexts/TableLayoutContext';
 import type { ColumnStatePatch } from '../interface';
 import { getComponentCls } from '../style/classNames';
 import { distribute } from '../utils/calc';
-import { batchPatchColumns, parseColumnsState } from '../utils/handle';
+import {
+  batchPatchColumns,
+  syncColumnsStateRuntimeWidths,
+} from '../utils/handle';
 
 const PLACEHOLDER_VISIBLE_TOLERANCE = 1;
 const AUTO_FILL_CHECK_FRAMES = 4;
@@ -16,17 +27,22 @@ const AUTO_FILL_CHECK_FRAMES = 4;
 const Placeholder: FC = () => {
   const {
     containerWidth = 0,
-    columns = [],
     columnsWidthTotal,
     flattenColumns = [],
     flattenColumnsWidths = [],
   } = useTableLayoutContext();
-  const { columnsState, updateFlattenColumnsWidths, commitWidthColumnsState } =
-    useTableColumnStateContext();
+  const {
+    columnsState,
+    columnsStatePreviewMode,
+    updateFlattenColumnsWidths,
+    clearFlattenColumnsWidthPreview,
+    commitColumnsStateChange,
+  } = useTableColumnStateContext();
   const { sortableDraftState } = useColumnSortableContext();
   const prefixCls = usePrefixClsContext();
+  const disabled = columnsStatePreviewMode === 'visibleHotOnly';
 
-  const { placeholderCls } = useMemo(
+  const { placeholderCls, placeholderDisabledCls } = useMemo(
     () => getComponentCls(prefixCls),
     [prefixCls],
   );
@@ -36,26 +52,28 @@ const Placeholder: FC = () => {
   // autoFill 会在 rAF 中二次校准，使用 ref 保存最新状态，避免回调读到旧闭包。
   const latestAutoFillStateRef = useRef({
     containerWidth,
-    columns,
     columnsWidthTotal,
     flattenColumns,
     flattenColumnsWidths,
     sortableDraftState,
     columnsState,
     updateFlattenColumnsWidths,
-    commitWidthColumnsState,
+    clearFlattenColumnsWidthPreview,
+    commitColumnsStateChange,
+    disabled,
   });
 
   latestAutoFillStateRef.current = {
     containerWidth,
-    columns,
     columnsWidthTotal,
     flattenColumns,
     flattenColumnsWidths,
     sortableDraftState,
     columnsState,
     updateFlattenColumnsWidths,
-    commitWidthColumnsState,
+    clearFlattenColumnsWidthPreview,
+    commitColumnsStateChange,
+    disabled,
   };
 
   useEffect(() => {
@@ -73,15 +91,18 @@ const Placeholder: FC = () => {
   const applyAutoFill = async () => {
     const {
       containerWidth,
-      columns,
       columnsWidthTotal,
       flattenColumns,
       flattenColumnsWidths,
       sortableDraftState,
       columnsState,
       updateFlattenColumnsWidths,
-      commitWidthColumnsState,
+      clearFlattenColumnsWidthPreview,
+      commitColumnsStateChange,
+      disabled,
     } = latestAutoFillStateRef.current;
+
+    if (disabled) return false;
 
     // 排序 draft 还没清理时不补宽，避免把临时排序态提交成真实列宽状态。
     if (sortableDraftState) return false;
@@ -143,7 +164,6 @@ const Placeholder: FC = () => {
         key: column.key,
         partial: {
           width: newWidth,
-          resizeMinWidth: column.resizeMinWidth,
           widthManuallyChanged: false,
         },
       };
@@ -151,24 +171,15 @@ const Placeholder: FC = () => {
 
     updateFlattenColumnsWidths(nextWidths);
 
-    const baseColumnsState = parseColumnsState(
-      columns.length ? columns : columnsState,
+    const baseColumnsState = syncColumnsStateRuntimeWidths(
+      columnsState,
+      flattenColumns,
+      flattenColumnsWidths,
     );
     const updatedColumnsState = batchPatchColumns(baseColumnsState, patches);
-    const decision = await commitWidthColumnsState(
-      updatedColumnsState,
-      'autoFillWidth',
-      patches,
-    );
+    commitColumnsStateChange(updatedColumnsState, 'autoFillWidth', patches);
 
-    if (decision === 'cancel') {
-      updateFlattenColumnsWidths(flattenColumnsWidths);
-      latestAutoFillStateRef.current = {
-        ...latestAutoFillStateRef.current,
-        flattenColumnsWidths,
-      };
-      return false;
-    }
+    clearFlattenColumnsWidthPreview(nextWidths);
     // 立即更新 ref，防止下一帧在 React render 前基于旧 columnsWidthTotal 重复累加。
     latestAutoFillStateRef.current = {
       ...latestAutoFillStateRef.current,
@@ -213,7 +224,7 @@ const Placeholder: FC = () => {
     }
   };
 
-  const placeholderStyle = useMemo(
+  const placeholderStyle: CSSProperties = useMemo(
     () => ({
       left: columnsWidthTotal,
       display:
@@ -227,8 +238,11 @@ const Placeholder: FC = () => {
   return (
     // 暂不动态渲染这个占位元素，而是通过display控制
     <div
-      onClick={autoFill}
-      className={placeholderCls}
+      aria-disabled={disabled}
+      onClick={disabled ? undefined : autoFill}
+      className={classNames(placeholderCls, {
+        [placeholderDisabledCls]: disabled,
+      })}
       style={placeholderStyle}
     />
   );

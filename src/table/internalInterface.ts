@@ -11,9 +11,9 @@ import type {
   ColumnInfo,
   ColumnsConfig,
   ColumnsStateChangeType,
+  ColumnsStatePreviewOptions,
   ColumnState,
   ColumnStatePatch,
-  ColumnsWidthCommitDecision,
   CustomizeComponent,
   DataSortConfig,
   DataSortOrder,
@@ -69,6 +69,13 @@ export type ColumnStateConfigType = Pick<
   | 'autoWidthLocked'
 >;
 
+export type ColumnStateFeatureOptions = {
+  resizableColumns?: boolean;
+  sortableColumns?: boolean;
+  fixableColumns?: boolean;
+  visibleColumns?: boolean;
+};
+
 export type InternalColumnState<T = any> = Omit<ColumnInfo<T>, 'children'> & {
   children?: InternalColumnState<T>[];
 };
@@ -92,7 +99,6 @@ export interface TableContextProps<T = any>
   // base props
   rowKey: RowKey<T>;
 
-  updateLockContainerWidth: Dispatch<SetStateAction<boolean>>;
   containerWidth?: number;
   containerHeight?: number;
   initialized?: boolean;
@@ -100,21 +106,9 @@ export interface TableContextProps<T = any>
   flattenColumns?: InternalColumnState<T>[];
   flattenColumnsWidths?: number[];
   columnsWidthTotal: number;
-  updateFlattenColumnsWidths: Dispatch<SetStateAction<number[]>>;
   fixedOffset: StickyOffsets;
   hasFixedColumns: boolean;
   fixColumnsGapped: boolean;
-  columnsState: ColumnState<T>[];
-  commitColumnsStateChange: (
-    nextState: ColumnState<T>[],
-    type: ColumnsStateChangeType,
-    patches: ColumnStatePatch<T>[],
-  ) => void;
-  commitWidthColumnsState: (
-    nextState: ColumnState<T>[],
-    type: 'resizeWidth' | 'autoFillWidth',
-    patches: ColumnStatePatch<T>[],
-  ) => Promise<ColumnsWidthCommitDecision>;
 }
 
 export interface TableDataContextProps<T = any> {
@@ -141,19 +135,20 @@ export interface TableColumnStateContextProps<T = any> {
   columnMinWidth?: number;
   leafColumnMinWidth?: number;
   columnsState: ColumnState<T>[];
+  columnsStatePreviewing: boolean;
+  columnsStatePreviewMode?: ColumnsStatePreviewOptions['mode'];
   columnsConfig?: ColumnsConfig<T>;
   updateLockContainerWidth: Dispatch<SetStateAction<boolean>>;
   updateFlattenColumnsWidths: Dispatch<SetStateAction<number[]>>;
+  clearFlattenColumnsWidthPreview: (nextCalculatedWidths?: number[]) => void;
   commitColumnsStateChange: (
     nextState: ColumnState<T>[],
     type: ColumnsStateChangeType,
     patches: ColumnStatePatch<T>[],
   ) => void;
-  commitWidthColumnsState: (
-    nextState: ColumnState<T>[],
-    type: 'resizeWidth' | 'autoFillWidth',
-    patches: ColumnStatePatch<T>[],
-  ) => Promise<ColumnsWidthCommitDecision>;
+  startColumnsStatePreview: (options?: ColumnsStatePreviewOptions) => boolean;
+  saveColumnsStatePreview: () => boolean;
+  cancelColumnsStatePreview: () => void;
 }
 
 export interface ComponentsContextProps {

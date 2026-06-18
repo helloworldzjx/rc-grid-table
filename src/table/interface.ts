@@ -14,6 +14,17 @@ export interface TableRef {
   scrollTo: (options?: TableScrollToOptions | number | null) => void;
   scrollToTop: ScrollBarContainerRef['scrollToTop'];
   scrollToLeft: ScrollBarContainerRef['scrollToLeft'];
+  startColumnsStatePreview: (options?: ColumnsStatePreviewOptions) => boolean;
+  saveColumnsStatePreview: () => boolean;
+  cancelColumnsStatePreview: () => void;
+  setColumnVisible: (key: Key, visible: boolean) => void;
+  setColumnFixed: (key: Key, fixed: FixedType | false) => void;
+}
+
+export type ColumnsStatePreviewMode = 'full' | 'visibleHotOnly';
+
+export interface ColumnsStatePreviewOptions {
+  mode?: ColumnsStatePreviewMode;
 }
 
 export type TableScrollAlign = 'top' | 'bottom' | 'auto';
@@ -76,30 +87,41 @@ export type AlignType =
   | 'justify'
   | 'match-parent';
 
+export type CellAttributes = HTMLAttributes<any> & {
+  align?: AlignType;
+};
+
+export type SpanCellAttributes = CellAttributes & {
+  rowSpan?: number;
+  colSpan?: number;
+};
+
 export type GetBodyCellProps<DataType> = (
   data: DataType,
   rowIndex?: number,
-) => React.HTMLAttributes<any> & {
-  rowSpan?: number;
-  colSpan?: number;
-  align?: AlignType;
-};
+) => SpanCellAttributes;
+
+export type GetTableBodyCellProps<DataType> = (
+  data: DataType,
+  rowIndex: number | undefined,
+  column: ColumnInfo<DataType>,
+  columnIndex?: number,
+) => CellAttributes;
 
 export type GetHeaderCellProps<T> = (
   column: ColumnInfo<T>,
   columnIndex?: number,
-) => React.HTMLAttributes<any> & {
-  rowSpan?: number;
-  colSpan?: number;
-  align?: AlignType;
-};
+) => SpanCellAttributes;
+
+export type GetTableHeaderCellProps<T> = (
+  column: ColumnInfo<T>,
+  columnIndex?: number,
+) => CellAttributes;
 
 export type GetFilterCellProps<T> = (
   column: ColumnInfo<T>,
   columnIndex?: number,
-) => React.HTMLAttributes<any> & {
-  align?: AlignType;
-};
+) => CellAttributes;
 
 export type PercentColumnWidthType = `${number}%`;
 
@@ -137,7 +159,7 @@ export interface ExpandableConfig<T = any> {
   /** 禁止展开列重新调整宽度 */
   resizeDisabled?: boolean;
   /** 拖拽调整列宽时的最小宽度 */
-  resizeMinWidth?: PercentColumnWidthType | number;
+  resizeMinWidth?: number;
   rowExpandable?: (record: T) => boolean;
   showExpandColumn?: boolean;
   onExpand?: (expanded: boolean, record: T) => void;
@@ -173,7 +195,7 @@ export interface RowSortableConfig<T = any> {
   columnWidth?: PercentColumnWidthType | number;
   fixed?: FixedType;
   /** 拖拽调整列宽时的最小宽度 */
-  resizeMinWidth?: PercentColumnWidthType | number;
+  resizeMinWidth?: number;
   allowCrossLevelSort?: boolean;
   /** 行拖拽overlay中渲染的列。通过columns中的key或dataIndex匹配 */
   overlayColumnKeys?: Key[];
@@ -203,7 +225,7 @@ export interface TableRowSelection<T = any> {
   /** 禁止选择列重新调整宽度 */
   resizeDisabled?: boolean;
   /** 拖拽调整列宽时的最小宽度 */
-  resizeMinWidth?: PercentColumnWidthType | number;
+  resizeMinWidth?: number;
   getRadioProps?: (record: T) => SelectionControlProps;
   getCheckboxProps?: (record: T) => SelectionControlProps;
   getTitleCheckboxProps?: () => SelectionControlProps;
@@ -265,7 +287,7 @@ export interface ColumnProps<T = any> {
   /** 禁止表格重新调整叶子列宽度 */
   resizeDisabled?: boolean;
   /** 拖拽调整列宽时的最小宽度 */
-  resizeMinWidth?: PercentColumnWidthType | number;
+  resizeMinWidth?: number;
   /** 禁止列拖拽排序 */
   dragSortDisabled?: boolean;
   align?: AlignType;
@@ -331,6 +353,9 @@ type ColumnInfoState = {
   hasChildren: boolean;
   widthManuallyChanged: boolean;
   autoWidthLocked: boolean;
+  previewVisible?: boolean;
+  previewHidden?: boolean;
+  previewRestored?: boolean;
 };
 
 export type ColumnInfo<T = any> = Omit<ColumnType<T>, 'children'> &
@@ -365,7 +390,6 @@ export type ColumnState<T = any> = {
   visible?: boolean;
   fixed?: FixedType | false;
   width?: number;
-  resizeMinWidth?: number;
   widthManuallyChanged?: boolean;
   children?: ColumnState<T>[];
 };
@@ -385,6 +409,9 @@ export type ColumnViewState<T = any> = {
   widthManuallyChanged: boolean;
   hasChildren: boolean;
   internal: boolean;
+  previewVisible?: boolean;
+  previewHidden?: boolean;
+  previewRestored?: boolean;
   children?: ColumnViewState<T>[];
 };
 
@@ -398,9 +425,8 @@ export type ColumnsStateChangeType =
   | 'autoFillWidth'
   | 'sort'
   | 'visible'
-  | 'fixed';
-
-export type ColumnsWidthCommitDecision = 'persist' | 'temporary' | 'cancel';
+  | 'fixed'
+  | 'previewSave';
 
 export interface ColumnsStateChangeInfo<T = any> {
   type: ColumnsStateChangeType;
@@ -408,25 +434,14 @@ export interface ColumnsStateChangeInfo<T = any> {
   previousState: ColumnState<T>[];
   nextState: ColumnState<T>[];
   viewState: ColumnViewState<T>[];
-}
-
-export interface ColumnsWidthCommitInfo<T = any> {
-  type: 'resizeWidth' | 'autoFillWidth';
-  patches: ColumnStatePatch<T>[];
-  previousState: ColumnState<T>[];
-  nextState: ColumnState<T>[];
-  viewState: ColumnViewState<T>[];
   changedKeys: Key[];
-  containerWidth: number;
 }
 
 export type ColumnsConfig<T> = {
   /** storage/localStorage 读取后的初始化快照，只在 ready 后首次消费 */
   storageColumnsState?: ColumnState<T>[];
-  /** 外部控制覆盖态，每次 render 都参与合并 */
-  columnsState?: ColumnState<T>[];
-  /** temporary 宽度缓存的失效边界，变化时清空 temporary 宽度 */
-  widthScopeKey?: Key | boolean | null;
+  /** columns state 的身份标识，变化时重新按 storageColumnsState 或当前 columns 初始化 */
+  columnsStateKey?: Key | boolean | null;
   onColumnsStateReady?: (payload: {
     columnsState: ColumnState<T>[];
     viewState: ColumnViewState<T>[];
@@ -435,9 +450,6 @@ export type ColumnsConfig<T> = {
     columnsState: ColumnState<T>[],
     info: ColumnsStateChangeInfo<T>,
   ) => void;
-  onBeforeWidthCommit?: (
-    info: ColumnsWidthCommitInfo<T>,
-  ) => ColumnsWidthCommitDecision | Promise<ColumnsWidthCommitDecision>;
 };
 
 export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
@@ -563,6 +575,18 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
     columns: ColumnInfo<T>[],
     index?: number,
   ) => HTMLAttributes<any>;
+  /**
+   * @description 设置头部单元格属性
+   */
+  onHeaderCell?: GetTableHeaderCellProps<T>;
+  /**
+   * @description 设置筛选单元格属性
+   */
+  onFilterCell?: GetFilterCellProps<T>;
+  /**
+   * @description 设置body单元格属性
+   */
+  onCell?: GetTableBodyCellProps<T>;
   /**
    * @description 设置body行属性
    */
