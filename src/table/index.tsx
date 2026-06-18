@@ -105,6 +105,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     sticky,
     virtual,
     loading,
+    empty,
     style,
     ...nativeProps
   } = props;
@@ -443,6 +444,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
       sticky,
       virtual,
       loading,
+      empty,
       style,
     }),
     [
@@ -461,6 +463,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
       sticky,
       virtual,
       loading,
+      empty,
       style,
     ],
   );

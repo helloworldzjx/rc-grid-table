@@ -4,11 +4,13 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { composeRef } from '@rc-component/util/lib/ref';
+import type { SpinProps } from 'antd';
 import { Empty, Spin } from 'antd';
 import classNames from 'classnames';
 import React, {
   CSSProperties,
   forwardRef,
+  ReactNode,
   useCallback,
   useImperativeHandle,
   useMemo,
@@ -98,6 +100,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       sticky,
       virtual = true,
       loading = false,
+      empty,
       style,
       columnsWidthTotal,
       onScroll,
@@ -355,6 +358,41 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       [columnsWidthTotal, containerWidth],
     );
 
+    const spinProps = useMemo<SpinProps>(() => {
+      if (typeof loading === 'boolean') {
+        return {
+          spinning: loading,
+        };
+      }
+
+      if (isObject(loading)) {
+        return {
+          spinning: true,
+          ...loading,
+        };
+      }
+
+      return {
+        spinning: false,
+      };
+    }, [loading]);
+
+    const renderEmptyText = useCallback((): ReactNode => {
+      if (empty !== undefined) {
+        if (typeof empty === 'function') {
+          return empty();
+        }
+
+        if (isObject(empty) && !React.isValidElement(empty)) {
+          return <Empty {...empty} prefixCls={`${prefixCls}-empty`} />;
+        }
+
+        return empty as ReactNode;
+      }
+
+      return <Empty prefixCls={`${prefixCls}-empty`} />;
+    }, [empty, prefixCls]);
+
     const renderBodyNode: BodyNodeRenderer = useCallback(
       (bodyItem, renderInfo) => (
         <BodyItem
@@ -378,7 +416,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
         })}
         ref={composeRef(ref, wrapperRef)}
       >
-        <Spin prefixCls={`${prefixCls}-spin`} spinning={loading}>
+        <Spin {...spinProps} prefixCls={`${prefixCls}-spin`}>
           <ColumnPreviewStyleScope
             component={TableComponent}
             className={classNames(
@@ -446,7 +484,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
                         className={noDataCellContentCls}
                         style={emptyCellContentStyle}
                       >
-                        <Empty prefixCls={`${prefixCls}-empty`} />
+                        {renderEmptyText()}
                       </div>
                     </BodyCellComponent>
                   </BodyRowComponent>

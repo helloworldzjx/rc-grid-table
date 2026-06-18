@@ -1,3 +1,4 @@
+import type { EmptyProps, SpinProps } from 'antd';
 import type {
   CSSProperties,
   ElementType,
@@ -383,6 +384,14 @@ export interface TableSticky {
   offsetStickyScroller?: number;
 }
 
+export type TableLoadingProps = Omit<SpinProps, 'prefixCls'>;
+
+export type TableLoading = boolean | TableLoadingProps;
+
+export type TableEmptyProps = Omit<EmptyProps, 'prefixCls'>;
+
+export type TableEmpty = TableEmptyProps | ReactNode | (() => ReactNode);
+
 export type ColumnState<T = any> = {
   key: Key;
   dataIndex?: Key;
@@ -467,7 +476,11 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
    * @description 加载状态
    * @default false
    */
-  loading?: boolean;
+  loading?: TableLoading;
+  /**
+   * @description 空状态
+   */
+  empty?: TableEmpty;
   /**
    * @description 行的唯一标识符
    * @default "key"
