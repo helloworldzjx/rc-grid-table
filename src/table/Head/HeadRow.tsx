@@ -46,7 +46,7 @@ const SORTABLE_SCROLL_IDLE_DELAY = 120;
 const fixedColumnDroppableMeasuring = {
   droppable: {
     strategy: MeasuringStrategy.Always,
-    frequency: 16,
+    frequency: 60,
   },
 };
 
