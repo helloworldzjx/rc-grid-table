@@ -13,6 +13,7 @@ import React, {
 } from 'react';
 
 import { isNum, isValidKey } from '../_utils/validate';
+import { useConfig } from '../configProvider/context';
 import ComponentsContext from './contexts/ComponentsContext';
 import DataSortContext from './contexts/DataSortContext';
 import ExpandableContext from './contexts/ExpandableContext';
@@ -71,10 +72,11 @@ type TableComponent = (<T = any>(
 };
 
 function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
+  const config = useConfig();
   const {
     ready = true,
     rowKey = 'key',
-    prefixCls = 'rc-grid-table',
+    prefixCls: customizePrefixCls,
     columns = [],
     dataSource = [],
     dataSort,
@@ -109,6 +111,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     style,
     ...nativeProps
   } = props;
+  const prefixCls = customizePrefixCls ?? config.prefixCls;
 
   /** bug ref https://github.com/helloworldzjx/rc-grid-table/issues/1 */
   const lockContainerWidth = useRef(false);
@@ -264,6 +267,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
   const baseProps: TableContextProps<T> = useMemo(() => {
     return {
       initialized,
+      prefixCls,
       containerWidth,
       containerHeight,
       rowKey,
@@ -286,6 +290,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     };
   }, [
     initialized,
+    prefixCls,
     containerWidth,
     containerHeight,
     rowKey,
@@ -443,8 +448,8 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
       summary,
       sticky,
       virtual,
-      loading,
-      empty,
+      loading: loading ?? config.table?.loading,
+      empty: empty ?? config.table?.empty,
       style,
     }),
     [
@@ -464,6 +469,8 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
       virtual,
       loading,
       empty,
+      config.table?.loading,
+      config.table?.empty,
       style,
     ],
   );

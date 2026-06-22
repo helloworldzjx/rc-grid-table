@@ -1,6 +1,8 @@
 import { createContext, useContext } from 'react';
 
-const PrefixClsContext = createContext('rc-grid-table');
+import { defaultPrefixCls } from '../../configProvider/context';
+
+const PrefixClsContext = createContext(defaultPrefixCls);
 
 const usePrefixClsContext = () => useContext(PrefixClsContext);
 

@@ -9,11 +9,7 @@ import { useMemo } from 'react';
 import { COLUMNS_SORT_OVERLAY_POINTER_OFFSET_X } from '../../_utils/const';
 import useToken from '../../theme/hooks/useToken';
 import { usePrefixClsContext } from '../contexts/PrefixClsContext';
-import {
-  darkTableToken,
-  lightTableToken,
-  type ComponentToken,
-} from '../design';
+import { prepareTableToken, type TableComponentToken } from '../design';
 import {
   ComponentClsType,
   CssVarType,
@@ -44,7 +40,7 @@ const genInitialStyle = ({
 
 const genPlaceholderStyle = (
   { componentCls, placeholderCls, placeholderDisabledCls }: ComponentClsType,
-  token: ComponentToken,
+  token: TableComponentToken,
 ): CSSInterpolation => ({
   [`.${componentCls}`]: {
     [`.${placeholderCls}`]: {
@@ -163,7 +159,7 @@ const genBorderedStyle = (
     pingEndCls,
     headCellResizeHandleCls,
   }: ComponentClsType,
-  token: ComponentToken,
+  token: TableComponentToken,
 ): CSSInterpolation => ({
   [`.${componentCls}.${borderedCls}`]: {
     '&::before': {
@@ -257,7 +253,7 @@ const genBorderedStyle = (
 
 const genHeadStyle = (
   { headCls, headStickyCls, headInnerCls, headRowCls }: ComponentClsType,
-  token: ComponentToken,
+  token: TableComponentToken,
   { columnsWidthCssVar }: CssVarType,
 ): CSSInterpolation => ({
   [`.${headCls}`]: {
@@ -303,7 +299,7 @@ const genBodyStyle = (
     bodyGridRowCls,
     bodySortDraggingOverlayRowCls,
   }: ComponentClsType,
-  token: ComponentToken,
+  token: TableComponentToken,
   { columnsWidthCssVar }: CssVarType,
 ): CSSInterpolation => ({
   [`.${bodyCls}`]: {
@@ -363,7 +359,7 @@ const genSummaryCls = (
     summaryInnerCls,
     summaryRowCls,
   }: ComponentClsType,
-  token: ComponentToken,
+  token: TableComponentToken,
   { columnsWidthCssVar }: CssVarType,
 ): CSSInterpolation => ({
   [`.${summaryCls}`]: {
@@ -450,7 +446,7 @@ const genCellStyle = (
     previewHiddenCellCls,
     previewRestoredCellCls,
   }: ComponentClsType,
-  token: ComponentToken,
+  token: TableComponentToken,
 ): CSSInterpolation => ({
   [`.${headRowCls}`]: {
     [`.${cellCls}`]: {
@@ -858,7 +854,7 @@ const genFixedCellStyle = (
     fixedEndCellCls,
     fixedEndFirstCellCls,
   }: ComponentClsType,
-  token: ComponentToken,
+  token: TableComponentToken,
 ): CSSInterpolation => ({
   [`.${headRowCls} .${fixedStartCellCls}, .${headRowCls} .${fixedEndCellCls}`]:
     {
@@ -1016,7 +1012,7 @@ const genSizeClsStyle = (
     cellCls,
     noDataCellContentCls,
   }: ComponentClsType,
-  token: ComponentToken,
+  token: TableComponentToken,
 ): CSSInterpolation => ({
   [`.${componentCls}.${componentSMCls} .${headRowCls}`]: {
     [`.${cellCls}:not(.${headLastCellCls})::before`]: {
@@ -1057,7 +1053,7 @@ const genSizeClsStyle = (
 
 const genStripeClsStyle = (
   { stripeCls, bodyRowCls, cellCls }: ComponentClsType,
-  token: ComponentToken,
+  token: TableComponentToken,
 ): CSSInterpolation => ({
   [`.${stripeCls} .${bodyRowCls}:nth-of-type(even) .${cellCls}`]: {
     backgroundColor: token.colorBgLayout,
@@ -1066,7 +1062,7 @@ const genStripeClsStyle = (
 
 const genEmptyClsStyle = (
   { noDataCls, noDataCellContentCls }: ComponentClsType,
-  token: ComponentToken,
+  token: TableComponentToken,
 ): CSSInterpolation => ({
   [`.${noDataCls}`]: {
     [`.${noDataCellContentCls}`]: {
@@ -1081,7 +1077,7 @@ const genNestStyles = (
   clsObj: ComponentClsType,
   scrollbarClsObj: ScrollbarClsType,
   cssVar: CssVarType,
-  mergedToken: ComponentToken,
+  mergedToken: TableComponentToken,
 ): CSSInterpolation => [
   genInitialStyle(clsObj),
   genPlaceholderStyle(clsObj, mergedToken),
@@ -1113,20 +1109,46 @@ const genNestStyles = (
   { [`.${clsObj.componentCls}`]: genScrollBarStyle(scrollbarClsObj) },
 ];
 
+const getTokenPathKey = (token: Partial<TableComponentToken>) =>
+  Object.keys(token)
+    .sort()
+    .map((key) => `${key}:${token[key as keyof TableComponentToken]}`)
+    .join(';');
+
 export const useStyles = () => {
   const prefixCls = usePrefixClsContext();
-  const [theme, token, hashId, realToken, isDark, cssVar] = useToken();
+  const [theme, token, hashId, realToken, isDark, cssVar, components] =
+    useToken();
 
   const clsObj = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
   const scrollbarClsObj = useMemo(
     () => getScrollbarCls(prefixCls),
     [prefixCls],
   );
+
   const componentCssVar = useMemo(() => getCssVar(prefixCls), [prefixCls]);
+
+  const tableToken = components?.Table;
+  const defaultTableToken = useMemo(
+    () => prepareTableToken(realToken, isDark),
+    [realToken, isDark],
+  );
+  const mergedComponentToken = useMemo(
+    () => ({
+      ...defaultTableToken,
+      ...tableToken,
+    }),
+    [defaultTableToken, tableToken],
+  );
+
+  const componentTokenKey = useMemo(
+    () => getTokenPathKey(mergedComponentToken),
+    [mergedComponentToken],
+  );
 
   const [cssVarToken] = useCSSVarRegister(
     {
-      path: [prefixCls],
+      path: [prefixCls, componentTokenKey],
       key: cssVar?.key as string,
       token: realToken,
       prefix: prefixCls,
@@ -1138,24 +1160,19 @@ export const useStyles = () => {
       },
       scope: clsObj.wrapperCls,
     },
-    // @ts-ignore
-    () => (isDark ? darkTableToken : lightTableToken),
+    () => mergedComponentToken,
   );
 
   const mergedToken: any = useMemo(
     () => ({
       ...token,
-      ...(cssVar?.key
-        ? cssVarToken
-        : isDark
-        ? darkTableToken
-        : lightTableToken),
+      ...(cssVar?.key ? cssVarToken : mergedComponentToken),
     }),
-    [token, cssVar?.key, cssVarToken, isDark],
+    [token, cssVar?.key, cssVarToken, mergedComponentToken],
   );
 
   useStyleRegister(
-    { theme, token, hashId, path: [prefixCls, `${isDark}`] },
+    { theme, token, hashId, path: [prefixCls, `${isDark}`, componentTokenKey] },
     () => genNestStyles(clsObj, scrollbarClsObj, componentCssVar, mergedToken),
   );
 

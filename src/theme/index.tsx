@@ -1,13 +1,13 @@
-import type { Theme } from '@ant-design/cssinjs';
 import { createTheme } from '@ant-design/cssinjs';
 import { TinyColor } from '@ctrl/tinycolor';
-import React, { createContext, FC, PropsWithChildren } from 'react';
+import { createContext } from 'react';
 
 import useInternalToken from './hooks/useToken';
 import {
   DerivativeToken,
   DesignToken,
-  DesignTokenContextPorps,
+  DesignTokenContextProps,
+  ThemeConfig,
 } from './interface';
 
 export const defaultDesignToken: DesignToken = {
@@ -28,8 +28,7 @@ const defaultDerivativeToken = {
   colorTextLightSolid: '#fff',
 } as DerivativeToken;
 
-// 亮色
-export function lightDerivative(designToken: DesignToken): DerivativeToken {
+export function defaultAlgorithm(designToken: DesignToken): DerivativeToken {
   return {
     ...designToken,
     ...defaultDerivativeToken,
@@ -53,8 +52,7 @@ export function lightDerivative(designToken: DesignToken): DerivativeToken {
   };
 }
 
-// 暗色
-export function darkDerivative(designToken: DesignToken): DerivativeToken {
+export function darkAlgorithm(designToken: DesignToken): DerivativeToken {
   return {
     ...designToken,
     ...defaultDerivativeToken,
@@ -80,27 +78,24 @@ export function darkDerivative(designToken: DesignToken): DerivativeToken {
   };
 }
 
-export const LightThemeContext = createContext<
-  Theme<DesignToken, DerivativeToken>
->(createTheme(lightDerivative));
-export const DarkThemeContext = createContext<
-  Theme<DesignToken, DerivativeToken>
->(createTheme(darkDerivative));
+const defaultTheme = createTheme(defaultAlgorithm);
 
-export const DesignTokenContext = createContext<DesignTokenContextPorps>({
+export const DesignTokenContext = createContext<DesignTokenContextProps>({
   token: defaultDesignToken,
   isDark: false,
+  theme: defaultTheme,
 });
 
-export const DesignTokenProvider: FC<
-  PropsWithChildren<DesignTokenContextPorps>
-> = ({ children, ...rest }) => {
-  return (
-    <DesignTokenContext.Provider value={rest}>
-      {children}
-    </DesignTokenContext.Provider>
-  );
-};
+export function getDesignToken(config: ThemeConfig = {}) {
+  const algorithm = config.algorithm ?? defaultAlgorithm;
+  const theme = createTheme(algorithm);
+  const token = {
+    ...defaultDesignToken,
+    ...config.token,
+  };
+
+  return theme.getDerivativeToken(token);
+}
 
 function useToken() {
   const [theme, token, hashId, , isDark] = useInternalToken();
@@ -108,11 +103,18 @@ function useToken() {
   return { theme, token, hashId, isDark };
 }
 
-export type { DerivativeToken, DesignToken };
+export type {
+  DerivativeToken,
+  DesignToken,
+  DesignTokenContextProps,
+  ThemeAlgorithm,
+  ThemeConfig,
+} from './interface';
 
 export default {
-  LightThemeContext,
-  DarkThemeContext,
-  DesignTokenProvider,
+  DesignTokenContext,
   useToken,
+  defaultAlgorithm,
+  darkAlgorithm,
+  getDesignToken,
 };

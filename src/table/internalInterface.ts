@@ -86,7 +86,6 @@ export interface DataSortContextProps {
 }
 
 type TableFeatureContextKey =
-  | 'prefixCls'
   | 'components'
   | 'dataSort'
   | 'expandable'

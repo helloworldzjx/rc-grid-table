@@ -1,8 +1,13 @@
-import { Theme, useCacheToken } from "@ant-design/cssinjs";
-import { useContext } from "react";
+import { Theme, useCacheToken } from '@ant-design/cssinjs';
+import { useContext } from 'react';
 
-import { DarkThemeContext, defaultDesignToken, DesignTokenContext, LightThemeContext } from "..";
-import { DerivativeToken, DesignToken, DesignTokenContextPorps } from "../interface";
+import { defaultDesignToken, DesignTokenContext } from '..';
+import {
+  DerivativeToken,
+  DesignToken,
+  DesignTokenContextProps,
+  ThemeComponents,
+} from '../interface';
 
 function useToken(): [
   theme: Theme<DesignToken, DerivativeToken>,
@@ -10,16 +15,17 @@ function useToken(): [
   hashId: string,
   realToken: DerivativeToken,
   isDark: boolean,
-  cssVar?: DesignTokenContextPorps['cssVar'],
+  cssVar?: DesignTokenContextProps['cssVar'],
+  components?: ThemeComponents,
 ] {
   const {
     token: rootDesignToken = {},
     isDark,
     hashed,
     cssVar,
+    theme,
+    components,
   } = useContext(DesignTokenContext);
-  
-  const theme = useContext(isDark ? DarkThemeContext : LightThemeContext);
 
   const [token, hashId, actualToken] = useCacheToken<
     DerivativeToken,
@@ -33,8 +39,16 @@ function useToken(): [
       },
     },
   });
-  
-  return [theme, token, hashed ? hashId : '', actualToken, isDark, cssVar];
+
+  return [
+    theme,
+    token,
+    hashed ? hashId : '',
+    actualToken,
+    isDark,
+    cssVar,
+    components,
+  ];
 }
 
-export default useToken
+export default useToken;
