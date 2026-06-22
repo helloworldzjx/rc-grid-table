@@ -237,7 +237,6 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       childrenColumnName,
       rowSortable,
       flattenColumns,
-      bodyScrollElement,
       bodyScrollLeft,
     });
 
@@ -493,7 +492,6 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
                 <DndContext
                   sensors={rowSort.sensors}
                   collisionDetection={closestCenter}
-                  autoScroll={rowSortRuntime.autoScroll}
                   onDragStart={rowSort.onDragStart}
                   onDragEnd={rowSort.onDragEnd}
                   onDragCancel={rowSort.onDragCancel}

@@ -29,7 +29,6 @@ interface UseTableRowSortProps<T = any> {
   childrenColumnName: string;
   rowSortable?: RowSortableConfig<T>;
   flattenColumns: InternalColumnState<T>[];
-  bodyScrollElement?: HTMLDivElement | null;
   bodyScrollLeft: number;
 }
 
@@ -85,7 +84,6 @@ export default function useTableRowSort<T = any>({
   childrenColumnName,
   rowSortable,
   flattenColumns,
-  bodyScrollElement,
   bodyScrollLeft,
 }: UseTableRowSortProps<T>) {
   const rowSortableEnabled = !!rowSortable;
@@ -129,8 +127,6 @@ export default function useTableRowSort<T = any>({
       return keys;
     }, []);
   }, [bodyItems, rowSortableEnabled]);
-
-  const lastItem = useMemo(() => items[items.length - 1], [items]);
 
   const activeBodyItem = useMemo(() => {
     if (!isValidKey(activeKey)) {
@@ -336,15 +332,6 @@ export default function useTableRowSort<T = any>({
     [rowSortColumnFixed, scrollLeftOffsetModifiers],
   );
 
-  const getAutoScroll = useCallback(
-    (inVirtual: boolean) => ({
-      canScroll: (element: Element) =>
-        element === bodyScrollElement &&
-        (inVirtual ? true : lastItem === undefined),
-    }),
-    [bodyScrollElement, lastItem],
-  );
-
   const getOverlayRenderInfo = useCallback(
     (inVirtual: boolean): BodyNodeRenderInfo<T> | undefined => {
       if (!activeBodyItem) {
@@ -382,11 +369,10 @@ export default function useTableRowSort<T = any>({
 
   const getRuntime = useCallback(
     (inVirtual: boolean) => ({
-      autoScroll: getAutoScroll(inVirtual),
       overlayModifiers: getOverlayModifiers(inVirtual),
       overlayRenderInfo: getOverlayRenderInfo(inVirtual),
     }),
-    [getAutoScroll, getOverlayModifiers, getOverlayRenderInfo],
+    [getOverlayModifiers, getOverlayRenderInfo],
   );
 
   return useMemo(
