@@ -421,7 +421,7 @@ export default function useVirtualBody<ItemType extends KeyedVirtualBodyItem>({
   let offsetY = 0;
 
   if (inVirtual) {
-    const top = offsetTop;
+    const top = keepInRange(offsetTop);
     const bottom = top + (scrollY || 0);
     let startIndex = 0;
     let endIndex = data.length - 1;
