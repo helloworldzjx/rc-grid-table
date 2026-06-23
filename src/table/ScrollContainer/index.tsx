@@ -39,7 +39,7 @@ const ScrollContainer = forwardRef<
       hasVertical,
       verticalThumbHeight,
       handleContentScroll,
-      handleVerticalDrag,
+      handleVerticalPointerDown,
       scrollTo,
       scrollToTop,
       scrollToBottom,
@@ -128,12 +128,12 @@ const ScrollContainer = forwardRef<
             [yScrollBarShowCls]: showVerticalScrollbar,
           })}
           ref={verticalTrackRef}
-          onMouseDown={handleVerticalDrag}
           style={verticalTrackStyle}
         >
           <div
             className={yScrollBarThumbCls}
             ref={verticalThumbRef}
+            onPointerDown={handleVerticalPointerDown}
             style={verticalThumbStyle}
           />
         </div>

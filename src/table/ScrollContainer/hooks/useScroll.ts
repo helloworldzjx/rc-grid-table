@@ -1,6 +1,6 @@
 import { useIsomorphicLayoutEffect } from 'ahooks';
 import {
-  MouseEventHandler,
+  PointerEventHandler,
   UIEventHandler,
   useCallback,
   useEffect,
@@ -9,11 +9,6 @@ import {
 } from 'react';
 
 import { MIN_THUMB_SIZE } from '../../../_utils/const';
-import {
-  getPageY,
-  preventDefaultIfCancelable,
-  type DragEventLike,
-} from '../../../_utils/event';
 import { useElementRef } from '../../../_utils/hooks/useElementRef';
 import { cancelRaf, raf } from '../../../_utils/raf';
 import { ScrollBarContainerProps } from '../interface';
@@ -41,8 +36,11 @@ const useScroll = ({
   const verticalDragStateRef = useRef({
     top: 0,
     dragging: false,
-    pageY: 0,
+    pointerId: null as number | null,
+    clientY: 0,
     startTop: 0,
+    maxTranslateY: 0,
+    maxScrollTop: 0,
   });
   const verticalScrollFrameRef = useRef<number | null>(null);
   const verticalScrollTopRef = useRef(0);
@@ -55,6 +53,7 @@ const useScroll = ({
     if (!wrapperElement || !contentElement) return;
 
     const wrapperHeight = wrapperElement.clientHeight;
+    const contentClientHeight = contentElement.clientHeight;
     const contentHeight = contentElement.scrollHeight;
     const hasV = contentHeight > wrapperHeight;
     const nextThumbHeight =
@@ -67,7 +66,20 @@ const useScroll = ({
 
     setHasVertical(hasV);
     setVerticalThumbHeight(nextThumbHeight);
-  }, [contentElement, showVertical, wrapperElement]);
+
+    if (verticalDragStateRef.current.dragging) {
+      const trackHeight = verticalTrackElement?.clientHeight || wrapperHeight;
+
+      verticalDragStateRef.current.maxTranslateY = Math.max(
+        trackHeight - nextThumbHeight,
+        0,
+      );
+      verticalDragStateRef.current.maxScrollTop = Math.max(
+        contentHeight - contentClientHeight,
+        0,
+      );
+    }
+  }, [contentElement, showVertical, verticalTrackElement, wrapperElement]);
 
   useIsomorphicLayoutEffect(() => {
     updateVerticalScrollbar();
@@ -127,30 +139,25 @@ const useScroll = ({
         return;
       }
 
-      cancelRaf(verticalScrollFrameRef.current);
-      verticalScrollFrameRef.current = raf(() => {
-        verticalScrollFrameRef.current = null;
-        flushVerticalScroll();
-      });
+      if (verticalScrollFrameRef.current === null) {
+        verticalScrollFrameRef.current = raf(() => {
+          verticalScrollFrameRef.current = null;
+          flushVerticalScroll();
+        });
+      }
     },
     [flushVerticalScroll],
   );
 
   const scrollByThumbTop = useCallback(
     (top: number) => {
-      const content = contentElement;
-      const track = verticalTrackElement;
-      const thumb = verticalThumbElement;
-      if (!track || !thumb || !content) return 0;
+      if (!verticalThumbElement) return 0;
 
-      const trackHeight = track.clientHeight;
-      const thumbHeight = verticalThumbHeight || thumb.offsetHeight;
-      const maxTranslateY = trackHeight - thumbHeight;
-      const maxScrollTop = content.scrollHeight - content.clientHeight;
-      const nextTop = Math.min(Math.max(top, 0), Math.max(maxTranslateY, 0));
+      const { maxScrollTop, maxTranslateY } = verticalDragStateRef.current;
+      const nextTop = Math.min(Math.max(top, 0), maxTranslateY);
 
       verticalDragStateRef.current.top = nextTop;
-      thumb.style.transform = `translateY(${nextTop}px)`;
+      verticalThumbElement.style.transform = `translateY(${nextTop}px)`;
 
       if (maxTranslateY <= 0 || maxScrollTop <= 0) {
         return 0;
@@ -161,13 +168,7 @@ const useScroll = ({
 
       return nextTop;
     },
-    [
-      contentElement,
-      requestVerticalScroll,
-      verticalThumbElement,
-      verticalThumbHeight,
-      verticalTrackElement,
-    ],
+    [requestVerticalScroll, verticalThumbElement],
   );
 
   const flushVerticalScrollRef = useRef(flushVerticalScroll);
@@ -178,96 +179,79 @@ const useScroll = ({
   scrollByThumbTopRef.current = scrollByThumbTop;
   syncVerticalScrollbarRef.current = syncVerticalScrollbar;
 
-  const startVerticalThumbDrag = useCallback(
-    (event: DragEventLike) => {
-      if (!wrapperElement || !verticalThumbElement || !verticalTrackElement) {
-        return;
-      }
+  const handleVerticalPointerDown: PointerEventHandler<HTMLDivElement> =
+    useCallback(
+      (event) => {
+        if (!wrapperElement || !contentElement) {
+          return;
+        }
+        if (!verticalThumbElement || !verticalTrackElement) {
+          return;
+        }
+        if (event.button !== 0) return;
 
-      verticalDragStateRef.current = {
-        top: verticalDragStateRef.current.top,
-        dragging: true,
-        pageY: getPageY(event),
-        startTop: verticalDragStateRef.current.top,
-      };
+        const trackHeight = verticalTrackElement.clientHeight;
+        const thumbHeight =
+          verticalThumbHeight || verticalThumbElement.offsetHeight;
+        const maxTranslateY = Math.max(trackHeight - thumbHeight, 0);
+        const maxScrollTop = Math.max(
+          contentElement.scrollHeight - contentElement.clientHeight,
+          0,
+        );
 
-      wrapperElement.style.userSelect = 'none';
-      if (contentElement) {
+        verticalDragStateRef.current = {
+          top: verticalDragStateRef.current.top,
+          dragging: true,
+          pointerId: event.pointerId,
+          clientY: event.clientY,
+          startTop: verticalDragStateRef.current.top,
+          maxTranslateY,
+          maxScrollTop,
+        };
+
+        wrapperElement.style.userSelect = 'none';
         contentElement.style.pointerEvents = 'none';
-      }
-      event.stopPropagation();
-      preventDefaultIfCancelable(event);
-    },
-    [
-      contentElement,
-      verticalThumbElement,
-      verticalTrackElement,
-      wrapperElement,
-    ],
-  );
-
-  const handleVerticalDrag: MouseEventHandler<HTMLDivElement> = useCallback(
-    (event) => {
-      event.stopPropagation();
-      preventDefaultIfCancelable(event);
-
-      const thumb = verticalThumbElement;
-      const track = verticalTrackElement;
-      if (!thumb || !track) return;
-
-      if (event.target === thumb) {
-        startVerticalThumbDrag(event);
-      }
-    },
-    [startVerticalThumbDrag, verticalThumbElement, verticalTrackElement],
-  );
+        event.stopPropagation();
+        if (event.cancelable) {
+          event.preventDefault();
+        }
+      },
+      [
+        contentElement,
+        verticalThumbHeight,
+        verticalThumbElement,
+        verticalTrackElement,
+        wrapperElement,
+      ],
+    );
 
   useEffect(() => {
-    if (!verticalTrackElement || !verticalThumbElement) return undefined;
-
-    const handleTrackTouchStart = (event: TouchEvent) => {
-      preventDefaultIfCancelable(event);
-    };
-
-    const handleThumbTouchStart = (event: TouchEvent) => {
-      startVerticalThumbDrag(event);
-    };
-
-    verticalTrackElement.addEventListener('touchstart', handleTrackTouchStart, {
-      passive: false,
-    });
-    verticalThumbElement.addEventListener('touchstart', handleThumbTouchStart, {
-      passive: false,
-    });
-
-    return () => {
-      verticalTrackElement.removeEventListener(
-        'touchstart',
-        handleTrackTouchStart,
-      );
-      verticalThumbElement.removeEventListener(
-        'touchstart',
-        handleThumbTouchStart,
-      );
-    };
-  }, [startVerticalThumbDrag, verticalThumbElement, verticalTrackElement]);
-
-  useEffect(() => {
-    const handleMove = (event: MouseEvent | TouchEvent) => {
-      const { dragging, pageY, startTop } = verticalDragStateRef.current;
+    const handleMove = (event: PointerEvent) => {
+      const { dragging, pointerId, clientY, startTop } =
+        verticalDragStateRef.current;
       if (!dragging) return;
+      if (event.pointerId !== pointerId) return;
 
-      const offset = getPageY(event) - pageY;
+      if (event.cancelable) {
+        event.preventDefault();
+      }
+
+      const offset = event.clientY - clientY;
       scrollByThumbTopRef.current(startTop + offset);
     };
 
-    const handleUp = () => {
+    const handleUp = (event: PointerEvent) => {
+      const { dragging, pointerId } = verticalDragStateRef.current;
+      if (!dragging) return;
+      if (event.pointerId !== pointerId) return;
+
       if (verticalScrollFrameRef.current !== null) {
         cancelRaf(verticalScrollFrameRef.current);
         verticalScrollFrameRef.current = null;
         flushVerticalScrollRef.current();
       }
       verticalDragStateRef.current.dragging = false;
+      verticalDragStateRef.current.pointerId = null;
       const wrapper = wrapperElementRef.current;
       const content = contentElementRef.current;
 
@@ -280,16 +264,14 @@ const useScroll = ({
       }
     };
 
-    window.addEventListener('mousemove', handleMove, { passive: true });
-    window.addEventListener('touchmove', handleMove, { passive: true });
-    window.addEventListener('mouseup', handleUp, { passive: true });
-    window.addEventListener('touchend', handleUp, { passive: true });
+    window.addEventListener('pointermove', handleMove, { passive: false });
+    window.addEventListener('pointerup', handleUp, { passive: true });
+    window.addEventListener('pointercancel', handleUp, { passive: true });
 
     return () => {
-      window.removeEventListener('mousemove', handleMove);
-      window.removeEventListener('touchmove', handleMove);
-      window.removeEventListener('mouseup', handleUp);
-      window.removeEventListener('touchend', handleUp);
+      window.removeEventListener('pointermove', handleMove);
+      window.removeEventListener('pointerup', handleUp);
+      window.removeEventListener('pointercancel', handleUp);
       cancelRaf(verticalScrollFrameRef.current);
       const content = contentElementRef.current;
       if (content) {
@@ -353,7 +335,7 @@ const useScroll = ({
     hasVertical,
     verticalThumbHeight,
     handleContentScroll,
-    handleVerticalDrag,
+    handleVerticalPointerDown,
     scrollTo,
     scrollToTop,
     scrollToBottom,

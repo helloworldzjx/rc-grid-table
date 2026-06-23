@@ -1,5 +1,5 @@
 import { useIsomorphicLayoutEffect } from 'ahooks';
-import type { MouseEventHandler, UIEventHandler } from 'react';
+import type { PointerEventHandler, UIEventHandler } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
@@ -203,70 +203,97 @@ export const useTableScroll = ({
     (event) => {
       onScroll?.(event);
       if (syncingScrollLeftRef.current) return;
-      if (event.currentTarget.scrollLeft === lastBodyScrollLeftRef.current) {
+
+      const scrollLeft = event.currentTarget.scrollLeft;
+      if (scrollLeft === lastBodyScrollLeftRef.current) {
         return;
       }
-      lastBodyScrollLeftRef.current = event.currentTarget.scrollLeft;
+      lastBodyScrollLeftRef.current = scrollLeft;
       syncScrollLeft(event.currentTarget);
     },
     [onScroll, syncScrollLeft],
   );
 
-  const handleHorizontalDrag: MouseEventHandler<HTMLDivElement> = useCallback(
-    (event) => {
-      const content = bodyScrollElement;
-      const thumb = horizontalThumbElement;
-      const track = event.currentTarget;
-      if (!hasHorizontal || !content || !thumb) return;
+  const handleHorizontalPointerDown: PointerEventHandler<HTMLDivElement> =
+    useCallback(
+      (event) => {
+        if (!hasHorizontal) return;
 
-      event.preventDefault();
-      document.documentElement.style.userSelect = 'none';
-      horizontalDraggingRef.current = true;
+        const content = bodyScrollElement;
+        const thumb = horizontalThumbElement;
+        const track = thumb?.parentElement;
 
-      const trackRect = track.getBoundingClientRect();
-      const thumbRect = thumb.getBoundingClientRect();
-      const startClientX = event.clientX;
-      const startThumbLeft = thumbRect.left - trackRect.left;
+        if (!content || !thumb || !track) return;
+        if (event.button !== 0) return;
 
-      const moveHandler = (moveEvent: MouseEvent) => {
-        const deltaX = moveEvent.clientX - startClientX;
-        const trackWidth = track.clientWidth;
-        const thumbWidth = horizontalThumbWidth || thumb.offsetWidth;
-        const maxTranslateX = trackWidth - thumbWidth;
-        const maxScrollLeft = getMaxScrollLeft(content);
+        if (event.cancelable) {
+          event.preventDefault();
+        }
+        document.documentElement.style.userSelect = 'none';
+        horizontalDraggingRef.current = true;
 
-        if (maxTranslateX <= 0 || maxScrollLeft <= 0) return;
+        const trackRect = track.getBoundingClientRect();
+        const thumbRect = thumb.getBoundingClientRect();
+        const pointerId = event.pointerId;
+        const startClientX = event.clientX;
+        const startThumbLeft = thumbRect.left - trackRect.left;
 
-        const nextTranslateX = Math.min(
-          Math.max(startThumbLeft + deltaX, 0),
-          maxTranslateX,
-        );
-        const percent = nextTranslateX / maxTranslateX;
-        thumb.style.transform = `translateX(${nextTranslateX}px)`;
-        content.scrollLeft = percent * maxScrollLeft;
-        syncScrollLeft(content);
-      };
+        const moveHandler = (moveEvent: PointerEvent) => {
+          if (moveEvent.pointerId !== pointerId) return;
+          if (moveEvent.cancelable) {
+            moveEvent.preventDefault();
+          }
 
-      const upHandler = () => {
-        horizontalDraggingRef.current = false;
-        document.documentElement.style.userSelect = '';
-        syncHorizontalThumb(content);
-        document.documentElement.removeEventListener('mousemove', moveHandler);
-        document.documentElement.removeEventListener('mouseup', upHandler);
-      };
+          const deltaX = moveEvent.clientX - startClientX;
+          const trackWidth = track.clientWidth;
+          const thumbWidth = horizontalThumbWidth || thumb.offsetWidth;
+          const maxTranslateX = trackWidth - thumbWidth;
+          const maxScrollLeft = getMaxScrollLeft(content);
 
-      document.documentElement.addEventListener('mousemove', moveHandler);
-      document.documentElement.addEventListener('mouseup', upHandler);
-    },
-    [
-      bodyScrollElement,
-      hasHorizontal,
-      horizontalThumbElement,
-      horizontalThumbWidth,
-      syncScrollLeft,
-      syncHorizontalThumb,
-    ],
-  );
+          if (maxTranslateX <= 0 || maxScrollLeft <= 0) return;
+
+          const nextTranslateX = Math.min(
+            Math.max(startThumbLeft + deltaX, 0),
+            maxTranslateX,
+          );
+          const percent = nextTranslateX / maxTranslateX;
+          thumb.style.transform = `translateX(${nextTranslateX}px)`;
+          content.scrollLeft = percent * maxScrollLeft;
+          syncScrollLeft(content);
+        };
+
+        const upHandler = (upEvent: PointerEvent) => {
+          if (upEvent.pointerId !== pointerId) return;
+
+          horizontalDraggingRef.current = false;
+          document.documentElement.style.userSelect = '';
+          syncHorizontalThumb(content);
+          document.documentElement.removeEventListener(
+            'pointermove',
+            moveHandler,
+          );
+          document.documentElement.removeEventListener('pointerup', upHandler);
+          document.documentElement.removeEventListener(
+            'pointercancel',
+            upHandler,
+          );
+        };
+
+        document.documentElement.addEventListener('pointermove', moveHandler, {
+          passive: false,
+        });
+        document.documentElement.addEventListener('pointerup', upHandler);
+        document.documentElement.addEventListener('pointercancel', upHandler);
+      },
+      [
+        bodyScrollElement,
+        hasHorizontal,
+        horizontalThumbElement,
+        horizontalThumbWidth,
+        syncScrollLeft,
+        syncHorizontalThumb,
+      ],
+    );
 
   const scrollTo = useCallback(
     (options?: ScrollToOptions) => {
@@ -360,7 +387,7 @@ export const useTableScroll = ({
     isEnd,
     setHasVertical,
     handleBodyScroll,
-    handleHorizontalDrag,
+    handleHorizontalPointerDown,
     syncScrollLeft,
     syncScrollState,
     scrollTo,

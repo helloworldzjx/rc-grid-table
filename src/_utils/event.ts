@@ -22,8 +22,16 @@ export type DragEventLike =
 
 export const getPageY = (event: DragEventLike) => {
   if ('touches' in event) {
-    return event.touches[0]?.pageY ?? 0;
+    return event.touches[0]?.pageY ?? event.changedTouches[0]?.pageY ?? 0;
   }
 
   return event.pageY;
+};
+
+export const getPageX = (event: DragEventLike) => {
+  if ('touches' in event) {
+    return event.touches[0]?.pageX ?? event.changedTouches[0]?.pageX ?? 0;
+  }
+
+  return event.pageX;
 };

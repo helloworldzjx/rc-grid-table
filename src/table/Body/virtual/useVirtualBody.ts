@@ -60,15 +60,16 @@ const getVirtualConfig = (
     isNum(config.rowHeight) && config.rowHeight > 0
       ? config.rowHeight
       : undefined;
+  const visibleCount = Math.ceil((scrollY || 0) / estimatedRowHeight);
   const overscan =
     isNum(config.rowOverscan) && config.rowOverscan >= 0
       ? Math.floor(config.rowOverscan)
-      : Math.ceil((scrollY || 0) / estimatedRowHeight);
+      : Math.ceil(visibleCount / 2);
 
   return {
     estimatedRowHeight,
     fixedRowHeight,
-    overscan: Math.max(1, overscan),
+    overscan: Math.max(2, overscan),
   };
 };
 
@@ -339,10 +340,13 @@ export default function useVirtualBody<ItemType extends KeyedVirtualBodyItem>({
     if (scrollTopRef.current !== offsetTop) {
       setOffsetTop(scrollTopRef.current);
     }
+
+    if (!scrollElement) return;
+
+    const scrollElScrollTop = scrollElement.scrollTop;
     if (
-      scrollElement &&
-      isNum(scrollElement.scrollTop) &&
-      scrollElement.scrollTop !== scrollTopRef.current
+      isNum(scrollElScrollTop) &&
+      scrollElScrollTop !== scrollTopRef.current
     ) {
       scrollElement.scrollTop = scrollTopRef.current;
     }

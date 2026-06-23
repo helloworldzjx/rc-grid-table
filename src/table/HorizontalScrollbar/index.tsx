@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { MouseEventHandler, RefCallback, useMemo } from 'react';
+import React, { PointerEventHandler, RefCallback, useMemo } from 'react';
 
 import { isNum, isObject } from '../../_utils/validate';
 import type { TableSticky } from '../interface';
@@ -12,7 +12,7 @@ interface HorizontalScrollbarProps {
   trackRef: RefCallback<HTMLDivElement>;
   thumbRef: RefCallback<HTMLDivElement>;
   thumbWidth: number;
-  onMouseDown: MouseEventHandler<HTMLDivElement>;
+  onThumbPointerDown: PointerEventHandler<HTMLDivElement>;
 }
 
 const getStickyOffset = (sticky?: boolean | TableSticky) => {
@@ -29,7 +29,7 @@ const HorizontalScrollbar: React.FC<HorizontalScrollbarProps> = ({
   trackRef,
   thumbRef,
   thumbWidth,
-  onMouseDown,
+  onThumbPointerDown,
 }) => {
   const {
     xScrollBarCls,
@@ -54,10 +54,14 @@ const HorizontalScrollbar: React.FC<HorizontalScrollbarProps> = ({
         [xScrollBarShowCls]: visible,
       })}
       ref={trackRef}
-      onMouseDown={onMouseDown}
       style={scrollbarStyle}
     >
-      <div className={xScrollBarThumbCls} ref={thumbRef} style={thumbStyle} />
+      <div
+        className={xScrollBarThumbCls}
+        ref={thumbRef}
+        onPointerDown={onThumbPointerDown}
+        style={thumbStyle}
+      />
     </div>
   );
 };

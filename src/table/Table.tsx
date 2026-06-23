@@ -212,7 +212,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       isEnd,
       setHasVertical,
       handleBodyScroll,
-      handleHorizontalDrag,
+      handleHorizontalPointerDown,
       scrollTo: scrollBodyTo,
       scrollToTop: scrollBodyToTop,
       scrollToLeft,
@@ -539,7 +539,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
               trackRef={horizontalTrackRef}
               thumbRef={horizontalThumbRef}
               thumbWidth={horizontalThumbWidth}
-              onMouseDown={handleHorizontalDrag}
+              onThumbPointerDown={handleHorizontalPointerDown}
             />
 
             <Placeholder />

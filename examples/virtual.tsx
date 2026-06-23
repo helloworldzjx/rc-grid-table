@@ -222,7 +222,6 @@ const App: React.FC = () => {
         scrollY={420}
         sticky={{ offsetHeader: 76 }}
         virtual={{
-          rowOverscan: 6,
           ...(rowHeightEnabled && {
             rowHeight: 56,
             expandedRowHeight: 80,
