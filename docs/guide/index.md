@@ -1,7 +1,7 @@
 ---
 nav:
   title: 指南
-  order: -1
+  order: 1
 ---
 
 # 快速开始
@@ -11,22 +11,33 @@ nav:
 ```bash
 npm install rc-grid-table
 ```
+
 or
+
 ```bash
 yarn add rc-grid-table
 ```
 
 ## 使用
-```js
-import { Table } from "rc-grid-table"
 
-<Table 
-  columns={[]} 
-  dataSource={[]} 
-  resizableColumns 
-  sortableColumns 
-/>
+```tsx | pure
+import { Table } from 'rc-grid-table';
+
+export default () => (
+  <Table
+    columns={[]}
+    dataSource={[]}
+    resizableColumns
+    sortableColumns
+    visibleColumns
+    fixableColumns
+  />
+);
 ```
+
+## Table 组件特性
+
+<embed src="../../README.md#L27-L40"></embed>
 
 ## 问题反馈
 

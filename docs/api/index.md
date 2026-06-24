@@ -1,5 +1,7 @@
 ---
-nav: API
+nav:
+  title: API
+  order: 3
 title: Table
 order: 1
 ---
