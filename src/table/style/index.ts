@@ -750,14 +750,14 @@ const genCellStyle = (
     color: token.colorText,
     cursor: 'grab',
     boxSizing: 'border-box',
-    // transition: 'border-color 0.2s, color 0.2s, background-color 0.2s',
+    transition: 'border-color 0.2s, color 0.2s, background-color 0.2s',
 
-    '&:hover': {
+    [`&:not(.${rowSortHandleDisabledCls}):hover`]: {
       color: token.colorText,
       backgroundColor: token.cellColorHoverBg,
     },
 
-    '&:not(:disabled):active': {
+    [`&:not(.${rowSortHandleDisabledCls}):active`]: {
       cursor: 'grabbing',
     },
 
@@ -771,11 +771,6 @@ const genCellStyle = (
   [`.${rowSortHandleDisabledCls}`]: {
     cursor: 'not-allowed',
     opacity: 0.4,
-
-    '&:hover': {
-      color: token.colorText,
-      backgroundColor: token.colorBgContainer,
-    },
   },
 
   [`.${rowSortHandleDraggingCls}`]: {
@@ -1060,10 +1055,10 @@ const genSizeClsStyle = (
 });
 
 const genStripeClsStyle = (
-  { stripeCls, bodyRowCls, cellCls }: ComponentClsType,
+  { componentCls, stripeCls, bodyStripeRowCls, cellCls }: ComponentClsType,
   token: TableComponentToken,
 ): CSSInterpolation => ({
-  [`.${stripeCls} .${bodyRowCls}:nth-of-type(even) .${cellCls}`]: {
+  [`.${componentCls}.${stripeCls} .${bodyStripeRowCls} .${cellCls}`]: {
     backgroundColor: token.colorBgLayout,
   },
 });
@@ -1183,10 +1178,12 @@ export const useStyles = () => {
     () => mergedComponentToken,
   );
 
-  const mergedToken: any = useMemo(
+  const mergedToken = useMemo(
     () => ({
       ...token,
-      ...(cssVar?.key ? cssVarToken : mergedComponentToken),
+      ...((cssVar?.key
+        ? cssVarToken
+        : mergedComponentToken) as TableComponentToken),
     }),
     [token, cssVar?.key, cssVarToken, mergedComponentToken],
   );

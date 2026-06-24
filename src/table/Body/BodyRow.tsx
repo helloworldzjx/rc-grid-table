@@ -15,6 +15,7 @@ import { useColumnSortPreviewLayoutContext } from '../contexts/ColumnSortPreview
 import { useComponentsContext } from '../contexts/ComponentsContext';
 import { useExpandableContext } from '../contexts/ExpandableContext';
 import { usePrefixClsContext } from '../contexts/PrefixClsContext';
+import { useTableContext } from '../contexts/TableContext';
 import useFixedInfo from '../hooks/useFixedInfo';
 import type { InternalColumnState, StickyOffsets } from '../internalInterface';
 import { useRowSort } from '../RowSort';
@@ -71,9 +72,11 @@ function BodyRow({
   rowSortDragging = false,
 }: BodyRowProps) {
   const prefixCls = usePrefixClsContext();
+  const { stripe } = useTableContext();
 
   const {
     bodyRowCls,
+    bodyStripeRowCls,
     bodyGridRowCls,
     bodyFixedHeightRowCls,
     bodyExpandableRowCls,
@@ -181,6 +184,7 @@ function BodyRow({
         bodyRowCls,
         {
           [bodyGridRowCls]: virtual,
+          [bodyStripeRowCls]: stripe && (rowIndex + 1) % 2 === 0,
           [bodyFixedHeightRowCls]: hasFixedRowHeight,
           [bodyExpandableRowCls]: expandByClick,
           [bodySortDraggingRowCls]: rowSort.active && !rowSortOverlay,

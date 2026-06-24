@@ -199,7 +199,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
   );
 
   const onTriggerExpand = useCallback(
-    (record: any) => {
+    (record: T) => {
       const key = getRecordKey(record, rowKey);
       if (!isValidKey(key)) {
         warningInvalidRecordKey(rowKey, 'row expansion', key);
