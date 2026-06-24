@@ -13,6 +13,7 @@ import type { BodyRenderMode } from './interface';
 interface ExpandedRowProps {
   children?: ReactNode;
   className?: string;
+  expanded?: boolean;
   style?: CSSProperties;
   rowHeight?: number;
   rowRef?: Ref<HTMLDivElement>;
@@ -24,6 +25,7 @@ interface ExpandedRowProps {
 const ExpandedRow: FC<ExpandedRowProps> = ({
   children,
   className,
+  expanded = true,
   style,
   rowHeight,
   rowRef,
@@ -58,15 +60,22 @@ const ExpandedRow: FC<ExpandedRowProps> = ({
   const hasFixedRowHeight = isNum(rowHeight) && rowHeight > 0;
 
   const mergedStyle = useMemo<CSSProperties | undefined>(() => {
+    const displayStyle = expanded
+      ? style
+      : ({
+          ...style,
+          display: 'none',
+        } as CSSProperties);
+
     if (!hasFixedRowHeight) {
-      return style;
+      return displayStyle;
     }
 
     return {
-      ...style,
+      ...displayStyle,
       [bodyFixedHeightRowCssVar]: `${rowHeight}px`,
     } as CSSProperties;
-  }, [bodyFixedHeightRowCssVar, hasFixedRowHeight, rowHeight, style]);
+  }, [bodyFixedHeightRowCssVar, expanded, hasFixedRowHeight, rowHeight, style]);
 
   const expandedRowCellWidth = Math.min(
     columnsWidthTotal,
@@ -79,6 +88,13 @@ const ExpandedRow: FC<ExpandedRowProps> = ({
       width: expandedRowCellWidth,
     }),
     [expandedRowCellWidth, flattenColumns.length],
+  );
+
+  const contentStyle = useMemo<CSSProperties>(
+    () => ({
+      paddingInlineStart: indent * (expandable?.indentSize ?? 15),
+    }),
+    [indent, expandable?.indentSize],
   );
 
   const RowComponent = useMemo(
@@ -109,12 +125,7 @@ const ExpandedRow: FC<ExpandedRowProps> = ({
         className={classNames(cellCls, expandedRowCellCls)}
         style={cellStyle}
       >
-        <div
-          className={expandedRowContentCls}
-          style={{
-            paddingInlineStart: indent * (expandable?.indentSize ?? 15),
-          }}
-        >
+        <div className={expandedRowContentCls} style={contentStyle}>
           {children}
         </div>
       </CellComponent>

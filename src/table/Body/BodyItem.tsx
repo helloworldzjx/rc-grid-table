@@ -49,13 +49,20 @@ function BodyItem<T = any>({
         item.indent,
         item.expanded,
       ),
-    [item.record, item.rowIndex, item.indent, item.expanded],
+    [
+      expandable?.expandedRowRender,
+      item.record,
+      item.rowIndex,
+      item.indent,
+      item.expanded,
+    ],
   );
 
   if (item.type === 'expanded') {
     return (
       <ExpandedRow
         className={item.className}
+        expanded={item.expanded}
         indent={1}
         style={renderInfo.style}
         rowHeight={expandedRowHeight}

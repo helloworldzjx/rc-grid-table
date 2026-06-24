@@ -36,13 +36,13 @@ import FixedShadowContext from './contexts/FixedShadowContext';
 import { usePrefixClsContext } from './contexts/PrefixClsContext';
 import { useRowSortableContext } from './contexts/RowSortableContext';
 import { useTableContext } from './contexts/TableContext';
+import useBodyItems from './hooks/useBodyItems';
 import useFixedShadow from './hooks/useFixedShadow';
 import useTableRowSort from './hooks/useTableRowSort';
 import useTableScroll from './hooks/useTableScroll';
 import type { TableProps, TableRef } from './interface';
 import { useStyles } from './style';
 import { getComponentCls, getCssVar } from './style/classNames';
-import { getBodyItems } from './utils/bodyItems';
 import { parseHeaderRows } from './utils/handle';
 import { getVirtualFixedHeightConfig } from './utils/virtual';
 
@@ -58,7 +58,7 @@ const getStickyOffset = (
 
 interface GridTableProps {
   nativeProps?: React.HTMLAttributes<HTMLDivElement>;
-  tableRef?: React.Ref<TableRef>;
+  imperativeRef?: React.Ref<TableRef>;
   startColumnsStatePreview?: TableRef['startColumnsStatePreview'];
   saveColumnsStatePreview?: TableRef['saveColumnsStatePreview'];
   cancelColumnsStatePreview?: TableRef['cancelColumnsStatePreview'];
@@ -70,7 +70,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
   (
     {
       nativeProps,
-      tableRef,
+      imperativeRef,
       startColumnsStatePreview,
       saveColumnsStatePreview,
       cancelColumnsStatePreview,
@@ -168,32 +168,16 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       return parseHeaderRows(columns);
     }, [columns]);
 
-    const expandedRowKeySet = useMemo(
-      () => new Set(mergedExpandedRowKeys),
-      [mergedExpandedRowKeys],
-    );
-
-    const { bodyItems, rowDataItemCount, hasTreeData } = useMemo(
-      () =>
-        getBodyItems({
-          dataSource,
-          rowKey,
-          childrenColumnName,
-          expandedRowKeySet,
-          expandable,
-          hasExpandedRowRender,
-          isTreeMode,
-        }),
-      [
-        childrenColumnName,
+    const { bodyItems, normalBodyItems, rowDataItemCount, hasTreeData } =
+      useBodyItems({
         dataSource,
+        rowKey,
+        childrenColumnName,
+        mergedExpandedRowKeys,
         expandable,
-        expandedRowKeySet,
         hasExpandedRowRender,
         isTreeMode,
-        rowKey,
-      ],
-    );
+      });
 
     const {
       tableHeadRef,
@@ -241,6 +225,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
 
     const virtualBody = useTableVirtualBody({
       bodyItems,
+      normalBodyItems,
       flattenDataLength: rowDataItemCount,
       flattenColumns,
       preserveItemKey: rowSort.preserveItemKey,
@@ -254,7 +239,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       extraUpdateDeps: [mergedExpandedRowKeys, columnsWidthTotal],
     });
 
-    useImperativeHandle(tableRef, () => ({
+    useImperativeHandle(imperativeRef, () => ({
       nativeElement: wrapperRef.current!,
       scrollTo: virtualBody.scrollTo,
       scrollToTop: virtualBody.scrollToTop,

@@ -19,6 +19,7 @@ import useVirtualBody from './useVirtualBody';
 
 interface UseTableVirtualBodyProps<T = any> {
   bodyItems: BodyItem<T>[];
+  normalBodyItems?: BodyItem<T>[];
   flattenDataLength: number;
   flattenColumns: InternalColumnState<T>[];
   preserveItemKey?: React.Key | null;
@@ -37,6 +38,7 @@ const isBodyRowItem = <T,>(item: BodyItem<T>): item is BodyRowItem<T> =>
 
 export default function useTableVirtualBody<T = any>({
   bodyItems,
+  normalBodyItems,
   flattenDataLength,
   flattenColumns,
   preserveItemKey,
@@ -85,6 +87,9 @@ export default function useTableVirtualBody<T = any>({
     size,
     getItemFixedHeight,
   });
+  const renderBodyItems = useMemo(() => {
+    return inVirtual ? bodyItems : normalBodyItems ?? bodyItems;
+  }, [inVirtual, bodyItems, normalBodyItems]);
 
   const preservedItem = useMemo(() => {
     if (
@@ -369,16 +374,24 @@ export default function useTableVirtualBody<T = any>({
     () => [
       ...extraUpdateDeps,
       bodyItems.length,
+      renderBodyItems.length,
       scrollY,
       inVirtual,
       scrollHeight,
     ],
-    [bodyItems.length, extraUpdateDeps, inVirtual, scrollHeight, scrollY],
+    [
+      bodyItems.length,
+      extraUpdateDeps,
+      inVirtual,
+      renderBodyItems.length,
+      scrollHeight,
+      scrollY,
+    ],
   );
 
   const virtualBodyProps = useMemo(
     () => ({
-      bodyItems,
+      bodyItems: renderBodyItems,
       inVirtual,
       scrollHeight,
       offsetY,
@@ -389,11 +402,11 @@ export default function useTableVirtualBody<T = any>({
       onItemResize: collectHeight,
     }),
     [
-      bodyItems,
       collectHeight,
       inVirtual,
       offsetY,
       preservedItem,
+      renderBodyItems,
       rowSpanItems,
       scrollHeight,
       setItemRef,

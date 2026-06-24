@@ -19,7 +19,7 @@ interface DataType {
   name: string;
   platform: string;
   version: string;
-  type: 'release' | 'alpha';
+  versionLabel: 'release' | 'alpha';
   upgradeNum: number;
   creator: string;
   createdAt: string;
@@ -39,7 +39,7 @@ const dataSource = Array.from({ length: 5 }).map<DataType>((_, i) => ({
   name: 'Screen',
   platform: 'iOS',
   version: '10.3.4.5654',
-  type: (i + 1) % 2 === 0 ? 'alpha' : 'release',
+  versionLabel: (i + 1) % 2 === 0 ? 'alpha' : 'release',
   upgradeNum: 500,
   creator: 'Jack',
   createdAt: '2014-12-24 23:12:00',
@@ -69,18 +69,30 @@ const expandColumns: ColumnsType<ExpandedDataType> = [
 const columns: ColumnsType<DataType> = [
   { title: 'Name', dataIndex: 'name', key: 'name' },
   { title: 'Platform', dataIndex: 'platform', key: 'platform' },
-  { title: 'Version', dataIndex: 'version', key: 'version' },
   {
-    title: 'Type',
-    dataIndex: 'type',
-    render: (value) => (
+    title: 'Version',
+    dataIndex: 'version',
+    key: 'version',
+    width: 110,
+  },
+  {
+    title: 'Version Label',
+    dataIndex: 'versionLabel',
+    width: 130,
+    render: (value: DataType['versionLabel']) => (
       <Tag color={value === 'release' ? 'blue' : 'pink'}>{value}</Tag>
     ),
   },
   { title: 'Upgraded', dataIndex: 'upgradeNum', key: 'upgradeNum' },
   { title: 'Creator', dataIndex: 'creator', key: 'creator' },
   { title: 'Date', dataIndex: 'createdAt', key: 'createdAt' },
-  { title: 'Action', key: 'operation', render: () => <Link>Publish</Link> },
+  {
+    title: 'Action',
+    key: 'operation',
+    render: (_, record) => (
+      <Link disabled={record.versionLabel === 'release'}>Publish</Link>
+    ),
+  },
 ];
 
 const App: React.FC = () => {
@@ -104,10 +116,10 @@ const App: React.FC = () => {
         dataSource={dataSource}
         expandable={{
           columnOverlayTitle: '展开列',
-          defaultExpandedRowKeys: ['1'],
+          defaultExpandedRowKeys: ['0'],
           fixed: 'start',
           expandedRowRender,
-          rowExpandable: (record) => record.type === 'release',
+          rowExpandable: (record) => record.versionLabel === 'release',
         }}
       />
     </>

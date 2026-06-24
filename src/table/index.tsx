@@ -1,5 +1,7 @@
-import ResizeObserver, { OnResize } from '@rc-component/resize-observer';
-import { useDebounceFn } from 'ahooks';
+import ResizeObserver, {
+  OnResize as onResizeFn,
+} from '@rc-component/resize-observer';
+import { useIsomorphicLayoutEffect, useSafeState } from 'ahooks';
 import React, {
   ForwardedRef,
   Key,
@@ -115,8 +117,9 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
 
   /** bug ref https://github.com/helloworldzjx/rc-grid-table/issues/1 */
   const lockContainerWidth = useRef(false);
-  const [containerWidth, setContainerWidth] = useState(0);
-  const [containerHeight, setContainerHeight] = useState(0);
+  const internalTableRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useSafeState(0);
+  const [containerHeight, setContainerHeight] = useSafeState(0);
   const [innerExpandedRowKeys, setInnerExpandedRowKeys] = useState<Key[]>(
     () => {
       if (expandable?.expandedRowKeys) return expandable.expandedRowKeys;
@@ -254,15 +257,30 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     [components],
   );
 
-  const { run: onResize } = useDebounceFn<OnResize>(
-    ({ width, height }) => {
-      if (!lockContainerWidth.current) {
-        setContainerWidth(width);
-      }
-      setContainerHeight(height);
-    },
-    { wait: 5 },
-  );
+  const onResize: onResizeFn = useCallback(({ width, height }) => {
+    if (!lockContainerWidth.current) {
+      setContainerWidth(width);
+    }
+    setContainerHeight(height);
+  }, []);
+
+  useIsomorphicLayoutEffect(() => {
+    const element = internalTableRef.current;
+    if (!element) {
+      return;
+    }
+
+    const { width, height } = element.getBoundingClientRect();
+    onResize(
+      {
+        width: Math.floor(width),
+        height: Math.floor(height),
+        offsetWidth: element.offsetWidth,
+        offsetHeight: element.offsetHeight,
+      },
+      element,
+    );
+  }, [onResize]);
 
   const baseProps: TableContextProps<T> = useMemo(() => {
     return {
@@ -502,8 +520,9 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
                         >
                           <ResizeObserver onResize={onResize}>
                             <InternalTable
+                              ref={internalTableRef}
                               nativeProps={nativeProps}
-                              tableRef={ref}
+                              imperativeRef={ref}
                               startColumnsStatePreview={
                                 startColumnsStatePreview
                               }

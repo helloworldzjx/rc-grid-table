@@ -10,6 +10,7 @@ interface GetBodyItemsOptions<T = any> {
   rowKey: RowKey<T>;
   childrenColumnName: string;
   expandedRowKeySet: Set<Key>;
+  preservedExpandedRowKeySet?: Set<Key>;
   expandable?: ExpandableConfig<T>;
   hasExpandedRowRender: boolean;
   isTreeMode: boolean;
@@ -26,6 +27,7 @@ export const getBodyItems = <T = any>({
   rowKey,
   childrenColumnName,
   expandedRowKeySet,
+  preservedExpandedRowKeySet,
   expandable,
   hasExpandedRowRender,
   isTreeMode,
@@ -42,6 +44,8 @@ export const getBodyItems = <T = any>({
     const hasValidKey = isValidKey(key);
     const rowReactKey = hasValidKey ? key : rowIndex;
     const expanded = hasValidKey ? expandedRowKeySet.has(key) : false;
+    const preservedExpanded =
+      hasValidKey && !!preservedExpandedRowKeySet?.has(key);
     const children = isTreeMode
       ? getRecordChildren(rowData, childrenColumnName)
       : [];
@@ -68,7 +72,11 @@ export const getBodyItems = <T = any>({
       invalidRowKey: !hasValidKey,
     });
 
-    if (hasExpandedRowRender && expanded && rowExpandable) {
+    if (
+      hasExpandedRowRender &&
+      rowExpandable &&
+      (expanded || preservedExpanded)
+    ) {
       const expandedRowClassName =
         typeof expandable?.expandedRowClassName === 'function'
           ? expandable.expandedRowClassName(rowData, rowIndex, indent)

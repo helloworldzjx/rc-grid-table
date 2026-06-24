@@ -15,7 +15,7 @@ interface DataType {
   note: string;
 }
 
-const groupSize = 6;
+const groupSize = 5;
 
 const App: React.FC = () => {
   const tableRef = useRef<TableRef>(null);
