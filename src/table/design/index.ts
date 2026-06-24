@@ -12,10 +12,14 @@ export interface TableComponentToken extends Partial<DerivativeToken> {
   cellPaddingInline: number | string;
   cellColorHoverBg: string;
   cellColorActiveBg: string;
+  fixedColumnShadowColor: string;
   sortableCellColorBg: string;
   overableCellColorBg: string;
   previewHiddenCellColorBg: string;
   previewRestoredCellColorBg: string;
+  scrollbarThumbColor: string;
+  scrollbarThumbHoverColor: string;
+  scrollbarThumbActiveColor: string;
 }
 
 type BaseTableToken = Pick<
@@ -40,6 +44,7 @@ const baseTableToken: BaseTableToken = {
 const prepareLightTableToken = (
   token: DerivativeToken,
 ): TableComponentToken => {
+  const colorTextBase = new TinyColor(token.colorTextBase);
   const colorBgBase = new TinyColor(token.colorBgBase);
   const colorPrimary = new TinyColor(token.colorPrimary);
 
@@ -48,26 +53,35 @@ const prepareLightTableToken = (
     placeholderColorBg: colorBgBase.darken(7).toRgbString(),
     cellColorHoverBg: colorBgBase.darken(5).toRgbString(),
     cellColorActiveBg: colorBgBase.darken(9).toRgbString(),
-    sortableCellColorBg: colorPrimary.lighten(40).toRgbString(),
-    overableCellColorBg: colorPrimary.lighten(43).toRgbString(),
-    previewHiddenCellColorBg: colorPrimary.lighten(43).toRgbString(),
-    previewRestoredCellColorBg: colorPrimary.lighten(40).toRgbString(),
+    fixedColumnShadowColor: colorTextBase.setAlpha(0.1).toRgbString(),
+    sortableCellColorBg: colorPrimary.lighten(35).toRgbString(),
+    overableCellColorBg: colorPrimary.lighten(42).toRgbString(),
+    previewHiddenCellColorBg: colorPrimary.lighten(42).toRgbString(),
+    previewRestoredCellColorBg: colorPrimary.lighten(35).toRgbString(),
+    scrollbarThumbColor: colorTextBase.setAlpha(0.2).toRgbString(),
+    scrollbarThumbHoverColor: colorTextBase.setAlpha(0.35).toRgbString(),
+    scrollbarThumbActiveColor: colorTextBase.setAlpha(0.5).toRgbString(),
   };
 };
 
 const prepareDarkTableToken = (token: DerivativeToken): TableComponentToken => {
+  const colorTextBase = new TinyColor(token.colorTextBase);
   const colorBgBase = new TinyColor(token.colorBgBase);
   const colorPrimary = new TinyColor(token.colorPrimary);
 
   return {
     ...baseTableToken,
-    placeholderColorBg: colorBgBase.darken(92).toRgbString(),
-    cellColorHoverBg: colorBgBase.darken(90).toRgbString(),
-    cellColorActiveBg: colorBgBase.darken(93).toRgbString(),
-    sortableCellColorBg: colorBgBase.darken(82).toRgbString(),
-    overableCellColorBg: colorBgBase.darken(80).toRgbString(),
-    previewHiddenCellColorBg: colorPrimary.darken(80).toRgbString(),
-    previewRestoredCellColorBg: colorBgBase.darken(82).toRgbString(),
+    placeholderColorBg: colorBgBase.lighten(10).toRgbString(),
+    cellColorHoverBg: colorBgBase.lighten(12).toRgbString(),
+    cellColorActiveBg: colorBgBase.lighten(11).toRgbString(),
+    fixedColumnShadowColor: colorTextBase.setAlpha(0.1).toRgbString(),
+    sortableCellColorBg: colorPrimary.darken(8).toRgbString(),
+    overableCellColorBg: colorPrimary.darken(20).toRgbString(),
+    previewHiddenCellColorBg: colorPrimary.darken(20).toRgbString(),
+    previewRestoredCellColorBg: colorPrimary.darken(8).toRgbString(),
+    scrollbarThumbColor: colorTextBase.setAlpha(0.2).toRgbString(),
+    scrollbarThumbHoverColor: colorTextBase.setAlpha(0.35).toRgbString(),
+    scrollbarThumbActiveColor: colorTextBase.setAlpha(0.5).toRgbString(),
   };
 };
 

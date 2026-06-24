@@ -6,6 +6,7 @@ import {
   SCROLLBAR_THUMB_ABSOLUTE_LEFT_TOP,
   SCROLLBAR_THUMB_SIZE,
 } from '../../_utils/const';
+import type { TableComponentToken } from '../design';
 
 export const genScrollbarToggleShowStyle = (
   initialCls: string,
@@ -22,15 +23,18 @@ export const genScrollbarToggleShowStyle = (
   },
 });
 
-export const genScrollBarStyle = ({
-  xScrollBarCls,
-  xScrollBarStickyCls,
-  xScrollBarThumbCls,
-  xScrollBarShowCls,
-  yScrollBarCls,
-  yScrollBarThumbCls,
-  yScrollBarShowCls,
-}: ScrollbarClsType): CSSInterpolation => ({
+export const genScrollBarStyle = (
+  {
+    xScrollBarCls,
+    xScrollBarStickyCls,
+    xScrollBarThumbCls,
+    xScrollBarShowCls,
+    yScrollBarCls,
+    yScrollBarThumbCls,
+    yScrollBarShowCls,
+  }: ScrollbarClsType,
+  token: TableComponentToken,
+): CSSInterpolation => ({
   [`.${xScrollBarCls}`]: {
     position: 'absolute',
     width: '100%',
@@ -44,7 +48,7 @@ export const genScrollBarStyle = ({
     zIndex: 1,
 
     [`&.${xScrollBarShowCls} .${xScrollBarThumbCls}`]: {
-      backgroundColor: 'rgba(0, 0, 0, 0.3)',
+      backgroundColor: token.scrollbarThumbColor,
     },
 
     [`.${xScrollBarThumbCls}`]: {
@@ -56,11 +60,11 @@ export const genScrollBarStyle = ({
       transition: 'background-color 0.2s',
 
       '&:hover': {
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        backgroundColor: token.scrollbarThumbHoverColor,
       },
 
       '&:active': {
-        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        backgroundColor: token.scrollbarThumbActiveColor,
       },
     },
   },
@@ -85,7 +89,7 @@ export const genScrollBarStyle = ({
     zIndex: 1,
 
     [`&.${yScrollBarShowCls} .${yScrollBarThumbCls}`]: {
-      backgroundColor: 'rgba(0, 0, 0, 0.3)',
+      backgroundColor: token.scrollbarThumbColor,
     },
 
     [`.${yScrollBarThumbCls}`]: {
@@ -97,11 +101,11 @@ export const genScrollBarStyle = ({
       transition: 'background-color 0.2s',
 
       '&:hover': {
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        backgroundColor: token.scrollbarThumbHoverColor,
       },
 
       '&:active': {
-        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        backgroundColor: token.scrollbarThumbActiveColor,
       },
     },
   },

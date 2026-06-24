@@ -10,7 +10,6 @@ import classNames from 'classnames';
 import React, {
   CSSProperties,
   forwardRef,
-  ReactNode,
   useCallback,
   useImperativeHandle,
   useMemo,
@@ -376,20 +375,24 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       };
     }, [loading]);
 
-    const renderEmptyText = useCallback((): ReactNode => {
+    const renderEmptyText = useCallback(() => {
       if (empty !== undefined) {
-        if (typeof empty === 'function') {
-          return empty();
-        }
+        const image =
+          empty.image === undefined
+            ? Empty.PRESENTED_IMAGE_SIMPLE
+            : empty.image;
 
-        if (isObject(empty) && !React.isValidElement(empty)) {
-          return <Empty {...empty} prefixCls={`${prefixCls}-empty`} />;
-        }
-
-        return empty as ReactNode;
+        return (
+          <Empty {...empty} image={image} prefixCls={`${prefixCls}-empty`} />
+        );
       }
 
-      return <Empty prefixCls={`${prefixCls}-empty`} />;
+      return (
+        <Empty
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+          prefixCls={`${prefixCls}-empty`}
+        />
+      );
     }, [empty, prefixCls]);
 
     const renderBodyNode: BodyNodeRenderer = useCallback(

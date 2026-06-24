@@ -13,8 +13,8 @@ import {
 export const defaultDesignToken: DesignToken = {
   lineHeightBase: 1.5,
   fontSizeBase: 14,
-  colorTextBase: '#000',
-  colorBgBase: '#fff',
+  colorTextBase: '',
+  colorBgBase: '',
 
   colorPrimary: '#1890ff',
 
@@ -28,53 +28,46 @@ const defaultDerivativeToken = {
   colorTextLightSolid: '#fff',
 } as DerivativeToken;
 
+const getAlphaColor = (baseColor: string, alpha: number) =>
+  new TinyColor(baseColor).setAlpha(alpha).toRgbString();
+
+const getSolidColor = (baseColor: string, brightness: number, dark = false) => {
+  const color = new TinyColor(baseColor);
+
+  return (
+    dark ? color.lighten(brightness) : color.darken(brightness)
+  ).toHexString();
+};
+
 export function defaultAlgorithm(designToken: DesignToken): DerivativeToken {
+  const colorTextBase = designToken.colorTextBase || '#000';
+  const colorBgBase = designToken.colorBgBase || '#fff';
+
   return {
     ...designToken,
     ...defaultDerivativeToken,
-    colorText: new TinyColor(designToken.colorTextBase)
-      .lighten(15)
-      .toRgbString(),
-    primaryColorHover: new TinyColor(designToken.colorPrimary)
-      .lighten(40)
-      .toRgbString(),
-    primaryColorDisabled: new TinyColor(designToken.colorPrimary)
-      .desaturate(100)
-      .setAlpha(0.7)
-      .toRgbString(),
-    colorBgContainer: '#fff',
-    colorBgLayout: new TinyColor(designToken.colorBgBase)
-      .darken(3)
-      .toRgbString(),
-    colorBorder: new TinyColor(designToken.colorBgBase)
-      .darken(13)
-      .toRgbString(),
+    colorTextBase,
+    colorBgBase,
+    colorText: getAlphaColor(colorTextBase, 0.88),
+    colorBgContainer: getSolidColor(colorBgBase, 0),
+    colorBgLayout: getSolidColor(colorBgBase, 3),
+    colorBorder: getSolidColor(colorBgBase, 13),
   };
 }
 
 export function darkAlgorithm(designToken: DesignToken): DerivativeToken {
+  const colorTextBase = designToken.colorTextBase || '#fff';
+  const colorBgBase = designToken.colorBgBase || '#000';
+
   return {
     ...designToken,
     ...defaultDerivativeToken,
-    colorText: new TinyColor(designToken.colorTextBase)
-      .lighten(92)
-      .toRgbString(),
-    primaryColorHover: new TinyColor(designToken.colorPrimary)
-      .setAlpha(0.7)
-      .toRgbString(),
-    primaryColorDisabled: new TinyColor(designToken.colorPrimary)
-      .desaturate(100)
-      .setAlpha(0.7)
-      .toRgbString(),
-    colorBgContainer: new TinyColor(designToken.colorBgBase)
-      .darken(84)
-      .toRgbString(),
-    colorBgLayout: new TinyColor(designToken.colorBgBase)
-      .darken(88)
-      .toRgbString(),
-    colorBorder: new TinyColor(designToken.colorBgBase)
-      .darken(76)
-      .toRgbString(),
+    colorTextBase,
+    colorBgBase,
+    colorText: getAlphaColor(colorTextBase, 0.85),
+    colorBgContainer: getSolidColor(colorBgBase, 8, true),
+    colorBgLayout: getSolidColor(colorBgBase, 13, true),
+    colorBorder: getSolidColor(colorBgBase, 26, true),
   };
 }
 

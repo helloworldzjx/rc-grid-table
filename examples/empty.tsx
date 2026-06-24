@@ -49,7 +49,7 @@ const App: React.FC = () => {
         columns={columns}
         dataSource={[]}
         empty={{
-          image: Empty.PRESENTED_IMAGE_SIMPLE,
+          image: Empty.PRESENTED_IMAGE_DEFAULT,
           description: 'No projects yet',
           children: <Button type="primary">Create project</Button>,
         }}

@@ -841,6 +841,12 @@ const genCellStyle = (
   },
 });
 
+const getFixedStartShadow = (token: TableComponentToken) =>
+  `inset 10px 0 8px -8px ${token.fixedColumnShadowColor}`;
+
+const getFixedEndShadow = (token: TableComponentToken) =>
+  `inset -10px 0 8px -8px ${token.fixedColumnShadowColor}`;
+
 const genFixedCellStyle = (
   {
     pingStartCls,
@@ -880,7 +886,7 @@ const genFixedCellStyle = (
     bottom: 0,
     right: 0,
     transform: 'translateX(100%)',
-    boxShadow: 'inset 10px 0 8px -8px rgba(0, 0, 0, 0.1)',
+    boxShadow: getFixedStartShadow(token),
     opacity: 0,
     transition: 'opacity 0.3s',
     pointerEvents: 'none',
@@ -895,7 +901,7 @@ const genFixedCellStyle = (
     bottom: 0,
     left: 0,
     transform: 'translateX(-100%)',
-    boxShadow: 'inset -10px 0 8px -8px rgba(0, 0, 0, 0.1)',
+    boxShadow: getFixedEndShadow(token),
     opacity: 0,
     transition: 'opacity 0.3s',
     pointerEvents: 'none',
@@ -919,20 +925,23 @@ const genFixedCellStyle = (
     },
 });
 
-const genFixedShadowStyle = ({
-  componentCls,
-  hasFixStartColumnsCls,
-  hasFixEndColumnsCls,
-  fixColumnsGappedCls,
-  pingStartCls,
-  pingEndCls,
-  hasXScrollbarCls,
-  headRowCls,
-  fixedStartLastCellCls,
-  fixedStartShadowActiveCellCls,
-  fixedEndFirstCellCls,
-  fixedEndShadowActiveCellCls,
-}: ComponentClsType): CSSInterpolation => ({
+const genFixedShadowStyle = (
+  {
+    componentCls,
+    hasFixStartColumnsCls,
+    hasFixEndColumnsCls,
+    fixColumnsGappedCls,
+    pingStartCls,
+    pingEndCls,
+    hasXScrollbarCls,
+    headRowCls,
+    fixedStartLastCellCls,
+    fixedStartShadowActiveCellCls,
+    fixedEndFirstCellCls,
+    fixedEndShadowActiveCellCls,
+  }: ComponentClsType,
+  token: TableComponentToken,
+): CSSInterpolation => ({
   [`.${componentCls}.${hasXScrollbarCls}`]: {
     '&::after': {
       content: "' '",
@@ -949,14 +958,13 @@ const genFixedShadowStyle = ({
     },
 
     [`&.${pingStartCls}::after`]: {
-      boxShadow: 'inset 10px 0 8px -8px rgba(0, 0, 0, 0.1)',
+      boxShadow: getFixedStartShadow(token),
     },
     [`&.${pingEndCls}::after`]: {
-      boxShadow: 'inset -10px 0 8px -8px rgba(0, 0, 0, 0.1)',
+      boxShadow: getFixedEndShadow(token),
     },
     [`&.${pingStartCls}.${pingEndCls}::after`]: {
-      boxShadow:
-        'inset -10px 0 8px -8px rgba(0, 0, 0, 0.1), inset 10px 0 8px -8px rgba(0, 0, 0, 0.1)',
+      boxShadow: `${getFixedEndShadow(token)}, ${getFixedStartShadow(token)}`,
     },
 
     [`&.${hasFixStartColumnsCls}:not(.${hasFixEndColumnsCls}).${pingStartCls}:not(.${pingEndCls})::after`]:
@@ -965,7 +973,7 @@ const genFixedShadowStyle = ({
       },
     [`&.${hasFixStartColumnsCls}:not(.${hasFixEndColumnsCls}).${pingStartCls}.${pingEndCls}::after`]:
       {
-        boxShadow: 'inset -10px 0 8px -8px rgba(0, 0, 0, 0.1)',
+        boxShadow: getFixedEndShadow(token),
       },
     [`&.${hasFixEndColumnsCls}:not(.${hasFixStartColumnsCls}).${pingEndCls}:not(.${pingStartCls})::after`]:
       {
@@ -973,7 +981,7 @@ const genFixedShadowStyle = ({
       },
     [`&.${hasFixEndColumnsCls}:not(.${hasFixStartColumnsCls}).${pingStartCls}.${pingEndCls}::after`]:
       {
-        boxShadow: 'inset 10px 0 8px -8px rgba(0, 0, 0, 0.1)',
+        boxShadow: getFixedStartShadow(token),
       },
 
     [`&.${pingStartCls}:not(.${fixColumnsGappedCls}) .${fixedStartLastCellCls}::after`]:
@@ -1084,7 +1092,7 @@ const genNestStyles = (
   genComponentStyle(clsObj),
   genVirtualStyle(clsObj, cssVar),
   genBorderedStyle(clsObj, mergedToken),
-  genFixedShadowStyle(clsObj),
+  genFixedShadowStyle(clsObj, mergedToken),
   genSizeClsStyle(clsObj, mergedToken),
   genStripeClsStyle(clsObj, mergedToken),
   genEmptyClsStyle(clsObj, mergedToken),
@@ -1106,7 +1114,12 @@ const genNestStyles = (
       scrollbarClsObj.yScrollBarShowCls,
     ),
   },
-  { [`.${clsObj.componentCls}`]: genScrollBarStyle(scrollbarClsObj) },
+  {
+    [`.${clsObj.componentCls}`]: genScrollBarStyle(
+      scrollbarClsObj,
+      mergedToken,
+    ),
+  },
 ];
 
 const getTokenPathKey = (token: Partial<TableComponentToken>) =>
@@ -1129,9 +1142,16 @@ export const useStyles = () => {
   const componentCssVar = useMemo(() => getCssVar(prefixCls), [prefixCls]);
 
   const tableToken = components?.Table;
+  const componentBaseToken = useMemo(
+    () => ({
+      ...realToken,
+      ...tableToken,
+    }),
+    [realToken, tableToken],
+  );
   const defaultTableToken = useMemo(
-    () => prepareTableToken(realToken, isDark),
-    [realToken, isDark],
+    () => prepareTableToken(componentBaseToken, isDark),
+    [componentBaseToken, isDark],
   );
   const mergedComponentToken = useMemo(
     () => ({

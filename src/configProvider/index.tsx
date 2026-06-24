@@ -1,4 +1,9 @@
 import { createTheme } from '@ant-design/cssinjs';
+import { ConfigProvider as AntdConfigProvider, theme as antdTheme } from 'antd';
+import {
+  ConfigContext as AntdConfigContext,
+  type ThemeConfig as AntdThemeConfig,
+} from 'antd/es/config-provider';
 import React, {
   FC,
   PropsWithChildren,
@@ -8,8 +13,13 @@ import React, {
   useState,
 } from 'react';
 
-import type { ThemeConfig } from '../theme';
-import { DesignTokenContext, darkAlgorithm, defaultAlgorithm } from '../theme';
+import type { DesignTokenContextProps, ThemeConfig } from '../theme';
+import {
+  DesignTokenContext,
+  darkAlgorithm,
+  defaultAlgorithm,
+  defaultDesignToken,
+} from '../theme';
 import { ConfigContext, defaultPrefixCls, useConfig } from './context';
 import { ConfigProviderProps } from './interface';
 
@@ -44,6 +54,19 @@ const normalizeCssVar = (
   };
 };
 
+const normalizeAntdCssVar = (
+  cssVar: DesignTokenContextProps['cssVar'],
+): AntdThemeConfig['cssVar'] => {
+  if (!cssVar) {
+    return undefined;
+  }
+
+  return {
+    ...cssVar,
+    prefix: cssVar.prefix ?? 'ant',
+  };
+};
+
 const ConfigProvider: FC<PropsWithChildren<ConfigProviderProps>> = ({
   prefixCls,
   themeMode,
@@ -53,6 +76,7 @@ const ConfigProvider: FC<PropsWithChildren<ConfigProviderProps>> = ({
   children,
 }) => {
   const parentConfig = useConfig();
+  const parentAntdConfig = useContext(AntdConfigContext);
   const parentTokenContext = useContext(DesignTokenContext);
   const [systemIsDark, setSystemIsDark] = useState(getSystemIsDark);
 
@@ -137,6 +161,14 @@ const ConfigProvider: FC<PropsWithChildren<ConfigProviderProps>> = ({
     theme?.hashed ??
     (theme?.inherit === false ? true : parentTokenContext?.hashed ?? true);
 
+  const mergedSeedToken = useMemo(
+    () => ({
+      ...defaultDesignToken,
+      ...mergedToken,
+    }),
+    [mergedToken],
+  );
+
   const configContextValue = useMemo(
     () => ({
       prefixCls: mergedPrefixCls,
@@ -164,6 +196,31 @@ const ConfigProvider: FC<PropsWithChildren<ConfigProviderProps>> = ({
     ],
   );
 
+  const antdThemeConfig = useMemo<AntdThemeConfig>(
+    () => ({
+      algorithm: mergedIsDark
+        ? antdTheme.darkAlgorithm
+        : antdTheme.defaultAlgorithm,
+      hashed: typeof mergedHashed === 'boolean' ? mergedHashed : true,
+      cssVar: normalizeAntdCssVar(mergedCssVar),
+      token: {
+        colorPrimary: mergedSeedToken.colorPrimary,
+        colorTextBase: mergedSeedToken.colorTextBase,
+        colorBgBase: mergedSeedToken.colorBgBase,
+        borderRadius: mergedSeedToken.borderRadius,
+        lineWidth: mergedSeedToken.borderWidth,
+        fontSize: mergedSeedToken.fontSizeBase,
+        lineHeight: mergedSeedToken.lineHeightBase,
+      },
+    }),
+    [mergedCssVar, mergedHashed, mergedIsDark, mergedSeedToken],
+  );
+  const shouldBridgeAntdTheme =
+    theme !== undefined ||
+    themeMode !== undefined ||
+    cssVar !== undefined ||
+    !parentAntdConfig.theme;
+
   useEffect(() => {
     if (themeMode !== 'system' || !canUseMatchMedia()) {
       return;
@@ -184,7 +241,13 @@ const ConfigProvider: FC<PropsWithChildren<ConfigProviderProps>> = ({
   return (
     <ConfigContext.Provider value={configContextValue}>
       <DesignTokenContext.Provider value={designTokenContextValue}>
-        {children}
+        {shouldBridgeAntdTheme ? (
+          <AntdConfigProvider theme={antdThemeConfig}>
+            {children}
+          </AntdConfigProvider>
+        ) : (
+          children
+        )}
       </DesignTokenContext.Provider>
     </ConfigContext.Provider>
   );

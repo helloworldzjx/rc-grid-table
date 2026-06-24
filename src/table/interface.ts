@@ -386,9 +386,12 @@ export type TableLoadingProps = Omit<SpinProps, 'prefixCls'>;
 
 export type TableLoading = boolean | TableLoadingProps;
 
-export type TableEmptyProps = Omit<EmptyProps, 'prefixCls'>;
+export type TableEmptyProps = Pick<
+  EmptyProps,
+  'children' | 'description' | 'image'
+>;
 
-export type TableEmpty = TableEmptyProps | ReactNode | (() => ReactNode);
+export type TableEmpty = TableEmptyProps;
 
 export type ColumnState<T = any> = {
   key: Key;
