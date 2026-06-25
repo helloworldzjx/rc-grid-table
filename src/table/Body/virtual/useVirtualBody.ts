@@ -11,10 +11,6 @@ import type {
 } from '../../interface';
 import { getDefaultInternalColumnWidth } from '../../utils/const';
 
-type VirtualWheelEvent = WheelEvent & {
-  _virtualHandled?: boolean;
-};
-
 type VirtualTouchEvent = TouchEvent & {
   _virtualHandled?: boolean;
 };
@@ -124,9 +120,6 @@ const cancelRaf = (id: number | null) => {
   }
 };
 
-const isFirefox =
-  typeof navigator === 'object' && /Firefox/i.test(navigator.userAgent);
-
 const touchSmoothRatio = 14 / 15;
 const scrollToMeasureSyncTimes = 5;
 const scrollToMeasureExpireFrames = 8;
@@ -169,10 +162,6 @@ export default function useVirtualBody<ItemType extends KeyedVirtualBodyItem>({
   const collectFrameRef = useRef<number | null>(null);
   const wheelFrameRef = useRef<number | null>(null);
   const wheelDeltaRef = useRef(0);
-  const wheelDirectionRef = useRef<'x' | 'y' | 'sx' | null>(null);
-  const wheelDirectionCleanRef = useRef<number | null>(null);
-  const firefoxWheelValueRef = useRef<number | null>(null);
-  const firefoxMouseScrollRef = useRef(false);
   const pendingScrollTargetRef = useRef<PendingScrollTarget | null>(null);
   const pendingScrollTargetFrameRef = useRef<number | null>(null);
   const originScrollLockRef = useRef(false);
@@ -412,7 +401,6 @@ export default function useVirtualBody<ItemType extends KeyedVirtualBodyItem>({
     return () => {
       cancelRaf(collectFrameRef.current);
       cancelRaf(wheelFrameRef.current);
-      cancelRaf(wheelDirectionCleanRef.current);
       cancelRaf(pendingScrollTargetFrameRef.current);
       if (originScrollLockTimerRef.current) {
         clearTimeout(originScrollLockTimerRef.current);
@@ -664,107 +652,20 @@ export default function useVirtualBody<ItemType extends KeyedVirtualBodyItem>({
     [shouldUseOriginScroll, syncScrollTop],
   );
 
-  const scrollByWheel = useCallback(
+  const scrollByOffset = useCallback(
     (delta: number) => {
       wheelDeltaRef.current += delta;
-      firefoxWheelValueRef.current = delta;
 
       cancelRaf(wheelFrameRef.current);
       wheelFrameRef.current = raf(() => {
         const wheelDelta = wheelDeltaRef.current;
-        const patchMultiple = firefoxMouseScrollRef.current ? 10 : 1;
         wheelDeltaRef.current = 0;
         wheelFrameRef.current = null;
-        syncScrollBy(wheelDelta * patchMultiple);
+        syncScrollBy(wheelDelta);
       });
     },
     [syncScrollBy],
   );
-
-  useIsomorphicLayoutEffect(() => {
-    if (!scrollElement || !inVirtual) return undefined;
-
-    const handleWheel = (event: VirtualWheelEvent) => {
-      const { deltaX, deltaY, shiftKey } = event;
-      let mergedDeltaX = deltaX;
-      let mergedDeltaY = deltaY;
-
-      cancelRaf(wheelDirectionCleanRef.current);
-      wheelDirectionCleanRef.current = raf(() => {
-        wheelDirectionRef.current = null;
-      }, 2);
-
-      if (
-        wheelDirectionRef.current === 'sx' ||
-        (!wheelDirectionRef.current && shiftKey && deltaY && !deltaX)
-      ) {
-        mergedDeltaX = deltaY;
-        mergedDeltaY = 0;
-        wheelDirectionRef.current = 'sx';
-      }
-
-      const absX = Math.abs(mergedDeltaX);
-      const absY = Math.abs(mergedDeltaY);
-
-      if (!wheelDirectionRef.current) {
-        wheelDirectionRef.current = absX > absY ? 'x' : 'y';
-      }
-
-      if (wheelDirectionRef.current !== 'y' || !mergedDeltaY) return;
-      if (shouldUseOriginScroll(mergedDeltaY)) return;
-      if (event._virtualHandled) return;
-
-      event._virtualHandled = true;
-      if (!isFirefox) {
-        preventDefaultIfCancelable(event);
-      }
-      scrollByWheel(mergedDeltaY);
-    };
-
-    const handleFirefoxScroll = (event: Event) => {
-      const detail = (event as WheelEvent).detail;
-      firefoxMouseScrollRef.current = detail === firefoxWheelValueRef.current;
-    };
-
-    const handleFirefoxPixelScroll = (event: Event) => {
-      const detail = (event as WheelEvent).detail;
-      const scrollingUpAtTop = scrollTopRef.current <= 0 && detail < 0;
-      const scrollingDownAtBottom =
-        scrollTopRef.current >= maxScrollTop && detail > 0;
-
-      if (!scrollingUpAtTop && !scrollingDownAtBottom) {
-        preventDefaultIfCancelable(event);
-      }
-    };
-
-    scrollElement.addEventListener('wheel', handleWheel, { passive: false });
-    scrollElement.addEventListener('DOMMouseScroll', handleFirefoxScroll, {
-      passive: true,
-    });
-    scrollElement.addEventListener(
-      'MozMousePixelScroll',
-      handleFirefoxPixelScroll,
-      { passive: false },
-    );
-
-    return () => {
-      scrollElement.removeEventListener('wheel', handleWheel);
-      scrollElement.removeEventListener('DOMMouseScroll', handleFirefoxScroll);
-      scrollElement.removeEventListener(
-        'MozMousePixelScroll',
-        handleFirefoxPixelScroll,
-      );
-      cancelRaf(wheelFrameRef.current);
-      cancelRaf(wheelDirectionCleanRef.current);
-      wheelDeltaRef.current = 0;
-    };
-  }, [
-    inVirtual,
-    maxScrollTop,
-    scrollByWheel,
-    scrollElement,
-    shouldUseOriginScroll,
-  ]);
 
   useIsomorphicLayoutEffect(() => {
     if (!scrollElement || !inVirtual) return undefined;
@@ -797,7 +698,7 @@ export default function useVirtualBody<ItemType extends KeyedVirtualBodyItem>({
           event._virtualHandled = true;
         }
 
-        scrollByWheel(offset);
+        scrollByOffset(offset);
         return true;
       }
 
@@ -889,7 +790,7 @@ export default function useVirtualBody<ItemType extends KeyedVirtualBodyItem>({
       cleanupTouchEvents();
       clearTouchInterval();
     };
-  }, [inVirtual, scrollByWheel, scrollElement, shouldUseOriginScroll]);
+  }, [inVirtual, scrollByOffset, scrollElement, shouldUseOriginScroll]);
 
   useIsomorphicLayoutEffect(() => {
     if (!scrollElement || !inVirtual) return undefined;
