@@ -11,29 +11,34 @@ import {
 } from './handle';
 
 /**
- * 将总数分配到n个位置，返回第一个位置值和平均值
+ * 将总数分配到n个位置，返回数组
  * @param total 总数（必须 ≥ 0）
  * @param n 分配数量（必须 ≥ 1）
  */
-export const distribute = (
-  total: number,
-  n: number,
-): { first: number; avg: number } => {
+export const distribute = (total: number, n: number) => {
   if (total < 0 || n < 1) {
     throw 'param `total` should `total >= 0` or param `n` should `n >= 1`';
   }
 
-  const remainder = total % n;
-  // total减去余数再除以n得到的一定是整数
-  const avg = (total - remainder) / n;
-  const result = new Array(n).fill(avg);
+  const avg = Math.floor(total / n);
+  const remainder = parseFloat((total - avg * n).toFixed(2));
+  const integerRemainder = Math.floor(remainder);
+  const decimalRemainder = parseFloat(
+    (remainder - integerRemainder).toFixed(2),
+  );
 
-  // 剩余余数给第一列
-  if (remainder > 0) {
-    result[0] += parseFloat(remainder.toFixed(2));
+  const result = new Array<number>(n).fill(avg);
+
+  // 余数按列依次分摊
+  for (let index = 0; index < integerRemainder; index += 1) {
+    result[index] += 1;
   }
 
-  return { first: result[0], avg: avg };
+  if (decimalRemainder > 0) {
+    result[integerRemainder] += decimalRemainder;
+  }
+
+  return result;
 };
 
 export const filterResizeEnabledColumns = <
@@ -114,7 +119,7 @@ export function columnsWidthDistribute<T>(
   }
 
   // 分配剩余宽度
-  const { first, avg } = distribute(remainingWidth, cols.length);
+  const values = distribute(remainingWidth, cols.length);
 
   // 合并
   let index = 0;
@@ -127,7 +132,7 @@ export function columnsWidthDistribute<T>(
 
     if (distributable) {
       const width = column.width as number;
-      const newWidth = width + (index === 0 ? first : avg);
+      const newWidth = width + values[index];
       // 仅在columnsConfig?.enable为true时生效，所有列都设置width后仍然未占满容器需要继续分配宽度，设置autoWidthLocked为true
       const autoWidthLocked = unAllDistributable
         ? true

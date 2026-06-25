@@ -52,7 +52,7 @@ const genPlaceholderStyle = (
       backgroundColor: token.placeholderColorBg,
       transition: 'background-color 0.3s',
       userSelect: 'none',
-      zIndex: 4,
+      zIndex: 5,
 
       [`&:not(.${placeholderDisabledCls}):hover`]: {
         backgroundColor: token.cellColorHoverBg,
@@ -238,7 +238,7 @@ const genBorderedStyle = (
         border: `1px solid ${token.colorBorder}`,
         borderRadius: token.borderRadius,
         pointerEvents: 'none',
-        zIndex: 4,
+        zIndex: 2,
       },
 
       [`& > .${placeholderCls}`]: {
@@ -336,12 +336,12 @@ const genHeadStyle = (
       boxSizing: 'border-box',
       borderBottom: `1px solid ${token.colorBorder}`,
       pointerEvents: 'none',
-      zIndex: 2,
+      zIndex: 3,
     },
 
     [`&.${headStickyCls}`]: {
       position: 'sticky',
-      zIndex: 3,
+      zIndex: 4,
     },
 
     [`& > .${headInnerCls}`]: {
@@ -386,7 +386,7 @@ const genBodyStyle = (
       boxSizing: 'border-box',
       borderBottom: `1px solid ${token.colorBorder}`,
       pointerEvents: 'none',
-      zIndex: 2,
+      zIndex: 3,
     },
   },
 
@@ -451,12 +451,12 @@ const genSummaryCls = (
       boxSizing: 'border-box',
       borderBottom: `1px solid ${token.colorBorder}`,
       pointerEvents: 'none',
-      zIndex: 2,
+      zIndex: 3,
     },
 
     [`&.${summaryStickyCls}`]: {
       position: 'sticky',
-      zIndex: 3,
+      zIndex: 4,
     },
 
     [`& > .${summaryInnerCls}`]: {
@@ -1039,7 +1039,7 @@ const genFixedShadowStyle = (
       height: '100%',
       width: '100%',
       pointerEvents: 'none',
-      zIndex: 5,
+      zIndex: 6,
     },
     [`&.${hasFixStartColumnsCls}.${hasFixEndColumnsCls}::after`]: {
       display: 'none',

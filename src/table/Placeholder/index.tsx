@@ -152,12 +152,12 @@ const Placeholder: FC = () => {
 
     if (!autoFillColumns.length) return false;
 
-    const { first, avg } = distribute(remainingWidth, autoFillColumns.length);
+    const values = distribute(remainingWidth, autoFillColumns.length);
     const nextWidths = [...flattenColumnsWidths];
 
     const patches = autoFillColumns.map(({ index, width }, leafIndex) => {
       const column = flattenColumns[index];
-      const newWidth = width + (leafIndex === 0 ? first : avg);
+      const newWidth = width + values[leafIndex];
       nextWidths[index] = newWidth;
 
       return {
