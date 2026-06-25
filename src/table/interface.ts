@@ -393,6 +393,8 @@ export type TableEmptyProps = Pick<
 
 export type TableEmpty = TableEmptyProps;
 
+export type GetScrollContainer = () => Window | HTMLElement | null;
+
 export type ColumnState<T = any> = {
   key: Key;
   dataIndex?: Key;
@@ -547,9 +549,19 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
    */
   stripe?: boolean;
   /**
+   * @description 是否启用 body hover 高亮
+   * @default true
+   */
+  rowHoverable?: boolean;
+  /**
    * @description table body高度
    */
   scrollY?: number;
+  /**
+   * @description 仅支持自定义 rowHoverable scroll follow 所依赖的外部滚动容器。
+   * 未传入时，scrollY 存在则使用 table body 滚动容器，否则默认使用 window。
+   */
+  getScrollContainer?: GetScrollContainer;
   /**
    * @description 总结栏
    */

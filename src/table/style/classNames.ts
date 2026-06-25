@@ -30,6 +30,9 @@ export type ComponentClsType = {
   bodyCls: string;
   bodyInnerCls: string;
   bodyRowCls: string;
+  bodyNoDataRowCls: string;
+  bodyHoverRowCls: string;
+  bodyHoverCellCls: string;
   bodyStripeRowCls: string;
   bodyGridRowCls: string;
   bodyFixedHeightRowCls: string;
@@ -150,6 +153,9 @@ export const getComponentCls = (prefixCls: string): ComponentClsType => {
     bodyCls: `${prefixCls}-body`,
     bodyInnerCls: `${prefixCls}-body-inner`,
     bodyRowCls: `${prefixCls}-body-row`,
+    bodyNoDataRowCls: `${prefixCls}-body-no-data-row`,
+    bodyHoverRowCls: `${prefixCls}-body-hover-row`,
+    bodyHoverCellCls: `${prefixCls}-body-hover-cell`,
     bodyStripeRowCls: `${prefixCls}-body-stripe-row`,
     bodyGridRowCls: `${prefixCls}-body-grid-row`,
     bodyFixedHeightRowCls: `${prefixCls}-body-fixed-height-row`,

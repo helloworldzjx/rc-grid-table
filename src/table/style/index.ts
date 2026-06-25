@@ -482,6 +482,8 @@ const genCellStyle = (
     bodyVirtualFillerCls,
     bodyVirtualInnerCls,
     bodyRowCls,
+    bodyHoverRowCls,
+    bodyHoverCellCls,
     bodySortDraggingRowCls,
     bodySortDraggingOverlayRowCls,
     bodySortFirstRowCls,
@@ -489,7 +491,6 @@ const genCellStyle = (
     summaryRowCls,
     cellCls,
     filterCellCls,
-    noDataCellCls,
     ellipsisCellCls,
     ellipsisCellInnerCls,
     dataSortCellInnerCls,
@@ -612,12 +613,21 @@ const genCellStyle = (
     },
   },
 
-  [`.${bodyRowCls}:not(.${expandedRowCls}):hover > .${cellCls}:not(.${noDataCellCls})`]:
+  [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyRowCls}.${bodyHoverRowCls} > .${cellCls}`]:
     {
       backgroundColor: token.cellColorHoverBg,
       transition: 'background-color 0.3s',
     },
-  [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyRowCls}:not(.${expandedRowCls}):hover > .${cellCls}:not(.${noDataCellCls})`]:
+  [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyRowCls} > .${cellCls}.${bodyHoverCellCls}`]:
+    {
+      backgroundColor: token.cellColorHoverBg,
+      transition: 'background-color 0.3s',
+    },
+  [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyRowCls}.${bodyHoverRowCls} > .${cellCls}`]:
+    {
+      backgroundColor: token.cellColorHoverBg,
+    },
+  [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyRowCls} > .${cellCls}.${bodyHoverCellCls}`]:
     {
       backgroundColor: token.cellColorHoverBg,
     },

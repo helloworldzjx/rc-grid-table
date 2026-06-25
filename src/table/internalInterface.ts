@@ -21,8 +21,10 @@ import type {
   RowKey,
   RowSortableConfig,
   TableComponents,
+  TableLoading,
   TableProps,
   TableRowSelection,
+  TableVirtualConfig,
 } from './interface';
 
 export interface CellType<T = any> {
@@ -97,6 +99,9 @@ export interface TableContextProps<T = any>
   extends Omit<TableProps<T>, TableFeatureContextKey> {
   // base props
   rowKey: RowKey<T>;
+  virtual: boolean | TableVirtualConfig;
+  loading: boolean | TableLoading;
+  rowHoverable: boolean;
 
   containerWidth?: number;
   containerHeight?: number;

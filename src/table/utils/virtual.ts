@@ -3,7 +3,6 @@ import type { TableVirtualConfig } from '../interface';
 
 export const getVirtualFixedHeightConfig = (
   virtual: boolean | TableVirtualConfig,
-  useRowHeight = true,
 ) => {
   if (!isObject(virtual)) {
     return {
@@ -12,15 +11,18 @@ export const getVirtualFixedHeightConfig = (
     };
   }
 
+  const virtualConfig = virtual as TableVirtualConfig;
+
   const rowHeight =
-    useRowHeight && isNum(virtual.rowHeight) && virtual.rowHeight > 0
-      ? virtual.rowHeight
+    isNum(virtualConfig.rowHeight) && virtualConfig.rowHeight > 0
+      ? virtualConfig.rowHeight
       : undefined;
   const expandedRowHeight =
-    virtual.expandedRowHeight === false
+    virtualConfig.expandedRowHeight === false
       ? undefined
-      : isNum(virtual.expandedRowHeight) && virtual.expandedRowHeight > 0
-      ? virtual.expandedRowHeight
+      : isNum(virtualConfig.expandedRowHeight) &&
+        virtualConfig.expandedRowHeight > 0
+      ? virtualConfig.expandedRowHeight
       : rowHeight;
 
   return {

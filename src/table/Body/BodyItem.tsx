@@ -36,6 +36,7 @@ function BodyItem<T = any>({
     rowKey,
     rowClassName,
     onRow,
+    rowHoverable,
     flattenColumns = [],
     fixedOffset,
   } = useTableContext();
@@ -127,6 +128,12 @@ function BodyItem<T = any>({
       rowSortDragDisabled={dragDisabled}
       rowSortDropDisabled={dropDisabled}
       rowSortDragging={rowSort.activeKey === key}
+      rowHoverable={
+        rowHoverable &&
+        renderInfo.kind !== 'rowSpanOverlay' &&
+        !renderInfo.rowSort?.overlay
+      }
+      cellHoverable={rowHoverable && !renderInfo.rowSort?.overlay}
     />
   );
 }

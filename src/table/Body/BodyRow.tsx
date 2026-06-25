@@ -11,6 +11,7 @@ import React, {
 } from 'react';
 
 import { isNum } from '../../_utils/validate';
+import { useBodyHoverRowHovered } from '../contexts/BodyHoverContext';
 import { useColumnSortPreviewLayoutContext } from '../contexts/ColumnSortPreviewLayoutContext';
 import { useComponentsContext } from '../contexts/ComponentsContext';
 import { useExpandableContext } from '../contexts/ExpandableContext';
@@ -46,6 +47,8 @@ interface BodyRowProps<T = any> {
   rowSortDragDisabled?: boolean;
   rowSortDropDisabled?: boolean;
   rowSortDragging?: boolean;
+  rowHoverable?: boolean;
+  cellHoverable?: boolean;
 }
 
 function BodyRow({
@@ -70,6 +73,8 @@ function BodyRow({
   rowSortDragDisabled = false,
   rowSortDropDisabled = false,
   rowSortDragging = false,
+  rowHoverable = true,
+  cellHoverable = true,
 }: BodyRowProps) {
   const prefixCls = usePrefixClsContext();
   const { stripe } = useTableContext();
@@ -77,6 +82,7 @@ function BodyRow({
   const {
     bodyRowCls,
     bodyStripeRowCls,
+    bodyHoverRowCls,
     bodyGridRowCls,
     bodyFixedHeightRowCls,
     bodyExpandableRowCls,
@@ -150,6 +156,10 @@ function BodyRow({
     rowSortOverlay,
     rowSortDragging,
   });
+  const hovered = useBodyHoverRowHovered({
+    rowIndex,
+    hoverable: rowHoverable,
+  });
 
   const handleClick = useCallback(
     (event: MouseEvent<HTMLElement>) => {
@@ -191,6 +201,7 @@ function BodyRow({
           [bodySortDraggingOverlayRowCls]: rowSort.active && rowSortOverlay,
           [bodySortFirstRowCls]: rowSort.first && !rowSortOverlay,
           [bodySortLastRowCls]: rowSort.last && !rowSortOverlay,
+          [bodyHoverRowCls]: hovered,
         },
         className,
         rowProps?.className,
@@ -223,6 +234,7 @@ function BodyRow({
             rowSortDragging={rowSort.active}
             rowSortIsOver={rowSort.isOver}
             rowSortCellStyle={rowSort.cellStyle}
+            hoverable={cellHoverable}
             {...(rowSortControlColumn && {
               rowSortAttributes: rowSort.attributes,
               rowSortListeners: rowSort.listeners,

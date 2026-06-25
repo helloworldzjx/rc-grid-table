@@ -2,8 +2,9 @@ import type {
   DraggableAttributes,
   DraggableSyntheticListeners,
 } from '@dnd-kit/core';
+import { composeRef } from '@rc-component/util/lib/ref';
 import classNames from 'classnames';
-import React, { CSSProperties, Key, memo, useMemo } from 'react';
+import React, { CSSProperties, Key, Ref, memo, useMemo } from 'react';
 
 import { isValidKey } from '../../_utils/validate';
 import CellContainer from '../CellContainer';
@@ -18,6 +19,9 @@ import { FixedInfo } from '../utils/fixedColumns';
 type BodyCellBaseProps<T = any> = {
   cellClassName?: string;
   restCellProps: React.HTMLAttributes<any>;
+  hoverCellRef?: Ref<HTMLDivElement>;
+  hovered?: boolean;
+  hoverClassName?: string;
   column: InternalColumnState<T>;
   fixedInfo: FixedInfo;
   motionKeys?: Key[];
@@ -46,6 +50,9 @@ type RowSortBodyCellProps<T = any> = BodyCellBaseProps<T> & {
 function RowSortBodyCell<T = any>({
   cellClassName,
   restCellProps,
+  hoverCellRef,
+  hovered = false,
+  hoverClassName,
   column,
   fixedInfo,
   motionKeys,
@@ -136,6 +143,14 @@ function RowSortBodyCell<T = any>({
       ),
     [iconProps, rowSortable],
   );
+  const mergedCellRef = useMemo(
+    () =>
+      composeRef<HTMLDivElement>(
+        setRowSortNodeRef ?? null,
+        hoverCellRef ?? null,
+      ),
+    [hoverCellRef, setRowSortNodeRef],
+  );
 
   return (
     <CellContainer
@@ -156,6 +171,7 @@ function RowSortBodyCell<T = any>({
           [rowSortCellCls]: true,
           [rowSortOverCellCls]: rowSortIsOver,
         },
+        hoverClassName && hovered ? hoverClassName : undefined,
         column.className,
         cellClassName,
       )}
@@ -163,7 +179,7 @@ function RowSortBodyCell<T = any>({
       motionKeys={motionKeys}
       motionLayoutDependency={motionLayoutDependency}
       {...restCellProps}
-      ref={setRowSortNodeRef}
+      ref={mergedCellRef}
     >
       <div
         className={rowSortControlCls}

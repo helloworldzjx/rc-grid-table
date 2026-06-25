@@ -30,12 +30,16 @@ import HorizontalScrollbar from './HorizontalScrollbar';
 import Placeholder from './Placeholder';
 import ScrollBarContainer from './ScrollContainer';
 import Summary from './Summary/Summary';
+import BodyHoverContext from './contexts/BodyHoverContext';
 import { useComponentsContext } from './contexts/ComponentsContext';
 import { useExpandableContext } from './contexts/ExpandableContext';
 import FixedShadowContext from './contexts/FixedShadowContext';
 import { usePrefixClsContext } from './contexts/PrefixClsContext';
 import { useRowSortableContext } from './contexts/RowSortableContext';
 import { useTableContext } from './contexts/TableContext';
+import useBodyHoverController from './hooks/useBodyHoverController';
+import useBodyHoverPointerPlugin from './hooks/useBodyHoverPointerPlugin';
+import useBodyHoverScrollFollowPlugin from './hooks/useBodyHoverScrollFollowPlugin';
 import useBodyItems from './hooks/useBodyItems';
 import useFixedShadow from './hooks/useFixedShadow';
 import useTableRowSort from './hooks/useTableRowSort';
@@ -94,11 +98,13 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       size,
       bordered,
       stripe,
+      rowHoverable,
       scrollY,
+      getScrollContainer,
       summary,
       sticky,
-      virtual = true,
-      loading = false,
+      virtual,
+      loading,
       empty,
       style,
       columnsWidthTotal,
@@ -136,18 +142,17 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       bodyCls,
       bodyInnerCls,
       bodyRowCls,
-      bodyFixedHeightRowCls,
+      bodyNoDataRowCls,
       cellCls,
       noDataCellCls,
       noDataCellContentCls,
       summaryStickyCls,
     } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
 
-    const {
-      columnsWidthCssVar,
-      columnsWidthTotalCssVar,
-      bodyFixedHeightRowCssVar,
-    } = useMemo(() => getCssVar(prefixCls), [prefixCls]);
+    const { columnsWidthCssVar, columnsWidthTotalCssVar } = useMemo(
+      () => getCssVar(prefixCls),
+      [prefixCls],
+    );
 
     const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -158,8 +163,8 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
     const hasExpandedRowRender =
       typeof expandable?.expandedRowRender === 'function';
     const { rowHeight, expandedRowHeight } = useMemo(
-      () => getVirtualFixedHeightConfig(virtual, hasData),
-      [hasData, virtual],
+      () => getVirtualFixedHeightConfig(virtual),
+      [virtual],
     );
     const childrenColumnName = expandable?.childrenColumnName ?? 'children';
 
@@ -237,6 +242,33 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       scrollBodyTo,
       scrollBodyToTop,
       extraUpdateDeps: [mergedExpandedRowKeys, columnsWidthTotal],
+    });
+
+    const resolveBodyHoverScrollContainer = useCallback(() => {
+      if (getScrollContainer) {
+        return getScrollContainer();
+      }
+
+      if (scrollY) {
+        return bodyScrollElement ?? null;
+      }
+
+      return bodyScrollElement?.ownerDocument.defaultView ?? null;
+    }, [bodyScrollElement, getScrollContainer, scrollY]);
+
+    const bodyHover = useBodyHoverController({
+      enabled: rowHoverable,
+    });
+    const bodyHoverPointerProps = useBodyHoverPointerPlugin({
+      enabled: rowHoverable,
+      controller: bodyHover,
+      bodyElement: bodyScrollElement,
+    });
+    const bodyHoverScrollFollow = useBodyHoverScrollFollowPlugin({
+      enabled: rowHoverable,
+      controller: bodyHover,
+      bodyElement: bodyScrollElement,
+      getScrollContainer: resolveBodyHoverScrollContainer,
     });
 
     useImperativeHandle(imperativeRef, () => ({
@@ -317,16 +349,6 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       [columnsWidthTotalCssVar, scrollY],
     );
 
-    const emptyRowStyle = useMemo<CSSProperties | undefined>(
-      () =>
-        rowHeight !== undefined
-          ? ({
-              [`${bodyFixedHeightRowCssVar}`]: `${rowHeight}px`,
-            } as CSSProperties)
-          : undefined,
-      [bodyFixedHeightRowCssVar, rowHeight],
-    );
-
     const emptyCellStyle = useMemo<CSSProperties>(
       () => ({
         gridColumn: `span ${flattenColumns.length || 1}`,
@@ -395,6 +417,27 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       [rowHeight, expandedRowHeight, hasTreeData, rowSort],
     );
 
+    const handleTableBodyScroll = useCallback<
+      React.UIEventHandler<HTMLDivElement>
+    >(
+      (event) => {
+        virtualBody.handleBodyScroll(event);
+        bodyHoverScrollFollow.notifyScroll();
+      },
+      [bodyHoverScrollFollow, virtualBody],
+    );
+
+    const handleTableVerticalScroll = useCallback(
+      (scrollTop: number) => {
+        if (!virtualBody.handleVerticalScroll) return undefined;
+
+        const handled = virtualBody.handleVerticalScroll?.(scrollTop);
+        bodyHoverScrollFollow.notifyScroll();
+        return handled;
+      },
+      [bodyHoverScrollFollow, virtualBody.handleVerticalScroll],
+    );
+
     return (
       <div
         {...nativeProps}
@@ -415,7 +458,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
                 [borderedCls]: bordered,
                 [virtualCls]: virtualBody.inVirtual,
                 [stripeCls]: stripe,
-                [noDataCls]: !dataSource?.length,
+                [noDataCls]: !hasData,
                 [hasSummaryCls]: showSummary,
                 [hasXScrollbarCls]: hasHorizontal,
                 [hasYScrollbarCls]: hasVertical,
@@ -444,71 +487,71 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
                 style={stickyHeaderStyle}
               />
 
-              <ScrollBarContainer
-                className={bodyCls}
-                classNames={{ inner: bodyInnerCls }}
-                contentComponent={BodyWrapperComponent}
-                styles={{ content: virtualBody.bodyStyle }}
-                showVertical={bodyShowVertical}
-                ref={setTableBodyRef}
-                onScroll={virtualBody.handleBodyScroll}
-                onVerticalScroll={virtualBody.handleVerticalScroll}
-                onVerticalVisibleChange={setHasVertical}
-                updateDeps={virtualBody.updateDeps}
-              >
-                {!dataSource?.length && (
-                  <BodyRowComponent
-                    className={classNames(bodyRowCls, {
-                      [bodyFixedHeightRowCls]: rowHeight !== undefined,
-                    })}
-                    style={emptyRowStyle}
-                  >
-                    <BodyCellComponent
-                      className={classNames(cellCls, noDataCellCls)}
-                      style={emptyCellStyle}
-                    >
-                      <div
-                        className={noDataCellContentCls}
-                        style={emptyCellContentStyle}
-                      >
-                        {renderEmptyText()}
-                      </div>
-                    </BodyCellComponent>
-                  </BodyRowComponent>
-                )}
-
-                <DndContext
-                  sensors={rowSort.sensors}
-                  collisionDetection={closestCenter}
-                  onDragStart={rowSort.onDragStart}
-                  onDragEnd={rowSort.onDragEnd}
-                  onDragCancel={rowSort.onDragCancel}
+              <BodyHoverContext.Provider value={bodyHover.contextValue}>
+                <ScrollBarContainer
+                  className={bodyCls}
+                  classNames={{ inner: bodyInnerCls }}
+                  contentComponent={BodyWrapperComponent}
+                  styles={{ content: virtualBody.bodyStyle }}
+                  showVertical={bodyShowVertical}
+                  ref={setTableBodyRef}
+                  onScroll={handleTableBodyScroll}
+                  onVerticalScroll={handleTableVerticalScroll}
+                  onVerticalVisibleChange={setHasVertical}
+                  updateDeps={virtualBody.updateDeps}
+                  {...bodyHoverPointerProps}
                 >
-                  <SortableContext
-                    items={rowSort.items}
-                    strategy={verticalListSortingStrategy}
+                  {!hasData && (
+                    <BodyRowComponent
+                      className={classNames(bodyRowCls, bodyNoDataRowCls)}
+                    >
+                      <BodyCellComponent
+                        className={classNames(cellCls, noDataCellCls)}
+                        style={emptyCellStyle}
+                      >
+                        <div
+                          className={noDataCellContentCls}
+                          style={emptyCellContentStyle}
+                        >
+                          {renderEmptyText()}
+                        </div>
+                      </BodyCellComponent>
+                    </BodyRowComponent>
+                  )}
+
+                  <DndContext
+                    sensors={rowSort.sensors}
+                    collisionDetection={closestCenter}
+                    onDragStart={rowSort.onDragStart}
+                    onDragEnd={rowSort.onDragEnd}
+                    onDragCancel={rowSort.onDragCancel}
                   >
-                    {hasData && (
-                      <VirtualBody
-                        {...virtualBody.virtualBodyProps}
-                        renderBodyNode={renderBodyNode}
-                      />
-                    )}
-                  </SortableContext>
-                  <DragOverlay
-                    adjustScale={false}
-                    dropAnimation={null}
-                    modifiers={rowSortRuntime.overlayModifiers}
-                  >
-                    {rowSort.activeBodyItem &&
-                      rowSortRuntime.overlayRenderInfo &&
-                      renderBodyNode(
-                        rowSort.activeBodyItem,
-                        rowSortRuntime.overlayRenderInfo,
+                    <SortableContext
+                      items={rowSort.items}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      {hasData && (
+                        <VirtualBody
+                          {...virtualBody.virtualBodyProps}
+                          renderBodyNode={renderBodyNode}
+                        />
                       )}
-                  </DragOverlay>
-                </DndContext>
-              </ScrollBarContainer>
+                    </SortableContext>
+                    <DragOverlay
+                      adjustScale={false}
+                      dropAnimation={null}
+                      modifiers={rowSortRuntime.overlayModifiers}
+                    >
+                      {rowSort.activeBodyItem &&
+                        rowSortRuntime.overlayRenderInfo &&
+                        renderBodyNode(
+                          rowSort.activeBodyItem,
+                          rowSortRuntime.overlayRenderInfo,
+                        )}
+                    </DragOverlay>
+                  </DndContext>
+                </ScrollBarContainer>
+              </BodyHoverContext.Provider>
 
               {showSummary && (
                 <Summary

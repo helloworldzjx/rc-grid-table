@@ -7,6 +7,10 @@ import React, { CSSProperties, Key, memo, ReactNode, useMemo } from 'react';
 
 import { isValidKey } from '../../_utils/validate';
 import CellContainer from '../CellContainer';
+import {
+  useBodyHoverCellHovered,
+  useBodyHoverCellRef,
+} from '../contexts/BodyHoverContext';
 import { useColumnSortableContext } from '../contexts/ColumnSortableContext';
 import { useComponentsContext } from '../contexts/ComponentsContext';
 import { useDataSortContext } from '../contexts/DataSortContext';
@@ -54,6 +58,7 @@ interface BodyRowProps<T = any> {
   rowSortListeners?: DraggableSyntheticListeners;
   setRowSortActivatorNodeRef?: (element: HTMLElement | null) => void;
   setRowSortNodeRef?: (element: HTMLElement | null) => void;
+  hoverable?: boolean;
 }
 
 function BodyCell({
@@ -79,6 +84,7 @@ function BodyCell({
   rowSortListeners,
   setRowSortActivatorNodeRef,
   setRowSortNodeRef,
+  hoverable = true,
 }: BodyRowProps) {
   const prefixCls = usePrefixClsContext();
 
@@ -99,6 +105,7 @@ function BodyCell({
     previewRestoredCellCls,
     expandControlCellCls,
     selectionCellCls,
+    bodyHoverCellCls,
   } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
 
   const { expandable: expandableConfig } = useExpandableContext();
@@ -222,6 +229,18 @@ function BodyCell({
       fixedInfo.fixEnd,
     ],
   );
+  const hoverCellRef = useBodyHoverCellRef({
+    rowIndex,
+    colIndex,
+    rowSpan: spanInfo.rowSpan,
+    hoverable,
+  });
+  const hoveredCell = useBodyHoverCellHovered({
+    rowIndex,
+    colIndex,
+    rowSpan: spanInfo.rowSpan,
+    hoverable,
+  });
 
   const restCellProps = useMemo(() => {
     const restProps = { ...cellProps };
@@ -332,10 +351,13 @@ function BodyCell({
         sortableHot={inSortableHotScope}
         previewHidden={column.previewHidden}
         previewRestored={column.previewRestored}
+        hovered={hoveredCell}
+        hoverClassName={bodyHoverCellCls}
         rowSortAttributes={rowSortAttributes}
         rowSortListeners={rowSortListeners}
         setRowSortActivatorNodeRef={setRowSortActivatorNodeRef}
         setRowSortNodeRef={setRowSortNodeRef}
+        hoverCellRef={hoverCellRef}
       />
     );
   }
@@ -360,6 +382,7 @@ function BodyCell({
           [previewRestoredCellCls]: column.previewRestored,
           [expandControlCellCls]: isInternalExpandColumn,
           [selectionCellCls]: isInternalSelectionColumn,
+          [bodyHoverCellCls]: hoveredCell,
         },
         column.className,
         cellProps.className,
@@ -368,6 +391,7 @@ function BodyCell({
       motionKeys={motionKeys}
       motionLayoutDependency={motionLayoutDependency}
       {...restCellProps}
+      ref={hoverCellRef}
     >
       {childrenNode}
     </CellContainer>

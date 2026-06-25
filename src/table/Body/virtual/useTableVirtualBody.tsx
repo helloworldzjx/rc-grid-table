@@ -421,7 +421,7 @@ export default function useTableVirtualBody<T = any>({
     virtualBodyProps,
     updateDeps,
     handleBodyScroll,
-    handleVerticalScroll: inVirtual ? handleVerticalScroll : undefined,
+    handleVerticalScroll,
     scrollTo,
     scrollToTop,
   };
