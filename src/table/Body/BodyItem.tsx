@@ -64,7 +64,6 @@ function BodyItem<T = any>({
       <ExpandedRow
         className={item.className}
         expanded={item.expanded}
-        indent={1}
         style={renderInfo.style}
         rowHeight={expandedRowHeight}
         rowRef={renderInfo.rowRef}

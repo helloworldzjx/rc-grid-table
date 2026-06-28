@@ -4,7 +4,6 @@ import React, { CSSProperties, FC, ReactNode, Ref, useMemo } from 'react';
 
 import { isNum } from '../../_utils/validate';
 import { useComponentsContext } from '../contexts/ComponentsContext';
-import { useExpandableContext } from '../contexts/ExpandableContext';
 import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import { useTableLayoutContext } from '../contexts/TableLayoutContext';
 import { getComponentCls, getCssVar } from '../style/classNames';
@@ -31,7 +30,6 @@ const ExpandedRow: FC<ExpandedRowProps> = ({
   rowRef,
   onRowResize,
   renderMode = 'normal',
-  indent = 0,
 }) => {
   const {
     columnsWidthTotal,
@@ -40,7 +38,6 @@ const ExpandedRow: FC<ExpandedRowProps> = ({
   } = useTableLayoutContext();
   const prefixCls = usePrefixClsContext();
   const { getComponent } = useComponentsContext();
-  const { expandable } = useExpandableContext();
 
   const {
     bodyRowCls,
@@ -88,13 +85,6 @@ const ExpandedRow: FC<ExpandedRowProps> = ({
       width: expandedRowCellWidth,
     }),
     [expandedRowCellWidth, flattenColumns.length],
-  );
-
-  const contentStyle = useMemo<CSSProperties>(
-    () => ({
-      paddingInlineStart: indent * (expandable?.indentSize ?? 15),
-    }),
-    [indent, expandable?.indentSize],
   );
 
   const RowComponent = useMemo(
