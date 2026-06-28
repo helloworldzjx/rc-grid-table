@@ -14,18 +14,27 @@ export interface DesignToken {
   borderWidth: number;
 
   fontSizeBase: number;
-
-  lineHeightBase: number;
 }
 
 export interface DerivativeToken extends DesignToken {
   lineHeight: string | number;
+  lineHeightSM: string | number;
+  lineHeightLG: string | number;
   fontSize: number;
+  fontSizeSM: number;
+  fontSizeLG: number;
+  fontSizeXL: number;
+  fontHeight: number;
+  fontHeightSM: number;
+  fontHeightLG: number;
   colorText: string;
-  colorTextLightSolid: string;
   colorBgContainer: string;
   colorBgLayout: string;
   colorBorder: string;
+  borderRadiusXS: number;
+  borderRadiusSM: number;
+  borderRadiusLG: number;
+  borderRadiusOuter: number;
 }
 
 export interface ThemeComponents {

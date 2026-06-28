@@ -2,6 +2,12 @@ import { createTheme } from '@ant-design/cssinjs';
 import { TinyColor } from '@ctrl/tinycolor';
 import { createContext } from 'react';
 
+import {
+  defaultDerivativeToken,
+  derivativeSource,
+  genFontMapToken,
+  genRadius,
+} from './algorithm';
 import useInternalToken from './hooks/useToken';
 import {
   DerivativeToken,
@@ -11,22 +17,15 @@ import {
 } from './interface';
 
 export const defaultDesignToken: DesignToken = {
-  lineHeightBase: 1.5,
-  fontSizeBase: 14,
+  fontSizeBase: derivativeSource.fontSizeBase,
   colorTextBase: '',
   colorBgBase: '',
 
   colorPrimary: '#1890ff',
 
-  borderRadius: 8,
+  borderRadius: derivativeSource.borderRadius,
   borderWidth: 1,
 };
-
-const defaultDerivativeToken = {
-  fontSize: 14,
-  lineHeight: 1.5,
-  colorTextLightSolid: '#fff',
-} as DerivativeToken;
 
 const getAlphaColor = (baseColor: string, alpha: number) =>
   new TinyColor(baseColor).setAlpha(alpha).toRgbString();
@@ -42,10 +41,14 @@ const getSolidColor = (baseColor: string, brightness: number, dark = false) => {
 export function defaultAlgorithm(designToken: DesignToken): DerivativeToken {
   const colorTextBase = designToken.colorTextBase || '#000';
   const colorBgBase = designToken.colorBgBase || '#fff';
+  const fontMapToken = genFontMapToken(designToken.fontSizeBase);
+  const radiusMapToken = genRadius(designToken.borderRadius);
 
   return {
     ...designToken,
     ...defaultDerivativeToken,
+    ...fontMapToken,
+    ...radiusMapToken,
     colorTextBase,
     colorBgBase,
     colorText: getAlphaColor(colorTextBase, 0.88),
@@ -58,10 +61,14 @@ export function defaultAlgorithm(designToken: DesignToken): DerivativeToken {
 export function darkAlgorithm(designToken: DesignToken): DerivativeToken {
   const colorTextBase = designToken.colorTextBase || '#fff';
   const colorBgBase = designToken.colorBgBase || '#000';
+  const fontMapToken = genFontMapToken(designToken.fontSizeBase);
+  const radiusMapToken = genRadius(designToken.borderRadius);
 
   return {
     ...designToken,
     ...defaultDerivativeToken,
+    ...fontMapToken,
+    ...radiusMapToken,
     colorTextBase,
     colorBgBase,
     colorText: getAlphaColor(colorTextBase, 0.85),

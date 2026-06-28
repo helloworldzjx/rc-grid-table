@@ -54,9 +54,79 @@ export default () => (
 
 `isDark` 是本项目保留的扩展值，表示当前 `ConfigProvider themeMode` 解析后的明暗状态。它不会从 `theme.algorithm` 自动推断。
 
+## DesignToken (Seed Tokens)
+
+**Seed tokens** 是主题的基础配置，代表设计系统的核心语义值。通过修改这些值可以快速改变整体主题。
+
+| Token           | 类型     | 默认值    | 说明                                         |
+| --------------- | -------- | --------- | -------------------------------------------- |
+| `colorPrimary`  | `string` | `#1890ff` | 主色，用于交互元素、链接等                   |
+| `colorTextBase` | `string` | `#000`    | light 模式基础文字色；dark 模式会改为 `#fff` |
+| `colorBgBase`   | `string` | `#fff`    | light 模式基础背景色；dark 模式会改为 `#000` |
+| `fontSizeBase`  | `number` | `14`      | 基础字号（px）；其他字号、行高由此派生       |
+| `borderRadius`  | `number` | `6`       | 基础圆角（px）；其他圆角规格由此派生         |
+| `borderWidth`   | `number` | `1`       | 基础边框宽度（px）                           |
+
+### 修改 Seed Token 示例
+
+```tsx | pure
+import { ConfigProvider, Table } from 'rc-grid-table';
+
+<ConfigProvider
+  theme={{
+    token: {
+      colorPrimary: '#722ed1',
+      fontSizeBase: 16,
+      borderRadius: 8,
+    },
+  }}
+>
+  <Table />
+</ConfigProvider>;
+```
+
+## DerivativeToken (Derived Tokens)
+
+**Derivative tokens** 由 seed tokens 通过算法派生生成，涵盖完整的排版、颜色、间距规范。
+
+### 字号与行高
+
+| Token          | 来源                          | 说明                                  |
+| -------------- | ----------------------------- | ------------------------------------- |
+| `fontSize`     | `fontSizeBase`                | 标准字号，等于 `fontSizeBase`         |
+| `fontSizeSM`   | `fontSizeBase`                | 小字号，约 `fontSizeBase * 0.857`     |
+| `fontSizeLG`   | `fontSizeBase`                | 大字号，约 `fontSizeBase * 1.143`     |
+| `fontSizeXL`   | `fontSizeBase`                | 特大字号，约 `fontSizeBase * 1.286`   |
+| `lineHeight`   | `fontSizeBase`                | 标准行高，约 1.5715（基于 antd 公式） |
+| `lineHeightSM` | `fontSizeBase`                | 小行高，约 1.5588                     |
+| `lineHeightLG` | `fontSizeBase`                | 大行高，约 1.5945                     |
+| `fontHeight`   | `fontSize` × `lineHeight`     | 字体框高（用于垂直对齐计算）          |
+| `fontHeightSM` | `fontSizeSM` × `lineHeightSM` | 小号字体框高                          |
+| `fontHeightLG` | `fontSizeLG` × `lineHeightLG` | 大号字体框高                          |
+
+> 行高计算遵循 antd 公式，不同字号的行高会微调以保持视觉平衡。
+
+### 颜色
+
+| Token              | 来源            | 说明                                             |
+| ------------------ | --------------- | ------------------------------------------------ |
+| `colorText`        | `colorTextBase` | 文字色，在 `colorTextBase` 基础上调整透明度      |
+| `colorBgContainer` | `colorBgBase`   | 容器背景色，在 light/dark 算法中有不同的亮度调整 |
+| `colorBgLayout`    | `colorBgBase`   | 页面布局背景色，比容器背景更浅/深                |
+| `colorBorder`      | `colorBgBase`   | 边框色，在 light/dark 算法中对应不同灰度         |
+
+### 圆角
+
+| Token               | 来源           | 说明                            |
+| ------------------- | -------------- | ------------------------------- |
+| `borderRadiusXS`    | `borderRadius` | 极小圆角，约 50%                |
+| `borderRadiusSM`    | `borderRadius` | 小圆角，约 75%                  |
+| `borderRadiusLG`    | `borderRadius` | 大圆角，约 125%                 |
+| `borderRadiusOuter` | `borderRadius` | 外轮廓圆角（同 `borderRadius`） |
+
 ## Algorithm
 
-算法负责把 `DesignToken` 派生为 `DerivativeToken`。
+算法负责把 `DesignToken` 派生为 `DerivativeToken`。两个内置算法提供 light/dark 的完整方案。
 
 ```tsx | pure
 import { ConfigProvider, Theme } from 'rc-grid-table';
@@ -69,6 +139,17 @@ import { ConfigProvider, Theme } from 'rc-grid-table';
   <Table />
 </ConfigProvider>;
 ```
+
+### 内置算法
+
+| 算法                     | 适用场景   | 颜色调整特点                             |
+| ------------------------ | ---------- | ---------------------------------------- |
+| `Theme.defaultAlgorithm` | Light mode | 以白色背景和黑色文字为基础               |
+| `Theme.darkAlgorithm`    | Dark mode  | 以黑色背景和白色文字为基础，颜色反向调整 |
+
+两个算法都会根据 seed token 派生出完整的排版、圆角、颜色规范。
+
+### 算法选择规则
 
 如果没有传 `theme.algorithm`，`ConfigProvider` 会根据 `themeMode` 选择算法：
 

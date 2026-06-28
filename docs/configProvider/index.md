@@ -56,16 +56,42 @@ export default () => (
 
 `ConfigProvider` 的 `theme` 参考 antd v5 的轻量模型，支持 seed token、算法、组件 token、hash 和 CSS 变量。
 
+### 三层主题架构
+
+```
+┌─────────────────────────────────────────┐
+│  Seed Tokens (DesignToken)              │  6 个基础设计值
+│  colorPrimary, colorTextBase, ...       │
+└─────────────┬───────────────────────────┘
+              │ 通过 Algorithm
+              ▼
+┌─────────────────────────────────────────┐
+│  Derivative Tokens (DerivativeToken)    │  40+ 个派生值
+│  fontSize, lineHeight, colorText, ...   │  font / color / radius 规范
+└─────────────┬───────────────────────────┘
+              │ 应用到
+              ▼
+┌─────────────────────────────────────────┐
+│  Component Tokens (TableComponentToken) │  表格特定的间距、尺寸
+│  cellPaddingBlock, cellPaddingInline    │
+└─────────────────────────────────────────┘
+```
+
+### 基础配置
+
 ```tsx | pure
 <ConfigProvider
   themeMode="light"
   theme={{
     token: {
       colorPrimary: '#722ed1',
+      fontSizeBase: 14,
+      borderRadius: 6,
     },
     components: {
       Table: {
         cellPaddingBlock: 10,
+        cellPaddingInline: 16,
       },
     },
   }}
@@ -74,9 +100,115 @@ export default () => (
 </ConfigProvider>
 ```
 
-主题会同时作用于 Table 自身样式和内部 antd `Spin`、`Empty`。内部 antd 组件会通过 antd `ConfigProvider` 桥接主色、暗色和基础 token。
+### 主题应用范围
 
-如果外部已经有 antd `ConfigProvider`，并且当前 `ConfigProvider` 没有显式设置 `theme`、`themeMode` 或 `cssVar`，则不会覆盖外部 antd 主题。
+rc-grid-table 主题会同时作用于：
+
+1. **Table 自身样式**：使用完整的派生 token（字号、行高、颜色、圆角）
+2. **内部 antd 组件**：`Spin`（加载）、`Empty`（空状态）通过 antd `ConfigProvider` 桥接
+3. **antd 桥接 Token**：主色、暗色状态、基础字号等同步给内部 antd 组件
+
+#### antd 桥接规则
+
+内部 antd 组件使用 antd `ConfigProvider` 接收种子 token：
+
+| rc-grid-table Token | 映射到 antd Token         | 说明                            |
+| ------------------- | ------------------------- | ------------------------------- |
+| `colorPrimary`      | `colorPrimary`            | 主色保持一致                    |
+| `fontSizeBase`      | `fontSize`                | 基础字号                        |
+| `themeMode=dark`    | `algorithm=darkAlgorithm` | 暗色状态自动选择 antd dark 算法 |
+
+这样确保内置的 `Spin` 和 `Empty` 与 Table 样式风格统一。
+
+## 主题示例
+
+### 常见定制场景
+
+**场景 1：调整基础字号和圆角**
+
+```tsx | pure
+<ConfigProvider
+  theme={{
+    token: {
+      fontSizeBase: 16, // 所有字号都会相应调整
+      borderRadius: 8, // 圆角规格随之调整
+    },
+  }}
+>
+  <Table />
+</ConfigProvider>
+```
+
+**场景 2：定制表格间距**
+
+```tsx | pure
+<ConfigProvider
+  theme={{
+    components: {
+      Table: {
+        cellPaddingBlock: 12, // 单元格上下内间距
+        cellPaddingInline: 20, // 单元格左右内间距
+      },
+    },
+  }}
+>
+  <Table />
+</ConfigProvider>
+```
+
+**场景 3：完整暗色主题**
+
+```tsx | pure
+<ConfigProvider
+  themeMode="dark"
+  theme={{
+    algorithm: Theme.darkAlgorithm,
+    token: {
+      colorPrimary: '#177ddc', // 暗色主题建议用略亮的主色
+    },
+  }}
+>
+  <Table />
+</ConfigProvider>
+```
+
+### 与全局 antd 主题协作
+
+```tsx | pure
+import { ConfigProvider as AntdConfigProvider } from 'antd';
+import { ConfigProvider, Table } from 'rc-grid-table';
+
+export default () => (
+  <AntdConfigProvider
+    theme={{
+      token: {
+        colorPrimary: '#722ed1',
+      },
+    }}
+  >
+    {/* rc-grid-table 会自动继承这个主题 */}
+    <ConfigProvider>
+      <Table />
+    </ConfigProvider>
+  </AntdConfigProvider>
+);
+```
+
+如果在 rc-grid-table 的 `ConfigProvider` 显式设置 `theme`，则会创建独立主题，不继承外层 antd 主题。
+
+### 外层 antd ConfigProvider 兼容
+
+如果外部已经有 antd `ConfigProvider`，rc-grid-table 会智能判断是否覆盖：
+
+| 条件                                      | 行为                                  |
+| ----------------------------------------- | ------------------------------------- |
+| 显式设置 `theme`、`themeMode` 或 `cssVar` | 创建新主题，不覆盖外层 antd 主题      |
+| 未设置 `theme`、`themeMode` 或 `cssVar`   | 继承外层 antd `ConfigProvider` 的主题 |
+
+这意味着你可以：
+
+- 在全局 antd `ConfigProvider` 统一设置主题，rc-grid-table 会自动继承
+- 在 rc-grid-table 的 `ConfigProvider` 独立配置，不影响其他 antd 组件
 
 ## Theme Mode
 

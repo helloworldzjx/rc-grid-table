@@ -20,6 +20,7 @@ import {
   defaultAlgorithm,
   defaultDesignToken,
 } from '../theme';
+import { getLineHeight } from '../theme/algorithm';
 import { ConfigContext, defaultPrefixCls, useConfig } from './context';
 import { ConfigProviderProps } from './interface';
 
@@ -210,7 +211,7 @@ const ConfigProvider: FC<PropsWithChildren<ConfigProviderProps>> = ({
         borderRadius: mergedSeedToken.borderRadius,
         lineWidth: mergedSeedToken.borderWidth,
         fontSize: mergedSeedToken.fontSizeBase,
-        lineHeight: mergedSeedToken.lineHeightBase,
+        lineHeight: getLineHeight(mergedSeedToken.fontSizeBase),
       },
     }),
     [mergedCssVar, mergedHashed, mergedIsDark, mergedSeedToken],

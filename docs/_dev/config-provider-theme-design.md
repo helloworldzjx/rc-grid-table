@@ -223,7 +223,7 @@ theme.hashed
 - 内部 antd 组件能拿到一致的基础圆角、字号、行高、线宽。
 - 如果外部已经包了 antd `ConfigProvider`，并且当前 `ConfigProvider` 没有显式设置 `theme`、`themeMode`、`cssVar`，不要覆盖外部 antd 主题。
 
-桥接给 antd 的只应该是 seed token：
+桥接给 antd 的只应该是 seed token。注意 `lineHeight` 不是直接传入 `lineHeightBase`，而是按 `fontSizeBase` 使用 antd 的行高公式计算：
 
 ```ts
 {
@@ -233,9 +233,11 @@ theme.hashed
   borderRadius,
   lineWidth: borderWidth,
   fontSize: fontSizeBase,
-  lineHeight: lineHeightBase,
+  lineHeight: (fontSizeBase + 8) / fontSizeBase,
 }
 ```
+
+这样可以保持与 antd 的字体 / 行高算法一致。
 
 antd algorithm 只按 `isDark` 选择：
 

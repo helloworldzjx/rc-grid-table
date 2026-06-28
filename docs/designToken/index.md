@@ -38,15 +38,14 @@ nav:
 
 `DesignToken` 是主题的 seed token。
 
-| Token            | 类型     | 默认值    | 说明                         |
-| ---------------- | -------- | --------- | ---------------------------- |
-| `colorPrimary`   | `string` | `#1890ff` | 主色                         |
-| `colorTextBase`  | `string` | `''`      | 基础文本色，空值时由算法决定 |
-| `colorBgBase`    | `string` | `''`      | 基础背景色，空值时由算法决定 |
-| `borderRadius`   | `number` | `8`       | 基础圆角                     |
-| `borderWidth`    | `number` | `1`       | 基础边框宽度                 |
-| `fontSizeBase`   | `number` | `14`      | 基础字号                     |
-| `lineHeightBase` | `number` | `1.5`     | 基础行高                     |
+| Token           | 类型     | 默认值    | 说明                                                   |
+| --------------- | -------- | --------- | ------------------------------------------------------ |
+| `colorPrimary`  | `string` | `#1890ff` | 主色                                                   |
+| `colorTextBase` | `string` | `''`      | 基础文本色，空值时由算法决定                           |
+| `colorBgBase`   | `string` | `''`      | 基础背景色，空值时由算法决定                           |
+| `borderRadius`  | `number` | `6`       | 基础圆角                                               |
+| `borderWidth`   | `number` | `1`       | 基础边框宽度                                           |
+| `fontSizeBase`  | `number` | `14`      | 基础字号。运行时行高由 `fontSizeBase` 按 antd 公式计算 |
 
 ## DerivativeToken
 
@@ -54,15 +53,26 @@ nav:
 
 `colorTextBase` 和 `colorBgBase` 的默认 seed 是空字符串，和 antd 的 seed 语义保持一致：`defaultAlgorithm` 会把空值解析为 `#000` / `#fff`，`darkAlgorithm` 会把空值解析为 `#fff` / `#000`。
 
-| Token                 | 说明               |
-| --------------------- | ------------------ |
-| `fontSize`            | 运行时字号         |
-| `lineHeight`          | 运行时行高         |
-| `colorText`           | 正文文本色         |
-| `colorTextLightSolid` | 深色背景上的文本色 |
-| `colorBgContainer`    | 容器背景           |
-| `colorBgLayout`       | 布局背景           |
-| `colorBorder`         | 边框色             |
+| Token               | 说明                                       |
+| ------------------- | ------------------------------------------ |
+| `fontSizeSM`        | small 运行时字号                           |
+| `fontSize`          | 默认运行时字号                             |
+| `fontSizeLG`        | large 运行时字号                           |
+| `fontSizeXL`        | extra large 运行时字号                     |
+| `lineHeightSM`      | small 运行时行高                           |
+| `lineHeight`        | 默认运行时行高                             |
+| `lineHeightLG`      | large 运行时行高                           |
+| `fontHeightSM`      | small 运行时行高像素值                     |
+| `fontHeight`        | 默认运行时行高像素值                       |
+| `fontHeightLG`      | large 运行时行高像素值                     |
+| `colorText`         | 正文文本色                                 |
+| `colorBgContainer`  | 容器背景                                   |
+| `colorBgLayout`     | 布局背景                                   |
+| `colorBorder`       | 边框色                                     |
+| `borderRadiusXS`    | 极小圆角                                   |
+| `borderRadiusSM`    | 小圆角                                     |
+| `borderRadiusLG`    | 大圆角，Ant Design 用于表头等较大圆角场景  |
+| `borderRadiusOuter` | 外层圆角，Ant Design 用于卡片 / 弹层等场景 |
 
 `DerivativeToken` 同时包含所有 `DesignToken` 字段。
 
@@ -72,13 +82,14 @@ nav:
 
 | Token                        | 类型               | 说明                          |
 | ---------------------------- | ------------------ | ----------------------------- |
+| `placeholderColorBg`         | `string`           | 占位拖拽区背景                |
+| `cellBorderRadius`           | `number`           | 单元格圆角                    |
 | `cellPaddingBlockSM`         | `number \| string` | small 尺寸单元格纵向 padding  |
 | `cellPaddingInlineSM`        | `number \| string` | small 尺寸单元格横向 padding  |
 | `cellPaddingBlockMD`         | `number \| string` | middle 尺寸单元格纵向 padding |
 | `cellPaddingInlineMD`        | `number \| string` | middle 尺寸单元格横向 padding |
 | `cellPaddingBlock`           | `number \| string` | 默认尺寸单元格纵向 padding    |
 | `cellPaddingInline`          | `number \| string` | 默认尺寸单元格横向 padding    |
-| `placeholderColorBg`         | `string`           | 占位拖拽区背景                |
 | `cellColorHoverBg`           | `string`           | body 行 hover 背景            |
 | `cellColorActiveBg`          | `string`           | body 行 active 背景           |
 | `fixedColumnShadowColor`     | `string`           | 固定列阴影颜色                |

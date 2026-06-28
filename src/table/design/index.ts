@@ -4,6 +4,7 @@ import type { DerivativeToken } from '../../theme';
 
 export interface TableComponentToken extends Partial<DerivativeToken> {
   placeholderColorBg: string;
+  cellBorderRadius: number;
   cellPaddingBlockSM: number | string;
   cellPaddingInlineSM: number | string;
   cellPaddingBlockMD: number | string;
@@ -51,6 +52,7 @@ const prepareLightTableToken = (
   return {
     ...baseTableToken,
     placeholderColorBg: colorBgBase.darken(7).toRgbString(),
+    cellBorderRadius: token.borderRadiusLG,
     cellColorHoverBg: colorBgBase.darken(5).toRgbString(),
     cellColorActiveBg: colorBgBase.darken(9).toRgbString(),
     fixedColumnShadowColor: colorTextBase.setAlpha(0.1).toRgbString(),
@@ -72,6 +74,7 @@ const prepareDarkTableToken = (token: DerivativeToken): TableComponentToken => {
   return {
     ...baseTableToken,
     placeholderColorBg: colorBgBase.lighten(10).toRgbString(),
+    cellBorderRadius: token.borderRadiusLG,
     cellColorHoverBg: colorBgBase.lighten(12).toRgbString(),
     cellColorActiveBg: colorBgBase.lighten(11).toRgbString(),
     fixedColumnShadowColor: colorTextBase.setAlpha(0.1).toRgbString(),
