@@ -86,6 +86,8 @@ export type AlignType =
   | 'justify'
   | 'match-parent';
 
+export type AlignTypeSimple = Exclude<AlignType, 'justify' | 'match-parent'>;
+
 export type CellAttributes = HTMLAttributes<any> & {
   align?: AlignType;
 };
@@ -153,11 +155,11 @@ export interface ExpandableConfig<T = any> {
   expandIcon?: (props: ExpandIconProps<T>) => ReactNode;
   expandRowByClick?: boolean;
   fixed?: FixedType;
-  align?: 'start' | 'end' | 'center';
+  align?: AlignTypeSimple;
   indentSize?: number;
   /** 禁止展开列重新调整宽度 */
   resizeDisabled?: boolean;
-  /** 拖拽调整列宽时的最小宽度 */
+  /** 拖拽可调整展开列的最小宽度 */
   resizeMinWidth?: number;
   rowExpandable?: (record: T) => boolean;
   showExpandColumn?: boolean;
@@ -188,12 +190,12 @@ export interface RowSortChangeInfo<T = any> {
 }
 
 export interface RowSortableConfig<T = any> {
-  align?: 'start' | 'end' | 'center';
+  align?: AlignTypeSimple;
   columnTitle?: ReactNode;
   columnOverlayTitle?: ReactNode;
   columnWidth?: PercentColumnWidthType | number;
   fixed?: FixedType;
-  /** 拖拽调整列宽时的最小宽度 */
+  /** 拖拽可调整行拖拽列的最小宽度 */
   resizeMinWidth?: number;
   allowCrossLevelSort?: boolean;
   /** 行拖拽overlay中渲染的列。通过columns中的key或dataIndex匹配 */
@@ -215,7 +217,7 @@ export type SelectionControlProps = Omit<
 };
 
 export interface TableRowSelection<T = any> {
-  align?: 'start' | 'end' | 'center';
+  align?: AlignTypeSimple;
   checkStrictly?: boolean;
   columnTitle?: ReactNode | ((originalNode: ReactNode) => ReactNode);
   columnOverlayTitle?: ReactNode;
@@ -223,7 +225,7 @@ export interface TableRowSelection<T = any> {
   fixed?: FixedType;
   /** 禁止选择列重新调整宽度 */
   resizeDisabled?: boolean;
-  /** 拖拽调整列宽时的最小宽度 */
+  /** 拖拽可调整选择列的最小宽度 */
   resizeMinWidth?: number;
   getRadioProps?: (record: T) => SelectionControlProps;
   getCheckboxProps?: (record: T) => SelectionControlProps;
@@ -250,6 +252,10 @@ export interface TableRowSelection<T = any> {
     selectedRows: T[],
     nativeEvent: MouseEvent<HTMLElement>,
   ) => void;
+  /**
+   * @description 全选/取消全选 操作是否包含禁用行，仅在 rowSelection.type === 'checkbox' 时起效
+   * @default "enabled"
+   */
   selectAllMode?: SelectionSelectAllMode;
 }
 

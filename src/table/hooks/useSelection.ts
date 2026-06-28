@@ -63,7 +63,7 @@ function useSelection<T = any>({
 
   const type = rowSelection?.type ?? 'checkbox';
   const checkStrictly = rowSelection?.checkStrictly ?? true;
-  const selectAllMode = rowSelection?.selectAllMode ?? 'all';
+  const selectAllMode = rowSelection?.selectAllMode ?? 'enabled';
   const selectionEnabled = !!rowSelection;
   const getCheckboxProps = rowSelection?.getCheckboxProps;
   const controlled = !!rowSelection && 'selectedRowKeys' in rowSelection;
