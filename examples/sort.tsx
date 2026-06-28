@@ -6,6 +6,8 @@ import {
   SortDirection,
 } from 'rc-grid-table/es/table/interface';
 import React, { Key, useState } from 'react';
+import ConfigActions from './_utils/components/ConfigActions';
+import useConfigActions from './_utils/hooks/useConfigActions';
 
 interface DataType {
   key: React.Key;
@@ -236,10 +238,14 @@ const App: React.FC = () => {
     },
   ];
 
+  const { baseProps, state, onChange } = useConfigActions({ bordered: true });
+
   return (
     <Space direction="vertical" size={20} style={{ width: '100%' }}>
+      <ConfigActions value={state} onChange={onChange} />
+
       <Table
-        bordered
+        {...baseProps}
         columns={columns}
         dataSource={dataSource}
         dataSort={{

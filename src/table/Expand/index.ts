@@ -1,2 +1,2 @@
 export { default as ExpandControl } from './ExpandControl';
-export { default as TreeCellContent } from './TreeCellContent';
+export { default as TreeCellControl } from './TreeCellControl';

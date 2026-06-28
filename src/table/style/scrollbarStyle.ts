@@ -1,5 +1,5 @@
 import { type CSSInterpolation } from '@ant-design/cssinjs';
-import { ScrollbarClsType } from './classNames';
+import { ComponentClsType, ScrollbarClsType } from './classNames';
 
 import {
   SCROLLBAR_SIZE,
@@ -8,22 +8,28 @@ import {
 } from '../../_utils/const';
 import type { TableComponentToken } from '../design';
 
-export const genScrollbarToggleShowStyle = (
-  initialCls: string,
-  initializedCls: string,
+export const genScrollbarInitialStyle = (
+  { componentCls }: ComponentClsType,
+  {
+    xScrollBarCls: initialCls,
+    xScrollBarShowCls: initializedCls,
+  }: ScrollbarClsType,
 ): CSSInterpolation => ({
-  [`.${initialCls}`]: {
-    opacity: 0,
-    pointerEvents: 'none',
-  },
+  [`.${componentCls}`]: {
+    [`.${initialCls}`]: {
+      opacity: 0,
+      pointerEvents: 'none',
+    },
 
-  [`.${initializedCls}`]: {
-    opacity: 1,
-    pointerEvents: 'auto',
+    [`.${initializedCls}`]: {
+      opacity: 1,
+      pointerEvents: 'auto',
+    },
   },
 });
 
 export const genScrollBarStyle = (
+  { componentCls }: ComponentClsType,
   {
     xScrollBarCls,
     xScrollBarStickyCls,
@@ -35,77 +41,79 @@ export const genScrollBarStyle = (
   }: ScrollbarClsType,
   token: TableComponentToken,
 ): CSSInterpolation => ({
-  [`.${xScrollBarCls}`]: {
-    position: 'absolute',
-    width: '100%',
-    height: SCROLLBAR_SIZE,
-    left: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0)',
-    borderRadius: SCROLLBAR_SIZE,
-    touchAction: 'none',
-    userSelect: 'none',
-    transition: 'background-color 0.2s',
-    zIndex: 2,
-
-    [`&.${xScrollBarShowCls} .${xScrollBarThumbCls}`]: {
-      backgroundColor: token.scrollbarThumbColor,
-    },
-
-    [`.${xScrollBarThumbCls}`]: {
+  [`.${componentCls}`]: {
+    [`.${xScrollBarCls}`]: {
       position: 'absolute',
-      height: SCROLLBAR_THUMB_SIZE,
-      top: SCROLLBAR_THUMB_ABSOLUTE_LEFT_TOP,
+      width: '100%',
+      height: SCROLLBAR_SIZE,
+      left: 0,
       backgroundColor: 'rgba(0, 0, 0, 0)',
-      borderRadius: SCROLLBAR_THUMB_SIZE,
+      borderRadius: SCROLLBAR_SIZE,
+      touchAction: 'none',
+      userSelect: 'none',
       transition: 'background-color 0.2s',
+      zIndex: 2,
 
-      '&:hover': {
-        backgroundColor: token.scrollbarThumbHoverColor,
+      [`&.${xScrollBarShowCls} .${xScrollBarThumbCls}`]: {
+        backgroundColor: token.scrollbarThumbColor,
       },
 
-      '&:active': {
-        backgroundColor: token.scrollbarThumbActiveColor,
+      [`.${xScrollBarThumbCls}`]: {
+        position: 'absolute',
+        height: SCROLLBAR_THUMB_SIZE,
+        top: SCROLLBAR_THUMB_ABSOLUTE_LEFT_TOP,
+        backgroundColor: 'rgba(0, 0, 0, 0)',
+        borderRadius: SCROLLBAR_THUMB_SIZE,
+        transition: 'background-color 0.2s',
+
+        '&:hover': {
+          backgroundColor: token.scrollbarThumbHoverColor,
+        },
+
+        '&:active': {
+          backgroundColor: token.scrollbarThumbActiveColor,
+        },
       },
     },
-  },
 
-  [`.${xScrollBarStickyCls}`]: {
-    position: 'sticky',
-    marginTop: -SCROLLBAR_SIZE,
-    zIndex: 5,
-  },
-
-  [`.${yScrollBarCls}`]: {
-    position: 'absolute',
-    width: SCROLLBAR_SIZE,
-    height: '100%',
-    top: 0,
-    right: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0)',
-    borderRadius: SCROLLBAR_SIZE,
-    touchAction: 'none',
-    userSelect: 'none',
-    transition: 'background-color 0.2s',
-    zIndex: 2,
-
-    [`&.${yScrollBarShowCls} .${yScrollBarThumbCls}`]: {
-      backgroundColor: token.scrollbarThumbColor,
+    [`.${xScrollBarStickyCls}`]: {
+      position: 'sticky',
+      marginTop: -SCROLLBAR_SIZE,
+      zIndex: 5,
     },
 
-    [`.${yScrollBarThumbCls}`]: {
+    [`.${yScrollBarCls}`]: {
       position: 'absolute',
-      width: SCROLLBAR_THUMB_SIZE,
-      left: SCROLLBAR_THUMB_ABSOLUTE_LEFT_TOP,
+      width: SCROLLBAR_SIZE,
+      height: '100%',
+      top: 0,
+      right: 0,
       backgroundColor: 'rgba(0, 0, 0, 0)',
-      borderRadius: SCROLLBAR_THUMB_SIZE,
+      borderRadius: SCROLLBAR_SIZE,
+      touchAction: 'none',
+      userSelect: 'none',
       transition: 'background-color 0.2s',
+      zIndex: 2,
 
-      '&:hover': {
-        backgroundColor: token.scrollbarThumbHoverColor,
+      [`&.${yScrollBarShowCls} .${yScrollBarThumbCls}`]: {
+        backgroundColor: token.scrollbarThumbColor,
       },
 
-      '&:active': {
-        backgroundColor: token.scrollbarThumbActiveColor,
+      [`.${yScrollBarThumbCls}`]: {
+        position: 'absolute',
+        width: SCROLLBAR_THUMB_SIZE,
+        left: SCROLLBAR_THUMB_ABSOLUTE_LEFT_TOP,
+        backgroundColor: 'rgba(0, 0, 0, 0)',
+        borderRadius: SCROLLBAR_THUMB_SIZE,
+        transition: 'background-color 0.2s',
+
+        '&:hover': {
+          backgroundColor: token.scrollbarThumbHoverColor,
+        },
+
+        '&:active': {
+          backgroundColor: token.scrollbarThumbActiveColor,
+        },
       },
     },
   },

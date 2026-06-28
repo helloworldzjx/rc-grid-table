@@ -1,4 +1,4 @@
-import React, { CSSProperties, useMemo } from 'react';
+import React, { useMemo } from 'react';
 
 import { useRowSelectionContext } from '../contexts/RowSelectionContext';
 import SelectionCheckbox from './Checkbox';
@@ -26,14 +26,6 @@ function BodySelectionCell<T = any>({
     [rowData, rowSelection, selectionType],
   );
 
-  const mergedSelectionControlStyle = useMemo<CSSProperties>(
-    () => ({
-      ...selectionControlProps.style,
-      justifyContent: rowSelection?.align ?? 'center',
-    }),
-    [selectionControlProps.style, rowSelection?.align],
-  );
-
   if (!selection || !rowSelection) {
     return null;
   }
@@ -43,7 +35,6 @@ function BodySelectionCell<T = any>({
     selectionType === 'radio' ? (
       <SelectionRadio
         {...selectionControlProps}
-        style={mergedSelectionControlStyle}
         checked={selectionChecked}
         disabled={disabled}
         onChange={(event) => selection.onSelectRecord(rowData, rowIndex, event)}
@@ -51,7 +42,6 @@ function BodySelectionCell<T = any>({
     ) : (
       <SelectionCheckbox
         {...selectionControlProps}
-        style={mergedSelectionControlStyle}
         checked={selectionChecked}
         indeterminate={selection.isHalfSelected(rowData)}
         disabled={disabled}

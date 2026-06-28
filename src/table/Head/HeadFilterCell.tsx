@@ -2,6 +2,7 @@ import classNames from 'classnames';
 import React, { CSSProperties, FC, memo, useMemo } from 'react';
 
 import CellContainer from '../CellContainer';
+import { useDataSortContext } from '../contexts';
 import { useColumnSortableContext } from '../contexts/ColumnSortableContext';
 import { useComponentsContext } from '../contexts/ComponentsContext';
 import { useFixedShadowActive } from '../contexts/FixedShadowContext';
@@ -10,7 +11,13 @@ import { useTableContext } from '../contexts/TableContext';
 import type { InternalColumnState } from '../internalInterface';
 import { getComponentCls } from '../style/classNames';
 import { mergeCellProps } from '../utils/cellProps';
+import {
+  isExpandColumn,
+  isRowSortColumn,
+  isSelectionColumn,
+} from '../utils/const';
 import { FixedInfo } from '../utils/fixedColumns';
+import { getDataSortColumnKey } from '../utils/sort';
 
 interface HeadFilterCellProps<T = any> {
   column: InternalColumnState<T>;
@@ -33,6 +40,10 @@ const HeadFilterCell: FC<HeadFilterCellProps> = ({
     cellCls,
     filterCellCls,
     headLastCellCls,
+    dataSortActiveCellCls,
+    selectionCellCls,
+    rowSortCellCls,
+    expandCellCls,
     columnSortableActiveCellCls,
     columnSortableHotCellCls,
     previewHiddenCellCls,
@@ -45,6 +56,7 @@ const HeadFilterCell: FC<HeadFilterCellProps> = ({
     fixedEndShadowActiveCellCls,
   } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
 
+  const { dataSortOrders = [] } = useDataSortContext();
   const { sortableActiveKeys, sortableHotKeys } = useColumnSortableContext();
   const fixedShadowActive = useFixedShadowActive(fixedInfo);
   const inSortableActiveScope = sortableActiveKeys.has(column.key);
@@ -111,6 +123,11 @@ const HeadFilterCell: FC<HeadFilterCellProps> = ({
     [column.key, columnIndex, fixedInfo.fixStart, fixedInfo.fixEnd],
   );
 
+  const columnKey = getDataSortColumnKey(column);
+  const sortIndex = dataSortOrders.findIndex(
+    (item) => item.columnKey === columnKey,
+  );
+
   const filterNode = useMemo(
     () => column.filterRender?.(column, columnIndex),
     [column, columnIndex],
@@ -124,16 +141,20 @@ const HeadFilterCell: FC<HeadFilterCellProps> = ({
         filterCellCls,
         {
           [headLastCellCls]: last,
-          [columnSortableActiveCellCls]: inSortableActiveScope,
-          [columnSortableHotCellCls]: inSortableHotScope,
-          [previewHiddenCellCls]: column.previewHidden,
-          [previewRestoredCellCls]: column.previewRestored,
+          [dataSortActiveCellCls]: sortIndex >= 0,
+          [selectionCellCls]: isSelectionColumn(column),
+          [rowSortCellCls]: isRowSortColumn(column),
+          [expandCellCls]: isExpandColumn(column),
           [fixedStartCellCls]: fixedInfo.fixStart !== null,
           [fixedStartLastCellCls]: fixedInfo.fixedStartShadow,
           [fixedStartShadowActiveCellCls]: fixedShadowActive.start,
           [fixedEndCellCls]: fixedInfo.fixEnd !== null,
           [fixedEndFirstCellCls]: fixedInfo.fixedEndShadow,
           [fixedEndShadowActiveCellCls]: fixedShadowActive.end,
+          [columnSortableActiveCellCls]: inSortableActiveScope,
+          [columnSortableHotCellCls]: inSortableHotScope,
+          [previewHiddenCellCls]: column.previewHidden,
+          [previewRestoredCellCls]: column.previewRestored,
         },
         column.className,
         cellProps.className,

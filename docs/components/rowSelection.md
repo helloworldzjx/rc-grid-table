@@ -16,7 +16,7 @@ order: 16
 - `getRadioProps(record)`：设置某一行单选框的 props，例如 `disabled`。
 - `checkStrictly`：树形数据下父子节点选择是否独立，默认为 `true`。
 - `onChange(selectedRowKeys, selectedRows, info)`：选中状态变化回调。
-- `onSelect(record, selected, selectedRows, nativeEvent)`：单行选择变化回调。
+- `onSelect(record, selected, selectedRows, event)`：单行选择变化回调。
 
 ## 手动调整选择列位置
 

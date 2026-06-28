@@ -90,7 +90,6 @@ function RowSortBodyCell<T = any>({
     previewRestoredCellCls,
     rowSortCellCls,
     rowSortOverCellCls,
-    rowSortControlCls,
     rowSortHandleCls,
     rowSortHandleDisabledCls,
     rowSortHandleDraggingCls,
@@ -135,11 +134,21 @@ function RowSortBodyCell<T = any>({
       rowSortable?.sortIcon ? (
         rowSortable.sortIcon(iconProps)
       ) : (
-        <>
-          <span />
-          <span />
-          <span />
-        </>
+        <svg
+          viewBox="0 0 1024 1024"
+          focusable="false"
+          aria-hidden="true"
+          fill="currentColor"
+          width="1em"
+          height="1em"
+        >
+          <circle cx="110" cy="308" r="80" />
+          <circle cx="512" cy="308" r="80" />
+          <circle cx="914" cy="308" r="80" />
+          <circle cx="110" cy="716" r="80" />
+          <circle cx="512" cy="716" r="80" />
+          <circle cx="914" cy="716" r="80" />
+        </svg>
       ),
     [iconProps, rowSortable],
   );
@@ -158,6 +167,8 @@ function RowSortBodyCell<T = any>({
       className={classNames(
         cellCls,
         {
+          [rowSortCellCls]: true,
+          [rowSortOverCellCls]: rowSortIsOver,
           [fixedStartCellCls]: fixedInfo.fixStart !== null,
           [fixedStartLastCellCls]: fixedInfo.fixedStartShadow,
           [fixedStartShadowActiveCellCls]: fixedShadowActive.start,
@@ -168,8 +179,6 @@ function RowSortBodyCell<T = any>({
           [columnSortableHotCellCls]: sortableHot,
           [previewHiddenCellCls]: previewHidden,
           [previewRestoredCellCls]: previewRestored,
-          [rowSortCellCls]: true,
-          [rowSortOverCellCls]: rowSortIsOver,
         },
         hoverClassName && hovered ? hoverClassName : undefined,
         column.className,
@@ -181,25 +190,20 @@ function RowSortBodyCell<T = any>({
       {...restCellProps}
       ref={mergedCellRef}
     >
-      <div
-        className={rowSortControlCls}
-        style={{ justifyContent: rowSortable?.align ?? 'center' }}
+      <button
+        {...activatorProps}
+        type="button"
+        className={classNames(rowSortHandleCls, {
+          [rowSortHandleDisabledCls]: disabled,
+          [rowSortHandleDraggingCls]: dragging,
+        })}
+        aria-label="Drag row"
+        disabled={disabled}
+        ref={setRowSortActivatorNodeRef}
+        onClick={(event) => event.stopPropagation()}
       >
-        <button
-          {...activatorProps}
-          type="button"
-          className={classNames(rowSortHandleCls, {
-            [rowSortHandleDisabledCls]: disabled,
-            [rowSortHandleDraggingCls]: dragging,
-          })}
-          aria-label="Drag row"
-          disabled={disabled}
-          ref={setRowSortActivatorNodeRef}
-          onClick={(event) => event.stopPropagation()}
-        >
-          {iconNode}
-        </button>
-      </div>
+        {iconNode}
+      </button>
     </CellContainer>
   );
 }

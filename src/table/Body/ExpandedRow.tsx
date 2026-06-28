@@ -44,9 +44,9 @@ const ExpandedRow: FC<ExpandedRowProps> = ({
     bodyGridRowCls,
     bodyFixedHeightRowCls,
     cellCls,
-    expandedRowCls,
-    expandedRowCellCls,
-    expandedRowContentCls,
+    bodyExpandedRowCls,
+    bodyExpandedRowCellCls,
+    bodyExpandedRowContentCls,
   } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
   const { bodyFixedHeightRowCssVar } = useMemo(
     () => getCssVar(prefixCls),
@@ -101,7 +101,7 @@ const ExpandedRow: FC<ExpandedRowProps> = ({
     <RowComponent
       className={classNames(
         bodyRowCls,
-        expandedRowCls,
+        bodyExpandedRowCls,
         {
           [bodyGridRowCls]: virtual,
           [bodyFixedHeightRowCls]: hasFixedRowHeight,
@@ -112,12 +112,10 @@ const ExpandedRow: FC<ExpandedRowProps> = ({
       ref={rowRef}
     >
       <CellComponent
-        className={classNames(cellCls, expandedRowCellCls)}
+        className={classNames(cellCls, bodyExpandedRowCellCls)}
         style={cellStyle}
       >
-        <div className={expandedRowContentCls} style={contentStyle}>
-          {children}
-        </div>
+        <div className={bodyExpandedRowContentCls}>{children}</div>
       </CellComponent>
     </RowComponent>
   );

@@ -1,99 +1,76 @@
+import { Checkbox as AntdCheckbox, CheckboxChangeEvent } from 'antd';
 import classNames from 'classnames';
 import React, {
   FC,
-  LabelHTMLAttributes,
+  KeyboardEvent,
   MouseEvent,
   PointerEvent,
+  PointerEventHandler,
   useMemo,
 } from 'react';
 
 import { usePrefixClsContext } from '../contexts/PrefixClsContext';
+import type { SelectionCheckboxControlProps } from '../interface';
 import { getComponentCls } from '../style/classNames';
 
-type CheckboxProps = Omit<LabelHTMLAttributes<HTMLLabelElement>, 'onChange'> & {
-  checked?: boolean;
-  indeterminate?: boolean;
-  disabled?: boolean;
-  onChange?: (event: MouseEvent<HTMLElement>) => void;
+type CheckboxProps = SelectionCheckboxControlProps & {
+  onChange?: (event: CheckboxChangeEvent) => void;
+  onPointerDown?: PointerEventHandler<HTMLElement>;
 };
 
 const Checkbox: FC<CheckboxProps> = ({
   checked = false,
   indeterminate = false,
   disabled = false,
-  className,
-  children,
-  onChange,
+  onClick,
+  onKeyDown,
   onPointerDown,
-  onMouseDown,
   ...rest
 }) => {
   const prefixCls = usePrefixClsContext();
 
-  const {
-    selectionControlCls,
-    selectionControlInputCls,
-    selectionControlContentCls,
-    selectionCheckboxCls,
-    selectionControlCheckedCls,
-    selectionControlIndeterminateCls,
-    selectionControlDisabledCls,
-  } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
+  const { selectionControlCls, selectionControlDisabledCls } = useMemo(
+    () => getComponentCls(prefixCls),
+    [prefixCls],
+  );
 
-  const handleClick = (event: MouseEvent<HTMLLabelElement>) => {
+  const handleClick = (
+    event: MouseEvent<HTMLElement, globalThis.MouseEvent>,
+  ) => {
     event.stopPropagation();
-    if (!disabled) {
-      onChange?.(event);
-    }
+    if (disabled) return;
+    onClick?.(event);
   };
 
-  const handlePointerDown = (event: PointerEvent<HTMLLabelElement>) => {
+  const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    event.stopPropagation();
+    if (disabled) return;
+    onKeyDown?.(event);
+  };
+
+  const handlePointerDown = (event: PointerEvent<HTMLElement>) => {
     event.stopPropagation();
     onPointerDown?.(event);
   };
 
-  const handleMouseDown = (event: MouseEvent<HTMLLabelElement>) => {
-    event.stopPropagation();
-    onMouseDown?.(event);
-  };
-
-  const handleInputClick = (event: MouseEvent<HTMLInputElement>) => {
-    event.stopPropagation();
-  };
-
   return (
-    <label
-      role="checkbox"
-      tabIndex={disabled ? -1 : 0}
-      aria-checked={indeterminate ? 'mixed' : checked}
-      aria-disabled={disabled}
-      {...rest}
-      className={classNames(
-        selectionControlCls,
-        selectionCheckboxCls,
-        {
-          [selectionControlCheckedCls]: checked,
-          [selectionControlIndeterminateCls]: indeterminate,
-          [selectionControlDisabledCls]: disabled,
-        },
-        className,
-      )}
+    // 当antd checkbox的父元素有事件行为时，antd checkbox在disabled时存在事件会冒泡(?)到父元素的现象，使用span包裹避免问题
+    <span
+      className={classNames(selectionControlCls, {
+        [selectionControlDisabledCls]: disabled,
+      })}
       onClick={handleClick}
+      onKeyDown={handleKeyDown}
       onPointerDown={handlePointerDown}
-      onMouseDown={handleMouseDown}
     >
-      <div className={selectionControlInputCls}>
-        <input
-          type="checkbox"
-          checked={checked}
-          disabled={disabled}
-          readOnly
-          tabIndex={-1}
-          onClick={handleInputClick}
-        />
-      </div>
-      {children && <div className={selectionControlContentCls}>{children}</div>}
-    </label>
+      <AntdCheckbox
+        prefixCls={`${prefixCls}-checkbox`}
+        checked={checked}
+        indeterminate={indeterminate}
+        disabled={disabled}
+        {...rest}
+      />
+    </span>
   );
 };
 

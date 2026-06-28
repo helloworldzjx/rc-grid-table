@@ -42,6 +42,9 @@ export type ComponentClsType = {
   bodyVirtualRowSpanTopCls: string;
   bodyVirtualPreservedCls: string;
   bodyExpandableRowCls: string;
+  bodyExpandedRowCls: string;
+  bodyExpandedRowCellCls: string;
+  bodyExpandedRowContentCls: string;
   bodySortDraggingRowCls: string;
   bodySortDraggingOverlayRowCls: string;
   bodySortFirstRowCls: string;
@@ -55,30 +58,22 @@ export type ComponentClsType = {
   dataSortCellInnerCls: string;
   dataSortContentCls: string;
   dataSortControlCls: string;
-  expandControlCellCls: string;
-  expandControlCls: string;
   rowSortCellCls: string;
   rowSortOverCellCls: string;
-  rowSortControlCls: string;
   rowSortHandleCls: string;
   rowSortHandleDisabledCls: string;
   rowSortHandleDraggingCls: string;
   selectionCellCls: string;
   selectionControlCls: string;
-  selectionControlInputCls: string;
-  selectionControlContentCls: string;
-  selectionCheckboxCls: string;
-  selectionRadioCls: string;
-  selectionControlCheckedCls: string;
-  selectionControlIndeterminateCls: string;
   selectionControlDisabledCls: string;
-  expandIconCls: string;
-  expandIconExpandedCls: string;
-  expandIconSpacedCls: string;
+  expandCellCls: string;
+  expandControlCls: string;
+  expandControlExpandedCls: string;
+  expandTreeCellCls: string;
   expandTreeCellInnerCls: string;
-  expandedRowCls: string;
-  expandedRowCellCls: string;
-  expandedRowContentCls: string;
+  expandTreeCellInnerSpacedCls: string;
+  expandTreeControlCls: string;
+  expandTreeContentCls: string;
   headLastCellCls: string;
   headCellResizeHandleCls: string;
   headCellResizeHandleDisabledCls: string;
@@ -165,6 +160,9 @@ export const getComponentCls = (prefixCls: string): ComponentClsType => {
     bodyVirtualRowSpanTopCls: `${prefixCls}-body-virtual-row-span-top`,
     bodyVirtualPreservedCls: `${prefixCls}-body-virtual-preserved`,
     bodyExpandableRowCls: `${prefixCls}-body-expandable-row`,
+    bodyExpandedRowCls: `${prefixCls}-body-expanded-row`,
+    bodyExpandedRowCellCls: `${prefixCls}-body-expanded-row-cell`,
+    bodyExpandedRowContentCls: `${prefixCls}-body-expanded-row-content`,
     bodySortDraggingRowCls: `${prefixCls}-body-sort-dragging-row`,
     bodySortDraggingOverlayRowCls: `${prefixCls}-body-sort-dragging-overlay-row`,
     bodySortFirstRowCls: `${prefixCls}-body-sort-first-row`,
@@ -178,30 +176,22 @@ export const getComponentCls = (prefixCls: string): ComponentClsType => {
     dataSortCellInnerCls: `${prefixCls}-data-sort-cell-inner`,
     dataSortContentCls: `${prefixCls}-data-sort-content`,
     dataSortControlCls: `${prefixCls}-data-sort-control`,
-    expandControlCellCls: `${prefixCls}-expand-control-cell`,
-    expandControlCls: `${prefixCls}-expand-control`,
+    expandCellCls: `${prefixCls}-expand-cell`,
     rowSortCellCls: `${prefixCls}-row-sort-cell`,
     rowSortOverCellCls: `${prefixCls}-row-sort-over-cell`,
-    rowSortControlCls: `${prefixCls}-row-sort-control`,
     rowSortHandleCls: `${prefixCls}-row-sort-handle`,
     rowSortHandleDisabledCls: `${prefixCls}-row-sort-handle-disabled`,
     rowSortHandleDraggingCls: `${prefixCls}-row-sort-handle-dragging`,
     selectionCellCls: `${prefixCls}-selection-cell`,
     selectionControlCls: `${prefixCls}-selection-control`,
-    selectionControlInputCls: `${prefixCls}-selection-control-input`,
-    selectionControlContentCls: `${prefixCls}-selection-control-content`,
-    selectionCheckboxCls: `${prefixCls}-selection-checkbox`,
-    selectionRadioCls: `${prefixCls}-selection-radio`,
-    selectionControlCheckedCls: `${prefixCls}-selection-control-checked`,
-    selectionControlIndeterminateCls: `${prefixCls}-selection-control-indeterminate`,
     selectionControlDisabledCls: `${prefixCls}-selection-control-disabled`,
-    expandIconCls: `${prefixCls}-expand-icon`,
-    expandIconExpandedCls: `${prefixCls}-expand-icon-expanded`,
-    expandIconSpacedCls: `${prefixCls}-expand-icon-spaced`,
+    expandControlCls: `${prefixCls}-expand-control`,
+    expandControlExpandedCls: `${prefixCls}-expand-control-expanded`,
+    expandTreeCellCls: `${prefixCls}-expand-tree-cell`,
     expandTreeCellInnerCls: `${prefixCls}-expand-tree-cell-inner`,
-    expandedRowCls: `${prefixCls}-expanded-row`,
-    expandedRowCellCls: `${prefixCls}-expanded-row-cell`,
-    expandedRowContentCls: `${prefixCls}-expanded-row-content`,
+    expandTreeCellInnerSpacedCls: `${prefixCls}-expand-tree-cell-inner-spaced`,
+    expandTreeControlCls: `${prefixCls}-expand-tree-control`,
+    expandTreeContentCls: `${prefixCls}-expand-tree-content`,
     headLastCellCls: `${prefixCls}-head-last-cell`,
     headCellResizeHandleCls: `${prefixCls}-head-cell-resize-handle`,
     headCellResizeHandleDisabledCls: `${prefixCls}-head-cell-resize-handle-disabled`,

@@ -1,4 +1,11 @@
-import type { EmptyProps, SpinProps } from 'antd';
+import type {
+  CheckboxChangeEvent as AntdCheckboxChangeEvent,
+  CheckboxProps as AntdCheckboxProps,
+  RadioChangeEvent as AntdRadioChangeEvent,
+  RadioProps as AntdRadioProps,
+  EmptyProps,
+  SpinProps,
+} from 'antd';
 import type {
   CSSProperties,
   ElementType,
@@ -7,6 +14,13 @@ import type {
   MouseEvent,
   ReactNode,
 } from 'react';
+
+export type {
+  AntdCheckboxChangeEvent,
+  AntdCheckboxProps,
+  AntdRadioChangeEvent,
+  AntdRadioProps,
+};
 
 export interface TableRef {
   nativeElement: HTMLDivElement;
@@ -208,13 +222,11 @@ export interface RowSortableConfig<T = any> {
 export type SelectionType = 'checkbox' | 'radio';
 export type SelectionSelectAllMode = 'all' | 'enabled';
 export type SelectionInfoType = 'single' | 'all' | 'none';
+export type SelectionEventType = AntdCheckboxChangeEvent | AntdRadioChangeEvent;
 
-export type SelectionControlProps = Omit<
-  HTMLAttributes<HTMLElement>,
-  'onChange'
-> & {
-  disabled?: boolean;
-};
+export type SelectionCheckboxControlProps = Omit<AntdCheckboxProps, 'onChange'>;
+
+export type SelectionRadioControlProps = Omit<AntdRadioProps, 'onChange'>;
 
 export interface TableRowSelection<T = any> {
   align?: AlignTypeSimple;
@@ -227,9 +239,9 @@ export interface TableRowSelection<T = any> {
   resizeDisabled?: boolean;
   /** 拖拽可调整选择列的最小宽度 */
   resizeMinWidth?: number;
-  getRadioProps?: (record: T) => SelectionControlProps;
-  getCheckboxProps?: (record: T) => SelectionControlProps;
-  getTitleCheckboxProps?: () => SelectionControlProps;
+  getRadioProps?: (record: T) => SelectionRadioControlProps;
+  getCheckboxProps?: (record: T) => SelectionCheckboxControlProps;
+  getTitleCheckboxProps?: () => SelectionCheckboxControlProps;
   hideSelectAll?: boolean;
   renderCell?: (
     checked: boolean,
@@ -250,7 +262,7 @@ export interface TableRowSelection<T = any> {
     record: T,
     selected: boolean,
     selectedRows: T[],
-    nativeEvent: MouseEvent<HTMLElement>,
+    event: SelectionEventType,
   ) => void;
   /**
    * @description 全选/取消全选 操作是否包含禁用行，仅在 rowSelection.type === 'checkbox' 时起效

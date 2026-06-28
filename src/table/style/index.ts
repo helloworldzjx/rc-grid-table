@@ -18,10 +18,7 @@ import {
   getScrollbarCls,
   ScrollbarClsType,
 } from './classNames';
-import {
-  genScrollBarStyle,
-  genScrollbarToggleShowStyle,
-} from './scrollbarStyle';
+import { genScrollbarInitialStyle, genScrollBarStyle } from './scrollbarStyle';
 
 const genInitialStyle = ({
   wrapperCls,
@@ -236,28 +233,28 @@ const genBorderedStyle = (
         width: '100%',
         boxSizing: 'border-box',
         border: `1px solid ${token.colorBorder}`,
-        borderRadius: token.borderRadius,
+        borderRadius: token.cellBorderRadius,
         pointerEvents: 'none',
         zIndex: 2,
       },
 
       [`& > .${placeholderCls}`]: {
         border: `1px solid ${token.colorBorder}`,
-        borderTopRightRadius: token.borderRadius,
-        borderBottomRightRadius: token.borderRadius,
+        borderTopRightRadius: token.cellBorderRadius,
+        borderBottomRightRadius: token.cellBorderRadius,
       },
 
       [`&.${hasXScrollbarCls}`]: {
         [`&.${pingStartCls}::after`]: {
-          borderTopLeftRadius: token.borderRadius,
-          borderBottomLeftRadius: token.borderRadius,
+          borderTopLeftRadius: token.cellBorderRadius,
+          borderBottomLeftRadius: token.cellBorderRadius,
         },
         [`&.${pingEndCls}::after`]: {
-          borderTopRightRadius: token.borderRadius,
-          borderBottomRightRadius: token.borderRadius,
+          borderTopRightRadius: token.cellBorderRadius,
+          borderBottomRightRadius: token.cellBorderRadius,
         },
         [`&.${pingStartCls}.${pingEndCls}::after`]: {
-          borderRadius: token.borderRadius,
+          borderRadius: token.cellBorderRadius,
         },
       },
 
@@ -267,13 +264,13 @@ const genBorderedStyle = (
           borderBottomColor: 'transparent',
           outline: `1px solid ${token.colorBorder}`,
           outlineOffset: -1,
-          borderTopLeftRadius: token.borderRadius,
-          borderTopRightRadius: token.borderRadius,
+          borderTopLeftRadius: token.cellBorderRadius,
+          borderTopRightRadius: token.cellBorderRadius,
         },
 
         [`& > .${headInnerCls}`]: {
-          borderTopLeftRadius: token.borderRadius,
-          borderTopRightRadius: token.borderRadius,
+          borderTopLeftRadius: token.cellBorderRadius,
+          borderTopRightRadius: token.cellBorderRadius,
         },
       },
 
@@ -282,12 +279,12 @@ const genBorderedStyle = (
       },
 
       [`& > .${bodyCls}::before`]: {
-        borderBottomLeftRadius: token.borderRadius,
-        borderBottomRightRadius: token.borderRadius,
+        borderBottomLeftRadius: token.cellBorderRadius,
+        borderBottomRightRadius: token.cellBorderRadius,
       },
       [`&:not(.${hasSummaryCls}) > .${bodyCls} > .${bodyInnerCls}`]: {
-        borderBottomLeftRadius: token.borderRadius,
-        borderBottomRightRadius: token.borderRadius,
+        borderBottomLeftRadius: token.cellBorderRadius,
+        borderBottomRightRadius: token.cellBorderRadius,
       },
 
       [`& > .${summaryCls}`]: {
@@ -296,13 +293,13 @@ const genBorderedStyle = (
           borderBottomColor: 'transparent',
           outline: `1px solid ${token.colorBorder}`,
           outlineOffset: -1,
-          borderBottomLeftRadius: token.borderRadius,
-          borderBottomRightRadius: token.borderRadius,
+          borderBottomLeftRadius: token.cellBorderRadius,
+          borderBottomRightRadius: token.cellBorderRadius,
         },
 
         [`& > .${summaryInnerCls}`]: {
-          borderBottomLeftRadius: token.borderRadius,
-          borderBottomRightRadius: token.borderRadius,
+          borderBottomLeftRadius: token.cellBorderRadius,
+          borderBottomRightRadius: token.cellBorderRadius,
         },
       },
 
@@ -319,39 +316,47 @@ const genBorderedStyle = (
 };
 
 const genHeadStyle = (
-  { headCls, headStickyCls, headInnerCls, headRowCls }: ComponentClsType,
+  {
+    componentCls,
+    headCls,
+    headStickyCls,
+    headInnerCls,
+    headRowCls,
+  }: ComponentClsType,
   token: TableComponentToken,
   { columnsWidthCssVar }: CssVarType,
 ): CSSInterpolation => ({
-  [`& > .${headCls}`]: {
-    position: 'relative',
+  [`.${componentCls}`]: {
+    [`& > .${headCls}`]: {
+      position: 'relative',
 
-    '&::before': {
-      content: "' '",
-      position: 'absolute',
-      left: 0,
-      top: 0,
-      height: '100%',
-      width: '100%',
-      boxSizing: 'border-box',
-      borderBottom: `1px solid ${token.colorBorder}`,
-      pointerEvents: 'none',
-      zIndex: 3,
-    },
+      '&::before': {
+        content: "' '",
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        height: '100%',
+        width: '100%',
+        boxSizing: 'border-box',
+        borderBottom: `1px solid ${token.colorBorder}`,
+        pointerEvents: 'none',
+        zIndex: 3,
+      },
 
-    [`&.${headStickyCls}`]: {
-      position: 'sticky',
-      zIndex: 4,
-    },
+      [`&.${headStickyCls}`]: {
+        position: 'sticky',
+        zIndex: 4,
+      },
 
-    [`& > .${headInnerCls}`]: {
-      display: 'grid',
-      gridTemplateColumns: `var(${columnsWidthCssVar})`,
-      overflow: 'auto hidden',
-      scrollbarWidth: 'none',
+      [`& > .${headInnerCls}`]: {
+        display: 'grid',
+        gridTemplateColumns: `var(${columnsWidthCssVar})`,
+        overflow: 'auto hidden',
+        scrollbarWidth: 'none',
 
-      [`& > .${headRowCls}`]: {
-        display: 'contents',
+        [`& > .${headRowCls}`]: {
+          display: 'contents',
+        },
       },
     },
   },
@@ -359,6 +364,7 @@ const genHeadStyle = (
 
 const genBodyStyle = (
   {
+    componentCls,
     hasSummaryCls,
     bodyCls,
     bodyInnerCls,
@@ -371,64 +377,67 @@ const genBodyStyle = (
   token: TableComponentToken,
   { columnsWidthCssVar }: CssVarType,
 ): CSSInterpolation => ({
-  [`& > .${bodyCls}`]: {
-    position: 'relative',
-    boxSizing: 'border-box',
-    overflow: 'hidden',
-
-    '&::before': {
-      content: "' '",
-      position: 'absolute',
-      left: 0,
-      top: 0,
-      height: '100%',
-      width: '100%',
+  [`.${componentCls}`]: {
+    [`& > .${bodyCls}`]: {
+      position: 'relative',
       boxSizing: 'border-box',
-      borderBottom: `1px solid ${token.colorBorder}`,
-      pointerEvents: 'none',
-      zIndex: 3,
-    },
-  },
+      overflow: 'hidden',
 
-  [`&.${hasSummaryCls} > .${bodyCls}::before`]: {
-    display: 'none',
-  },
-
-  [`& > .${bodyCls} > .${bodyInnerCls}`]: {
-    display: 'grid',
-    gridTemplateColumns: `var(${columnsWidthCssVar})`,
-    boxSizing: 'border-box',
-    overflow: 'auto',
-    scrollbarWidth: 'none',
-
-    [`& > .${bodyRowCls}`]: {
-      display: 'contents',
+      '&::before': {
+        content: "' '",
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        height: '100%',
+        width: '100%',
+        boxSizing: 'border-box',
+        borderBottom: `1px solid ${token.colorBorder}`,
+        pointerEvents: 'none',
+        zIndex: 3,
+      },
     },
 
-    [`& > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyRowCls}`]:
-      {
+    [`&.${hasSummaryCls} > .${bodyCls}::before`]: {
+      display: 'none',
+    },
+
+    [`& > .${bodyCls} > .${bodyInnerCls}`]: {
+      display: 'grid',
+      gridTemplateColumns: `var(${columnsWidthCssVar})`,
+      boxSizing: 'border-box',
+      overflow: 'auto',
+      scrollbarWidth: 'none',
+
+      [`& > .${bodyRowCls}`]: {
         display: 'contents',
       },
 
-    [`& > .${bodyGridRowCls}, & > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyGridRowCls}`]:
-      {
-        display: 'grid',
-        gridTemplateColumns: `var(${columnsWidthCssVar})`,
-        gridColumn: '1 / -1',
-      },
-  },
+      [`& > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyRowCls}`]:
+        {
+          display: 'contents',
+        },
 
-  [`.${bodyRowCls}.${bodySortDraggingOverlayRowCls}`]: {
-    borderRadius: token.borderRadius,
-    boxShadow: '0 0 16px rgba(0, 0, 0, 0.1)',
-    outline: `1px solid ${token.colorBorder}`,
-    outlineOffset: -1,
-    pointerEvents: 'none',
+      [`& > .${bodyGridRowCls}, & > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyGridRowCls}`]:
+        {
+          display: 'grid',
+          gridTemplateColumns: `var(${columnsWidthCssVar})`,
+          gridColumn: '1 / -1',
+        },
+    },
+
+    [`.${bodyRowCls}.${bodySortDraggingOverlayRowCls}`]: {
+      borderRadius: token.cellBorderRadius,
+      boxShadow: '0 0 16px rgba(0, 0, 0, 0.1)',
+      outline: `1px solid ${token.colorBorder}`,
+      outlineOffset: -1,
+      pointerEvents: 'none',
+    },
   },
 });
 
 const genSummaryCls = (
   {
+    componentCls,
     summaryCls,
     summaryStickyCls,
     summaryInnerCls,
@@ -437,37 +446,39 @@ const genSummaryCls = (
   token: TableComponentToken,
   { columnsWidthCssVar }: CssVarType,
 ): CSSInterpolation => ({
-  [`& > .${summaryCls}`]: {
-    position: 'relative',
-    boxSizing: 'border-box',
-
-    '&::before': {
-      content: "' '",
-      position: 'absolute',
-      left: 0,
-      top: 0,
-      height: '100%',
-      width: '100%',
+  [`.${componentCls}`]: {
+    [`& > .${summaryCls}`]: {
+      position: 'relative',
       boxSizing: 'border-box',
-      borderBottom: `1px solid ${token.colorBorder}`,
-      pointerEvents: 'none',
-      zIndex: 3,
-    },
 
-    [`&.${summaryStickyCls}`]: {
-      position: 'sticky',
-      zIndex: 4,
-    },
+      '&::before': {
+        content: "' '",
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        height: '100%',
+        width: '100%',
+        boxSizing: 'border-box',
+        borderBottom: `1px solid ${token.colorBorder}`,
+        pointerEvents: 'none',
+        zIndex: 3,
+      },
 
-    [`& > .${summaryInnerCls}`]: {
-      display: 'grid',
-      gridTemplateColumns: `var(${columnsWidthCssVar})`,
-      boxSizing: 'border-box',
-      overflow: 'auto hidden',
-      scrollbarWidth: 'none',
+      [`&.${summaryStickyCls}`]: {
+        position: 'sticky',
+        zIndex: 4,
+      },
 
-      [`& > .${summaryRowCls}`]: {
-        display: 'contents',
+      [`& > .${summaryInnerCls}`]: {
+        display: 'grid',
+        gridTemplateColumns: `var(${columnsWidthCssVar})`,
+        boxSizing: 'border-box',
+        overflow: 'auto hidden',
+        scrollbarWidth: 'none',
+
+        [`& > .${summaryRowCls}`]: {
+          display: 'contents',
+        },
       },
     },
   },
@@ -475,6 +486,7 @@ const genSummaryCls = (
 
 const genCellStyle = (
   {
+    componentCls,
     rowSortingCls,
     headRowCls,
     bodyCls,
@@ -488,6 +500,8 @@ const genCellStyle = (
     bodySortDraggingOverlayRowCls,
     bodySortFirstRowCls,
     bodyExpandableRowCls,
+    bodyExpandedRowCls,
+    bodyExpandedRowCellCls,
     summaryRowCls,
     cellCls,
     filterCellCls,
@@ -496,26 +510,14 @@ const genCellStyle = (
     dataSortCellInnerCls,
     dataSortContentCls,
     dataSortControlCls,
-    expandControlCls,
+    rowSortCellCls,
     rowSortHandleCls,
     rowSortHandleDisabledCls,
     rowSortHandleDraggingCls,
-    rowSortControlCls,
-    selectionControlCls,
-    selectionControlInputCls,
-    selectionControlContentCls,
-    selectionCheckboxCls,
-    selectionRadioCls,
-    selectionControlCheckedCls,
-    selectionControlIndeterminateCls,
-    selectionControlDisabledCls,
-    expandIconCls,
-    expandIconExpandedCls,
-    expandIconSpacedCls,
+    expandControlCls,
     expandTreeCellInnerCls,
-    expandedRowCls,
-    expandedRowCellCls,
-    expandedRowContentCls,
+    expandTreeCellInnerSpacedCls,
+    expandTreeContentCls,
     headLastCellCls,
     headCellResizeHandleCls,
     headCellResizeHandleDisabledCls,
@@ -528,404 +530,270 @@ const genCellStyle = (
   }: ComponentClsType,
   token: TableComponentToken,
 ): CSSInterpolation => ({
-  [`.${headRowCls}`]: {
-    [`& > .${cellCls}`]: {
-      position: 'relative',
-      backgroundColor: token.colorBgLayout,
-      borderTop: `1px solid ${token.colorBorder}`,
-    },
-    [`&:first-child > .${cellCls}`]: {
-      borderTopColor: 'transparent',
-    },
-
-    [`& > .${cellCls}:not(.${headLastCellCls})::before`]: {
-      content: "' '",
-      position: 'absolute',
-      right: 0,
-      insetBlock: unit(token.cellPaddingBlock),
-      borderRight: `1px solid ${token.colorBorder}`,
-    },
-
-    [`.${headCellResizeHandleCls}`]: {
-      position: 'absolute',
-      top: 0,
-      right: 0,
-      insetBlock: unit(token.cellPaddingBlock),
-      width: 10,
-      backgroundColor: 'transparent',
-      cursor: 'e-resize',
-    },
-    [`.${headCellResizeHandleDisabledCls}`]: {
-      cursor: 'default',
-    },
-    [`.${headSortableCellCls}`]: {
-      userSelect: 'none',
-    },
-    [`.${headDraggingOverlayCellCls}`]: {
-      paddingLeft: COLUMNS_SORT_OVERLAY_POINTER_OFFSET_X * 1.5,
-      paddingRight: COLUMNS_SORT_OVERLAY_POINTER_OFFSET_X,
-      boxSizing: 'border-box',
-      fontSize: token.fontSize,
-      color: token.colorText,
-      whiteSpace: 'nowrap',
-      textOverflow: 'ellipsis',
-      overflow: 'hidden',
-      border: `1px solid ${token.colorBorder}`,
-      backgroundColor: token.colorBgContainer,
-      borderRadius: token.borderRadius,
-      boxShadow: '0 0 16px rgba(0, 0, 0, 0.1)',
-      cursor: 'move',
-    },
-  },
-
-  [`.${bodyRowCls}`]: {
-    [`& > .${cellCls}`]: {
-      backgroundColor: token.colorBgContainer,
-      borderTop: `1px solid ${token.colorBorder}`,
-    },
-    [`&:first-child:not(.${bodySortDraggingRowCls}, .${bodySortDraggingOverlayRowCls}) > .${cellCls}`]:
-      {
+  [`.${componentCls}`]: {
+    [`.${headRowCls}`]: {
+      [`& > .${cellCls}`]: {
+        position: 'relative',
+        backgroundColor: token.colorBgLayout,
+        borderTop: `1px solid ${token.colorBorder}`,
+      },
+      [`&:first-child > .${cellCls}`]: {
         borderTopColor: 'transparent',
       },
 
-    [`&.${bodySortFirstRowCls} > .${cellCls}`]: {
-      borderTopColor: 'transparent',
-    },
-    [`&.${bodySortDraggingRowCls} > .${cellCls}`]: {
-      pointerEvents: 'none',
-      opacity: 0.4,
-    },
-    [`&.${bodySortDraggingOverlayRowCls} > .${cellCls}`]: {
-      borderTop: `1px solid ${token.colorBorder}`,
-      borderBottom: `1px solid ${token.colorBorder}`,
-      borderLeft: `1px solid ${token.colorBorder}`,
-
-      '&:first-child': {
-        borderTopLeftRadius: token.borderRadius,
-        borderBottomLeftRadius: token.borderRadius,
-      },
-
-      '&:last-child': {
+      [`& > .${cellCls}:not(.${headLastCellCls})::before`]: {
+        content: "' '",
+        position: 'absolute',
+        right: 0,
+        insetBlock: unit(token.cellPaddingBlock),
         borderRight: `1px solid ${token.colorBorder}`,
-        borderTopRightRadius: token.borderRadius,
-        borderBottomRightRadius: token.borderRadius,
+      },
+
+      [`.${headCellResizeHandleCls}`]: {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        insetBlock: unit(token.cellPaddingBlock),
+        width: 10,
+        backgroundColor: 'transparent',
+        cursor: 'e-resize',
+        userSelect: 'none',
+      },
+      [`.${headCellResizeHandleDisabledCls}`]: {
+        cursor: 'default',
+      },
+      [`.${headSortableCellCls}`]: {
+        userSelect: 'none',
+      },
+      [`.${headDraggingOverlayCellCls}`]: {
+        paddingLeft: COLUMNS_SORT_OVERLAY_POINTER_OFFSET_X * 1.75,
+        paddingRight: COLUMNS_SORT_OVERLAY_POINTER_OFFSET_X,
+        boxSizing: 'border-box',
+        fontSize: token.fontSize,
+        color: token.colorText,
+        whiteSpace: 'nowrap',
+        textOverflow: 'ellipsis',
+        overflow: 'hidden',
+        border: `1px solid ${token.colorBorder}`,
+        backgroundColor: token.colorBgContainer,
+        borderRadius: token.cellBorderRadius,
+        boxShadow: '0 0 16px rgba(0, 0, 0, 0.1)',
+        cursor: 'move',
       },
     },
-  },
 
-  [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyRowCls}.${bodyHoverRowCls} > .${cellCls}`]:
-    {
-      backgroundColor: token.cellColorHoverBg,
-      transition: 'background-color 0.3s',
-    },
-  [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyRowCls} > .${cellCls}.${bodyHoverCellCls}`]:
-    {
-      backgroundColor: token.cellColorHoverBg,
-      transition: 'background-color 0.3s',
-    },
-  [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyRowCls}.${bodyHoverRowCls} > .${cellCls}`]:
-    {
-      backgroundColor: token.cellColorHoverBg,
-    },
-  [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyRowCls} > .${cellCls}.${bodyHoverCellCls}`]:
-    {
-      backgroundColor: token.cellColorHoverBg,
-    },
+    [`.${bodyRowCls}`]: {
+      [`& > .${cellCls}`]: {
+        backgroundColor: token.colorBgContainer,
+        borderTop: `1px solid ${token.colorBorder}`,
+      },
+      [`&:first-child:not(.${bodySortDraggingRowCls}, .${bodySortDraggingOverlayRowCls}) > .${cellCls}`]:
+        {
+          borderTopColor: 'transparent',
+        },
 
-  [`&.${rowSortingCls} .${bodyRowCls}:first-child:not(.${bodySortFirstRowCls}) > .${cellCls}`]:
-    {
-      borderTopColor: token.colorBorder,
-    },
-  [`&.${rowSortingCls} .${bodyRowCls} > .${cellCls}`]: {
-    pointerEvents: 'none',
-  },
+      [`&.${bodySortFirstRowCls} > .${cellCls}`]: {
+        borderTopColor: 'transparent',
+      },
+      [`&.${bodySortDraggingRowCls} > .${cellCls}`]: {
+        pointerEvents: 'none',
+        opacity: 0.4,
+      },
+      [`&.${bodySortDraggingOverlayRowCls} > .${cellCls}`]: {
+        borderTop: `1px solid ${token.colorBorder}`,
+        borderBottom: `1px solid ${token.colorBorder}`,
+        borderLeft: `1px solid ${token.colorBorder}`,
 
-  [`.${bodyExpandableRowCls}`]: {
-    cursor: 'pointer',
-  },
+        '&:first-child': {
+          borderTopLeftRadius: token.cellBorderRadius,
+          borderBottomLeftRadius: token.cellBorderRadius,
+        },
 
-  [`.${expandedRowCls}`]: {
-    [`& > .${expandedRowCellCls}`]: {
-      position: 'sticky',
-      left: 0,
-      padding: 0,
+        '&:last-child': {
+          borderRight: `1px solid ${token.colorBorder}`,
+          borderTopRightRadius: token.cellBorderRadius,
+          borderBottomRightRadius: token.cellBorderRadius,
+        },
+      },
     },
 
-    [`& > .${expandedRowCellCls} > .${expandedRowContentCls}`]: {
+    [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyRowCls}.${bodyHoverRowCls} > .${cellCls}`]:
+      {
+        backgroundColor: token.cellColorHoverBg,
+        transition: 'background-color 0.3s',
+      },
+    [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyRowCls} > .${cellCls}.${bodyHoverCellCls}`]:
+      {
+        backgroundColor: token.cellColorHoverBg,
+        transition: 'background-color 0.3s',
+      },
+    [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyRowCls}.${bodyHoverRowCls} > .${cellCls}`]:
+      {
+        backgroundColor: token.cellColorHoverBg,
+      },
+    [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyRowCls} > .${cellCls}.${bodyHoverCellCls}`]:
+      {
+        backgroundColor: token.cellColorHoverBg,
+      },
+
+    [`&.${rowSortingCls} .${bodyRowCls}:first-child:not(.${bodySortFirstRowCls}) > .${cellCls}`]:
+      {
+        borderTopColor: token.colorBorder,
+      },
+    [`&.${rowSortingCls} .${bodyRowCls} > .${cellCls}`]: {
+      pointerEvents: 'none',
+    },
+
+    [`.${bodyExpandableRowCls}`]: {
+      cursor: 'pointer',
+    },
+
+    [`.${bodyExpandedRowCls}`]: {
+      [`& > .${bodyExpandedRowCellCls}`]: {
+        position: 'sticky',
+        left: 0,
+      },
+    },
+
+    [`.${summaryRowCls} > .${cellCls}`]: {
+      backgroundColor: token.colorBgLayout,
+      borderTop: `1px solid ${token.colorBorder}`,
+    },
+
+    [`.${cellCls}`]: {
+      fontSize: token.fontSize,
+      lineHeight: token.lineHeight,
+      color: token.colorText,
       paddingBlock: unit(token.cellPaddingBlock),
       paddingInline: unit(token.cellPaddingInline),
+      alignContent: 'center',
+      overflowWrap: 'break-word',
       boxSizing: 'border-box',
     },
-  },
 
-  [`.${summaryRowCls} > .${cellCls}`]: {
-    backgroundColor: token.colorBgLayout,
-    borderTop: `1px solid ${token.colorBorder}`,
-  },
+    [`.${ellipsisCellCls} .${ellipsisCellInnerCls}:not(.${dataSortCellInnerCls}, .${expandTreeCellInnerCls})`]:
+      {
+        overflow: 'hidden',
+        whiteSpace: 'nowrap',
+        textOverflow: 'ellipsis',
+      },
 
-  [`.${cellCls}`]: {
-    fontSize: token.fontSize,
-    color: token.colorText,
-    paddingBlock: unit(token.cellPaddingBlock),
-    paddingInline: unit(token.cellPaddingInline),
-    alignContent: 'center',
-    wordBreak: 'break-word',
-    boxSizing: 'border-box',
-  },
+    [`.${dataSortCellInnerCls}`]: {
+      display: 'flex',
+      alignItems: 'center',
+      minWidth: 0,
+      gap: 8,
+    },
 
-  [`.${ellipsisCellCls} .${ellipsisCellInnerCls}:not(.${dataSortCellInnerCls})`]:
-    {
+    [`.${dataSortContentCls}`]: {
+      flex: 1,
+      minWidth: 0,
+    },
+
+    [`.${dataSortControlCls}`]: {
+      display: 'flex',
+      alignItems: 'center',
+    },
+
+    [`.${ellipsisCellCls} .${dataSortContentCls}`]: {
       overflow: 'hidden',
       whiteSpace: 'nowrap',
       textOverflow: 'ellipsis',
     },
 
-  [`.${dataSortCellInnerCls}`]: {
-    display: 'flex',
-    alignItems: 'center',
-    minWidth: 0,
-    gap: 8,
-  },
-
-  [`.${dataSortContentCls}`]: {
-    flex: 1,
-    minWidth: 0,
-  },
-
-  [`.${dataSortControlCls}`]: {
-    display: 'flex',
-    alignItems: 'center',
-  },
-
-  [`.${ellipsisCellCls} .${dataSortContentCls}`]: {
-    overflow: 'hidden',
-    whiteSpace: 'nowrap',
-    textOverflow: 'ellipsis',
-  },
-
-  [`.${filterCellCls}`]: {
-    minWidth: 0,
-  },
-
-  [`.${columnSortableHotCellCls}`]: {
-    backgroundColor: `${token.overableCellColorBg} !important`,
-  },
-  [`.${columnSortableActiveCellCls}`]: {
-    backgroundColor: `${token.sortableCellColorBg} !important`,
-  },
-  [`.${previewHiddenCellCls}`]: {
-    backgroundColor: `${token.previewHiddenCellColorBg} !important`,
-  },
-  [`.${previewRestoredCellCls}`]: {
-    backgroundColor: `${token.previewRestoredCellColorBg} !important`,
-  },
-
-  [`.${selectionControlCls}`]: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-    margin: 0,
-    padding: 0,
-    cursor: 'pointer',
-    userSelect: 'none',
-  },
-
-  [`.${selectionControlInputCls}`]: {
-    position: 'relative',
-    flex: '0 0 16px',
-    width: 16,
-    height: 16,
-    border: `1px solid ${token.colorBorder}`,
-    backgroundColor: token.colorBgContainer,
-    color: token.colorBgContainer,
-    boxSizing: 'border-box',
-    transition: 'border-color 0.2s, background-color 0.2s',
-  },
-
-  [`.${selectionControlInputCls} > input`]: {
-    position: 'absolute',
-    inset: 0,
-    width: '100%',
-    height: '100%',
-    margin: 0,
-    opacity: 0,
-    pointerEvents: 'none',
-  },
-
-  [`.${selectionControlContentCls}`]: {
-    minWidth: 0,
-  },
-
-  [`.${selectionCheckboxCls} .${selectionControlInputCls}`]: {
-    borderRadius: 2,
-  },
-
-  [`.${selectionRadioCls} .${selectionControlInputCls}`]: {
-    borderRadius: '50%',
-  },
-
-  [`.${selectionCheckboxCls}.${selectionControlCheckedCls} .${selectionControlInputCls}, .${selectionCheckboxCls}.${selectionControlIndeterminateCls} .${selectionControlInputCls}, .${selectionRadioCls}.${selectionControlCheckedCls} .${selectionControlInputCls}`]:
-    {
-      borderColor: token.colorPrimary,
-      backgroundColor: token.colorPrimary,
+    [`.${filterCellCls}`]: {
+      minWidth: 0,
     },
 
-  [`.${selectionCheckboxCls}.${selectionControlCheckedCls} .${selectionControlInputCls}::after`]:
-    {
-      content: "' '",
-      position: 'absolute',
-      left: 4,
-      top: 1,
-      width: 5,
-      height: 9,
-      border: `solid ${token.colorTextLightSolid}`,
-      borderWidth: '0 2px 2px 0',
-      transform: 'rotate(45deg)',
+    [`.${columnSortableHotCellCls}`]: {
+      backgroundColor: `${token.overableCellColorBg} !important`,
+    },
+    [`.${columnSortableActiveCellCls}`]: {
+      backgroundColor: `${token.sortableCellColorBg} !important`,
+    },
+    [`.${previewHiddenCellCls}`]: {
+      backgroundColor: `${token.previewHiddenCellColorBg} !important`,
+    },
+    [`.${previewRestoredCellCls}`]: {
+      backgroundColor: `${token.previewRestoredCellColorBg} !important`,
     },
 
-  [`.${selectionCheckboxCls}.${selectionControlIndeterminateCls} .${selectionControlInputCls}::after`]:
-    {
-      content: "' '",
-      position: 'absolute',
-      left: 3,
-      right: 3,
-      top: 6,
-      height: 2,
-      backgroundColor: token.colorTextLightSolid,
+    [`.${rowSortCellCls}`]: {
+      [`.${rowSortHandleCls}`]: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+        fontSize: 'inherit',
+        color: token.colorText,
+        width: `calc(1em + 2px)`,
+        height: `calc(1em + 2px)`,
+        verticalAlign: -2,
+        margin: 0,
+        padding: 0,
+        border: 'none',
+        backgroundColor: 'transparent',
+        cursor: 'grab',
+
+        [`&:not(.${rowSortHandleDisabledCls}):active`]: {
+          cursor: 'grabbing',
+        },
+      },
+
+      [`.${rowSortHandleDisabledCls}`]: {
+        cursor: 'not-allowed',
+        opacity: 0.4,
+      },
+
+      [`.${rowSortHandleDraggingCls}`]: {
+        cursor: 'grabbing',
+      },
     },
 
-  [`.${selectionRadioCls}.${selectionControlCheckedCls} .${selectionControlInputCls}::after`]:
-    {
-      content: "' '",
-      position: 'absolute',
-      inset: 4,
-      borderRadius: '50%',
-      backgroundColor: token.colorTextLightSolid,
+    [`.${expandTreeCellInnerCls}`]: {
+      display: 'flex',
+      alignItems: 'center',
+      minWidth: 0,
     },
 
-  [`.${selectionControlDisabledCls}`]: {
-    cursor: 'not-allowed',
-    opacity: 0.65,
-  },
-
-  [`.${selectionControlDisabledCls} .${selectionControlInputCls}`]: {
-    borderColor: token.colorBorder,
-    backgroundColor: token.colorBgLayout,
-  },
-
-  [`
-    .${selectionControlDisabledCls}.${selectionControlCheckedCls} .${selectionControlInputCls}, 
-    .${selectionControlDisabledCls}.${selectionControlIndeterminateCls} .${selectionControlInputCls}`]:
-    {
-      borderColor: token.colorBorder,
-      backgroundColor: token.colorBorder,
+    [`.${expandTreeCellInnerSpacedCls}`]: {
+      gap: 8,
     },
 
-  [`.${rowSortControlCls}`]: {
-    display: 'flex',
-    alignItems: 'center',
-  },
+    [`.${expandTreeContentCls}`]: {
+      flex: 1,
+      minWidth: 0,
+    },
 
-  [`.${rowSortHandleCls}`]: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 2,
-    flex: '0 0 16px',
-    width: 16,
-    height: 16,
-    margin: 0,
-    padding: 0,
-    border: `1px solid ${token.colorBorder}`,
-    borderRadius: 2,
-    backgroundColor: token.colorBgContainer,
-    color: token.colorText,
-    cursor: 'grab',
-    boxSizing: 'border-box',
-    transition: 'border-color 0.2s, color 0.2s, background-color 0.2s',
+    [`.${ellipsisCellCls} .${expandTreeContentCls}`]: {
+      overflow: 'hidden',
+      whiteSpace: 'nowrap',
+      textOverflow: 'ellipsis',
+    },
 
-    [`&:not(.${rowSortHandleDisabledCls}):hover`]: {
+    [`.${expandControlCls}`]: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexShrink: 0,
+      fontSize: 'inherit',
       color: token.colorText,
-      backgroundColor: token.cellColorHoverBg,
+      width: `calc(1em + 2px)`,
+      height: `calc(1em + 2px)`,
+      verticalAlign: -2,
+      margin: 0,
+      padding: 0,
+      border: `1px solid ${token.colorBorder}`,
+      boxSizing: 'border-box',
+      borderRadius: token.borderRadiusSM,
+      backgroundColor: token.colorBgContainer,
+      cursor: 'pointer',
     },
 
-    [`&:not(.${rowSortHandleDisabledCls}):active`]: {
-      cursor: 'grabbing',
+    [`.${expandControlCls}:disabled`]: {
+      cursor: 'default',
+      visibility: 'hidden',
     },
-
-    span: {
-      width: 8,
-      height: 1,
-      backgroundColor: 'currentColor',
-    },
-  },
-
-  [`.${rowSortHandleDisabledCls}`]: {
-    cursor: 'not-allowed',
-    opacity: 0.4,
-  },
-
-  [`.${rowSortHandleDraggingCls}`]: {
-    cursor: 'grabbing',
-  },
-
-  [`.${expandControlCls}`]: {
-    display: 'flex',
-    alignItems: 'center',
-  },
-
-  [`.${expandTreeCellInnerCls}`]: {
-    display: 'flex',
-    alignItems: 'center',
-    minWidth: 0,
-  },
-
-  [`.${expandIconCls}`]: {
-    position: 'relative',
-    flex: '0 0 16px',
-    width: 16,
-    height: 16,
-    margin: 0,
-    padding: 0,
-    border: `1px solid ${token.colorBorder}`,
-    borderRadius: 2,
-    backgroundColor: token.colorBgContainer,
-    color: token.colorText,
-    cursor: 'pointer',
-    boxSizing: 'border-box',
-  },
-
-  [`.${expandIconCls}::before, .${expandIconCls}::after`]: {
-    content: "' '",
-    position: 'absolute',
-    backgroundColor: 'currentColor',
-    left: '50%',
-    top: '50%',
-    transform: 'translate(-50%, -50%)',
-  },
-
-  [`.${expandIconCls}::before`]: {
-    width: 8,
-    height: 1,
-  },
-
-  [`.${expandIconCls}::after`]: {
-    width: 1,
-    height: 8,
-  },
-
-  [`.${expandIconExpandedCls}::after`]: {
-    display: 'none',
-  },
-
-  [`.${expandIconSpacedCls}`]: {
-    marginInlineEnd: 8,
-  },
-
-  [`.${expandIconCls}:disabled`]: {
-    cursor: 'default',
-    visibility: 'hidden',
   },
 });
 
@@ -937,6 +805,7 @@ const getFixedEndShadow = (token: TableComponentToken) =>
 
 const genFixedCellStyle = (
   {
+    componentCls,
     pingStartCls,
     pingEndCls,
     headRowCls,
@@ -950,67 +819,69 @@ const genFixedCellStyle = (
   }: ComponentClsType,
   token: TableComponentToken,
 ): CSSInterpolation => ({
-  [`.${headRowCls} .${fixedStartCellCls}, .${headRowCls} .${fixedEndCellCls}`]:
-    {
+  [`.${componentCls}`]: {
+    [`.${headRowCls} .${fixedStartCellCls}, .${headRowCls} .${fixedEndCellCls}`]:
+      {
+        position: 'sticky',
+        zIndex: 1,
+      },
+    [`.${fixedStartCellCls}, .${fixedEndCellCls}`]: {
       position: 'sticky',
       zIndex: 1,
     },
-  [`.${fixedStartCellCls}, .${fixedEndCellCls}`]: {
-    position: 'sticky',
-    zIndex: 1,
+
+    [`.${bodyRowCls} .${fixedStartCellCls}, .${bodyRowCls} .${fixedEndCellCls}`]:
+      {
+        backgroundColor: token.colorBgContainer,
+      },
+
+    [`.${fixedStartLastCellCls}::after`]: {
+      content: "' '",
+      position: 'absolute',
+      width: 30,
+      // 单元格边框是顶部边框，宽度为1px，所以阴影距离需要加1px，避免出现1px的缝隙
+      top: -1,
+      bottom: 0,
+      right: 0,
+      transform: 'translateX(100%)',
+      boxShadow: getFixedStartShadow(token),
+      opacity: 0,
+      transition: 'opacity 0.3s',
+      pointerEvents: 'none',
+    },
+
+    [`.${fixedEndFirstCellCls}::after`]: {
+      content: "' '",
+      position: 'absolute',
+      width: 30,
+      // 单元格边框是顶部边框，宽度为1px，所以阴影距离需要加1px，避免出现1px的缝隙
+      top: -1,
+      bottom: 0,
+      left: 0,
+      transform: 'translateX(-100%)',
+      boxShadow: getFixedEndShadow(token),
+      opacity: 0,
+      transition: 'opacity 0.3s',
+      pointerEvents: 'none',
+    },
+
+    [`&.${pingStartCls}.${pingEndCls} .${bodyRowCls}.${bodySortDraggingRowCls} .${cellCls}.${fixedStartCellCls}`]:
+      {
+        opacity: 1,
+      },
+    [`&.${pingStartCls}.${pingEndCls} .${bodyRowCls}.${bodySortDraggingRowCls} .${cellCls}.${fixedEndCellCls}`]:
+      {
+        opacity: 1,
+      },
+    [`&.${pingStartCls} .${bodyRowCls}.${bodySortDraggingRowCls} .${cellCls}.${fixedStartCellCls}`]:
+      {
+        opacity: 1,
+      },
+    [`&.${pingEndCls} .${bodyRowCls}.${bodySortDraggingRowCls} .${cellCls}.${fixedEndCellCls}`]:
+      {
+        opacity: 1,
+      },
   },
-
-  [`.${bodyRowCls} .${fixedStartCellCls}, .${bodyRowCls} .${fixedEndCellCls}`]:
-    {
-      backgroundColor: token.colorBgContainer,
-    },
-
-  [`.${fixedStartLastCellCls}::after`]: {
-    content: "' '",
-    position: 'absolute',
-    width: 30,
-    // 单元格边框是顶部边框，宽度为1px，所以阴影距离需要加1px，避免出现1px的缝隙
-    top: -1,
-    bottom: 0,
-    right: 0,
-    transform: 'translateX(100%)',
-    boxShadow: getFixedStartShadow(token),
-    opacity: 0,
-    transition: 'opacity 0.3s',
-    pointerEvents: 'none',
-  },
-
-  [`.${fixedEndFirstCellCls}::after`]: {
-    content: "' '",
-    position: 'absolute',
-    width: 30,
-    // 单元格边框是顶部边框，宽度为1px，所以阴影距离需要加1px，避免出现1px的缝隙
-    top: -1,
-    bottom: 0,
-    left: 0,
-    transform: 'translateX(-100%)',
-    boxShadow: getFixedEndShadow(token),
-    opacity: 0,
-    transition: 'opacity 0.3s',
-    pointerEvents: 'none',
-  },
-
-  [`&.${pingStartCls}.${pingEndCls} .${bodyRowCls}.${bodySortDraggingRowCls} .${cellCls}.${fixedStartCellCls}`]:
-    {
-      opacity: 1,
-    },
-  [`&.${pingStartCls}.${pingEndCls} .${bodyRowCls}.${bodySortDraggingRowCls} .${cellCls}.${fixedEndCellCls}`]:
-    {
-      opacity: 1,
-    },
-  [`&.${pingStartCls} .${bodyRowCls}.${bodySortDraggingRowCls} .${cellCls}.${fixedStartCellCls}`]:
-    {
-      opacity: 1,
-    },
-  [`&.${pingEndCls} .${bodyRowCls}.${bodySortDraggingRowCls} .${cellCls}.${fixedEndCellCls}`]:
-    {
-      opacity: 1,
-    },
 });
 
 const genFixedShadowStyle = (
@@ -1156,7 +1027,9 @@ const genSizeClsStyle = (
       [currentCellSelector]: {
         paddingBlock: unit(token.cellPaddingBlockSM),
         paddingInline: unit(token.cellPaddingInlineSM),
+      },
 
+      [currentBodyCellSelector]: {
         [`.${noDataCellContentCls}`]: {
           marginInline: unit(-token.cellPaddingInlineSM),
         },
@@ -1176,7 +1049,9 @@ const genSizeClsStyle = (
       [currentCellSelector]: {
         paddingBlock: unit(token.cellPaddingBlockMD),
         paddingInline: unit(token.cellPaddingInlineMD),
+      },
 
+      [currentBodyCellSelector]: {
         [`.${noDataCellContentCls}`]: {
           marginInline: unit(-token.cellPaddingInlineMD),
         },
@@ -1232,30 +1107,15 @@ const genNestStyles = (
   genBorderedStyle(clsObj, mergedToken),
   genStripeClsStyle(clsObj, mergedToken),
   genEmptyClsStyle(clsObj, mergedToken),
-  // 拆分样式块以避免 object key 冲突
-  { [`.${clsObj.componentCls}`]: genHeadStyle(clsObj, mergedToken, cssVar) },
-  { [`.${clsObj.componentCls}`]: genBodyStyle(clsObj, mergedToken, cssVar) },
-  { [`.${clsObj.componentCls}`]: genSummaryCls(clsObj, mergedToken, cssVar) },
-  { [`.${clsObj.componentCls}`]: genCellStyle(clsObj, mergedToken) },
-  { [`.${clsObj.componentCls}`]: genFixedCellStyle(clsObj, mergedToken) },
-  {
-    [`.${clsObj.componentCls}`]: genScrollbarToggleShowStyle(
-      scrollbarClsObj.xScrollBarCls,
-      scrollbarClsObj.xScrollBarShowCls,
-    ),
-  },
-  {
-    [`.${clsObj.componentCls}`]: genScrollbarToggleShowStyle(
-      scrollbarClsObj.yScrollBarCls,
-      scrollbarClsObj.yScrollBarShowCls,
-    ),
-  },
-  {
-    [`.${clsObj.componentCls}`]: genScrollBarStyle(
-      scrollbarClsObj,
-      mergedToken,
-    ),
-  },
+  // content style
+  genHeadStyle(clsObj, mergedToken, cssVar),
+  genBodyStyle(clsObj, mergedToken, cssVar),
+  genSummaryCls(clsObj, mergedToken, cssVar),
+  genCellStyle(clsObj, mergedToken),
+  genFixedCellStyle(clsObj, mergedToken),
+  // scrollbar style
+  genScrollbarInitialStyle(clsObj, scrollbarClsObj),
+  genScrollBarStyle(clsObj, scrollbarClsObj, mergedToken),
 ];
 
 const getTokenPathKey = (token: Partial<TableComponentToken>) =>

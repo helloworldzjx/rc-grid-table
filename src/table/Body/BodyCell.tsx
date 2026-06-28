@@ -18,7 +18,7 @@ import { useExpandableContext } from '../contexts/ExpandableContext';
 import { useFixedShadowActive } from '../contexts/FixedShadowContext';
 import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import { useTableContext } from '../contexts/TableContext';
-import { ExpandControl, TreeCellContent } from '../Expand';
+import { ExpandControl, TreeCellControl } from '../Expand';
 import type { InternalColumnState } from '../internalInterface';
 import { RowSortBodyCell } from '../RowSort';
 import { BodySelectionCell } from '../Selection';
@@ -35,7 +35,7 @@ import { getDataSortColumnKey } from '../utils/sort';
 import { getBodyCellSpanInfo } from './cellSpan';
 import type { BodyRenderMode } from './interface';
 
-interface BodyRowProps<T = any> {
+interface BodyCellProps<T = any> {
   column: InternalColumnState<T>;
   rowData: T;
   rowIndex: number;
@@ -85,13 +85,16 @@ function BodyCell({
   setRowSortActivatorNodeRef,
   setRowSortNodeRef,
   hoverable = true,
-}: BodyRowProps) {
+}: BodyCellProps) {
   const prefixCls = usePrefixClsContext();
 
   const {
     cellCls,
     ellipsisCellCls,
     ellipsisCellInnerCls,
+    expandTreeCellCls,
+    expandTreeCellInnerCls,
+    expandTreeCellInnerSpacedCls,
     dataSortActiveCellCls,
     fixedStartCellCls,
     fixedStartLastCellCls,
@@ -103,7 +106,7 @@ function BodyCell({
     columnSortableHotCellCls,
     previewHiddenCellCls,
     previewRestoredCellCls,
-    expandControlCellCls,
+    expandCellCls,
     selectionCellCls,
     bodyHoverCellCls,
   } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
@@ -252,13 +255,31 @@ function BodyCell({
     return restProps;
   }, [cellProps]);
 
-  const isInternalExpandColumn = isExpandColumn(column);
-  const isInternalSelectionColumn = isSelectionColumn(column);
-  const isInternalRowSortColumn = isRowSortColumn(column);
-  const dataSortColumnKey = getDataSortColumnKey(column);
+  const dataSortColumnKey = useMemo(
+    () => getDataSortColumnKey(column),
+    [column],
+  );
   const hasSortValue = dataSortOrders.some(
     (item) => item.columnKey === dataSortColumnKey,
   );
+
+  const isInternalExpandColumn = isExpandColumn(column);
+  const isInternalSelectionColumn = isSelectionColumn(column);
+  const isInternalRowSortColumn = isRowSortColumn(column);
+
+  const columnRender = useMemo(() => {
+    if (
+      spanInfo.hidden ||
+      !column.render ||
+      typeof column.render !== 'function'
+    ) {
+      return undefined;
+    }
+
+    return (cellValue: ReactNode) => {
+      return column.render?.(cellValue, rowData, rowIndex);
+    };
+  }, [spanInfo.hidden, column.render, rowData, rowIndex]);
 
   if (spanInfo.hidden) {
     return null;
@@ -278,55 +299,72 @@ function BodyCell({
     !isInternalExpandColumn &&
     !isInternalSelectionColumn &&
     !isInternalRowSortColumn &&
-    column.render &&
-    typeof column.render === 'function'
+    columnRender
   ) {
-    cellValue = column.render?.(cellValue, rowData, rowIndex);
+    cellValue = columnRender(cellValue);
   }
 
-  let childrenNode = isInternalExpandColumn ? (
-    <ExpandControl
-      rowData={rowData}
-      rowIndex={rowIndex}
-      indent={indent}
-      expanded={expanded}
-      expandable={rowSupportExpand}
-    />
-  ) : isInternalSelectionColumn ? (
-    <BodySelectionCell rowData={rowData} rowIndex={rowIndex} />
-  ) : (
-    cellValue
-  );
-
-  const ellipsis = !!column.ellipsis;
-  if (ellipsis) {
-    const showTitle = getEllipsisShowTitle(column.ellipsis);
-    const elTitle = showTitle ? getEllipsisTitle(childrenNode) : undefined;
+  let childrenNode = cellValue;
+  if (isInternalExpandColumn) {
     childrenNode = (
-      <div title={elTitle} className={ellipsisCellInnerCls}>
-        {childrenNode}
-      </div>
-    );
-  }
-
-  if (
-    !isInternalExpandColumn &&
-    !isInternalSelectionColumn &&
-    !isInternalRowSortColumn &&
-    isFirstDataColumn &&
-    expandable &&
-    !expandableConfig?.expandedRowRender
-  ) {
-    childrenNode = (
-      <TreeCellContent
+      <ExpandControl
         rowData={rowData}
         rowIndex={rowIndex}
         indent={indent}
         expanded={expanded}
         expandable={rowSupportExpand}
+      />
+    );
+  }
+  if (isInternalSelectionColumn) {
+    childrenNode = <BodySelectionCell rowData={rowData} rowIndex={rowIndex} />;
+  }
+
+  const isTreeCell =
+    !isInternalExpandColumn &&
+    !isInternalSelectionColumn &&
+    !isInternalRowSortColumn &&
+    isFirstDataColumn &&
+    expandable &&
+    !expandableConfig?.expandedRowRender;
+
+  const hasEllipsis = !!column.ellipsis;
+  const elTitle =
+    hasEllipsis && getEllipsisShowTitle(column.ellipsis)
+      ? getEllipsisTitle(childrenNode)
+      : undefined;
+
+  if (hasEllipsis || isTreeCell) {
+    const indentStyle: CSSProperties = indent
+      ? {
+          paddingInlineStart: indent * (expandableConfig?.indentSize ?? 15),
+        }
+      : {};
+
+    childrenNode = (
+      <div
+        title={elTitle}
+        className={classNames({
+          [ellipsisCellInnerCls]: hasEllipsis,
+          [expandTreeCellInnerCls]: isTreeCell,
+          [expandTreeCellInnerSpacedCls]: isTreeCell,
+        })}
+        style={indentStyle}
       >
-        {childrenNode}
-      </TreeCellContent>
+        {isTreeCell ? (
+          <TreeCellControl
+            rowData={rowData}
+            rowIndex={rowIndex}
+            indent={indent}
+            expanded={expanded}
+            expandable={rowSupportExpand}
+          >
+            {childrenNode}
+          </TreeCellControl>
+        ) : (
+          childrenNode
+        )}
+      </div>
     );
   }
 
@@ -368,21 +406,22 @@ function BodyCell({
       className={classNames(
         cellCls,
         {
-          [ellipsisCellCls]: ellipsis,
+          [ellipsisCellCls]: hasEllipsis,
           [dataSortActiveCellCls]: hasSortValue,
+          [expandCellCls]: isInternalExpandColumn,
+          [expandTreeCellCls]: isTreeCell,
+          [selectionCellCls]: isInternalSelectionColumn,
           [fixedStartCellCls]: fixedInfo.fixStart !== null,
           [fixedStartLastCellCls]: fixedInfo.fixedStartShadow,
           [fixedStartShadowActiveCellCls]: fixedShadowActive.start,
           [fixedEndCellCls]: fixedInfo.fixEnd !== null,
           [fixedEndFirstCellCls]: fixedInfo.fixedEndShadow,
           [fixedEndShadowActiveCellCls]: fixedShadowActive.end,
+          [bodyHoverCellCls]: hoveredCell,
           [columnSortableActiveCellCls]: inSortableActiveScope,
           [columnSortableHotCellCls]: inSortableHotScope,
           [previewHiddenCellCls]: column.previewHidden,
           [previewRestoredCellCls]: column.previewRestored,
-          [expandControlCellCls]: isInternalExpandColumn,
-          [selectionCellCls]: isInternalSelectionColumn,
-          [bodyHoverCellCls]: hoveredCell,
         },
         column.className,
         cellProps.className,

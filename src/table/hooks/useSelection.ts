@@ -1,11 +1,5 @@
-import {
-  Key,
-  MouseEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import type { CheckboxChangeEvent, RadioChangeEvent } from 'antd';
+import { Key, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { isValidKey } from '../../_utils/validate';
 import type { RowKey, TableProps } from '../interface';
@@ -335,7 +329,11 @@ function useSelection<T = any>({
   }, [enabledKeys, isAllSelected, selectedKeySet, type]);
 
   const onSelectRecord = useCallback(
-    (record: T, rowIndex: number, nativeEvent: MouseEvent<HTMLElement>) => {
+    (
+      record: T,
+      rowIndex: number,
+      event: CheckboxChangeEvent | RadioChangeEvent,
+    ) => {
       const key = getRecordKey(record, rowKey);
       if (!isValidKey(key)) {
         warningInvalidRecordKey(rowKey, 'row selection', key);
@@ -366,7 +364,7 @@ function useSelection<T = any>({
         record,
         selected,
         getSelectedRows(mergedKeys),
-        nativeEvent,
+        event,
       );
     },
     [
@@ -382,8 +380,8 @@ function useSelection<T = any>({
   );
 
   const onSelectAll = useCallback(
-    (nativeEvent: MouseEvent<HTMLElement>) => {
-      nativeEvent.stopPropagation();
+    (event: CheckboxChangeEvent) => {
+      event.stopPropagation();
       if (type !== 'checkbox') {
         return;
       }

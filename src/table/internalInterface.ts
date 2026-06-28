@@ -1,8 +1,8 @@
+import { CheckboxChangeEvent, RadioChangeEvent } from 'antd';
 import type {
   CSSProperties,
   Dispatch,
   Key,
-  MouseEvent,
   ReactNode,
   SetStateAction,
 } from 'react';
@@ -203,7 +203,7 @@ export interface TableSelectionContextProps<T = any> {
   onSelectRecord: (
     record: T,
     rowIndex: number,
-    nativeEvent: MouseEvent<HTMLElement>,
+    event: CheckboxChangeEvent | RadioChangeEvent,
   ) => void;
-  onSelectAll: (nativeEvent: MouseEvent<HTMLElement>) => void;
+  onSelectAll: (event: CheckboxChangeEvent) => void;
 }

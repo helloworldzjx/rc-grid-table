@@ -12,6 +12,7 @@ import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import { useRowSelectionContext } from '../contexts/RowSelectionContext';
 import { useTableColumnStateContext } from '../contexts/TableColumnStateContext';
 import { useTableContext } from '../contexts/TableContext';
+import { DataSortControl } from '../DataSortControl';
 import useRenderedColumnLayout from '../hooks/useRenderedColumnLayout';
 import type { CellType } from '../internalInterface';
 import { SelectionCheckbox } from '../Selection';
@@ -69,8 +70,6 @@ function HeadCell({
     dataSortCellCls,
     dataSortActiveCellCls,
     dataSortCellInnerCls,
-    dataSortContentCls,
-    dataSortControlCls,
     rowSortCellCls,
     expandCellCls,
     selectionCellCls,
@@ -323,14 +322,6 @@ function HeadCell({
     () => rowSelection?.getTitleCheckboxProps?.() || {},
     [rowSelection],
   );
-  const titleCheckboxStyle = useMemo<CSSProperties>(
-    () => ({
-      ...titleCheckboxProps.style,
-      justifyContent: rowSelection?.align ?? 'center',
-    }),
-    [rowSelection?.align, titleCheckboxProps.style],
-  );
-
   const selectionTitleNode = useMemo(() => {
     const type = rowSelection?.type ?? 'checkbox';
     const showSelectAll = type === 'checkbox' && !rowSelection?.hideSelectAll;
@@ -338,7 +329,6 @@ function HeadCell({
     const originNode = showSelectAll ? (
       <SelectionCheckbox
         {...titleCheckboxProps}
-        style={titleCheckboxStyle}
         checked={!!selection?.isAllSelected}
         indeterminate={!!selection?.isPartiallySelected}
         disabled={disabled}
@@ -349,13 +339,7 @@ function HeadCell({
     return typeof rowSelection?.columnTitle === 'function'
       ? rowSelection.columnTitle(originNode)
       : rowSelection?.columnTitle ?? originNode;
-  }, [
-    isInternalSelectionColumn,
-    rowSelection,
-    selection,
-    titleCheckboxProps,
-    titleCheckboxStyle,
-  ]);
+  }, [isInternalSelectionColumn, rowSelection, selection, titleCheckboxProps]);
 
   const {
     hasSortRender,
@@ -413,10 +397,9 @@ function HeadCell({
         })}
       >
         {hasSortRender ? (
-          <>
-            <div className={dataSortContentCls}>{childrenNode}</div>
-            <div className={dataSortControlCls}>{sortRenderNode}</div>
-          </>
+          <DataSortControl dataSortControl={sortRenderNode}>
+            {childrenNode}
+          </DataSortControl>
         ) : (
           childrenNode
         )}
