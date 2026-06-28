@@ -912,6 +912,11 @@ const genFixedShadowStyle = (
     pingEndCls,
     hasXScrollbarCls,
     headRowCls,
+    bodyRowCls,
+    summaryRowCls,
+    cellCls,
+    headLastCellCls,
+    fixedStartCellCls,
     fixedStartLastCellCls,
     fixedStartShadowActiveCellCls,
     fixedEndFirstCellCls,
@@ -981,6 +986,17 @@ const genFixedShadowStyle = (
       display: 'none',
     },
     [`.${headRowCls} .${fixedStartShadowActiveCellCls}::before`]: {
+      display: 'none',
+    },
+
+    // 最后一列如果是start固定列则不显示boxShadow
+    [`.${headRowCls} .${headLastCellCls}.${fixedStartCellCls}::after`]: {
+      display: 'none',
+    },
+    [`.${bodyRowCls} .${cellCls}:last-child.${fixedStartCellCls}::after`]: {
+      display: 'none',
+    },
+    [`.${summaryRowCls} .${cellCls}:last-child.${fixedStartCellCls}::after`]: {
       display: 'none',
     },
   },
