@@ -18,7 +18,11 @@ import { SelectionCheckbox } from '../Selection';
 import { getComponentCls } from '../style/classNames';
 import { getMergedSpanKeys } from '../utils/calc';
 import { mergeCellProps } from '../utils/cellProps';
-import { isSelectionColumn } from '../utils/const';
+import {
+  isExpandColumn,
+  isRowSortColumn,
+  isSelectionColumn,
+} from '../utils/const';
 import type { SortableColumnsData } from '../utils/dnd';
 import { getEllipsisShowTitle, getEllipsisTitle } from '../utils/ellipsis';
 import { getCellFixedInfo } from '../utils/fixedColumns';
@@ -67,6 +71,8 @@ function HeadCell({
     dataSortCellInnerCls,
     dataSortContentCls,
     dataSortControlCls,
+    rowSortCellCls,
+    expandCellCls,
     selectionCellCls,
     headLastCellCls,
     headResizableCellDisabledCls,
@@ -351,14 +357,40 @@ function HeadCell({
     titleCheckboxStyle,
   ]);
 
-  const { hasSortRender, hasSortValue, sortRenderNode } =
-    getDataSortTitleRender({
-      column: col.column,
-      columnIndex: colIndex,
-      dataSort,
-      dataSortOrders,
-      hasSubColumns: col.hasSubColumns,
-    });
+  const {
+    hasSortRender,
+    hasSortValue: rawHasSortValue,
+    sortRenderNode,
+  } = getDataSortTitleRender({
+    column: col.column,
+    columnIndex: colIndex,
+    dataSort,
+    dataSortOrders,
+    hasSubColumns: col.hasSubColumns,
+  });
+
+  const sortActiveKeySet = useMemo(
+    () => new Set(dataSortOrders.map((item) => item.columnKey)),
+    [dataSortOrders],
+  );
+
+  const hasSortValue = useMemo(() => {
+    if (col.hasSubColumns) {
+      return flattenColumns.some(
+        (column) =>
+          column.ancestorKeys?.includes(col.key as Key) &&
+          sortActiveKeySet.has(column.key),
+      );
+    }
+
+    return rawHasSortValue;
+  }, [
+    col.hasSubColumns,
+    col.key,
+    flattenColumns,
+    rawHasSortValue,
+    sortActiveKeySet,
+  ]);
 
   let childrenNode = col.children;
   if (isInternalSelectionColumn) {
@@ -401,6 +433,9 @@ function HeadCell({
           [ellipsisCellCls]: hasEllipsis,
           [dataSortCellCls]: hasSortRender,
           [dataSortActiveCellCls]: hasSortValue,
+          [selectionCellCls]: isInternalSelectionColumn,
+          [rowSortCellCls]: isRowSortColumn(col.column),
+          [expandCellCls]: isExpandColumn(col.column),
           [headLastCellCls]: hasHeadLastCellCls,
           [fixedStartCellCls]: fixedInfo.fixStart !== null,
           [fixedStartLastCellCls]: fixedInfo.fixedStartShadow,
@@ -408,7 +443,6 @@ function HeadCell({
           [fixedEndCellCls]: fixedInfo.fixEnd !== null,
           [fixedEndFirstCellCls]: fixedInfo.fixedEndShadow,
           [fixedEndShadowActiveCellCls]: fixedShadowActive.end,
-          [selectionCellCls]: isInternalSelectionColumn,
           [headResizableCellDisabledCls]:
             !!resizableColumns && !!col.column?.resizeDisabled,
           [headSortableCellCls]: dragEnabled,
