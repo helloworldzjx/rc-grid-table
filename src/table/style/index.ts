@@ -49,7 +49,7 @@ const genPlaceholderStyle = (
       backgroundColor: token.placeholderColorBg,
       transition: 'background-color 0.3s',
       userSelect: 'none',
-      zIndex: 5,
+      zIndex: 8,
 
       [`&:not(.${placeholderDisabledCls}):hover`]: {
         backgroundColor: token.cellColorHoverBg,
@@ -235,7 +235,7 @@ const genBorderedStyle = (
         border: `1px solid ${token.colorBorder}`,
         borderRadius: token.cellBorderRadius,
         pointerEvents: 'none',
-        zIndex: 2,
+        zIndex: 5,
       },
 
       [`& > .${placeholderCls}`]: {
@@ -340,12 +340,12 @@ const genHeadStyle = (
         boxSizing: 'border-box',
         borderBottom: `1px solid ${token.colorBorder}`,
         pointerEvents: 'none',
-        zIndex: 3,
+        zIndex: 6,
       },
 
       [`&.${headStickyCls}`]: {
         position: 'sticky',
-        zIndex: 4,
+        zIndex: 7,
       },
 
       [`& > .${headInnerCls}`]: {
@@ -393,7 +393,7 @@ const genBodyStyle = (
         boxSizing: 'border-box',
         borderBottom: `1px solid ${token.colorBorder}`,
         pointerEvents: 'none',
-        zIndex: 3,
+        zIndex: 6,
       },
     },
 
@@ -461,12 +461,12 @@ const genSummaryCls = (
         boxSizing: 'border-box',
         borderBottom: `1px solid ${token.colorBorder}`,
         pointerEvents: 'none',
-        zIndex: 3,
+        zIndex: 6,
       },
 
       [`&.${summaryStickyCls}`]: {
         position: 'sticky',
-        zIndex: 4,
+        zIndex: 7,
       },
 
       [`& > .${summaryInnerCls}`]: {
@@ -518,6 +518,8 @@ const genCellStyle = (
     expandTreeCellInnerCls,
     expandTreeCellInnerSpacedCls,
     expandTreeContentCls,
+    fixedStartCellCls,
+    fixedEndCellCls,
     headLastCellCls,
     headCellResizeHandleCls,
     headCellResizeHandleDisabledCls,
@@ -709,8 +711,13 @@ const genCellStyle = (
       backgroundColor: `${token.overableCellColorBg} !important`,
     },
     [`.${columnSortableActiveCellCls}`]: {
+      zIndex: '2 !important',
       backgroundColor: `${token.sortableCellColorBg} !important`,
     },
+    [`.${fixedStartCellCls}.${columnSortableActiveCellCls}, .${fixedEndCellCls}.${columnSortableActiveCellCls}`]:
+      {
+        zIndex: '4 !important',
+      },
     [`.${previewHiddenCellCls}`]: {
       backgroundColor: `${token.previewHiddenCellColorBg} !important`,
     },
@@ -806,6 +813,7 @@ const getFixedEndShadow = (token: TableComponentToken) =>
 const genFixedCellStyle = (
   {
     componentCls,
+    previewColumnsSortingCls,
     pingStartCls,
     pingEndCls,
     headRowCls,
@@ -829,6 +837,16 @@ const genFixedCellStyle = (
       position: 'sticky',
       zIndex: 1,
     },
+    [`&.${previewColumnsSortingCls} .${headRowCls} .${fixedStartCellCls}, &.${previewColumnsSortingCls} .${headRowCls} .${fixedEndCellCls}`]:
+      {
+        position: 'sticky',
+        zIndex: 3,
+      },
+    [`&.${previewColumnsSortingCls} .${fixedStartCellCls}, .${fixedEndCellCls}`]:
+      {
+        position: 'sticky',
+        zIndex: 3,
+      },
 
     [`.${bodyRowCls} .${fixedStartCellCls}, .${bodyRowCls} .${fixedEndCellCls}`]:
       {
@@ -910,7 +928,7 @@ const genFixedShadowStyle = (
       height: '100%',
       width: '100%',
       pointerEvents: 'none',
-      zIndex: 6,
+      zIndex: 9,
     },
     [`&.${hasFixStartColumnsCls}.${hasFixEndColumnsCls}::after`]: {
       display: 'none',

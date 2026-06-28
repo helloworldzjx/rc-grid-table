@@ -30,6 +30,7 @@ import HorizontalScrollbar from './HorizontalScrollbar';
 import Placeholder from './Placeholder';
 import ScrollBarContainer from './ScrollContainer';
 import Summary from './Summary/Summary';
+import { useColumnSortableContext } from './contexts';
 import BodyHoverContext from './contexts/BodyHoverContext';
 import { useComponentsContext } from './contexts/ComponentsContext';
 import { useExpandableContext } from './contexts/ExpandableContext';
@@ -115,6 +116,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
     const { getComponent } = useComponentsContext();
     const { expandable, mergedExpandedRowKeys = [] } = useExpandableContext();
     const { rowSortable } = useRowSortableContext();
+    const { sortingColumns } = useColumnSortableContext();
 
     const { hashId, cssVarCls } = useStyles();
 
@@ -137,6 +139,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       hasXScrollbarCls,
       hasYScrollbarCls,
       hasStickyCls,
+      previewColumnsSortingCls,
       rowSortingCls,
       headStickyCls,
       bodyCls,
@@ -469,6 +472,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
                 [pingStartCls]: !isStart,
                 [pingEndCls]: !isEnd,
                 [hasStickyCls]: sticky,
+                [previewColumnsSortingCls]: sortingColumns,
                 [rowSortingCls]: rowSort.activeKey !== null,
               },
               className,

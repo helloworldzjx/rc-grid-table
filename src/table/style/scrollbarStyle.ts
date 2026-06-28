@@ -52,7 +52,7 @@ export const genScrollBarStyle = (
       touchAction: 'none',
       userSelect: 'none',
       transition: 'background-color 0.2s',
-      zIndex: 2,
+      zIndex: 5,
 
       [`&.${xScrollBarShowCls} .${xScrollBarThumbCls}`]: {
         backgroundColor: token.scrollbarThumbColor,
@@ -79,7 +79,7 @@ export const genScrollBarStyle = (
     [`.${xScrollBarStickyCls}`]: {
       position: 'sticky',
       marginTop: -SCROLLBAR_SIZE,
-      zIndex: 5,
+      zIndex: 8,
     },
 
     [`.${yScrollBarCls}`]: {
@@ -93,7 +93,7 @@ export const genScrollBarStyle = (
       touchAction: 'none',
       userSelect: 'none',
       transition: 'background-color 0.2s',
-      zIndex: 2,
+      zIndex: 5,
 
       [`&.${yScrollBarShowCls} .${yScrollBarThumbCls}`]: {
         backgroundColor: token.scrollbarThumbColor,
