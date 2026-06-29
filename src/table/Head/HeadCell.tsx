@@ -29,7 +29,7 @@ import { getEllipsisShowTitle, getEllipsisTitle } from '../utils/ellipsis';
 import { getCellFixedInfo } from '../utils/fixedColumns';
 import { getNormalSpanStyle } from '../utils/gridPlacement';
 import { filterSpan } from '../utils/handle';
-import { getDataSortTitleRender } from '../utils/sort';
+import { getDataSortHeaderRender, isDataSortHeaderActive } from '../utils/sort';
 import Resizable from './Resizable';
 
 interface HeadCellProps<T = any> {
@@ -341,16 +341,11 @@ function HeadCell({
       : rowSelection?.columnTitle ?? originNode;
   }, [isInternalSelectionColumn, rowSelection, selection, titleCheckboxProps]);
 
-  const {
-    hasSortRender,
-    hasSortValue: rawHasSortValue,
-    sortRenderNode,
-  } = getDataSortTitleRender({
+  const { hasSortRender, sortRenderNode } = getDataSortHeaderRender({
     column: col.column,
     columnIndex: colIndex,
     dataSort,
     dataSortOrders,
-    hasSubColumns: col.hasSubColumns,
   });
 
   const sortActiveKeySet = useMemo(
@@ -358,23 +353,15 @@ function HeadCell({
     [dataSortOrders],
   );
 
-  const hasSortValue = useMemo(() => {
-    if (col.hasSubColumns) {
-      return flattenColumns.some(
-        (column) =>
-          column.ancestorKeys?.includes(col.key as Key) &&
-          sortActiveKeySet.has(column.key),
-      );
-    }
-
-    return rawHasSortValue;
-  }, [
-    col.hasSubColumns,
-    col.key,
-    flattenColumns,
-    rawHasSortValue,
-    sortActiveKeySet,
-  ]);
+  const hasSortValue = useMemo(
+    () =>
+      isDataSortHeaderActive({
+        column: col.column,
+        flattenColumns,
+        sortActiveKeySet,
+      }),
+    [col.column, flattenColumns, sortActiveKeySet],
+  );
 
   let childrenNode = col.children;
   if (isInternalSelectionColumn) {

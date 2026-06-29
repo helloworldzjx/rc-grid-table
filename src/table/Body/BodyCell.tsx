@@ -255,13 +255,10 @@ function BodyCell({
     return restProps;
   }, [cellProps]);
 
-  const dataSortColumnKey = useMemo(
-    () => getDataSortColumnKey(column),
-    [column],
-  );
-  const hasSortValue = dataSortOrders.some(
-    (item) => item.columnKey === dataSortColumnKey,
-  );
+  const hasSortValue = useMemo(() => {
+    const dataSortColumnKey = getDataSortColumnKey(column);
+    return dataSortOrders.some((item) => item.columnKey === dataSortColumnKey);
+  }, [column, dataSortOrders]);
 
   const isInternalExpandColumn = isExpandColumn(column);
   const isInternalSelectionColumn = isSelectionColumn(column);

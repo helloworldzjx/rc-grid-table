@@ -123,10 +123,10 @@ const HeadFilterCell: FC<HeadFilterCellProps> = ({
     [column.key, columnIndex, fixedInfo.fixStart, fixedInfo.fixEnd],
   );
 
-  const columnKey = getDataSortColumnKey(column);
-  const sortIndex = dataSortOrders.findIndex(
-    (item) => item.columnKey === columnKey,
-  );
+  const hasSortValue = useMemo(() => {
+    const dataSortColumnKey = getDataSortColumnKey(column);
+    return dataSortOrders.some((item) => item.columnKey === dataSortColumnKey);
+  }, [column, dataSortOrders]);
 
   const filterNode = useMemo(
     () => column.filterRender?.(column, columnIndex),
@@ -141,7 +141,7 @@ const HeadFilterCell: FC<HeadFilterCellProps> = ({
         filterCellCls,
         {
           [headLastCellCls]: last,
-          [dataSortActiveCellCls]: sortIndex >= 0,
+          [dataSortActiveCellCls]: hasSortValue,
           [selectionCellCls]: isSelectionColumn(column),
           [rowSortCellCls]: isRowSortColumn(column),
           [expandCellCls]: isExpandColumn(column),

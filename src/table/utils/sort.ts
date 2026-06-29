@@ -13,12 +13,17 @@ import type { InternalColumnState } from '../internalInterface';
 
 export type ActiveDataSortOrder = DataSortOrder & { order: SortOrder };
 
-type DataSortTitleRender<T = any> = {
+type DataSortHeaderRender<T = any> = {
   column?: InternalColumnState<T>;
   columnIndex: number;
   dataSort?: DataSortConfig;
   dataSortOrders: DataSortOrder[];
-  hasSubColumns?: boolean;
+};
+
+type DataSortHeaderActive<T = any> = {
+  column?: InternalColumnState<T>;
+  flattenColumns: InternalColumnState<T>[];
+  sortActiveKeySet: ReadonlySet<Key>;
 };
 
 export const DEFAULT_SORT_DIRECTIONS: SortDirection[] = [
@@ -130,29 +135,58 @@ export const sortDataSource = <T>(
 const isRenderableNode = (node: ReactNode) =>
   node !== undefined && node !== null && typeof node !== 'boolean';
 
-export const getDataSortTitleRender = <T>({
+export const getDataSortOrderState = (
+  columnKey: Key,
+  dataSortOrders: DataSortOrder[] = [],
+) => {
+  const sortIndex = dataSortOrders.findIndex(
+    (item) => item.columnKey === columnKey,
+  );
+  const active = sortIndex >= 0;
+
+  return {
+    active,
+    sortIndex,
+    sortOrder: active ? dataSortOrders[sortIndex].order : null,
+    sortPriority: active ? sortIndex + 1 : undefined,
+  };
+};
+
+export const isDataSortHeaderActive = <T>({
+  column,
+  flattenColumns,
+  sortActiveKeySet,
+}: DataSortHeaderActive<T>) => {
+  if (!column) return false;
+
+  const columnKey = getDataSortColumnKey(column);
+
+  if (column.hasChildren) {
+    return flattenColumns.some(
+      (item) =>
+        item.ancestorKeys?.includes(columnKey) &&
+        sortActiveKeySet.has(getDataSortColumnKey(item)),
+    );
+  }
+
+  return sortActiveKeySet.has(columnKey);
+};
+
+export const getDataSortHeaderRender = <T>({
   column,
   columnIndex,
   dataSort,
   dataSortOrders,
-  hasSubColumns,
-}: DataSortTitleRender<T>) => {
-  const canRenderDataSort =
-    isLeafColumn(column) && !hasSubColumns && !!column?.sorter;
-
-  if (!canRenderDataSort || !column) {
+}: DataSortHeaderRender<T>) => {
+  if (!isLeafColumn(column) || !column?.sorter) {
     return {
       hasSortRender: false,
-      hasSortValue: false,
       sortRenderNode: undefined,
     };
   }
 
   const columnKey = getDataSortColumnKey(column);
-  const sortIndex = dataSortOrders.findIndex(
-    (item) => item.columnKey === columnKey,
-  );
-  const sortOrder = sortIndex >= 0 ? dataSortOrders[sortIndex].order : null;
+  const sortState = getDataSortOrderState(columnKey, dataSortOrders);
   const sortDirections = column.sortDirections?.length
     ? column.sortDirections
     : DEFAULT_SORT_DIRECTIONS;
@@ -160,16 +194,15 @@ export const getDataSortTitleRender = <T>({
   const sortRenderNode = sortRender?.({
     columnKey,
     columnIndex,
-    active: sortIndex >= 0,
-    sortOrder,
-    sortPriority: sortIndex >= 0 ? sortIndex + 1 : undefined,
+    active: sortState.active,
+    sortOrder: sortState.sortOrder,
+    sortPriority: sortState.sortPriority,
     sortOrders: dataSortOrders,
     sortDirections,
   });
 
   return {
     hasSortRender: isRenderableNode(sortRenderNode),
-    hasSortValue: sortIndex >= 0,
     sortRenderNode,
   };
 };
