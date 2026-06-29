@@ -267,41 +267,40 @@ function BodyCell({
   const isInternalSelectionColumn = isSelectionColumn(column);
   const isInternalRowSortColumn = isRowSortColumn(column);
 
-  const columnRender = useMemo(() => {
+  const cellValue = useMemo<ReactNode>(() => {
     if (
       spanInfo.hidden ||
-      !column.render ||
-      typeof column.render !== 'function'
+      isInternalExpandColumn ||
+      isInternalSelectionColumn ||
+      isInternalRowSortColumn
     ) {
       return undefined;
     }
 
-    return (cellValue: ReactNode) => {
-      return column.render?.(cellValue, rowData, rowIndex);
-    };
-  }, [spanInfo.hidden, column.render, rowData, rowIndex]);
+    let value: ReactNode = undefined;
+
+    if (isValidKey(column.dataIndex) && typeof column.dataIndex === 'string') {
+      value = rowData?.[column.dataIndex];
+    }
+
+    if (typeof column.render === 'function') {
+      return column.render(value, rowData, rowIndex);
+    }
+
+    return value;
+  }, [
+    spanInfo.hidden,
+    isInternalExpandColumn,
+    isInternalSelectionColumn,
+    isInternalRowSortColumn,
+    column.dataIndex,
+    column.render,
+    rowData,
+    rowIndex,
+  ]);
 
   if (spanInfo.hidden) {
     return null;
-  }
-
-  let cellValue: ReactNode = undefined;
-  if (
-    !isInternalExpandColumn &&
-    !isInternalSelectionColumn &&
-    !isInternalRowSortColumn &&
-    isValidKey(column.dataIndex) &&
-    typeof column.dataIndex === 'string'
-  ) {
-    cellValue = rowData?.[column.dataIndex];
-  }
-  if (
-    !isInternalExpandColumn &&
-    !isInternalSelectionColumn &&
-    !isInternalRowSortColumn &&
-    columnRender
-  ) {
-    cellValue = columnRender(cellValue);
   }
 
   let childrenNode = cellValue;

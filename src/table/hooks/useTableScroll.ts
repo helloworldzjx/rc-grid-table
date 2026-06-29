@@ -214,6 +214,20 @@ export const useTableScroll = ({
     [onScroll, syncScrollLeft],
   );
 
+  useIsomorphicLayoutEffect(() => {
+    const content = bodyScrollElement;
+    if (!content || !hasHorizontal) return;
+
+    // 挂一个 passive: false 的 wheel listener，让浏览器不要在合成线程里先把 body 滚走，从而减少滚动同步时的错位感
+    const handleWheel = () => {};
+
+    content.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+      content.removeEventListener('wheel', handleWheel);
+    };
+  }, [bodyScrollElement, hasHorizontal, syncScrollLeft]);
+
   const handleHorizontalPointerDown: PointerEventHandler<HTMLDivElement> =
     useCallback(
       (event) => {
