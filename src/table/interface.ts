@@ -555,7 +555,7 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
   visibleColumns?: boolean;
   /**
    * @description 表格大小
-   * @default large
+   * @default "large"
    */
   size?: SizeType;
   /**
@@ -576,8 +576,8 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
    */
   scrollY?: number;
   /**
-   * @description 仅支持自定义 rowHoverable scroll follow 所依赖的外部滚动容器。
-   * 未传入时，scrollY 存在则使用 table body 滚动容器，否则默认使用 window。
+   * @description 自定义 rowHoverable scroll follow 所依赖的外部滚动容器。
+   * 未传入时默认使用 window；当 table 跟随非 window 的外层容器滚动时可显式传入。
    */
   getScrollContainer?: GetScrollContainer;
   /**

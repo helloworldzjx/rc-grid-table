@@ -2,6 +2,7 @@ import type { HTMLAttributes, MouseEventHandler } from 'react';
 import { useCallback, useEffect, useMemo } from 'react';
 
 import type { BodyHoverController } from './useBodyHoverController';
+import { setViewportMousePosition } from './viewportMouseTracker';
 
 interface UseBodyHoverPointerPluginProps {
   enabled?: boolean;
@@ -21,11 +22,11 @@ export default function useBodyHoverPointerPlugin({
 }: UseBodyHoverPointerPluginProps): BodyHoverPointerProps {
   const handleMouseMove = useCallback<MouseEventHandler<HTMLDivElement>>(
     (event) => {
+      const targetWindow = bodyElement?.ownerDocument.defaultView;
+      setViewportMousePosition(targetWindow, event.clientX, event.clientY);
       controller.handlePointerMove({
         bodyElement,
         target: event.target,
-        clientX: event.clientX,
-        clientY: event.clientY,
       });
     },
     [bodyElement, controller],

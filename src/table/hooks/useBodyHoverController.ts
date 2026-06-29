@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { cancelRaf, raf } from '../../_utils/raf';
 import type { BodyHoverCellMeta, BodyHoverInterval } from '../Body/hover';
 import type { BodyHoverContextValue } from '../contexts/BodyHoverContext';
+import { getViewportMousePosition } from './viewportMouseTracker';
 
 interface UseBodyHoverControllerProps {
   enabled?: boolean;
@@ -11,8 +12,6 @@ interface UseBodyHoverControllerProps {
 interface PointerMoveInfo {
   bodyElement?: HTMLDivElement | null;
   target: EventTarget | Element | null;
-  clientX: number;
-  clientY: number;
 }
 
 export interface BodyHoverController {
@@ -34,9 +33,11 @@ export default function useBodyHoverController({
   const listenersRef = useRef(new Set<() => void>());
   const hoveredCellRef = useRef<HTMLDivElement | null>(null);
   const activeIntervalRef = useRef<BodyHoverInterval | null>(null);
-  const pointerInsideRef = useRef(false);
-  const pointerClientRef = useRef({ x: 0, y: 0 });
+  const lastBodyElementRef = useRef<HTMLDivElement | null>(null);
   const syncFrameRef = useRef<number | null>(null);
+  const scheduleSyncHoverRef = useRef<
+    (bodyElement?: HTMLDivElement | null) => void
+  >(() => {});
 
   const notifyListeners = useCallback(() => {
     listenersRef.current.forEach((listener) => {
@@ -58,7 +59,6 @@ export default function useBodyHoverController({
 
   const clearHover = useCallback(() => {
     hoveredCellRef.current = null;
-    pointerInsideRef.current = false;
     cancelRaf(syncFrameRef.current);
     syncFrameRef.current = null;
     setActiveInterval(null);
@@ -76,6 +76,7 @@ export default function useBodyHoverController({
         if (wasHoveredCell) {
           hoveredCellRef.current = null;
           setActiveInterval(null);
+          scheduleSyncHoverRef.current(lastBodyElementRef.current);
         }
         return;
       }
@@ -126,6 +127,8 @@ export default function useBodyHoverController({
         return;
       }
 
+      lastBodyElementRef.current = bodyElement;
+
       const cell = findHoverCell(bodyElement, target);
       if (!cell) {
         hoveredCellRef.current = null;
@@ -156,20 +159,45 @@ export default function useBodyHoverController({
     [enabled, findHoverCell, setActiveInterval],
   );
 
-  const syncHoverFromPointer = useCallback(
+  const syncHoverFromViewportPointer = useCallback(
     (bodyElement?: HTMLDivElement | null) => {
       cancelRaf(syncFrameRef.current);
       syncFrameRef.current = null;
 
-      if (!enabled || !bodyElement || !pointerInsideRef.current) {
+      if (!enabled || !bodyElement) {
         return;
       }
 
-      const { x, y } = pointerClientRef.current;
-      const target = bodyElement.ownerDocument.elementFromPoint(x, y);
+      lastBodyElementRef.current = bodyElement;
+
+      const viewportMouse = getViewportMousePosition(
+        bodyElement.ownerDocument.defaultView,
+      );
+      if (!viewportMouse.initialized) {
+        return;
+      }
+
+      const { clientX, clientY } = viewportMouse;
+      const bodyRect = bodyElement.getBoundingClientRect();
+      const inBodyRect =
+        clientX >= bodyRect.left &&
+        clientX <= bodyRect.right &&
+        clientY >= bodyRect.top &&
+        clientY <= bodyRect.bottom;
+
+      if (!inBodyRect) {
+        hoveredCellRef.current = null;
+        setActiveInterval(null);
+        return;
+      }
+
+      const target = bodyElement.ownerDocument.elementFromPoint(
+        clientX,
+        clientY,
+      );
       updateHoverTarget(bodyElement, target, true);
     },
-    [enabled, updateHoverTarget],
+    [enabled, setActiveInterval, updateHoverTarget],
   );
 
   const scheduleSyncHoverFromPointer = useCallback(
@@ -183,23 +211,19 @@ export default function useBodyHoverController({
 
       syncFrameRef.current = raf(() => {
         syncFrameRef.current = null;
-        syncHoverFromPointer(bodyElement);
+        syncHoverFromViewportPointer(bodyElement);
       });
     },
-    [enabled, syncHoverFromPointer],
+    [enabled, syncHoverFromViewportPointer],
   );
+  scheduleSyncHoverRef.current = scheduleSyncHoverFromPointer;
 
   const handlePointerMove = useCallback(
-    ({ bodyElement, target, clientX, clientY }: PointerMoveInfo) => {
+    ({ bodyElement, target }: PointerMoveInfo) => {
       if (!enabled) {
         return;
       }
 
-      pointerInsideRef.current = true;
-      pointerClientRef.current = {
-        x: clientX,
-        y: clientY,
-      };
       updateHoverTarget(bodyElement, target);
     },
     [enabled, updateHoverTarget],

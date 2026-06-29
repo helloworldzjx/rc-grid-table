@@ -252,12 +252,8 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
         return getScrollContainer();
       }
 
-      if (scrollY) {
-        return bodyScrollElement ?? null;
-      }
-
       return bodyScrollElement?.ownerDocument.defaultView ?? null;
-    }, [bodyScrollElement, getScrollContainer, scrollY]);
+    }, [bodyScrollElement, getScrollContainer]);
 
     const bodyHover = useBodyHoverController({
       enabled: rowHoverable,
