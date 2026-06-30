@@ -12,6 +12,12 @@ interface UseFixedShadowProps<T = any> {
   flattenColumnsWidths: number[];
 }
 
+const defaultFixedShadowContext: FixedShadowContextProps = {
+  scrollLeft: 0,
+  maxScrollLeft: 0,
+  fixColumnsGapped: false,
+};
+
 export default function useFixedShadow<T = any>({
   scrollLeft,
   maxScrollLeft,
@@ -20,48 +26,51 @@ export default function useFixedShadow<T = any>({
   flattenColumnsWidths,
 }: UseFixedShadowProps<T>): FixedShadowContextProps {
   return useMemo(() => {
-    const fixedShadowScrollLeft = fixColumnsGapped ? scrollLeft : 0;
-    const fixedShadowMaxScrollLeft = fixColumnsGapped ? maxScrollLeft : 0;
+    if (!fixColumnsGapped) {
+      return defaultFixedShadowContext;
+    }
+
+    const fixedShadowScrollLeft = scrollLeft;
+    const fixedShadowMaxScrollLeft = maxScrollLeft;
+    const remainingScrollLeft =
+      fixedShadowMaxScrollLeft - fixedShadowScrollLeft;
     let activeFixedStartShadowOffset: number | undefined;
     let activeFixedEndShadowOffset: number | undefined;
+    let fixedStartShadowOffset = 0;
+    let fixedEndShadowOffset = 0;
 
-    if (fixColumnsGapped) {
-      flattenColumns.forEach((column, index) => {
-        if (column.fixed !== 'start') return;
+    if (fixedShadowScrollLeft > 0) {
+      for (let index = 0; index < flattenColumns.length; index += 1) {
+        const column = flattenColumns[index];
+        if (column.fixed !== 'start') {
+          const width = flattenColumnsWidths[index];
+          fixedStartShadowOffset += isNum(width) ? width : 0;
+          continue;
+        }
 
         const nextColumn = flattenColumns[index + 1];
-        if (nextColumn?.fixed === 'start') return;
+        if (nextColumn?.fixed === 'start') continue;
 
-        let offset = 0;
-        for (let i = 0; i < index; i += 1) {
-          if (flattenColumns[i].fixed !== 'start') {
-            const width = flattenColumnsWidths[i];
-            offset += isNum(width) ? width : 0;
-          }
+        if (fixedShadowScrollLeft >= fixedStartShadowOffset) {
+          activeFixedStartShadowOffset = fixedStartShadowOffset;
         }
-        if (fixedShadowScrollLeft > 0 && fixedShadowScrollLeft >= offset) {
-          activeFixedStartShadowOffset = offset;
-        }
-      });
+      }
+    }
 
+    if (remainingScrollLeft > 0) {
       for (let index = flattenColumns.length - 1; index >= 0; index -= 1) {
         const column = flattenColumns[index];
-        if (column.fixed !== 'end') continue;
+        if (column.fixed !== 'end') {
+          const width = flattenColumnsWidths[index];
+          fixedEndShadowOffset += isNum(width) ? width : 0;
+          continue;
+        }
 
         const prevColumn = flattenColumns[index - 1];
         if (prevColumn?.fixed === 'end') continue;
 
-        let offset = 0;
-        for (let i = flattenColumns.length - 1; i > index; i -= 1) {
-          if (flattenColumns[i].fixed !== 'end') {
-            const width = flattenColumnsWidths[i];
-            offset += isNum(width) ? width : 0;
-          }
-        }
-        const remainingScrollLeft =
-          fixedShadowMaxScrollLeft - fixedShadowScrollLeft;
-        if (remainingScrollLeft > 0 && remainingScrollLeft >= offset) {
-          activeFixedEndShadowOffset = offset;
+        if (remainingScrollLeft >= fixedEndShadowOffset) {
+          activeFixedEndShadowOffset = fixedEndShadowOffset;
         }
       }
     }

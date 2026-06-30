@@ -43,6 +43,7 @@ interface BodyCellProps<T = any> {
   flattenColumns: InternalColumnState<T>[];
   renderMode?: BodyRenderMode;
   colIndex?: number;
+  columnCount: number;
   getRowSpanHeight?: (rowSpan: number) => number;
   indent?: number;
   expanded?: boolean;
@@ -69,6 +70,7 @@ function BodyCell({
   flattenColumns,
   renderMode = 'normal',
   colIndex,
+  columnCount,
   getRowSpanHeight,
   indent = 0,
   expanded = false,
@@ -90,6 +92,7 @@ function BodyCell({
 
   const {
     cellCls,
+    bodyLastCellCls,
     ellipsisCellCls,
     ellipsisCellInnerCls,
     expandTreeCellCls,
@@ -149,6 +152,12 @@ function BodyCell({
       renderMode,
     ],
   );
+
+  const isBodyLastCell =
+    !spanInfo.hidden &&
+    colIndex !== undefined &&
+    colIndex + spanInfo.colSpan >= columnCount;
+
   const motionKeys = useMemo(() => {
     // colSpan cell 需要按覆盖的叶子列参与 motion 区间判断；
     // 普通 renderMode 也传 colIndex，是为了让列顺序变化时 body cell 的位置签名同步变化。
@@ -368,6 +377,7 @@ function BodyCell({
     return (
       <RowSortBodyCell
         cellClassName={cellProps.className}
+        last={isBodyLastCell}
         restCellProps={restCellProps}
         column={column}
         fixedInfo={fixedInfo}
@@ -404,6 +414,7 @@ function BodyCell({
         {
           [ellipsisCellCls]: hasEllipsis,
           [dataSortActiveCellCls]: hasSortValue,
+          [bodyLastCellCls]: isBodyLastCell,
           [expandCellCls]: isInternalExpandColumn,
           [expandTreeCellCls]: isTreeCell,
           [selectionCellCls]: isInternalSelectionColumn,

@@ -1,8 +1,6 @@
 export type ComponentClsType = {
   wrapperCls: string;
   wrapperInitializedCls: string;
-  placeholderCls: string;
-  placeholderDisabledCls: string;
   componentCls: string;
   componentSMCls: string;
   componentMDCls: string;
@@ -11,18 +9,24 @@ export type ComponentClsType = {
   virtualCls: string;
   stripeCls: string;
   noDataCls: string;
-  hasFixColumnsCls: string;
-  hasFixStartColumnsCls: string;
-  hasFixEndColumnsCls: string;
-  fixColumnsGappedCls: string;
-  pingStartCls: string;
-  pingEndCls: string;
   hasSummaryCls: string;
   hasXScrollbarCls: string;
   hasYScrollbarCls: string;
   hasStickyCls: string;
   previewColumnsSortingCls: string;
   rowSortingCls: string;
+  hasFixColumnsCls: string;
+  hasFixStartColumnsCls: string;
+  hasFixEndColumnsCls: string;
+  fixColumnsGappedCls: string;
+  pingStartCls: string;
+  pingEndCls: string;
+  fixedStartShadowCls: string;
+  fixedStartShadowActiveCls: string;
+  fixedEndShadowCls: string;
+  fixedEndShadowActiveCls: string;
+  placeholderCls: string;
+  placeholderDisabledCls: string;
   headCls: string;
   headStickyCls: string;
   headInnerCls: string;
@@ -42,6 +46,7 @@ export type ComponentClsType = {
   bodyVirtualRowSpanCls: string;
   bodyVirtualRowSpanTopCls: string;
   bodyVirtualPreservedCls: string;
+  bodyLastCellCls: string;
   bodyExpandableRowCls: string;
   bodyExpandedRowCls: string;
   bodyExpandedRowCellCls: string;
@@ -120,8 +125,6 @@ export const getComponentCls = (prefixCls: string): ComponentClsType => {
   return {
     wrapperCls: `${prefixCls}-wrapper`,
     wrapperInitializedCls: `${prefixCls}-wrapper-initialized`,
-    placeholderCls: `${prefixCls}-placeholder`,
-    placeholderDisabledCls: `${prefixCls}-placeholder-disabled`,
     componentCls: prefixCls,
     componentSMCls: `${prefixCls}-wrapper-small`,
     componentMDCls: `${prefixCls}-wrapper-middle`,
@@ -130,18 +133,24 @@ export const getComponentCls = (prefixCls: string): ComponentClsType => {
     virtualCls: `${prefixCls}-virtual`,
     stripeCls: `${prefixCls}-stripe`,
     noDataCls: `${prefixCls}-no-data`,
-    hasFixColumnsCls: `${prefixCls}-has-fix-columns`,
-    hasFixStartColumnsCls: `${prefixCls}-has-fix-start-columns`,
-    hasFixEndColumnsCls: `${prefixCls}-has-fix-end-columns`,
-    fixColumnsGappedCls: `${prefixCls}-fix-columns-gapped`,
-    pingStartCls: `${prefixCls}-ping-start`,
-    pingEndCls: `${prefixCls}-ping-end`,
     hasSummaryCls: `${prefixCls}-has-summary`,
     hasXScrollbarCls: `${prefixCls}-has-horizontal-scrollbar`,
     hasYScrollbarCls: `${prefixCls}-has-vertical-scrollbar`,
     hasStickyCls: `${prefixCls}-has-sticky`,
     previewColumnsSortingCls: `${prefixCls}-preview-columns-sorting`,
     rowSortingCls: `${prefixCls}-row-sorting`,
+    hasFixColumnsCls: `${prefixCls}-has-fix-columns`,
+    hasFixStartColumnsCls: `${prefixCls}-has-fix-start-columns`,
+    hasFixEndColumnsCls: `${prefixCls}-has-fix-end-columns`,
+    fixColumnsGappedCls: `${prefixCls}-fix-columns-gapped`,
+    pingStartCls: `${prefixCls}-ping-start`,
+    pingEndCls: `${prefixCls}-ping-end`,
+    fixedStartShadowCls: `${prefixCls}-fixed-start-shadow`,
+    fixedStartShadowActiveCls: `${prefixCls}-fixed-start-shadow-active`,
+    fixedEndShadowCls: `${prefixCls}-fixed-end-shadow`,
+    fixedEndShadowActiveCls: `${prefixCls}-fixed-end-shadow-active`,
+    placeholderCls: `${prefixCls}-placeholder`,
+    placeholderDisabledCls: `${prefixCls}-placeholder-disabled`,
     headCls: `${prefixCls}-head`,
     headStickyCls: `${prefixCls}-head-sticky`,
     headInnerCls: `${prefixCls}-head-inner`,
@@ -161,6 +170,7 @@ export const getComponentCls = (prefixCls: string): ComponentClsType => {
     bodyVirtualRowSpanCls: `${prefixCls}-body-virtual-row-span`,
     bodyVirtualRowSpanTopCls: `${prefixCls}-body-virtual-row-span-top`,
     bodyVirtualPreservedCls: `${prefixCls}-body-virtual-preserved`,
+    bodyLastCellCls: `${prefixCls}-body-last-cell`,
     bodyExpandableRowCls: `${prefixCls}-body-expandable-row`,
     bodyExpandedRowCls: `${prefixCls}-body-expanded-row`,
     bodyExpandedRowCellCls: `${prefixCls}-body-expanded-row-cell`,

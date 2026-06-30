@@ -27,6 +27,7 @@ type BodyCellBaseProps<T = any> = {
   motionKeys?: Key[];
   motionLayoutDependency?: string | number | false;
   mergedStyle: CSSProperties;
+  last?: boolean;
 };
 
 type RowSortBodyCellProps<T = any> = BodyCellBaseProps<T> & {
@@ -59,6 +60,7 @@ function RowSortBodyCell<T = any>({
   motionLayoutDependency,
   indent,
   mergedStyle,
+  last = false,
   rowData,
   rowIndex,
   rowSortDragDisabled,
@@ -78,6 +80,7 @@ function RowSortBodyCell<T = any>({
 
   const {
     cellCls,
+    bodyLastCellCls,
     fixedStartCellCls,
     fixedStartLastCellCls,
     fixedStartShadowActiveCellCls,
@@ -169,6 +172,7 @@ function RowSortBodyCell<T = any>({
         {
           [rowSortCellCls]: true,
           [rowSortOverCellCls]: rowSortIsOver,
+          [bodyLastCellCls]: last,
           [fixedStartCellCls]: fixedInfo.fixStart !== null,
           [fixedStartLastCellCls]: fixedInfo.fixedStartShadow,
           [fixedStartShadowActiveCellCls]: fixedShadowActive.start,

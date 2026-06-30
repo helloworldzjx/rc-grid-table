@@ -16,7 +16,7 @@ import React, {
   useRef,
 } from 'react';
 
-import { SCROLLBAR_SIZE } from '../_utils/const';
+import { SCROLLBAR_SIZE, SCROLLBAR_VISIBLE_TOLERANCE } from '../_utils/const';
 import { isNum, isObject } from '../_utils/validate';
 import BodyItem from './Body/BodyItem';
 import type { BodyNodeRenderer } from './Body/interface';
@@ -147,6 +147,10 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       bodyRowCls,
       bodyNoDataRowCls,
       cellCls,
+      fixedStartShadowCls,
+      fixedStartShadowActiveCls,
+      fixedEndShadowCls,
+      fixedEndShadowActiveCls,
       noDataCellCls,
       noDataCellContentCls,
       summaryStickyCls,
@@ -304,6 +308,16 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       flattenColumns,
       flattenColumnsWidths,
     });
+
+    const remainingBodyScrollLeft = bodyMaxScrollLeft - bodyScrollLeft;
+    const showFixedStartShadow = fixColumnsGapped
+      ? bodyScrollLeft > SCROLLBAR_VISIBLE_TOLERANCE &&
+        fixedShadowContextValue.activeFixedStartShadowOffset === undefined
+      : !isStart && !fixedOffset.hasFixStartColumns;
+    const showFixedEndShadow = fixColumnsGapped
+      ? remainingBodyScrollLeft > SCROLLBAR_VISIBLE_TOLERANCE &&
+        fixedShadowContextValue.activeFixedEndShadowOffset === undefined
+      : !isEnd && !fixedOffset.hasFixEndColumns;
 
     const TableComponent = useMemo(
       () => getComponent(['table'], 'div'),
@@ -562,6 +576,19 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
                 />
               )}
             </FixedShadowContext.Provider>
+
+            <div
+              aria-hidden
+              className={classNames(fixedStartShadowCls, {
+                [fixedStartShadowActiveCls]: showFixedStartShadow,
+              })}
+            />
+            <div
+              aria-hidden
+              className={classNames(fixedEndShadowCls, {
+                [fixedEndShadowActiveCls]: showFixedEndShadow,
+              })}
+            />
 
             <HorizontalScrollbar
               prefixCls={prefixCls}

@@ -195,8 +195,8 @@ const genBorderedStyle = (
     bodyVirtualInnerCls,
     summaryRowCls,
     cellCls,
-    pingStartCls,
-    pingEndCls,
+    fixedStartShadowCls,
+    fixedEndShadowCls,
     headCellResizeHandleCls,
   }: ComponentClsType,
   token: TableComponentToken,
@@ -245,16 +245,13 @@ const genBorderedStyle = (
       },
 
       [`&.${hasXScrollbarCls}`]: {
-        [`&.${pingStartCls}::after`]: {
+        [`.${fixedStartShadowCls}`]: {
           borderTopLeftRadius: token.cellBorderRadius,
           borderBottomLeftRadius: token.cellBorderRadius,
         },
-        [`&.${pingEndCls}::after`]: {
+        [`.${fixedEndShadowCls}`]: {
           borderTopRightRadius: token.cellBorderRadius,
           borderBottomRightRadius: token.cellBorderRadius,
-        },
-        [`&.${pingStartCls}.${pingEndCls}::after`]: {
-          borderRadius: token.cellBorderRadius,
         },
       },
 
@@ -494,6 +491,7 @@ const genCellStyle = (
     bodyVirtualFillerCls,
     bodyVirtualInnerCls,
     bodyRowCls,
+    bodyLastCellCls,
     bodyHoverRowCls,
     bodyHoverCellCls,
     bodySortDraggingRowCls,
@@ -611,7 +609,7 @@ const genCellStyle = (
           borderBottomLeftRadius: token.cellBorderRadius,
         },
 
-        '&:last-child': {
+        [`&.${bodyLastCellCls}`]: {
           borderRight: `1px solid ${token.colorBorder}`,
           borderTopRightRadius: token.cellBorderRadius,
           borderBottomRightRadius: token.cellBorderRadius,
@@ -883,6 +881,7 @@ const genFixedCellStyle = (
       pointerEvents: 'none',
     },
 
+    // 行拖拽时，固定列透明度恢复为 1，避免显示下方内容
     [`&.${pingStartCls}.${pingEndCls} .${bodyRowCls}.${bodySortDraggingRowCls} .${cellCls}.${fixedStartCellCls}`]:
       {
         opacity: 1,
@@ -905,14 +904,17 @@ const genFixedCellStyle = (
 const genFixedShadowStyle = (
   {
     componentCls,
-    hasFixStartColumnsCls,
-    hasFixEndColumnsCls,
+    hasXScrollbarCls,
     fixColumnsGappedCls,
     pingStartCls,
     pingEndCls,
-    hasXScrollbarCls,
+    fixedStartShadowCls,
+    fixedStartShadowActiveCls,
+    fixedEndShadowCls,
+    fixedEndShadowActiveCls,
     headRowCls,
     bodyRowCls,
+    bodyLastCellCls,
     summaryRowCls,
     cellCls,
     headLastCellCls,
@@ -925,46 +927,30 @@ const genFixedShadowStyle = (
   token: TableComponentToken,
 ): CSSInterpolation => ({
   [`.${componentCls}.${hasXScrollbarCls}`]: {
-    '&::after': {
-      content: "' '",
+    [`.${fixedStartShadowCls}, .${fixedEndShadowCls}`]: {
+      display: 'none',
       position: 'absolute',
-      left: 0,
       top: 0,
       height: '100%',
       width: '100%',
       pointerEvents: 'none',
       zIndex: 9,
     },
-    [`&.${hasFixStartColumnsCls}.${hasFixEndColumnsCls}::after`]: {
-      display: 'none',
-    },
-
-    [`&.${pingStartCls}::after`]: {
+    [`.${fixedStartShadowCls}`]: {
+      left: 0,
       boxShadow: getFixedStartShadow(token),
     },
-    [`&.${pingEndCls}::after`]: {
+    [`.${fixedEndShadowCls}`]: {
+      right: 0,
       boxShadow: getFixedEndShadow(token),
     },
-    [`&.${pingStartCls}.${pingEndCls}::after`]: {
-      boxShadow: `${getFixedEndShadow(token)}, ${getFixedStartShadow(token)}`,
-    },
 
-    [`&.${hasFixStartColumnsCls}:not(.${hasFixEndColumnsCls}).${pingStartCls}:not(.${pingEndCls})::after`]:
-      {
-        boxShadow: 'none',
-      },
-    [`&.${hasFixStartColumnsCls}:not(.${hasFixEndColumnsCls}).${pingStartCls}.${pingEndCls}::after`]:
-      {
-        boxShadow: getFixedEndShadow(token),
-      },
-    [`&.${hasFixEndColumnsCls}:not(.${hasFixStartColumnsCls}).${pingEndCls}:not(.${pingStartCls})::after`]:
-      {
-        boxShadow: 'none',
-      },
-    [`&.${hasFixEndColumnsCls}:not(.${hasFixStartColumnsCls}).${pingStartCls}.${pingEndCls}::after`]:
-      {
-        boxShadow: getFixedStartShadow(token),
-      },
+    [`.${fixedStartShadowCls}.${fixedStartShadowActiveCls}`]: {
+      display: 'block',
+    },
+    [`.${fixedEndShadowCls}.${fixedEndShadowActiveCls}`]: {
+      display: 'block',
+    },
 
     [`&.${pingStartCls}:not(.${fixColumnsGappedCls}) .${fixedStartLastCellCls}::after`]:
       {
@@ -993,7 +979,7 @@ const genFixedShadowStyle = (
     [`.${headRowCls} .${headLastCellCls}.${fixedStartCellCls}::after`]: {
       display: 'none',
     },
-    [`.${bodyRowCls} .${cellCls}:last-child.${fixedStartCellCls}::after`]: {
+    [`.${bodyRowCls} .${bodyLastCellCls}.${fixedStartCellCls}::after`]: {
       display: 'none',
     },
     [`.${summaryRowCls} .${cellCls}:last-child.${fixedStartCellCls}::after`]: {
