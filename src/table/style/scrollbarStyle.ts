@@ -8,20 +8,17 @@ import {
 } from '../../_utils/const';
 import type { TableComponentToken } from '../design';
 
-export const genScrollbarInitialStyle = (
+export const genScrollbarToggleStyle = (
   { componentCls }: ComponentClsType,
-  {
-    xScrollBarCls: initialCls,
-    xScrollBarShowCls: initializedCls,
-  }: ScrollbarClsType,
+  { xScrollBarCls, xScrollBarShowCls }: ScrollbarClsType,
 ): CSSInterpolation => ({
   [`.${componentCls}`]: {
-    [`.${initialCls}`]: {
+    [`.${xScrollBarCls}`]: {
       opacity: 0,
       pointerEvents: 'none',
     },
 
-    [`.${initializedCls}`]: {
+    [`.${xScrollBarShowCls}`]: {
       opacity: 1,
       pointerEvents: 'auto',
     },

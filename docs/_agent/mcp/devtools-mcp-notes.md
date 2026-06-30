@@ -17,6 +17,8 @@
 
 打开 DevTools MCP 页面前，先确认本地 dev server 真的可访问。
 
+不要为了 MCP 另起第二个 `dumi dev`，尤其是在已有文档站 dev server 正在运行时。dumi 的多个 dev 进程会共用同一个 `.dumi/tmp` 和 `node_modules/.cache`，后启动的进程会重新生成临时文件，前一个进程的 watcher 可能随即重新编译并拿到不一致的临时文件或 webpack 缓存，表现为页面报 `Can't resolve 'dumi'`、终端报默认主题里的 `Module not found`。优先复用现有 dev server 的地址；确实需要换端口时，先停掉旧进程再启动。
+
 在 Windows 上要注意：`npm` 可能解析到 `npm.ps1`，直接用 `Start-Process` 启动可能报 `%1 is not a valid Win32 application`。更稳的方式是显式使用 `npm.cmd`，或通过 `cmd.exe` 启动。
 
 常用检查命令：

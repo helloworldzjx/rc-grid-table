@@ -30,8 +30,8 @@ export interface TableRef {
   startColumnsStatePreview: (options?: ColumnsStatePreviewOptions) => boolean;
   saveColumnsStatePreview: () => boolean;
   cancelColumnsStatePreview: () => void;
-  setColumnVisible: (key: Key, visible: boolean) => void;
-  setColumnFixed: (key: Key, fixed: FixedType | false) => void;
+  setColumnVisible: (key: Key, visible: boolean) => boolean;
+  setColumnFixed: (key: Key, fixed: FixedType | false) => boolean;
 }
 
 export type ColumnsStatePreviewMode = 'full' | 'visibleHotOnly';
@@ -433,7 +433,7 @@ export type ColumnViewState<T = any> = {
   depth: number;
   order: number;
   visible: boolean;
-  fixed?: FixedType;
+  fixed?: FixedType | false;
   width?: number;
   resizeMinWidth?: number;
   widthManuallyChanged: boolean;
@@ -530,7 +530,7 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
    */
   leafColumnMinWidth?: number;
   /**
-   * @description 列配置，四个属性至少有一个启用则生效：resizableColumns、sortableColumns、fixableColumns、visibleColumns
+   * @description 列配置持久化入口。显式传入 storageColumnsState，或任一列状态特性开启时，会初始化列状态管线。
    */
   columnsConfig?: ColumnsConfig<T>;
   /**

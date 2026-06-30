@@ -2,10 +2,7 @@ import { Key } from 'react';
 
 import { isNum, isValidKey } from '../../_utils/validate';
 import type { ColumnState } from '../interface';
-import type {
-  ColumnStateFeatureOptions,
-  InternalColumnState,
-} from '../internalInterface';
+import type { InternalColumnState } from '../internalInterface';
 import { getColumnKey } from './handle';
 
 const internalColumnFlagKeys = [
@@ -58,51 +55,9 @@ function createKeyMap(storageColumns: ColumnState[]): Map<Key, ColumnState> {
   return map;
 }
 
-export function filterColumnsStateByFeatures<T = any>(
-  columnsState: ColumnState<T>[],
-  features: ColumnStateFeatureOptions = {},
-): ColumnState<T>[] {
-  if (!Array.isArray(columnsState)) return [];
-
-  const { resizableColumns, sortableColumns, fixableColumns, visibleColumns } =
-    features;
-
-  const traverse = (columns: ColumnState<T>[]): ColumnState<T>[] =>
-    columns.map((column) => {
-      const state: ColumnState<T> = { key: column.key };
-
-      if (column.dataIndex !== undefined) state.dataIndex = column.dataIndex;
-      if (sortableColumns && isNum(column.order)) state.order = column.order;
-      if (visibleColumns && typeof column.visible === 'boolean') {
-        state.visible = column.visible;
-      }
-      if (fixableColumns) {
-        if (column.fixed === 'start' || column.fixed === 'end') {
-          state.fixed = column.fixed;
-        } else if (column.fixed === false) {
-          state.fixed = false;
-        }
-      }
-      if (resizableColumns) {
-        if (isNum(column.width)) state.width = column.width;
-        if (typeof column.widthManuallyChanged === 'boolean') {
-          state.widthManuallyChanged = column.widthManuallyChanged;
-        }
-      }
-
-      const children = column.children?.length ? traverse(column.children) : [];
-      if (children.length) state.children = children;
-
-      return state;
-    });
-
-  return traverse(columnsState);
-}
-
 function applyColumnState<T = any>(
   column: InternalColumnState<T>,
   state?: ColumnState<T>,
-  features: ColumnStateFeatureOptions = {},
 ): InternalColumnState<T> {
   const merged: InternalColumnState<T> = {
     ...column,
@@ -117,28 +72,26 @@ function applyColumnState<T = any>(
 
   if (!state) return merged;
 
-  if (features.sortableColumns && isNum(state.order)) {
+  if (isNum(state.order)) {
     merged.order = state.order;
   }
-  if (features.visibleColumns && typeof state.visible === 'boolean') {
+  if (typeof state.visible === 'boolean') {
     merged.visible = state.visible;
   }
-  if (features.fixableColumns) {
-    if (state.fixed === 'start' || state.fixed === 'end') {
-      merged.fixed = state.fixed;
-    } else if (state.fixed === false) {
-      delete merged.fixed;
-    }
+  if (state.fixed === 'start' || state.fixed === 'end') {
+    merged.fixed = state.fixed;
+    delete merged.columnStateFixed;
+  } else if (state.fixed === false) {
+    delete merged.fixed;
+    merged.columnStateFixed = false;
   }
-  if (features.resizableColumns) {
-    if (isNum(state.width)) {
-      merged.width = isNum(column.resizeMinWidth)
-        ? Math.max(state.width, column.resizeMinWidth)
-        : state.width;
-    }
-    if (typeof state.widthManuallyChanged === 'boolean') {
-      merged.widthManuallyChanged = state.widthManuallyChanged;
-    }
+  if (isNum(state.width)) {
+    merged.width = isNum(column.resizeMinWidth)
+      ? Math.max(state.width, column.resizeMinWidth)
+      : state.width;
+  }
+  if (typeof state.widthManuallyChanged === 'boolean') {
+    merged.widthManuallyChanged = state.widthManuallyChanged;
   }
 
   internalColumnFlagKeys.forEach((flagKey) => {
@@ -206,12 +159,11 @@ function normalizeColumnsOrder<T = any>(
 function mergeColumnsStateInternal<T = any>(
   columns: InternalColumnState<T>[],
   storageColumns: ColumnState[],
-  features: ColumnStateFeatureOptions = {},
 ): InternalColumnState[] {
   const storageColumnsKeyMap = createKeyMap(storageColumns);
   const mergeColumn = (column: InternalColumnState<T>): InternalColumnState => {
     const storeColumn = storageColumnsKeyMap.get(column.key);
-    const merged = applyColumnState(column, storeColumn, features);
+    const merged = applyColumnState(column, storeColumn);
 
     if (column.resizeDisabled && !column.hasChildren) {
       merged.width = column.width;
@@ -220,26 +172,19 @@ function mergeColumnsStateInternal<T = any>(
     }
 
     const children = column.children?.length
-      ? mergeColumnsStateInternal(
-          column.children,
-          storeColumn?.children || [],
-          features,
-        )
+      ? mergeColumnsStateInternal(column.children, storeColumn?.children || [])
       : [];
 
     return completeColumnState(merged, children);
   };
 
   const mergedColumns = columns.map((column) => mergeColumn(column));
-  return features.sortableColumns
-    ? normalizeColumnsOrder(mergedColumns, storageColumns)
-    : mergedColumns;
+  return normalizeColumnsOrder(mergedColumns, storageColumns);
 }
 
 export function mergeColumnsState<T = any>(
   columns: InternalColumnState<T>[],
   storageColumns: ColumnState[],
-  features: ColumnStateFeatureOptions = {},
 ): InternalColumnState[] {
-  return mergeColumnsStateInternal(columns, storageColumns, features);
+  return mergeColumnsStateInternal(columns, storageColumns);
 }

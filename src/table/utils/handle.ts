@@ -230,6 +230,21 @@ export function filterHiddenColumns<T = any>(
   );
 }
 
+const getColumnStateFixed = <T>(
+  column: ColumnState<T> | InternalColumnState<T>,
+) => {
+  if (
+    'columnStateFixed' in column &&
+    (column.columnStateFixed === 'start' ||
+      column.columnStateFixed === 'end' ||
+      column.columnStateFixed === false)
+  ) {
+    return column.columnStateFixed;
+  }
+
+  return column.fixed;
+};
+
 export function parseColumnsState<T = any>(
   input: Array<ColumnState<T> | InternalColumnState<T>>,
 ): ColumnState<T>[] {
@@ -244,9 +259,10 @@ export function parseColumnsState<T = any>(
     if (column.dataIndex !== undefined) state.dataIndex = column.dataIndex;
     if (isNum(column.order)) state.order = column.order;
     if (typeof column.visible === 'boolean') state.visible = column.visible;
-    if (column.fixed === 'start' || column.fixed === 'end') {
-      state.fixed = column.fixed;
-    } else if (column.fixed === false) {
+    const fixed = getColumnStateFixed(column);
+    if (fixed === 'start' || fixed === 'end') {
+      state.fixed = fixed;
+    } else if (fixed === false) {
       state.fixed = false;
     }
     if (isNum(column.width)) state.width = column.width;
@@ -598,7 +614,7 @@ export function getColumnsViewState<T = any>(
       depth: column.depth,
       order: column.order,
       visible: column.visible,
-      fixed: column.fixed,
+      fixed: getColumnStateFixed(column),
       width: column.width,
       resizeMinWidth: column.resizeMinWidth,
       widthManuallyChanged: column.widthManuallyChanged,

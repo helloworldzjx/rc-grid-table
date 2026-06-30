@@ -18,18 +18,18 @@ import {
   getScrollbarCls,
   ScrollbarClsType,
 } from './classNames';
-import { genScrollbarInitialStyle, genScrollBarStyle } from './scrollbarStyle';
+import { genScrollBarStyle, genScrollbarToggleStyle } from './scrollbarStyle';
 
 const genInitialStyle = ({
   wrapperCls,
   wrapperInitializedCls,
 }: ComponentClsType): CSSInterpolation => ({
   [`.${wrapperCls}`]: {
-    opacity: 0,
+    visibility: 'hidden',
     pointerEvents: 'none',
 
     [`&.${wrapperInitializedCls}`]: {
-      opacity: 1,
+      visibility: 'visible',
       pointerEvents: 'auto',
     },
   },
@@ -1148,7 +1148,7 @@ const genNestStyles = (
   genCellStyle(clsObj, mergedToken),
   genFixedCellStyle(clsObj, mergedToken),
   // scrollbar style
-  genScrollbarInitialStyle(clsObj, scrollbarClsObj),
+  genScrollbarToggleStyle(clsObj, scrollbarClsObj),
   genScrollBarStyle(clsObj, scrollbarClsObj, mergedToken),
 ];
 

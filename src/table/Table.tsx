@@ -285,10 +285,10 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
         cancelColumnsStatePreview?.();
       },
       setColumnVisible: (key, visible) => {
-        setColumnVisible?.(key, visible);
+        return setColumnVisible?.(key, visible) ?? false;
       },
       setColumnFixed: (key, fixed) => {
-        setColumnFixed?.(key, fixed);
+        return setColumnFixed?.(key, fixed) ?? false;
       },
     }));
 

@@ -71,14 +71,8 @@ export type ColumnStateConfigType = Pick<
   | 'autoWidthLocked'
 >;
 
-export type ColumnStateFeatureOptions = {
-  resizableColumns?: boolean;
-  sortableColumns?: boolean;
-  fixableColumns?: boolean;
-  visibleColumns?: boolean;
-};
-
 export type InternalColumnState<T = any> = Omit<ColumnInfo<T>, 'children'> & {
+  columnStateFixed?: ColumnState<T>['fixed'];
   children?: InternalColumnState<T>[];
 };
 
@@ -149,7 +143,7 @@ export interface TableColumnStateContextProps<T = any> {
     nextState: ColumnState<T>[],
     type: ColumnsStateChangeType,
     patches: ColumnStatePatch<T>[],
-  ) => void;
+  ) => boolean;
   startColumnsStatePreview: (options?: ColumnsStatePreviewOptions) => boolean;
   saveColumnsStatePreview: () => boolean;
   cancelColumnsStatePreview: () => void;

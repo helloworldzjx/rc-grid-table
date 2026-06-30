@@ -1,8 +1,22 @@
 import type { Key } from 'react';
 
 import type { ColumnState, ColumnStatePatch } from '../interface';
-import type { ColumnStateFeatureOptions } from '../internalInterface';
 import { flattenColumnsState, parseColumnsState } from './handle';
+
+export type ColumnStatePatchField =
+  | 'order'
+  | 'visible'
+  | 'fixed'
+  | 'width'
+  | 'widthManuallyChanged';
+
+const allPatchFields: ColumnStatePatchField[] = [
+  'order',
+  'visible',
+  'fixed',
+  'width',
+  'widthManuallyChanged',
+];
 
 export const collectInvisibleColumnKeys = <T>(columnsState: ColumnState<T>[]) =>
   flattenColumnsState(columnsState).reduce<Key[]>((result, column) => {
@@ -121,9 +135,10 @@ export const collectChangedPatches = <T>(
 export const collectChangedColumnsStatePatches = <T>(
   previousState: ColumnState<T>[],
   nextState: ColumnState<T>[],
-  features: ColumnStateFeatureOptions = {},
+  fields: readonly ColumnStatePatchField[] = allPatchFields,
 ): ColumnStatePatch<T>[] => {
   const previousMap = new Map<Key, ColumnState<T>>();
+  const fieldSet = new Set<ColumnStatePatchField>(fields);
   flattenColumnsState(previousState).forEach((column) => {
     previousMap.set(column.key, column);
   });
@@ -133,22 +148,23 @@ export const collectChangedColumnsStatePatches = <T>(
       const previous = previousMap.get(column.key);
       const partial: ColumnStatePatch<T>['partial'] = {};
 
-      if (features.sortableColumns && previous?.order !== column.order) {
+      if (fieldSet.has('order') && previous?.order !== column.order) {
         partial.order = column.order;
       }
-      if (features.visibleColumns && previous?.visible !== column.visible) {
+      if (fieldSet.has('visible') && previous?.visible !== column.visible) {
         partial.visible = column.visible;
       }
-      if (features.fixableColumns && previous?.fixed !== column.fixed) {
+      if (fieldSet.has('fixed') && previous?.fixed !== column.fixed) {
         partial.fixed = column.fixed;
       }
-      if (features.resizableColumns) {
-        if (previous?.width !== column.width) {
-          partial.width = column.width;
-        }
-        if (previous?.widthManuallyChanged !== column.widthManuallyChanged) {
-          partial.widthManuallyChanged = column.widthManuallyChanged;
-        }
+      if (fieldSet.has('width') && previous?.width !== column.width) {
+        partial.width = column.width;
+      }
+      if (
+        fieldSet.has('widthManuallyChanged') &&
+        previous?.widthManuallyChanged !== column.widthManuallyChanged
+      ) {
+        partial.widthManuallyChanged = column.widthManuallyChanged;
       }
 
       if (!Object.keys(partial).length) return result;
@@ -161,6 +177,61 @@ export const collectChangedColumnsStatePatches = <T>(
     },
     [],
   );
+};
+
+export const compactUserColumnStatePatches = <T>(
+  baseState: ColumnState<T>[],
+  finalState: ColumnState<T>[],
+  userPatches: ColumnStatePatch<T>[],
+): ColumnStatePatch<T>[] => {
+  if (!userPatches.length) return [];
+
+  const fieldsByKey = new Map<Key, Set<ColumnStatePatchField>>();
+  userPatches.forEach((patch) => {
+    const fields =
+      fieldsByKey.get(patch.key) ?? new Set<ColumnStatePatchField>();
+
+    allPatchFields.forEach((field) => {
+      if (field in patch.partial) {
+        fields.add(field);
+      }
+    });
+
+    if (fields.size) {
+      fieldsByKey.set(patch.key, fields);
+    }
+  });
+
+  if (!fieldsByKey.size) return [];
+
+  const baseMap = new Map<Key, ColumnState<T>>();
+  const finalMap = new Map<Key, ColumnState<T>>();
+  flattenColumnsState(baseState).forEach((column) => {
+    baseMap.set(column.key, column);
+  });
+  flattenColumnsState(finalState).forEach((column) => {
+    finalMap.set(column.key, column);
+  });
+
+  const result: ColumnStatePatch<T>[] = [];
+  fieldsByKey.forEach((fields, key) => {
+    const base = baseMap.get(key);
+    const final = finalMap.get(key);
+    if (!final) return;
+
+    const partial: ColumnStatePatch<T>['partial'] = {};
+    fields.forEach((field) => {
+      if (base?.[field] !== final[field]) {
+        Object.assign(partial, { [field]: final[field] });
+      }
+    });
+
+    if (Object.keys(partial).length) {
+      result.push({ key, partial });
+    }
+  });
+
+  return result;
 };
 
 export const getPatchKeys = <T>(patches: ColumnStatePatch<T>[]) =>
@@ -182,10 +253,9 @@ export const isColumnsShapeEqual = (
   });
 };
 
-export const isColumnsStateEqualByFeatures = <T>(
+export const isColumnsStateEqual = <T>(
   previousState: ColumnState<T>[],
   nextState: ColumnState<T>[],
-  features: ColumnStateFeatureOptions = {},
 ) =>
-  collectChangedColumnsStatePatches(previousState, nextState, features)
-    .length === 0 && isColumnsShapeEqual(previousState, nextState);
+  collectChangedColumnsStatePatches(previousState, nextState).length === 0 &&
+  isColumnsShapeEqual(previousState, nextState);

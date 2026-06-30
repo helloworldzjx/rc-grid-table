@@ -32,6 +32,7 @@ const Placeholder: FC = () => {
     flattenColumnsWidths = [],
   } = useTableLayoutContext();
   const {
+    resizableColumns,
     columnsState,
     columnsStatePreviewMode,
     updateFlattenColumnsWidths,
@@ -40,7 +41,8 @@ const Placeholder: FC = () => {
   } = useTableColumnStateContext();
   const { sortableDraftState } = useColumnSortableContext();
   const prefixCls = usePrefixClsContext();
-  const disabled = columnsStatePreviewMode === 'visibleHotOnly';
+  const disabled =
+    !resizableColumns || columnsStatePreviewMode === 'visibleHotOnly';
 
   const { placeholderCls, placeholderDisabledCls } = useMemo(
     () => getComponentCls(prefixCls),

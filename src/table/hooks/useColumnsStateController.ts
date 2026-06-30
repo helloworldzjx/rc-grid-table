@@ -19,18 +19,14 @@ import type {
   ColumnsType,
   SizeType,
 } from '../interface';
-import type {
-  ColumnStateFeatureOptions,
-  InternalColumnState,
-} from '../internalInterface';
+import type { InternalColumnState } from '../internalInterface';
 import { columnsWidthDistribute, getMergedSpanKeys } from '../utils/calc';
 import {
-  collectChangedColumnsStatePatches,
   collectChangedPatches,
   collectInvisibleColumnKeys,
+  compactUserColumnStatePatches,
   getPatchKeys,
-  isColumnsShapeEqual,
-  isColumnsStateEqualByFeatures,
+  isColumnsStateEqual,
   patchColumnsStateFixed,
   patchColumnsStateVisible,
 } from '../utils/columnsState';
@@ -39,13 +35,9 @@ import {
   columnsSort,
   filterHiddenColumns,
   getColumnsViewState,
-  isColumnsOrderEqual,
   parseColumnsState,
 } from '../utils/handle';
-import {
-  filterColumnsStateByFeatures,
-  mergeColumnsState,
-} from '../utils/mergedColumnsState';
+import { mergeColumnsState } from '../utils/mergedColumnsState';
 
 interface UseColumnsStateControllerProps<T = any> {
   ready: boolean;
@@ -62,8 +54,10 @@ interface UseColumnsStateControllerProps<T = any> {
 }
 
 type ColumnsStatePreviewSession<T = any> = {
+  baseColumnsState: ColumnState<T>[];
   columnsState: ColumnState<T>[];
   mode: ColumnsStatePreviewMode;
+  userPatches: ColumnStatePatch<T>[];
 };
 
 const DEFAULT_PREVIEW_MODE: ColumnsStatePreviewMode = 'full';
@@ -159,21 +153,22 @@ export default function useColumnsStateController<T = any>({
     [],
   );
 
-  const enableColumnsConfig = useMemo(() => {
+  const hasAnyColumnStateFeature = useMemo(() => {
     return (
       resizableColumns || sortableColumns || fixableColumns || visibleColumns
     );
   }, [resizableColumns, sortableColumns, fixableColumns, visibleColumns]);
 
-  const columnStateFeatures = useMemo<ColumnStateFeatureOptions>(
-    () => ({
-      resizableColumns,
-      sortableColumns,
-      fixableColumns,
-      visibleColumns,
-    }),
-    [resizableColumns, sortableColumns, fixableColumns, visibleColumns],
+  const hasExplicitStorageColumnsState = Array.isArray(
+    columnsConfig?.storageColumnsState,
   );
+  const shouldInitializeColumnsState =
+    hasAnyColumnStateFeature || hasExplicitStorageColumnsState;
+  const columnsStatePipelineActive =
+    shouldInitializeColumnsState ||
+    storageColumnsStateInitialized.current ||
+    columnsState.length > 0;
+
   const previewColumnsState = useMemo(
     () => previewSession?.columnsState ?? null,
     [previewSession?.columnsState],
@@ -183,14 +178,9 @@ export default function useColumnsStateController<T = any>({
 
   const parseUpdateColumnsState = useCallback(
     (input: Array<ColumnState<T> | InternalColumnState<T>>) => {
-      setColumnsState(
-        filterColumnsStateByFeatures(
-          parseColumnsState(input),
-          columnStateFeatures,
-        ),
-      );
+      setColumnsState(parseColumnsState(input));
     },
-    [columnStateFeatures],
+    [],
   );
 
   const getCurrentViewState = useCallback(() => {
@@ -201,8 +191,8 @@ export default function useColumnsStateController<T = any>({
     if (!columnsState.length) return [];
 
     const realColumns = filterHiddenColumns(size, mergedColumns);
-    return mergeColumnsState(realColumns, columnsState, columnStateFeatures);
-  }, [columnStateFeatures, columnsState, mergedColumns, size]);
+    return mergeColumnsState(realColumns, columnsState);
+  }, [columnsState, mergedColumns, size]);
 
   const resetRuntimeWidths = useCallback(() => {
     const committedColumnsState = getCommittedMergedColumnsState();
@@ -248,34 +238,23 @@ export default function useColumnsStateController<T = any>({
       ? parseColumnsState(cols)
       : [];
 
-    return filterColumnsStateByFeatures(currentState, columnStateFeatures);
-  }, [cols, columnsState, columnStateFeatures, innerColumnsState]);
+    return parseColumnsState(currentState);
+  }, [cols, columnsState, innerColumnsState]);
 
   const getActiveColumnsState = useCallback(() => {
     if (previewColumnsState) {
       const committedColumnsState = getCommittedMergedColumnsState();
       const rebasedPreviewColumnsState = committedColumnsState.length
         ? parseColumnsState(
-            mergeColumnsState(
-              committedColumnsState,
-              previewColumnsState,
-              columnStateFeatures,
-            ),
+            mergeColumnsState(committedColumnsState, previewColumnsState),
           )
         : previewColumnsState;
 
-      return filterColumnsStateByFeatures(
-        rebasedPreviewColumnsState,
-        columnStateFeatures,
-      );
+      return parseColumnsState(rebasedPreviewColumnsState);
     }
 
-    return filterColumnsStateByFeatures(
-      getCommittedColumnsState(),
-      columnStateFeatures,
-    );
+    return parseColumnsState(getCommittedColumnsState());
   }, [
-    columnStateFeatures,
     getCommittedColumnsState,
     getCommittedMergedColumnsState,
     previewColumnsState,
@@ -320,24 +299,32 @@ export default function useColumnsStateController<T = any>({
       const allowedPatches = columnsStatePreviewing
         ? getPreviewAllowedPatches(type, patches)
         : patches;
-      if (!allowedPatches.length) return;
+      if (!allowedPatches.length) return false;
 
       const previousState = columnsStatePreviewing
         ? getActiveColumnsState()
         : getCommittedColumnsState();
-      const baseState = previousState.length
-        ? previousState
-        : parseColumnsState(nextState);
-      const state = filterColumnsStateByFeatures(
-        batchPatchColumns(baseState, allowedPatches),
-        columnStateFeatures,
-      );
+      const state =
+        columnsStatePreviewing && columnsStatePreviewMode === 'visibleHotOnly'
+          ? batchPatchColumns(
+              previousState.length
+                ? previousState
+                : parseColumnsState(nextState),
+              allowedPatches,
+            )
+          : parseColumnsState(nextState);
 
       if (columnsStatePreviewing) {
         setPreviewSession((session) =>
-          session ? { ...session, columnsState: state } : session,
+          session
+            ? {
+                ...session,
+                columnsState: state,
+                userPatches: [...session.userPatches, ...allowedPatches],
+              }
+            : session,
         );
-        return;
+        return true;
       }
 
       setColumnsState(state);
@@ -349,10 +336,11 @@ export default function useColumnsStateController<T = any>({
         viewState: getCurrentViewState(),
         changedKeys: getPatchKeys(allowedPatches),
       });
+      return true;
     },
     [
       columnsConfig,
-      columnStateFeatures,
+      columnsStatePreviewMode,
       columnsStatePreviewing,
       getActiveColumnsState,
       getCommittedColumnsState,
@@ -369,7 +357,7 @@ export default function useColumnsStateController<T = any>({
 
   const startColumnsStatePreview = useCallback(
     (options: ColumnsStatePreviewOptions = {}) => {
-      if (!enableColumnsConfig) {
+      if (!hasAnyColumnStateFeature) {
         warning(
           false,
           'Table `startColumnsStatePreview` requires at least one columns state feature to be enabled.',
@@ -395,60 +383,53 @@ export default function useColumnsStateController<T = any>({
         collectInvisibleColumnKeys(state),
       );
       setPreviewSession({
+        baseColumnsState: state,
         columnsState: state,
         mode,
+        userPatches: [],
       });
       return true;
     },
     [
-      enableColumnsConfig,
       getCommittedColumnsState,
+      hasAnyColumnStateFeature,
       previewSession,
       visibleColumns,
     ],
   );
 
   const saveColumnsStatePreview = useCallback(() => {
-    if (!previewColumnsState) return false;
+    if (!previewSession) return false;
 
     const previousState = getCommittedColumnsState();
     const nextState = getActiveColumnsState();
-    const changedPatches = collectChangedColumnsStatePatches(
-      previousState,
+    const compactedPatches = compactUserColumnStatePatches(
+      previewSession.baseColumnsState,
       nextState,
-      columnStateFeatures,
+      previewSession.userPatches,
     );
     const patches =
       columnsStatePreviewMode === 'visibleHotOnly'
-        ? getPreviewAllowedPatches('visible', changedPatches)
-        : changedPatches;
+        ? getPreviewAllowedPatches('visible', compactedPatches)
+        : compactedPatches;
 
     setPreviewSession(null);
     previewBaseHiddenColumnKeys.current = new Set();
     clearFlattenColumnsWidthPreview();
 
+    setColumnsState(nextState);
     if (!patches.length) return false;
 
-    const stateSource =
-      columnsStatePreviewMode === 'visibleHotOnly'
-        ? batchPatchColumns(previousState, patches)
-        : nextState;
-    const state = filterColumnsStateByFeatures(
-      stateSource,
-      columnStateFeatures,
-    );
-    setColumnsState(state);
-    columnsConfig?.onColumnsStateChange?.(state, {
+    columnsConfig?.onColumnsStateChange?.(nextState, {
       type: 'previewSave',
       patches,
       previousState,
-      nextState: state,
+      nextState,
       viewState: getCurrentViewState(),
       changedKeys: getPatchKeys(patches),
     });
     return true;
   }, [
-    columnStateFeatures,
     columnsConfig,
     columnsStatePreviewMode,
     clearFlattenColumnsWidthPreview,
@@ -456,7 +437,7 @@ export default function useColumnsStateController<T = any>({
     getCurrentViewState,
     getActiveColumnsState,
     getPreviewAllowedPatches,
-    previewColumnsState,
+    previewSession,
   ]);
 
   const getSortableBaseState = useCallback(() => {
@@ -502,10 +483,10 @@ export default function useColumnsStateController<T = any>({
 
   const setColumnVisible = useCallback(
     (key: Key, visible: boolean) => {
-      if (!visibleColumns) return;
+      if (!visibleColumns) return false;
 
       const actionKeys = getColumnActionKeys(key);
-      if (!actionKeys.length) return;
+      if (!actionKeys.length) return false;
 
       const previousState = getActiveColumnsState();
       let found = false;
@@ -514,16 +495,16 @@ export default function useColumnsStateController<T = any>({
         found = found || patchResult.found;
         return patchResult.nextState;
       }, previousState);
-      if (!found) return;
+      if (!found) return false;
 
       const patches = collectChangedPatches(
         previousState,
         nextState,
         'visible',
       );
-      if (!patches.length) return;
+      if (!patches.length) return false;
 
-      commitColumnsStateChange(nextState, 'visible', patches);
+      return commitColumnsStateChange(nextState, 'visible', patches);
     },
     [
       visibleColumns,
@@ -535,10 +516,10 @@ export default function useColumnsStateController<T = any>({
 
   const setColumnFixed = useCallback(
     (key: Key, fixed: ColumnState<T>['fixed']) => {
-      if (!fixableColumns) return;
+      if (!fixableColumns) return false;
 
       const actionKeys = getColumnActionKeys(key);
-      if (!actionKeys.length) return;
+      if (!actionKeys.length) return false;
 
       const previousState = getActiveColumnsState();
       let found = false;
@@ -547,12 +528,12 @@ export default function useColumnsStateController<T = any>({
         found = found || patchResult.found;
         return patchResult.nextState;
       }, previousState);
-      if (!found) return;
+      if (!found) return false;
 
       const patches = collectChangedPatches(previousState, nextState, 'fixed');
-      if (!patches.length) return;
+      if (!patches.length) return false;
 
-      commitColumnsStateChange(nextState, 'fixed', patches);
+      return commitColumnsStateChange(nextState, 'fixed', patches);
     },
     [
       fixableColumns,
@@ -567,18 +548,30 @@ export default function useColumnsStateController<T = any>({
   useIsomorphicLayoutEffect(() => {
     if (prevColumnsStateKey.current !== columnsStateKey) {
       prevColumnsStateKey.current = columnsStateKey;
+      if (
+        !storageColumnsStateInitialized.current &&
+        !shouldInitializeColumnsState
+      ) {
+        return;
+      }
+
       storageColumnsStateInitialized.current = false;
       columnsStateReadyEmitted.current = false;
       cancelColumnsStatePreview();
       setPreviewFlattenColumnsWidths(null);
       resetRuntimeWidths();
     }
-  }, [cancelColumnsStatePreview, columnsStateKey, resetRuntimeWidths]);
+  }, [
+    cancelColumnsStatePreview,
+    columnsStateKey,
+    resetRuntimeWidths,
+    shouldInitializeColumnsState,
+  ]);
 
   useIsomorphicLayoutEffect(() => {
     if (
       columnsStatePreviewing &&
-      (!enableColumnsConfig ||
+      (!hasAnyColumnStateFeature ||
         (columnsStatePreviewMode === 'visibleHotOnly' && !visibleColumns))
     ) {
       cancelColumnsStatePreview();
@@ -587,7 +580,7 @@ export default function useColumnsStateController<T = any>({
     cancelColumnsStatePreview,
     columnsStatePreviewMode,
     columnsStatePreviewing,
-    enableColumnsConfig,
+    hasAnyColumnStateFeature,
     visibleColumns,
   ]);
 
@@ -596,16 +589,8 @@ export default function useColumnsStateController<T = any>({
       !storageColumnsStateInitialized.current &&
       containerWidth &&
       ready &&
-      enableColumnsConfig
+      columnsStatePipelineActive
     ) {
-      if (
-        columnsConfig &&
-        'storageColumnsState' in columnsConfig &&
-        !columnsConfig.storageColumnsState
-      ) {
-        return;
-      }
-
       const { treeColumns } = columnsWidthDistribute(
         containerWidth,
         mergedColumns,
@@ -613,11 +598,10 @@ export default function useColumnsStateController<T = any>({
         leafColumnMinWidth,
         size,
       );
-      const initialColumnsState = columnsConfig?.storageColumnsState?.length
+      const initialColumnsState = hasExplicitStorageColumnsState
         ? mergeColumnsState(
             treeColumns,
-            columnsConfig.storageColumnsState,
-            columnStateFeatures,
+            columnsConfig?.storageColumnsState || [],
           )
         : treeColumns;
       parseUpdateColumnsState(initialColumnsState);
@@ -626,13 +610,13 @@ export default function useColumnsStateController<T = any>({
   }, [
     containerWidth,
     ready,
-    enableColumnsConfig,
+    columnsStatePipelineActive,
     columnsConfig,
+    hasExplicitStorageColumnsState,
     mergedColumns,
     columnMinWidth,
     leafColumnMinWidth,
     size,
-    columnStateFeatures,
     parseUpdateColumnsState,
   ]);
 
@@ -640,35 +624,32 @@ export default function useColumnsStateController<T = any>({
     if (containerWidth && columnsState.length) {
       const committedColumnsState = getCommittedMergedColumnsState();
 
-      const columnsStateSynced = sortableColumns
-        ? isColumnsOrderEqual(committedColumnsState, columnsState)
-        : isColumnsShapeEqual(committedColumnsState, columnsState);
+      const parsedCommittedColumnsState = parseColumnsState(
+        committedColumnsState,
+      );
+      const columnsStateSynced = isColumnsStateEqual(
+        parsedCommittedColumnsState,
+        columnsState,
+      );
 
       if (!columnsStateSynced) {
         // 如果input columns对比columnsState有增删，则立刻更新columnsState
-        parseUpdateColumnsState(committedColumnsState);
+        parseUpdateColumnsState(parsedCommittedColumnsState);
+        return;
       }
 
       const currentPreviewColumnsState = previewColumnsState;
       const renderColumnsState =
         columnsStatePreviewing && currentPreviewColumnsState?.length
-          ? mergeColumnsState(
-              committedColumnsState,
-              currentPreviewColumnsState,
-              columnStateFeatures,
-            )
+          ? mergeColumnsState(committedColumnsState, currentPreviewColumnsState)
           : committedColumnsState;
 
       if (columnsStatePreviewing && currentPreviewColumnsState?.length) {
-        const nextPreviewColumnsState = filterColumnsStateByFeatures(
-          parseColumnsState(renderColumnsState),
-          columnStateFeatures,
-        );
+        const nextPreviewColumnsState = parseColumnsState(renderColumnsState);
         if (
-          !isColumnsStateEqualByFeatures(
+          !isColumnsStateEqual(
             currentPreviewColumnsState,
             nextPreviewColumnsState,
-            columnStateFeatures,
           )
         ) {
           setPreviewSession((session) =>
@@ -676,6 +657,7 @@ export default function useColumnsStateController<T = any>({
               ? { ...session, columnsState: nextPreviewColumnsState }
               : session,
           );
+          return;
         }
       }
 
@@ -687,8 +669,6 @@ export default function useColumnsStateController<T = any>({
     columnsState,
     columnsStatePreviewing,
     previewColumnsState,
-    sortableColumns,
-    columnStateFeatures,
     getCommittedMergedColumnsState,
     parseUpdateColumnsState,
   ]);
@@ -720,14 +700,10 @@ export default function useColumnsStateController<T = any>({
         const readyColumnsState = columnsState.length
           ? columnsState
           : parseColumnsState(treeColumns);
-        const readyState = filterColumnsStateByFeatures(
-          readyColumnsState,
-          columnStateFeatures,
-        );
         const viewState = getColumnsViewState(treeColumns);
 
         columnsConfig?.onColumnsStateReady?.({
-          columnsState: readyState,
+          columnsState: parseColumnsState(readyColumnsState),
           viewState,
         });
       }
@@ -741,7 +717,6 @@ export default function useColumnsStateController<T = any>({
     columnsStatePreviewing,
     columnsConfig,
     columnsState,
-    columnStateFeatures,
   ]);
 
   /** 使用了列配置的处理 end */
@@ -749,7 +724,7 @@ export default function useColumnsStateController<T = any>({
   /** 未使用列配置的处理 start */
 
   useIsomorphicLayoutEffect(() => {
-    if (containerWidth && ready && !enableColumnsConfig) {
+    if (containerWidth && ready && !columnsStatePipelineActive) {
       const { flattenColumns, treeColumns } = columnsWidthDistribute(
         containerWidth,
         mergedColumns,
@@ -767,7 +742,7 @@ export default function useColumnsStateController<T = any>({
   }, [
     containerWidth,
     ready,
-    enableColumnsConfig,
+    columnsStatePipelineActive,
     mergedColumns,
     columnMinWidth,
     leafColumnMinWidth,

@@ -41,7 +41,7 @@ export default () => (
 
 ## Prefix
 
-`prefixCls` 控制 Table 以及由 Table 自己渲染的 antd `Spin`、`Empty` class 前缀。
+`prefixCls` 控制 Table 以及由 Table 自己渲染的 antd `Spin`、`Empty`、rowSelection `Checkbox`、`Radio` class 前缀。
 
 | 来源                            | 优先级 |
 | ------------------------------- | ------ |
@@ -50,7 +50,7 @@ export default () => (
 | 外层 `ConfigProvider prefixCls` | 中     |
 | 默认值 `rc-grid-table`          | 最低   |
 
-内部 `Spin` 和默认/配置的 `Empty` 会跟随最终 Table 前缀，例如默认情况下分别使用 `rc-grid-table-spin`、`rc-grid-table-empty`。
+内部 `Spin`、默认/配置的 `Empty`、rowSelection `Checkbox`、`Radio` 会跟随最终 Table 前缀，例如默认情况下分别使用 `rc-grid-table-spin`、`rc-grid-table-empty`、`rc-grid-table-checkbox`、`rc-grid-table-radio`。
 
 ## Theme
 
@@ -105,7 +105,7 @@ export default () => (
 rc-grid-table 主题会同时作用于：
 
 1. **Table 自身样式**：使用完整的派生 token（字号、行高、颜色、圆角）
-2. **内部 antd 组件**：`Spin`（加载）、`Empty`（空状态）通过 antd `ConfigProvider` 桥接
+2. **内部 antd 组件**：`Spin`（加载）、`Empty`（空状态）、rowSelection `Checkbox` / `Radio`（选择控件）通过 antd `ConfigProvider` 桥接
 3. **antd 桥接 Token**：主色、暗色状态、基础字号等同步给内部 antd 组件
 
 #### antd 桥接规则
@@ -118,7 +118,7 @@ rc-grid-table 主题会同时作用于：
 | `fontSizeBase`      | `fontSize`                | 基础字号                        |
 | `themeMode=dark`    | `algorithm=darkAlgorithm` | 暗色状态自动选择 antd dark 算法 |
 
-这样确保内置的 `Spin` 和 `Empty` 与 Table 样式风格统一。
+这样确保内置的 `Spin`、`Empty` 以及 rowSelection 的 `Checkbox` / `Radio` 与 Table 样式风格统一。
 
 ## 主题示例
 
@@ -285,5 +285,7 @@ import { Empty } from 'antd';
 `table.empty` 只支持 antd `Empty` 的 `image`、`description`、`children`。没有设置 `empty` 时，Table 会渲染默认空状态。
 
 `table.loading` 保持和 Table 的 `loading` API 一致，支持 `boolean` 或 antd `SpinProps`，但不允许覆盖内部 `prefixCls`。实际渲染仍使用 antd `Spin`，因此外部 antd `ConfigProvider` 的 `spin` 默认配置仍会被继承。
+
+rowSelection 的 checkbox/radio 控件实际渲染为 antd `Checkbox` / `Radio`。`getCheckboxProps`、`getTitleCheckboxProps`、`getRadioProps` 可以透传对应 antd 控件 props，但 `onChange` 由 Table 选择逻辑接管，控件主题会跟随当前或外层 antd `ConfigProvider`。
 
 <embed src="../api/_configProviderApi.md"></embed>

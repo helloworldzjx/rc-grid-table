@@ -1,15 +1,15 @@
 import { useMemo } from 'react';
 
 import { isNum } from '../../_utils/validate';
-import type { ColumnType } from '../interface';
+import type { FixedType } from '../interface';
 import type { StickyOffsets } from '../internalInterface';
 
 /**
  * Get sticky column offset width
  */
-function useStickyOffsets<RecordType>(
+function useStickyOffsets(
   colWidths: number[],
-  flattenColumns: readonly ColumnType<RecordType>[],
+  flattenColumns: readonly { fixed?: FixedType }[],
 ) {
   const stickyOffsets: StickyOffsets = useMemo(() => {
     const columnCount = flattenColumns.length;
