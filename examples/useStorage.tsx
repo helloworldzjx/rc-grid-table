@@ -22,6 +22,19 @@ interface DataType {
   gender: string;
 }
 
+const storageKey = 'use-storage-demo';
+
+const parseStorageColumnsState = () => {
+  const value = JSON.parse(localStorage.getItem(storageKey) || '[]');
+  return Array.isArray(value) ? (value as ColumnState<DataType>[]) : [];
+};
+
+const getStorageColumnsState = () => parseStorageColumnsState();
+
+const persistColumnsState = (value: ColumnState<DataType>[]) => {
+  localStorage.setItem(storageKey, JSON.stringify(value));
+};
+
 export default () => {
   const columns: ColumnsType<DataType> = [
     {
@@ -121,11 +134,13 @@ export default () => {
   }));
 
   const [size, setSize] = useState<SizeType>('large');
-  const storageKey = 'use-storage-demo';
-  const [columnsState, setColumnsState] = useState<ColumnState[]>(
-    JSON.parse(localStorage.getItem(storageKey) || '[]'),
+  const [columnsState, setColumnsState] = useState<ColumnState<DataType>[]>([]);
+  const [storageColumnsState, setStorageColumnsState] = useState<
+    ColumnState<DataType>[]
+  >(getStorageColumnsState);
+  const [storageEnabled, setStorageEnabled] = useState(
+    storageColumnsState.length > 0,
   );
-  const [storageEnabled, setStorageEnabled] = useState(columnsState.length > 0);
   const [columnsStateKey, setColumnsStateKey] = useState(0);
 
   const {
@@ -136,8 +151,17 @@ export default () => {
     storageEnabled ? { resizableColumns: true, sortableColumns: true } : {},
   );
 
+  const updateColumnsState = (value: ColumnState<DataType>[]) => {
+    setColumnsState(value);
+    setStorageColumnsState(value);
+    if (storageEnabled) {
+      persistColumnsState(value);
+    }
+  };
+
   const clear = () => {
     setColumnsState([]);
+    setStorageColumnsState([]);
     localStorage.removeItem(storageKey);
     setStorageEnabled(false);
     setColumnsStateKey((key) => key + 1);
@@ -162,6 +186,8 @@ export default () => {
                 ),
               );
               setStorageEnabled(target.checked);
+              setStorageColumnsState(columnsState);
+              setColumnsStateKey((key) => key + 1);
             }
           }}
         >
@@ -185,12 +211,13 @@ export default () => {
       <Table
         {...baseProps}
         columnsConfig={{
-          storageColumnsState: columnsState,
+          storageColumnsState: storageEnabled ? storageColumnsState : [],
           columnsStateKey,
+          onColumnsStateReady({ columnsState }) {
+            setColumnsState(columnsState);
+          },
           onColumnsStateChange(value) {
-            if (!storageEnabled) return;
-            setColumnsState(value);
-            localStorage.setItem(storageKey, JSON.stringify(value));
+            updateColumnsState(value);
           },
         }}
         columns={columns}

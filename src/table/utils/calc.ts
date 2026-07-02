@@ -79,11 +79,23 @@ export function columnsWidthDistribute<T>(
   );
   const leafColumns = flattenColumns.filter((column) => !column.hasChildren);
 
+  // 宽度已锁定表示之前的用户操作已经消费过剩余宽度，本轮不能再次二次分配。
+  const hasAutoWidthLocked =
+    leafColumns.length && leafColumns.some((column) => column.autoWidthLocked);
+
   // 剩余未使用的宽度
   const remainingWidth = containerWidth - usedWidthTotal;
 
-  // 获取宽度是自动分配的列
+  // 有一列的宽度是锁定的或没有剩余宽度，则不再继续分配宽度
+  if (hasAutoWidthLocked || remainingWidth <= 0) {
+    return {
+      flattenColumns: leafColumns,
+      treeColumns: rebuildColumns(flattenColumns),
+    };
+  }
+
   const resizeEnabledLeafColumns = filterResizeEnabledColumns(leafColumns);
+  // 获取宽度是自动分配的列
   const distributableColumns = resizeEnabledLeafColumns.filter(
     (column) => column.distribute,
   );
@@ -92,24 +104,14 @@ export function columnsWidthDistribute<T>(
     resizeEnabledLeafColumns.length === distributableColumns.length;
   // 所有列都不是自动分配的，即原始列数组的所有列都设置了width
   const unAllDistributable = distributableColumns.length === 0;
-  // 是否继续分配宽度
-  const distributableAgain =
-    allDistributable || unAllDistributable || distributableColumns.length > 0;
-  // 只要有一列的宽度是锁定的，则不再继续分配宽度，仅在columnsConfig?.enable为true时生效
-  const hasAutoWidthLocked =
-    leafColumns.length && leafColumns.some((column) => column.autoWidthLocked);
 
-  if (hasAutoWidthLocked || remainingWidth <= 0 || !distributableAgain) {
-    return {
-      flattenColumns: leafColumns,
-      treeColumns: rebuildColumns(flattenColumns),
-    };
+  // 需要二次分配的列
+  let cols = distributableColumns;
+  if (leafColumns.length === 1) {
+    cols = leafColumns;
+  } else if (allDistributable || unAllDistributable) {
+    cols = resizeEnabledLeafColumns;
   }
-
-  // 需要重新分配的列
-  const cols = unAllDistributable
-    ? resizeEnabledLeafColumns
-    : distributableColumns;
 
   if (!cols.length) {
     return {
@@ -123,23 +125,16 @@ export function columnsWidthDistribute<T>(
 
   // 合并
   let index = 0;
+  const targetColumnKeys = new Set(cols.map((column) => column.key));
   const mergedFlattenColumns = flattenColumns.map((column) => {
-    // 当前列是否重新分配
-    const distributable =
-      !column.hasChildren &&
-      !column.resizeDisabled &&
-      (column.distribute || unAllDistributable || leafColumns.length === 1);
+    // 当前列是否二次分配
+    const distributable = targetColumnKeys.has(column.key);
 
     if (distributable) {
       const width = column.width as number;
       const newWidth = width + values[index];
-      // 仅在columnsConfig?.enable为true时生效，所有列都设置width后仍然未占满容器需要继续分配宽度，设置autoWidthLocked为true
-      const autoWidthLocked = unAllDistributable
-        ? true
-        : column.autoWidthLocked;
-
       index++;
-      return { ...column, width: newWidth, autoWidthLocked };
+      return { ...column, width: newWidth };
     }
 
     return column;

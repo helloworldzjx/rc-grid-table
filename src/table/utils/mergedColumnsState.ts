@@ -43,15 +43,13 @@ function completeColumnState<T = any>(
   } as InternalColumnState;
 }
 
-function createKeyMap(storageColumns: ColumnState[]): Map<Key, ColumnState> {
-  const map = new Map<Key, ColumnState>();
-  const traverse = (columns: ColumnState[]) => {
-    columns.forEach((column, index) => {
-      map.set(getColumnKey(column, index), column);
-      if (column.children?.length) traverse(column.children);
-    });
-  };
-  traverse(storageColumns);
+function createSiblingKeyMap<T = any>(
+  storageColumns: ColumnState<T>[],
+): Map<Key, ColumnState<T>> {
+  const map = new Map<Key, ColumnState<T>>();
+  storageColumns.forEach((column, index) => {
+    map.set(getColumnKey(column, index), column);
+  });
   return map;
 }
 
@@ -92,6 +90,9 @@ function applyColumnState<T = any>(
   }
   if (typeof state.widthManuallyChanged === 'boolean') {
     merged.widthManuallyChanged = state.widthManuallyChanged;
+  }
+  if (typeof state.autoWidthLocked === 'boolean') {
+    merged.autoWidthLocked = state.autoWidthLocked;
   }
 
   internalColumnFlagKeys.forEach((flagKey) => {
@@ -158,10 +159,12 @@ function normalizeColumnsOrder<T = any>(
 
 function mergeColumnsStateInternal<T = any>(
   columns: InternalColumnState<T>[],
-  storageColumns: ColumnState[],
-): InternalColumnState[] {
-  const storageColumnsKeyMap = createKeyMap(storageColumns);
-  const mergeColumn = (column: InternalColumnState<T>): InternalColumnState => {
+  storageColumns: ColumnState<T>[],
+): InternalColumnState<T>[] {
+  const storageColumnsKeyMap = createSiblingKeyMap(storageColumns);
+  const mergeColumn = (
+    column: InternalColumnState<T>,
+  ): InternalColumnState<T> => {
     const storeColumn = storageColumnsKeyMap.get(column.key);
     const merged = applyColumnState(column, storeColumn);
 
@@ -182,9 +185,23 @@ function mergeColumnsStateInternal<T = any>(
   return normalizeColumnsOrder(mergedColumns, storageColumns);
 }
 
-export function mergeColumnsState<T = any>(
-  columns: InternalColumnState<T>[],
-  storageColumns: ColumnState[],
-): InternalColumnState[] {
-  return mergeColumnsStateInternal(columns, storageColumns);
+export function reconcileColumnsState<T = any>(
+  currentColumns: InternalColumnState<T>[],
+  state: ColumnState<T>[],
+): InternalColumnState<T>[] {
+  return mergeColumnsStateInternal(currentColumns, state);
+}
+
+export function mergeStorageColumnsState<T = any>(
+  currentColumns: InternalColumnState<T>[],
+  storageState: ColumnState<T>[],
+): InternalColumnState<T>[] {
+  return reconcileColumnsState(currentColumns, storageState);
+}
+
+export function rebasePreviewColumnsState<T = any>(
+  currentColumns: InternalColumnState<T>[],
+  draftState: ColumnState<T>[],
+): InternalColumnState<T>[] {
+  return reconcileColumnsState(currentColumns, draftState);
 }

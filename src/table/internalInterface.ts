@@ -144,6 +144,11 @@ export interface TableColumnStateContextProps<T = any> {
     type: ColumnsStateChangeType,
     patches: ColumnStatePatch<T>[],
   ) => boolean;
+  commitColumnWidthChange: (
+    type: Extract<ColumnsStateChangeType, 'resizeWidth' | 'autoFillWidth'>,
+    patches: ColumnStatePatch<T>[],
+    nextFlattenColumnsWidths: number[],
+  ) => boolean;
   startColumnsStatePreview: (options?: ColumnsStatePreviewOptions) => boolean;
   saveColumnsStatePreview: () => boolean;
   cancelColumnsStatePreview: () => void;

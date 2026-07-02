@@ -18,6 +18,11 @@ const allPatchFields: ColumnStatePatchField[] = [
   'widthManuallyChanged',
 ];
 
+const fullStateFields = [
+  ...allPatchFields,
+  'autoWidthLocked',
+] as const satisfies readonly (ColumnStatePatchField | 'autoWidthLocked')[];
+
 export const collectInvisibleColumnKeys = <T>(columnsState: ColumnState<T>[]) =>
   flattenColumnsState(columnsState).reduce<Key[]>((result, column) => {
     if (column.visible === false) {
@@ -256,6 +261,18 @@ export const isColumnsShapeEqual = (
 export const isColumnsStateEqual = <T>(
   previousState: ColumnState<T>[],
   nextState: ColumnState<T>[],
-) =>
-  collectChangedColumnsStatePatches(previousState, nextState).length === 0 &&
-  isColumnsShapeEqual(previousState, nextState);
+) => {
+  if (!isColumnsShapeEqual(previousState, nextState)) return false;
+
+  const previousMap = new Map<Key, ColumnState<T>>();
+  flattenColumnsState(previousState).forEach((column) => {
+    previousMap.set(column.key, column);
+  });
+
+  return flattenColumnsState(nextState).every((column) => {
+    const previous = previousMap.get(column.key);
+    if (!previous) return false;
+
+    return fullStateFields.every((field) => previous[field] === column[field]);
+  });
+};

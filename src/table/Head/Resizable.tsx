@@ -21,10 +21,6 @@ import {
   isResizableColumnsData,
   type ResizableColumnsData,
 } from '../utils/dnd';
-import {
-  batchPatchColumns,
-  syncColumnsStateRuntimeWidths,
-} from '../utils/handle';
 
 interface ResizableProps {
   id: string;
@@ -36,12 +32,11 @@ const Resizable = forwardRef<HTMLDivElement, ResizableProps>(
     const { flattenColumns = [], flattenColumnsWidths = [] } =
       useTableLayoutContext();
     const {
-      columnsState,
       columnsStatePreviewMode,
       updateLockContainerWidth,
       updateFlattenColumnsWidths,
       clearFlattenColumnsWidthPreview,
-      commitColumnsStateChange,
+      commitColumnWidthChange,
     } = useTableColumnStateContext();
     const prefixCls = usePrefixClsContext();
     const disabled = columnsStatePreviewMode === 'visibleHotOnly';
@@ -151,13 +146,7 @@ const Resizable = forwardRef<HTMLDivElement, ResizableProps>(
 
       if (!patches.length) return;
 
-      const baseColumnsState = syncColumnsStateRuntimeWidths(
-        columnsState,
-        flattenColumns,
-        widths,
-      );
-      const updatedColumnsState = batchPatchColumns(baseColumnsState, patches);
-      commitColumnsStateChange(updatedColumnsState, 'resizeWidth', patches);
+      commitColumnWidthChange('resizeWidth', patches, widths);
       clearFlattenColumnsWidthPreview(widths);
     };
 

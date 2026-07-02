@@ -16,10 +16,6 @@ import { useTableLayoutContext } from '../contexts/TableLayoutContext';
 import type { ColumnStatePatch } from '../interface';
 import { getComponentCls } from '../style/classNames';
 import { distribute } from '../utils/calc';
-import {
-  batchPatchColumns,
-  syncColumnsStateRuntimeWidths,
-} from '../utils/handle';
 
 const PLACEHOLDER_VISIBLE_TOLERANCE = 1;
 const AUTO_FILL_CHECK_FRAMES = 4;
@@ -33,11 +29,10 @@ const Placeholder: FC = () => {
   } = useTableLayoutContext();
   const {
     resizableColumns,
-    columnsState,
     columnsStatePreviewMode,
     updateFlattenColumnsWidths,
     clearFlattenColumnsWidthPreview,
-    commitColumnsStateChange,
+    commitColumnWidthChange,
   } = useTableColumnStateContext();
   const { sortableDraftState } = useColumnSortableContext();
   const prefixCls = usePrefixClsContext();
@@ -58,10 +53,9 @@ const Placeholder: FC = () => {
     flattenColumns,
     flattenColumnsWidths,
     sortableDraftState,
-    columnsState,
     updateFlattenColumnsWidths,
     clearFlattenColumnsWidthPreview,
-    commitColumnsStateChange,
+    commitColumnWidthChange,
     disabled,
   });
 
@@ -71,10 +65,9 @@ const Placeholder: FC = () => {
     flattenColumns,
     flattenColumnsWidths,
     sortableDraftState,
-    columnsState,
     updateFlattenColumnsWidths,
     clearFlattenColumnsWidthPreview,
-    commitColumnsStateChange,
+    commitColumnWidthChange,
     disabled,
   };
 
@@ -89,7 +82,7 @@ const Placeholder: FC = () => {
     };
   }, []);
 
-  // 按当前剩余宽度补齐可 resize 的叶子列，并同步渲染宽度与 columnsState。
+  // Commit auto fill as a user width action; the controller owns state hydration.
   const applyAutoFill = async () => {
     const {
       containerWidth,
@@ -97,10 +90,9 @@ const Placeholder: FC = () => {
       flattenColumns,
       flattenColumnsWidths,
       sortableDraftState,
-      columnsState,
       updateFlattenColumnsWidths,
       clearFlattenColumnsWidthPreview,
-      commitColumnsStateChange,
+      commitColumnWidthChange,
       disabled,
     } = latestAutoFillStateRef.current;
 
@@ -112,7 +104,7 @@ const Placeholder: FC = () => {
     const remainingWidth = containerWidth - columnsWidthTotal;
     if (
       remainingWidth <= PLACEHOLDER_VISIBLE_TOLERANCE ||
-      !columnsState.length
+      !flattenColumns.length
     ) {
       return false;
     }
@@ -171,16 +163,14 @@ const Placeholder: FC = () => {
       };
     }) satisfies ColumnStatePatch[];
 
-    updateFlattenColumnsWidths(nextWidths);
-
-    const baseColumnsState = syncColumnsStateRuntimeWidths(
-      columnsState,
-      flattenColumns,
-      flattenColumnsWidths,
+    const committed = commitColumnWidthChange(
+      'autoFillWidth',
+      patches,
+      nextWidths,
     );
-    const updatedColumnsState = batchPatchColumns(baseColumnsState, patches);
-    commitColumnsStateChange(updatedColumnsState, 'autoFillWidth', patches);
+    if (!committed) return false;
 
+    updateFlattenColumnsWidths(nextWidths);
     clearFlattenColumnsWidthPreview(nextWidths);
     // 立即更新 ref，防止下一帧在 React render 前基于旧 columnsWidthTotal 重复累加。
     latestAutoFillStateRef.current = {
@@ -190,7 +180,6 @@ const Placeholder: FC = () => {
         0,
       ),
       flattenColumnsWidths: nextWidths,
-      columnsState: updatedColumnsState,
     };
 
     return true;

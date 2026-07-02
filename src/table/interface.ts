@@ -421,6 +421,7 @@ export type ColumnState<T = any> = {
   fixed?: FixedType | false;
   width?: number;
   widthManuallyChanged?: boolean;
+  autoWidthLocked?: boolean;
   children?: ColumnState<T>[];
 };
 
@@ -437,6 +438,7 @@ export type ColumnViewState<T = any> = {
   width?: number;
   resizeMinWidth?: number;
   widthManuallyChanged: boolean;
+  autoWidthLocked: boolean;
   hasChildren: boolean;
   internal: boolean;
   previewVisible?: boolean;
@@ -447,7 +449,9 @@ export type ColumnViewState<T = any> = {
 
 export type ColumnStatePatch<T = any> = {
   key: Key;
-  partial: Partial<Omit<ColumnState<T>, 'key' | 'children'>>;
+  partial: Partial<
+    Omit<ColumnState<T>, 'key' | 'children' | 'autoWidthLocked'>
+  >;
 };
 
 export type ColumnsStateChangeType =

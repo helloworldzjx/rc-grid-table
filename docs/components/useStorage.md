@@ -16,7 +16,7 @@ order: 22
 ## 相关 API
 
 - `columnsConfig.storageColumnsState`：从 `localStorage` 或后端读取出的列状态初始化快照。显式传入数组会启用列状态管线；它不是受控值，表格 `ready` 后只会首次消费。
-- `columnsConfig.onColumnsStateReady`：列状态初始化完成时触发，返回按当前 `columns` 归一化后的完整 `columnsState`，适合初始化外部存储状态。
+- `columnsConfig.onColumnsStateReady`：列状态初始化完成时触发，返回按当前 `columns` 归一化后的完整 `columnsState`，适合初始化外部存储状态。这个快照可以包含 `visible: false` 的隐藏列；如果业务需要当前实际视图，应读取回调中的 `viewState`。
 - `columnsConfig.onColumnsStateChange`：列宽、排序、显隐、固定等列配置发生持久化提交时触发。第一个参数是完整 `columnsState` 快照，`info.patches` 只描述本次用户主动提交的字段变化。
 - `columnsConfig.columnsStateKey`：当外部清空存储、切换用户或切换一套全新的列配置时，改变这个值，让表格重新按当前 `storageColumnsState` 或当前 `columns` 初始化列状态。
 - `info.type === 'previewSave'`：表示预览会话保存了列状态草稿。回调里的 `columnsState` 仍是完整快照，`info.patches` 是预览期间用户实际提交且最终仍有效的字段变化。

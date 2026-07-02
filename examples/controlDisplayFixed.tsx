@@ -92,12 +92,8 @@ const columnMap = {
 } satisfies Record<string, ColumnMapItem>;
 
 const parseStorageColumnsState = () => {
-  try {
-    const value = JSON.parse(localStorage.getItem(storageKey) || '[]');
-    return Array.isArray(value) ? (value as ColumnState<DataType>[]) : [];
-  } catch {
-    return [];
-  }
+  const value = JSON.parse(localStorage.getItem(storageKey) || '[]');
+  return Array.isArray(value) ? (value as ColumnState<DataType>[]) : [];
 };
 
 const columns: BusinessColumn[] = [
@@ -575,6 +571,10 @@ export default () => {
                 ),
               );
               setStorageEnabled(target.checked);
+              setStorageColumnsState(columnsState);
+              tableRef.current?.cancelColumnsStatePreview();
+              setPreviewing(false);
+              setColumnsStateKey((key) => key + 1);
             }
           }}
         >

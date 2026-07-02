@@ -3,7 +3,6 @@ import { Key } from 'react';
 import { isNum } from '../../_utils/validate';
 import type {
   ColumnState,
-  ColumnStatePatch,
   ColumnsType,
   ColumnType,
   ColumnViewState,
@@ -17,6 +16,11 @@ import {
   isInternalColumn,
 } from './const';
 import { warningFallbackColumnKey, warningInvalidColumnKey } from './warning';
+
+type InternalColumnStatePatch<T = any> = {
+  key: Key;
+  partial: Partial<Omit<ColumnState<T>, 'key' | 'children'>>;
+};
 
 export const getColumnKey = (
   column: { key?: unknown; dataIndex?: unknown },
@@ -269,6 +273,9 @@ export function parseColumnsState<T = any>(
     if (typeof column.widthManuallyChanged === 'boolean') {
       state.widthManuallyChanged = column.widthManuallyChanged;
     }
+    if (typeof column.autoWidthLocked === 'boolean') {
+      state.autoWidthLocked = column.autoWidthLocked;
+    }
 
     const children = parseColumnsState(column.children || []);
     if (children.length) state.children = children;
@@ -519,7 +526,7 @@ const cloneColumnsState = (tree: ColumnState[]): ColumnState[] => {
  */
 export function batchPatchColumns<T = any>(
   tree: ColumnState<T>[],
-  patches: ColumnStatePatch<T>[],
+  patches: InternalColumnStatePatch<T>[],
 ): ColumnState<T>[] {
   const cloneTree = cloneColumnsState(tree) as ColumnState<T>[];
   const patchMap = new Map(patches.map((patch) => [patch.key, patch.partial]));
@@ -538,19 +545,22 @@ export function batchPatchColumns<T = any>(
   return parseColumnsState(cloneTree);
 }
 
-export function syncColumnsStateRuntimeWidths<T = any>(
+export function hydrateColumnsStateRuntimeWidths<T = any>(
   tree: ColumnState<T>[],
   flattenColumns: InternalColumnState<T>[],
   flattenColumnsWidths: number[],
 ): ColumnState<T>[] {
-  const patches = flattenColumns.reduce<ColumnStatePatch<T>[]>(
+  const patches = flattenColumns.reduce<InternalColumnStatePatch<T>[]>(
     (result, column, index) => {
-      const partial: ColumnStatePatch<T>['partial'] = {};
+      const partial: InternalColumnStatePatch<T>['partial'] = {};
       const width = flattenColumnsWidths[index] ?? column.width;
 
       if (isNum(width)) partial.width = width;
       if (typeof column.widthManuallyChanged === 'boolean') {
         partial.widthManuallyChanged = column.widthManuallyChanged;
+      }
+      if (typeof column.autoWidthLocked === 'boolean') {
+        partial.autoWidthLocked = column.autoWidthLocked;
       }
 
       if (Object.keys(partial).length) {
@@ -576,8 +586,14 @@ export function pickColumnsStateWidths<T = any>(
       const hasWidth = isNum(column.width);
       const hasWidthManuallyChanged =
         typeof column.widthManuallyChanged === 'boolean';
+      const hasAutoWidthLocked = typeof column.autoWidthLocked === 'boolean';
 
-      if (!hasWidth && !hasWidthManuallyChanged && !children.length) {
+      if (
+        !hasWidth &&
+        !hasWidthManuallyChanged &&
+        !hasAutoWidthLocked &&
+        !children.length
+      ) {
         return result;
       }
 
@@ -586,6 +602,9 @@ export function pickColumnsStateWidths<T = any>(
       if (hasWidth) state.width = column.width;
       if (hasWidthManuallyChanged) {
         state.widthManuallyChanged = column.widthManuallyChanged;
+      }
+      if (hasAutoWidthLocked) {
+        state.autoWidthLocked = column.autoWidthLocked;
       }
       if (children.length) state.children = children;
 
@@ -618,6 +637,7 @@ export function getColumnsViewState<T = any>(
       width: column.width,
       resizeMinWidth: column.resizeMinWidth,
       widthManuallyChanged: column.widthManuallyChanged,
+      autoWidthLocked: column.autoWidthLocked,
       hasChildren: column.hasChildren,
       internal: isInternalColumn(column),
       previewVisible: column.previewVisible,
