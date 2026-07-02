@@ -1,8 +1,8 @@
 import { createContext, useContext } from 'react';
 
-import { defaultPrefixCls } from '../../configProvider/context';
+import { defaultTablePrefixCls } from '../utils/prefixCls';
 
-const PrefixClsContext = createContext(defaultPrefixCls);
+const PrefixClsContext = createContext(defaultTablePrefixCls);
 
 const usePrefixClsContext = () => useContext(PrefixClsContext);
 

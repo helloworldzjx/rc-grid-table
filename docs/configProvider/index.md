@@ -15,7 +15,7 @@ import { ConfigProvider, Table } from 'rc-grid-table';
 
 export default () => (
   <ConfigProvider
-    prefixCls="custom-table"
+    rootPrefixCls="custom"
     themeMode="dark"
     theme={{
       token: {
@@ -41,16 +41,16 @@ export default () => (
 
 ## Prefix
 
-`prefixCls` 控制 Table 以及由 Table 自己渲染的 antd `Spin`、`Empty`、rowSelection `Checkbox`、`Radio` class 前缀。
+`ConfigProvider rootPrefixCls` 控制基础 class 前缀，只传 `rc`、`custom` 这一类 root prefix。Table 会在该前缀后自动添加 `-grid-table` 作为自身样式前缀；`Table prefixCls` 则是完整 Table 前缀，可以直接传 `rc-grid-table`、`custom-grid-table` 这一类值。由 Table 自己渲染的 antd `Spin`、`Empty`、rowSelection `Checkbox`、`Radio` 会继续基于最终 Table 前缀生成 class。
 
-| 来源                            | 优先级 |
-| ------------------------------- | ------ |
-| `Table prefixCls`               | 最高   |
-| 当前 `ConfigProvider prefixCls` | 中     |
-| 外层 `ConfigProvider prefixCls` | 中     |
-| 默认值 `rc-grid-table`          | 最低   |
+| 来源                                | 优先级 |
+| ----------------------------------- | ------ |
+| `Table prefixCls`                   | 最高   |
+| 当前 `ConfigProvider rootPrefixCls` | 中     |
+| 外层 `ConfigProvider rootPrefixCls` | 中     |
+| 默认值 `rc`                         | 最低   |
 
-内部 `Spin`、默认/配置的 `Empty`、rowSelection `Checkbox`、`Radio` 会跟随最终 Table 前缀，例如默认情况下分别使用 `rc-grid-table-spin`、`rc-grid-table-empty`、`rc-grid-table-checkbox`、`rc-grid-table-radio`。
+默认情况下 Table 自身 class 前缀是 `rc-grid-table`。内部 `Spin`、默认/配置的 `Empty`、rowSelection `Checkbox`、`Radio` 会跟随最终 Table 前缀，例如默认情况下分别使用 `rc-grid-table-spin`、`rc-grid-table-empty`、`rc-grid-table-checkbox`、`rc-grid-table-radio`。当 `ConfigProvider rootPrefixCls="custom"` 或 `Table prefixCls="local-grid-table"` 时，Table class 前缀分别为 `custom-grid-table`、`local-grid-table`。
 
 ## Theme
 

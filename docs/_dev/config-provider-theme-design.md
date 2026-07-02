@@ -41,7 +41,7 @@
 
 ```txt
 ConfigContext
-  - prefixCls
+  - rootPrefixCls
   - table.loading
   - table.empty
 
@@ -120,12 +120,12 @@ Table contexts
 
 ```txt
 Table props.prefixCls
-  > 当前 ConfigProvider prefixCls
-  > 外层 ConfigProvider prefixCls
-  > defaultPrefixCls ('rc-grid-table')
+  > 当前 ConfigProvider root prefixCls + '-grid-table'
+  > 外层 ConfigProvider root prefixCls + '-grid-table'
+  > defaultTablePrefixCls ('rc-grid-table')
 ```
 
-Table 会把最终结果写入 `PrefixClsContext.Provider`，表格内部组件继续通过 `usePrefixClsContext()` 读取。
+ConfigProvider 只保存 `rc` 这一类 root prefix。Table 会通过 `getPrefixCls(rootPrefixCls, 'grid-table', tablePrefixCls)` 计算最终 Table 前缀，并写入 `PrefixClsContext.Provider`，表格内部组件继续通过 `usePrefixClsContext()` 读取最终 Table 前缀。
 
 ### table.loading / table.empty
 
@@ -271,7 +271,7 @@ rc-grid-table-checkbox
 rc-grid-table-radio
 ```
 
-当 `ConfigProvider prefixCls="custom-table"` 或 `Table prefixCls="local-table"` 时，内部 antd 组件也要同步变化。
+当 `ConfigProvider rootPrefixCls="custom"` 或 `Table prefixCls="local-grid-table"` 时，Table 前缀会变为 `custom-grid-table` 或 `local-grid-table`，内部 antd 组件也要同步变化。
 
 Table loading API 不允许外部传 `prefixCls`。Table empty API 也不允许外部传 antd `Empty` 的完整 props，只允许 `children`、`description`、`image`。
 
@@ -357,7 +357,7 @@ useCSSVarRegister(...)
 
 `useStyleRegister` 的 path 必须包含足够的信息区分：
 
-- prefixCls。
+- rootPrefixCls。
 - 明暗状态。
 - 组件 token key。
 
@@ -399,8 +399,8 @@ useCSSVarRegister(...)
 修改相关代码后至少检查：
 
 - 无 `ConfigProvider` 时 Table class 仍是 `rc-grid-table`。
-- `ConfigProvider prefixCls` 可以改变 Table、Spin、Empty、Checkbox、Radio 前缀。
-- `Table prefixCls` 优先级高于 `ConfigProvider prefixCls`。
+- `ConfigProvider rootPrefixCls` 可以改变 Table、Spin、Empty、Checkbox、Radio 前缀。
+- `Table prefixCls` 优先级高于 `ConfigProvider rootPrefixCls`。
 - `themeMode="dark"` 时 `Theme.useToken().isDark === true`。
 - `theme.algorithm` 不会自动改变 `isDark`。
 - `theme.token.colorPrimary` 同时影响 Table 主色状态和内部 antd 组件。

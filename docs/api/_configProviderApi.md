@@ -1,12 +1,12 @@
 ## API
 
-| 参数        | 类型                                           | 默认值                 | 说明                                         |
-| ----------- | ---------------------------------------------- | ---------------------- | -------------------------------------------- |
-| `prefixCls` | `string`                                       | `rc-grid-table`        | Table class 前缀                             |
-| `themeMode` | `'light' \| 'dark' \| 'system'`                | 继承外层，否则 `light` | 明暗状态                                     |
-| `theme`     | `ThemeConfig`                                  | -                      | 主题配置                                     |
-| `cssVar`    | `boolean \| { prefix?: string; key?: string }` | 继承外层               | 顶层 CSS 变量配置，优先级高于 `theme.cssVar` |
-| `table`     | `TableConfig`                                  | -                      | Table 默认配置                               |
+| 参数            | 类型                                           | 默认值                 | 说明                                           |
+| --------------- | ---------------------------------------------- | ---------------------- | ---------------------------------------------- |
+| `rootPrefixCls` | `string`                                       | `rc`                   | class 基础前缀；Table 会派生为 `rc-grid-table` |
+| `themeMode`     | `'light' \| 'dark' \| 'system'`                | 继承外层，否则 `light` | 明暗状态                                       |
+| `theme`         | `ThemeConfig`                                  | -                      | 主题配置                                       |
+| `cssVar`        | `boolean \| { prefix?: string; key?: string }` | 继承外层               | 顶层 CSS 变量配置，优先级高于 `theme.cssVar`   |
+| `table`         | `TableConfig`                                  | -                      | Table 默认配置                                 |
 
 ## TableConfig
 

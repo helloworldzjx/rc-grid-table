@@ -1,8 +1,9 @@
 import { createContext, useContext } from 'react';
 
+import { defaultRootPrefixCls } from '../_utils/prefixCls';
 import type { TableEmpty, TableLoading } from '../table/interface';
 
-export const defaultPrefixCls = 'rc-grid-table';
+export { defaultRootPrefixCls };
 
 export interface TableConfig {
   loading?: TableLoading;
@@ -10,12 +11,12 @@ export interface TableConfig {
 }
 
 export interface ConfigContextProps {
-  prefixCls: string;
+  rootPrefixCls: string;
   table?: TableConfig;
 }
 
 export const ConfigContext = createContext<ConfigContextProps>({
-  prefixCls: defaultPrefixCls,
+  rootPrefixCls: defaultRootPrefixCls,
 });
 
 export const ConfigConsumer = ConfigContext.Consumer;

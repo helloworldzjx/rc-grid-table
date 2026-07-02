@@ -21,13 +21,13 @@ import {
   defaultDesignToken,
 } from '../theme';
 import { getLineHeight } from '../theme/algorithm';
-import { ConfigContext, defaultPrefixCls, useConfig } from './context';
+import { ConfigContext, defaultRootPrefixCls, useConfig } from './context';
 import { ConfigProviderProps } from './interface';
 
 export {
   ConfigConsumer,
   ConfigContext,
-  defaultPrefixCls,
+  defaultRootPrefixCls,
   useConfig,
 } from './context';
 export type { TableConfig } from './context';
@@ -69,7 +69,7 @@ const normalizeAntdCssVar = (
 };
 
 const ConfigProvider: FC<PropsWithChildren<ConfigProviderProps>> = ({
-  prefixCls,
+  rootPrefixCls,
   themeMode,
   theme,
   cssVar,
@@ -81,8 +81,8 @@ const ConfigProvider: FC<PropsWithChildren<ConfigProviderProps>> = ({
   const parentTokenContext = useContext(DesignTokenContext);
   const [systemIsDark, setSystemIsDark] = useState(getSystemIsDark);
 
-  const mergedPrefixCls =
-    prefixCls ?? parentConfig.prefixCls ?? defaultPrefixCls;
+  const mergedRootPrefixCls =
+    rootPrefixCls ?? parentConfig.rootPrefixCls ?? defaultRootPrefixCls;
   const mergedTable = useMemo(
     () => ({
       ...parentConfig.table,
@@ -172,10 +172,10 @@ const ConfigProvider: FC<PropsWithChildren<ConfigProviderProps>> = ({
 
   const configContextValue = useMemo(
     () => ({
-      prefixCls: mergedPrefixCls,
+      rootPrefixCls: mergedRootPrefixCls,
       table: mergedTable,
     }),
-    [mergedPrefixCls, mergedTable],
+    [mergedRootPrefixCls, mergedTable],
   );
 
   const designTokenContextValue = useMemo(

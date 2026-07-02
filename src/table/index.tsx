@@ -56,6 +56,7 @@ import {
   getDefaultExpandedRowKeys,
   getRecordKey,
 } from './utils/expand';
+import { getTablePrefixCls } from './utils/prefixCls';
 import {
   filterLeafDataSortOrder,
   normalizeDataSortOrder,
@@ -64,6 +65,7 @@ import {
 import { warningInvalidRecordKey } from './utils/warning';
 
 export type { TableProps, TableRef } from './interface';
+export { defaultTablePrefixCls } from './utils/prefixCls';
 
 type TableComponent = (<T = any>(
   props: TableProps<T> & React.RefAttributes<TableRef>,
@@ -115,7 +117,9 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     style,
     ...nativeProps
   } = props;
-  const prefixCls = customizePrefixCls ?? config.prefixCls;
+  const prefixCls = useMemo(() => {
+    return getTablePrefixCls(config.rootPrefixCls, customizePrefixCls);
+  }, [config.rootPrefixCls, customizePrefixCls]);
 
   /** bug ref https://github.com/helloworldzjx/rc-grid-table/issues/1 */
   const lockContainerWidth = useRef(false);

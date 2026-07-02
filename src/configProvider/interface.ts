@@ -3,10 +3,10 @@ import type { TableConfig } from './context';
 
 export interface ConfigProviderProps {
   /**
-   * @description className prefix
-   * @default "rc-grid-table"
+   * @description className root prefix
+   * @default "rc"
    */
-  prefixCls?: string;
+  rootPrefixCls?: string;
   /**
    * @description theme mode
    * @default "light"
