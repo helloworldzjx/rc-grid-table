@@ -90,6 +90,9 @@ function BodyRow({
     bodySortDraggingOverlayRowCls,
     bodySortFirstRowCls,
     bodySortLastRowCls,
+    expandControlCls,
+    rowSortHandleCls,
+    selectionControlCls,
   } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
   const { bodyFixedHeightRowCssVar } = useMemo(
     () => getCssVar(prefixCls),
@@ -118,6 +121,20 @@ function BodyRow({
   const virtual = renderMode !== 'normal';
   const hasFixedRowHeight =
     renderMode !== 'rowSpanOverlay' && isNum(rowHeight) && rowHeight > 0;
+
+  const isRowControlEvent = useCallback(
+    (event: MouseEvent<HTMLElement>) => {
+      const target = event.target;
+
+      return (
+        target instanceof HTMLElement &&
+        !!target.closest(
+          `.${selectionControlCls}, .${expandControlCls}, .${rowSortHandleCls}`,
+        )
+      );
+    },
+    [expandControlCls, rowSortHandleCls, selectionControlCls],
+  );
 
   const mergedRowStyle = useMemo<CSSProperties | undefined>(() => {
     if (!hasFixedRowHeight) {
@@ -163,6 +180,8 @@ function BodyRow({
 
   const handleClick = useCallback(
     (event: MouseEvent<HTMLElement>) => {
+      if (isRowControlEvent(event)) return;
+
       rowProps?.onClick?.(event);
       if (event.defaultPrevented) return;
 
@@ -170,7 +189,7 @@ function BodyRow({
         onTriggerExpand?.(rowData);
       }
     },
-    [expandByClick, onTriggerExpand, rowData, rowProps],
+    [expandByClick, isRowControlEvent, onTriggerExpand, rowData, rowProps],
   );
 
   const restRowProps = useMemo(() => {
@@ -181,11 +200,16 @@ function BodyRow({
     return restProps;
   }, [rowProps]);
 
-  const handleInternalClick = useCallback(() => {
-    if (expandByClick) {
-      onTriggerExpand?.(rowData);
-    }
-  }, [expandByClick, onTriggerExpand, rowData]);
+  const handleInternalClick = useCallback(
+    (event: MouseEvent<HTMLElement>) => {
+      if (event.defaultPrevented || isRowControlEvent(event)) return;
+
+      if (expandByClick) {
+        onTriggerExpand?.(rowData);
+      }
+    },
+    [expandByClick, isRowControlEvent, onTriggerExpand, rowData],
+  );
 
   const rowNode = (
     <RowComponent

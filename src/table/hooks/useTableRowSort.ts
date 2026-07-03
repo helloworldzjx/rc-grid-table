@@ -15,7 +15,7 @@ import type { BodyItem, BodyNodeRenderInfo } from '../Body/interface';
 import type { RowKey, RowSortableConfig } from '../interface';
 import type { InternalColumnState, StickyOffsets } from '../internalInterface';
 import { isInternalColumn, isRowSortColumn } from '../utils/const';
-import { isRowSortableData } from '../utils/dnd';
+import { dispatchDndPopupCloseEvent, isRowSortableData } from '../utils/dnd';
 import {
   getRowSortEntities,
   reorderDataSource,
@@ -198,6 +198,7 @@ export default function useTableRowSort<T = any>({
       key: activeData.key,
       index: activeData.index,
     };
+    dispatchDndPopupCloseEvent(event.activatorEvent);
     document.documentElement.style.cursor = 'grabbing';
     setActiveKey(activeData.key);
   }, []);

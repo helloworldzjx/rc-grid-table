@@ -32,6 +32,7 @@ import useRenderedColumnLayout from '../hooks/useRenderedColumnLayout';
 import type { CellType, InternalColumnState } from '../internalInterface';
 import { getComponentCls } from '../style/classNames';
 import {
+  dispatchDndPopupCloseEvent,
   isResizableColumnsData,
   isSortableColumnsData,
   type SortableColumnType,
@@ -391,6 +392,8 @@ function HeadRow({
     const activeData = event.active.data.current;
 
     if (isSortableColumnsData(activeData)) {
+      dispatchDndPopupCloseEvent(event.activatorEvent);
+
       if (isSortableStartLocked?.()) {
         ignoreSortableDragRef.current = true;
         updateSortableActiveKeys(emptyKeys);
@@ -423,6 +426,7 @@ function HeadRow({
     }
 
     if (isResizableColumnsData(activeData)) {
+      dispatchDndPopupCloseEvent(event.activatorEvent);
       onResizeStart?.();
     }
   };

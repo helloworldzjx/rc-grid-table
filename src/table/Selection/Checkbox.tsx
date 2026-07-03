@@ -3,7 +3,6 @@ import classNames from 'classnames';
 import React, {
   FC,
   KeyboardEvent,
-  MouseEvent,
   PointerEvent,
   PointerEventHandler,
   useMemo,
@@ -22,7 +21,6 @@ const Checkbox: FC<CheckboxProps> = ({
   checked = false,
   indeterminate = false,
   disabled = false,
-  onClick,
   onKeyDown,
   onPointerDown,
   ...rest
@@ -33,14 +31,6 @@ const Checkbox: FC<CheckboxProps> = ({
     () => getComponentCls(prefixCls),
     [prefixCls],
   );
-
-  const handleClick = (
-    event: MouseEvent<HTMLElement, globalThis.MouseEvent>,
-  ) => {
-    event.stopPropagation();
-    if (disabled) return;
-    onClick?.(event);
-  };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
     event.stopPropagation();
@@ -59,7 +49,6 @@ const Checkbox: FC<CheckboxProps> = ({
       className={classNames(selectionControlCls, {
         [selectionControlDisabledCls]: disabled,
       })}
-      onClick={handleClick}
       onKeyDown={handleKeyDown}
       onPointerDown={handlePointerDown}
     >

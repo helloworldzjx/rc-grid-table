@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { MouseEvent, useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 
 import { useExpandableContext } from '../contexts/ExpandableContext';
 import { usePrefixClsContext } from '../contexts/PrefixClsContext';
@@ -30,15 +30,11 @@ function ExpandControl<T = any>({
     [prefixCls],
   );
 
-  const handleExpand = useCallback(
-    (event: MouseEvent<HTMLElement>) => {
-      event.stopPropagation();
-      if (expandable) {
-        onTriggerExpand?.(rowData);
-      }
-    },
-    [expandable, onTriggerExpand, rowData],
-  );
+  const handleExpand = useCallback(() => {
+    if (expandable) {
+      onTriggerExpand?.(rowData);
+    }
+  }, [expandable, onTriggerExpand, rowData]);
 
   const expandIconProps = useMemo<TableExpandIconProps<T>>(
     () => ({
@@ -47,7 +43,7 @@ function ExpandControl<T = any>({
       record: rowData,
       index: rowIndex,
       indent,
-      onExpand: (_record, event) => handleExpand(event),
+      onExpand: () => handleExpand(),
     }),
     [expandable, expanded, handleExpand, indent, rowData, rowIndex],
   );

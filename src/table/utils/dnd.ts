@@ -52,3 +52,27 @@ export const isSortableColumnsData = <T = any>(
 export const isRowSortableData = <T = any>(
   data: unknown,
 ): data is RowSortableData<T> => isObject(data) && data.type === 'rowSortable';
+
+export const dispatchDndPopupCloseEvent = (activatorEvent?: Event | null) => {
+  if (typeof window === 'undefined') return;
+
+  const target = activatorEvent?.target as
+    | (EventTarget & { ownerDocument?: Document })
+    | null
+    | undefined;
+  const ownerDocument =
+    target?.ownerDocument ??
+    (typeof document !== 'undefined' ? document : undefined);
+  const eventWindow = ownerDocument?.defaultView ?? window;
+  const eventTarget = ownerDocument?.documentElement ?? ownerDocument?.body;
+
+  if (!eventTarget) return;
+
+  eventTarget.dispatchEvent(
+    new eventWindow.MouseEvent('mousedown', {
+      bubbles: true,
+      cancelable: true,
+      view: eventWindow,
+    }),
+  );
+};

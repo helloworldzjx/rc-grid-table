@@ -204,7 +204,6 @@ function RowSortBodyCell<T = any>({
         aria-label="Drag row"
         disabled={disabled}
         ref={setRowSortActivatorNodeRef}
-        onClick={(event) => event.stopPropagation()}
       >
         {iconNode}
       </button>

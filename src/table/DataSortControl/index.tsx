@@ -1,7 +1,6 @@
 import React, {
   FC,
   KeyboardEvent,
-  MouseEvent,
   PointerEvent,
   PropsWithChildren,
   ReactNode,
@@ -26,12 +25,6 @@ export const DataSortControl: FC<PropsWithChildren<DataSortControlProps>> = ({
     [prefixCls],
   );
 
-  const handleClick = (
-    event: MouseEvent<HTMLElement, globalThis.MouseEvent>,
-  ) => {
-    event.stopPropagation();
-  };
-
   const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
     event.stopPropagation();
   };
@@ -45,7 +38,6 @@ export const DataSortControl: FC<PropsWithChildren<DataSortControlProps>> = ({
       <div className={dataSortContentCls}>{children}</div>
       <div
         className={dataSortControlCls}
-        onClick={handleClick}
         onKeyDown={handleKeyDown}
         onPointerDown={handlePointerDown}
       >

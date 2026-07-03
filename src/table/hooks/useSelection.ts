@@ -379,40 +379,36 @@ function useSelection<T = any>({
     ],
   );
 
-  const onSelectAll = useCallback(
-    (event: CheckboxChangeEvent) => {
-      event.stopPropagation();
-      if (type !== 'checkbox') {
-        return;
-      }
-      if (!enabledKeys.length) {
-        return;
-      }
+  const onSelectAll = useCallback(() => {
+    if (type !== 'checkbox') {
+      return;
+    }
+    if (!enabledKeys.length) {
+      return;
+    }
 
-      if (isAllSelected) {
-        const targetKeySet = new Set(enabledKeys);
-        const nextKeys =
-          selectAllMode === 'enabled'
-            ? selectedRowKeys.filter((key) => !targetKeySet.has(key))
-            : [];
-        updateSelectedKeys(nextKeys, 'none');
-      } else {
-        const nextKeys =
-          selectAllMode === 'enabled'
-            ? uniqKeys([...selectedRowKeys, ...enabledKeys])
-            : enabledKeys;
-        updateSelectedKeys(nextKeys, 'all');
-      }
-    },
-    [
-      enabledKeys,
-      isAllSelected,
-      selectedRowKeys,
-      selectAllMode,
-      type,
-      updateSelectedKeys,
-    ],
-  );
+    if (isAllSelected) {
+      const targetKeySet = new Set(enabledKeys);
+      const nextKeys =
+        selectAllMode === 'enabled'
+          ? selectedRowKeys.filter((key) => !targetKeySet.has(key))
+          : [];
+      updateSelectedKeys(nextKeys, 'none');
+    } else {
+      const nextKeys =
+        selectAllMode === 'enabled'
+          ? uniqKeys([...selectedRowKeys, ...enabledKeys])
+          : enabledKeys;
+      updateSelectedKeys(nextKeys, 'all');
+    }
+  }, [
+    enabledKeys,
+    isAllSelected,
+    selectedRowKeys,
+    selectAllMode,
+    type,
+    updateSelectedKeys,
+  ]);
 
   if (!rowSelection) {
     return undefined;
