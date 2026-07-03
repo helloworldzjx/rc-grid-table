@@ -71,7 +71,7 @@
     "@rc-component/resize-observer": "^1.0.0",
     "@rc-component/util": "^1.2.0",
     "ahooks": "^3.8.5",
-    "antd": "^5.26.1",
+    "antd": "^5.29.2",
     "classnames": "^2.5.1",
     "motion": "^12.39.0"
   },
