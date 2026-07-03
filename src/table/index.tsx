@@ -54,16 +54,16 @@ import {
   SELECTION_COLUMN,
 } from './utils/const';
 import {
+  filterLeafDataSortOrder,
+  normalizeDataSortOrder,
+  sortDataSource,
+} from './utils/dataSort';
+import {
   getColumnsWithInternalColumns,
   getDefaultExpandedRowKeys,
   getRecordKey,
 } from './utils/expand';
 import { getTablePrefixCls } from './utils/prefixCls';
-import {
-  filterLeafDataSortOrder,
-  normalizeDataSortOrder,
-  sortDataSource,
-} from './utils/sort';
 import { warningInvalidRecordKey } from './utils/warning';
 
 export type { TableProps, TableRef } from './interface';

@@ -29,9 +29,9 @@ import {
   isRowSortColumn,
   isSelectionColumn,
 } from '../utils/const';
+import { getDataSortColumnKey } from '../utils/dataSort';
 import { getEllipsisShowTitle, getEllipsisTitle } from '../utils/ellipsis';
 import { FixedInfo } from '../utils/fixedColumns';
-import { getDataSortColumnKey } from '../utils/sort';
 import { getBodyCellSpanInfo } from './cellSpan';
 import type { BodyRenderMode } from './interface';
 

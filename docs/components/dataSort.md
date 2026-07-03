@@ -13,4 +13,4 @@ order: 11
 - `sortRender` 接收的 `columnKey` 优先使用列的 `key`，未配置 `key` 时使用 `dataIndex`。
 - `sortDirections` 只作为当前列支持的排序方向元信息传给 `sortRender`，排序循环和状态更新由外部自行控制。
 
-<code src="../../examples/sort.tsx"></code>
+<code src="../../examples/dataSort.tsx"></code>

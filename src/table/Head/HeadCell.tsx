@@ -24,12 +24,15 @@ import {
   isRowSortColumn,
   isSelectionColumn,
 } from '../utils/const';
+import {
+  getDataSortHeaderRender,
+  isDataSortHeaderActive,
+} from '../utils/dataSort';
 import type { SortableColumnsData } from '../utils/dnd';
 import { getEllipsisShowTitle, getEllipsisTitle } from '../utils/ellipsis';
 import { getCellFixedInfo } from '../utils/fixedColumns';
 import { getNormalSpanStyle } from '../utils/gridPlacement';
 import { filterSpan } from '../utils/handle';
-import { getDataSortHeaderRender, isDataSortHeaderActive } from '../utils/sort';
 import Resizable from './Resizable';
 
 interface HeadCellProps<T = any> {

@@ -16,8 +16,8 @@ import {
   isRowSortColumn,
   isSelectionColumn,
 } from '../utils/const';
+import { getDataSortColumnKey } from '../utils/dataSort';
 import { FixedInfo } from '../utils/fixedColumns';
-import { getDataSortColumnKey } from '../utils/sort';
 
 interface HeadFilterCellProps<T = any> {
   column: InternalColumnState<T>;
