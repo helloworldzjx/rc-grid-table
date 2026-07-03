@@ -1,4 +1,8 @@
-import { Checkbox as AntdCheckbox, CheckboxChangeEvent } from 'antd';
+import {
+  Checkbox as AntdCheckbox,
+  ConfigProvider as AntdConfigProvider,
+  CheckboxChangeEvent,
+} from 'antd';
 import classNames from 'classnames';
 import React, {
   FC,
@@ -20,12 +24,14 @@ type CheckboxProps = SelectionCheckboxControlProps & {
 const Checkbox: FC<CheckboxProps> = ({
   checked = false,
   indeterminate = false,
-  disabled = false,
+  disabled,
   onKeyDown,
   onPointerDown,
   ...rest
 }) => {
   const prefixCls = usePrefixClsContext();
+  const { componentDisabled } = AntdConfigProvider.useConfig();
+  const mergedDisabled = disabled ?? componentDisabled;
 
   const { selectionControlCls, selectionControlDisabledCls } = useMemo(
     () => getComponentCls(prefixCls),
@@ -34,7 +40,7 @@ const Checkbox: FC<CheckboxProps> = ({
 
   const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
     event.stopPropagation();
-    if (disabled) return;
+    if (mergedDisabled) return;
     onKeyDown?.(event);
   };
 
@@ -47,7 +53,7 @@ const Checkbox: FC<CheckboxProps> = ({
     // 当antd checkbox的父元素有事件行为时，antd checkbox在disabled时存在事件会冒泡(?)到父元素的现象，使用span包裹避免问题
     <span
       className={classNames(selectionControlCls, {
-        [selectionControlDisabledCls]: disabled,
+        [selectionControlDisabledCls]: mergedDisabled,
       })}
       onKeyDown={handleKeyDown}
       onPointerDown={handlePointerDown}
@@ -56,7 +62,7 @@ const Checkbox: FC<CheckboxProps> = ({
         prefixCls={`${prefixCls}-checkbox`}
         checked={checked}
         indeterminate={indeterminate}
-        disabled={disabled}
+        disabled={mergedDisabled}
         {...rest}
       />
     </span>

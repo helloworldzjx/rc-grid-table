@@ -1,4 +1,4 @@
-import { Table, Theme } from 'rc-grid-table';
+import { Table } from 'rc-grid-table';
 import { ColumnState, ColumnsType } from 'rc-grid-table/es/table/interface';
 import React, { useState } from 'react';
 import ConfigActions from './_utils/components/ConfigActions';
@@ -180,7 +180,6 @@ export default () => {
   );
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { token } = Theme.useToken();
   // 动态控制 bordered、stripe、resizableColumns、sortableColumns 属性
   const { baseProps, state, onChange } = useConfigActions({ bordered: true });
   const tableKey = 'testTable';

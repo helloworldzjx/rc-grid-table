@@ -6,11 +6,13 @@ import {
 import { composeRef } from '@rc-component/util/lib/ref';
 import type { SpinProps } from 'antd';
 import { Empty, Spin } from 'antd';
+import { ConfigContext as AntdConfigContext } from 'antd/es/config-provider';
 import classNames from 'classnames';
 import React, {
   CSSProperties,
   forwardRef,
   useCallback,
+  useContext,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -113,6 +115,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
     } = useTableContext();
 
     const prefixCls = usePrefixClsContext();
+    const { renderEmpty } = useContext(AntdConfigContext);
     const { getComponent } = useComponentsContext();
     const { expandable, mergedExpandedRowKeys = [] } = useExpandableContext();
     const { rowSortable } = useRowSortableContext();
@@ -408,12 +411,14 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       }
 
       return (
-        <Empty
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-          prefixCls={`${prefixCls}-empty`}
-        />
+        renderEmpty?.('Table') || (
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            prefixCls={`${prefixCls}-empty`}
+          />
+        )
       );
-    }, [empty, prefixCls]);
+    }, [empty, prefixCls, renderEmpty]);
 
     const renderBodyNode: BodyNodeRenderer = useCallback(
       (bodyItem, renderInfo) => (

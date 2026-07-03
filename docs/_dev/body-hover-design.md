@@ -307,7 +307,7 @@ scroll
 
 - `bodyHoverRowCls` 负责普通行背景色
 - `bodyHoverCellCls` 负责 span-source cell / overlay cell 背景色
-- hover 背景 token 继续使用 `cellColorHoverBg`
+- hover 背景 token 继续使用 `cellHoverBg`
 - hover 样式必须覆盖 stripe 背景
 - 不要破坏列排序预览、拖拽预览等更高优先级视觉态
 

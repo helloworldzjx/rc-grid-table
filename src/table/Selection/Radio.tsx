@@ -1,4 +1,8 @@
-import { Radio as AntdRadio, RadioChangeEvent } from 'antd';
+import {
+  ConfigProvider as AntdConfigProvider,
+  Radio as AntdRadio,
+  RadioChangeEvent,
+} from 'antd';
 import classNames from 'classnames';
 import React, {
   FC,
@@ -19,12 +23,14 @@ type RadioProps = SelectionRadioControlProps & {
 
 const Radio: FC<RadioProps> = ({
   checked = false,
-  disabled = false,
+  disabled,
   onKeyDown,
   onPointerDown,
   ...rest
 }) => {
   const prefixCls = usePrefixClsContext();
+  const { componentDisabled } = AntdConfigProvider.useConfig();
+  const mergedDisabled = disabled ?? componentDisabled;
 
   const { selectionControlCls, selectionControlDisabledCls } = useMemo(
     () => getComponentCls(prefixCls),
@@ -33,7 +39,7 @@ const Radio: FC<RadioProps> = ({
 
   const handleKeyDown = (event: KeyboardEvent<HTMLSpanElement>) => {
     event.stopPropagation();
-    if (disabled) return;
+    if (mergedDisabled) return;
     onKeyDown?.(event);
   };
 
@@ -45,7 +51,7 @@ const Radio: FC<RadioProps> = ({
   return (
     <span
       className={classNames(selectionControlCls, {
-        [selectionControlDisabledCls]: disabled,
+        [selectionControlDisabledCls]: mergedDisabled,
       })}
       onKeyDown={handleKeyDown}
       onPointerDown={handlePointerDown}
@@ -53,7 +59,7 @@ const Radio: FC<RadioProps> = ({
       <AntdRadio
         prefixCls={`${prefixCls}-radio`}
         checked={checked}
-        disabled={disabled}
+        disabled={mergedDisabled}
         {...rest}
       />
     </span>

@@ -1,18 +1,27 @@
-import { createContext, useContext } from 'react';
+import { createContext, useContext, type CSSProperties } from 'react';
 
 import { defaultRootPrefixCls } from '../_utils/prefixCls';
-import type { TableEmpty, TableLoading } from '../table/interface';
+import type { TableComponentToken } from '../table/design';
+import type {
+  ExpandableConfig,
+  TableEmpty,
+  TableLoading,
+} from '../table/interface';
 
 export { defaultRootPrefixCls };
 
-export interface TableConfig {
+export interface GridTableConfig {
+  className?: string;
+  style?: CSSProperties;
   loading?: TableLoading;
   empty?: TableEmpty;
+  expandable?: Pick<ExpandableConfig, 'expandIcon'>;
+  token?: Partial<TableComponentToken>;
 }
 
 export interface ConfigContextProps {
   rootPrefixCls: string;
-  table?: TableConfig;
+  gridTable?: GridTableConfig;
 }
 
 export const ConfigContext = createContext<ConfigContextProps>({

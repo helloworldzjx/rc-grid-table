@@ -1,7 +1,6 @@
 import { App } from 'antd';
 import { useOutlet, usePrefersColor } from 'dumi';
-import { ConfigProvider } from 'rc-grid-table';
-import { ConfigProviderProps } from 'rc-grid-table/es/configProvider/interface';
+import { ConfigProvider, theme } from 'rc-grid-table';
 import React, { useMemo } from 'react';
 
 const GlobalLayout: React.FC = () => {
@@ -9,16 +8,13 @@ const GlobalLayout: React.FC = () => {
 
   const [_, prefers] = usePrefersColor();
 
-  const themeMode: ConfigProviderProps['themeMode'] = useMemo(() => {
-    return prefers === 'auto'
-      ? 'system'
-      : prefers === 'dark'
-      ? 'dark'
-      : 'light';
-  }, [prefers]);
+  const algorithm = useMemo(
+    () => (prefers === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm),
+    [prefers],
+  );
 
   return (
-    <ConfigProvider themeMode={themeMode}>
+    <ConfigProvider theme={{ algorithm }}>
       <App>{outlet}</App>
     </ConfigProvider>
   );

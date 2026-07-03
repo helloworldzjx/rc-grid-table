@@ -1,23 +1,25 @@
 import { TinyColor } from '@ctrl/tinycolor';
+import type { GlobalToken } from 'antd';
 
-import type { DerivativeToken } from '../../theme';
-
-export interface TableComponentToken extends Partial<DerivativeToken> {
-  placeholderColorBg: string;
-  cellBorderRadius: number;
+export interface TableComponentToken extends Partial<GlobalToken> {
+  placeholderBg: string;
+  borderColor: string;
+  borderRadius: number;
   cellPaddingBlockSM: number | string;
   cellPaddingInlineSM: number | string;
   cellPaddingBlockMD: number | string;
   cellPaddingInlineMD: number | string;
   cellPaddingBlock: number | string;
   cellPaddingInline: number | string;
-  cellColorHoverBg: string;
-  cellColorActiveBg: string;
+  cellStripeBg: string;
+  cellStrongBg: string;
+  cellHoverBg: string;
+  cellActiveBg: string;
   fixedColumnShadowColor: string;
-  sortableCellColorBg: string;
-  overableCellColorBg: string;
-  previewHiddenCellColorBg: string;
-  previewRestoredCellColorBg: string;
+  sortableCellBg: string;
+  overableCellBg: string;
+  previewHiddenCellBg: string;
+  previewRestoredCellBg: string;
   scrollbarThumbColor: string;
   scrollbarThumbHoverColor: string;
   scrollbarThumbActiveColor: string;
@@ -42,54 +44,47 @@ const baseTableToken: BaseTableToken = {
   cellPaddingInline: 16,
 };
 
-const prepareLightTableToken = (
-  token: DerivativeToken,
-): TableComponentToken => {
-  const colorTextBase = new TinyColor(token.colorTextBase);
-  const colorBgBase = new TinyColor(token.colorBgBase);
-  const colorPrimary = new TinyColor(token.colorPrimary);
+const getSolidAlphaColor = (
+  foreground: string,
+  background: string,
+  alpha: number,
+) =>
+  new TinyColor(foreground)
+    .setAlpha(alpha)
+    .onBackground(background)
+    .toHexString();
+
+const getSolidColor = (foreground: string, background: string) =>
+  new TinyColor(foreground).onBackground(background).toHexString();
+
+const getAlphaColor = (foreground: string, alpha: number) =>
+  new TinyColor(foreground).setAlpha(alpha).toRgbString();
+
+export const prepareTableToken = (token: GlobalToken): TableComponentToken => {
+  const colorBgContainer = token.colorBgContainer || token.colorBgBase;
+  const toSolidColor = (color: string) =>
+    getSolidColor(color, colorBgContainer);
 
   return {
     ...baseTableToken,
-    placeholderColorBg: colorBgBase.darken(7).toRgbString(),
-    cellBorderRadius: token.borderRadiusLG,
-    cellColorHoverBg: colorBgBase.darken(5).toRgbString(),
-    cellColorActiveBg: colorBgBase.darken(9).toRgbString(),
-    fixedColumnShadowColor: colorTextBase.setAlpha(0.1).toRgbString(),
-    sortableCellColorBg: colorPrimary.lighten(35).toRgbString(),
-    overableCellColorBg: colorPrimary.lighten(42).toRgbString(),
-    previewHiddenCellColorBg: colorPrimary.lighten(42).toRgbString(),
-    previewRestoredCellColorBg: colorPrimary.lighten(35).toRgbString(),
-    scrollbarThumbColor: colorTextBase.setAlpha(0.2).toRgbString(),
-    scrollbarThumbHoverColor: colorTextBase.setAlpha(0.35).toRgbString(),
-    scrollbarThumbActiveColor: colorTextBase.setAlpha(0.5).toRgbString(),
+    placeholderBg: toSolidColor(token.colorFillContent),
+    borderColor: token.colorBorder,
+    borderRadius: 8,
+    cellStripeBg: toSolidColor(token.colorFillAlter),
+    cellStrongBg: toSolidColor(token.colorFillTertiary),
+    cellHoverBg: toSolidColor(token.colorFillTertiary),
+    cellActiveBg: toSolidColor(token.colorFillContentHover),
+    fixedColumnShadowColor: getSolidAlphaColor(
+      token.colorTextBase,
+      colorBgContainer,
+      0.1,
+    ),
+    sortableCellBg: toSolidColor(token.controlItemBgActiveHover),
+    overableCellBg: toSolidColor(token.controlItemBgActive),
+    previewHiddenCellBg: toSolidColor(token.controlItemBgActive),
+    previewRestoredCellBg: toSolidColor(token.controlItemBgActiveHover),
+    scrollbarThumbColor: getAlphaColor(token.colorTextBase, 0.2),
+    scrollbarThumbHoverColor: getAlphaColor(token.colorTextBase, 0.36),
+    scrollbarThumbActiveColor: getAlphaColor(token.colorTextBase, 0.52),
   };
 };
-
-const prepareDarkTableToken = (token: DerivativeToken): TableComponentToken => {
-  const colorTextBase = new TinyColor(token.colorTextBase);
-  const colorBgBase = new TinyColor(token.colorBgBase);
-  const colorPrimary = new TinyColor(token.colorPrimary);
-
-  return {
-    ...baseTableToken,
-    placeholderColorBg: colorBgBase.lighten(10).toRgbString(),
-    cellBorderRadius: token.borderRadiusLG,
-    cellColorHoverBg: colorBgBase.lighten(12).toRgbString(),
-    cellColorActiveBg: colorBgBase.lighten(11).toRgbString(),
-    fixedColumnShadowColor: colorTextBase.setAlpha(0.1).toRgbString(),
-    sortableCellColorBg: colorPrimary.darken(8).toRgbString(),
-    overableCellColorBg: colorPrimary.darken(20).toRgbString(),
-    previewHiddenCellColorBg: colorPrimary.darken(20).toRgbString(),
-    previewRestoredCellColorBg: colorPrimary.darken(8).toRgbString(),
-    scrollbarThumbColor: colorTextBase.setAlpha(0.2).toRgbString(),
-    scrollbarThumbHoverColor: colorTextBase.setAlpha(0.35).toRgbString(),
-    scrollbarThumbActiveColor: colorTextBase.setAlpha(0.5).toRgbString(),
-  };
-};
-
-export const prepareTableToken = (
-  token: DerivativeToken,
-  isDark: boolean,
-): TableComponentToken =>
-  isDark ? prepareDarkTableToken(token) : prepareLightTableToken(token);

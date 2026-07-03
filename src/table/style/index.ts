@@ -1,13 +1,13 @@
 import {
   unit,
-  useCSSVarRegister,
   useStyleRegister,
   type CSSInterpolation,
 } from '@ant-design/cssinjs';
+import { theme as antdTheme } from 'antd';
 import { useMemo } from 'react';
 
 import { COLUMNS_SORT_OVERLAY_POINTER_OFFSET_X } from '../../_utils/const';
-import useToken from '../../theme/hooks/useToken';
+import { useConfig } from '../../configProvider/context';
 import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import { prepareTableToken, type TableComponentToken } from '../design';
 import {
@@ -46,17 +46,17 @@ const genPlaceholderStyle = (
       top: 0,
       right: 0,
       boxSizing: 'border-box',
-      backgroundColor: token.placeholderColorBg,
+      backgroundColor: token.placeholderBg,
       transition: 'background-color 0.3s',
       userSelect: 'none',
       zIndex: 8,
 
       [`&:not(.${placeholderDisabledCls}):hover`]: {
-        backgroundColor: token.cellColorHoverBg,
+        backgroundColor: token.cellHoverBg,
       },
 
       [`&:not(.${placeholderDisabledCls}):active`]: {
-        backgroundColor: token.cellColorActiveBg,
+        backgroundColor: token.cellActiveBg,
       },
 
       [`&.${placeholderDisabledCls}`]: {
@@ -232,26 +232,26 @@ const genBorderedStyle = (
         height: '100%',
         width: '100%',
         boxSizing: 'border-box',
-        border: `1px solid ${token.colorBorder}`,
-        borderRadius: token.cellBorderRadius,
+        border: `1px solid ${token.borderColor}`,
+        borderRadius: token.borderRadius,
         pointerEvents: 'none',
         zIndex: 5,
       },
 
       [`& > .${placeholderCls}`]: {
-        border: `1px solid ${token.colorBorder}`,
-        borderTopRightRadius: token.cellBorderRadius,
-        borderBottomRightRadius: token.cellBorderRadius,
+        border: `1px solid ${token.borderColor}`,
+        borderTopRightRadius: token.borderRadius,
+        borderBottomRightRadius: token.borderRadius,
       },
 
       [`&.${hasXScrollbarCls}`]: {
         [`.${fixedStartShadowCls}`]: {
-          borderTopLeftRadius: token.cellBorderRadius,
-          borderBottomLeftRadius: token.cellBorderRadius,
+          borderTopLeftRadius: token.borderRadius,
+          borderBottomLeftRadius: token.borderRadius,
         },
         [`.${fixedEndShadowCls}`]: {
-          borderTopRightRadius: token.cellBorderRadius,
-          borderBottomRightRadius: token.cellBorderRadius,
+          borderTopRightRadius: token.borderRadius,
+          borderBottomRightRadius: token.borderRadius,
         },
       },
 
@@ -259,15 +259,15 @@ const genBorderedStyle = (
         '&::before': {
           // 使用outline替代border，避免sticky情况下border叠加导致的宽度问题
           borderBottomColor: 'transparent',
-          outline: `1px solid ${token.colorBorder}`,
+          outline: `1px solid ${token.borderColor}`,
           outlineOffset: -1,
-          borderTopLeftRadius: token.cellBorderRadius,
-          borderTopRightRadius: token.cellBorderRadius,
+          borderTopLeftRadius: token.borderRadius,
+          borderTopRightRadius: token.borderRadius,
         },
 
         [`& > .${headInnerCls}`]: {
-          borderTopLeftRadius: token.cellBorderRadius,
-          borderTopRightRadius: token.cellBorderRadius,
+          borderTopLeftRadius: token.borderRadius,
+          borderTopRightRadius: token.borderRadius,
         },
       },
 
@@ -276,27 +276,27 @@ const genBorderedStyle = (
       },
 
       [`& > .${bodyCls}::before`]: {
-        borderBottomLeftRadius: token.cellBorderRadius,
-        borderBottomRightRadius: token.cellBorderRadius,
+        borderBottomLeftRadius: token.borderRadius,
+        borderBottomRightRadius: token.borderRadius,
       },
       [`&:not(.${hasSummaryCls}) > .${bodyCls} > .${bodyInnerCls}`]: {
-        borderBottomLeftRadius: token.cellBorderRadius,
-        borderBottomRightRadius: token.cellBorderRadius,
+        borderBottomLeftRadius: token.borderRadius,
+        borderBottomRightRadius: token.borderRadius,
       },
 
       [`& > .${summaryCls}`]: {
         '&::before': {
           // 使用outline替代border，避免sticky情况下border叠加导致的宽度问题
           borderBottomColor: 'transparent',
-          outline: `1px solid ${token.colorBorder}`,
+          outline: `1px solid ${token.borderColor}`,
           outlineOffset: -1,
-          borderBottomLeftRadius: token.cellBorderRadius,
-          borderBottomRightRadius: token.cellBorderRadius,
+          borderBottomLeftRadius: token.borderRadius,
+          borderBottomRightRadius: token.borderRadius,
         },
 
         [`& > .${summaryInnerCls}`]: {
-          borderBottomLeftRadius: token.cellBorderRadius,
-          borderBottomRightRadius: token.cellBorderRadius,
+          borderBottomLeftRadius: token.borderRadius,
+          borderBottomRightRadius: token.borderRadius,
         },
       },
 
@@ -306,7 +306,7 @@ const genBorderedStyle = (
 
       [`${currentHeadRowSelector} > .${cellCls}, ${currentBodyCellSelector}, ${currentSummaryRowSelector} > .${cellCls}`]:
         {
-          borderLeft: `1px solid ${token.colorBorder}`,
+          borderLeft: `1px solid ${token.borderColor}`,
         },
     },
   };
@@ -335,7 +335,7 @@ const genHeadStyle = (
         height: '100%',
         width: '100%',
         boxSizing: 'border-box',
-        borderBottom: `1px solid ${token.colorBorder}`,
+        borderBottom: `1px solid ${token.borderColor}`,
         pointerEvents: 'none',
         zIndex: 6,
       },
@@ -388,7 +388,7 @@ const genBodyStyle = (
         height: '100%',
         width: '100%',
         boxSizing: 'border-box',
-        borderBottom: `1px solid ${token.colorBorder}`,
+        borderBottom: `1px solid ${token.borderColor}`,
         pointerEvents: 'none',
         zIndex: 6,
       },
@@ -423,9 +423,9 @@ const genBodyStyle = (
     },
 
     [`.${bodyRowCls}.${bodySortDraggingOverlayRowCls}`]: {
-      borderRadius: token.cellBorderRadius,
+      borderRadius: token.borderRadius,
       boxShadow: '0 0 16px rgba(0, 0, 0, 0.1)',
-      outline: `1px solid ${token.colorBorder}`,
+      outline: `1px solid ${token.borderColor}`,
       outlineOffset: -1,
       pointerEvents: 'none',
     },
@@ -456,7 +456,7 @@ const genSummaryCls = (
         height: '100%',
         width: '100%',
         boxSizing: 'border-box',
-        borderBottom: `1px solid ${token.colorBorder}`,
+        borderBottom: `1px solid ${token.borderColor}`,
         pointerEvents: 'none',
         zIndex: 6,
       },
@@ -534,8 +534,9 @@ const genCellStyle = (
     [`.${headRowCls}`]: {
       [`& > .${cellCls}`]: {
         position: 'relative',
-        backgroundColor: token.colorBgLayout,
-        borderTop: `1px solid ${token.colorBorder}`,
+        backgroundColor: token.cellStrongBg,
+        fontWeight: 600,
+        borderTop: `1px solid ${token.borderColor}`,
       },
       [`&:first-child > .${cellCls}`]: {
         borderTopColor: 'transparent',
@@ -546,7 +547,7 @@ const genCellStyle = (
         position: 'absolute',
         right: 0,
         insetBlock: unit(token.cellPaddingBlock),
-        borderRight: `1px solid ${token.colorBorder}`,
+        borderRight: `1px solid ${token.borderColor}`,
       },
 
       [`.${headCellResizeHandleCls}`]: {
@@ -574,9 +575,9 @@ const genCellStyle = (
         whiteSpace: 'nowrap',
         textOverflow: 'ellipsis',
         overflow: 'hidden',
-        border: `1px solid ${token.colorBorder}`,
+        border: `1px solid ${token.borderColor}`,
         backgroundColor: token.colorBgContainer,
-        borderRadius: token.cellBorderRadius,
+        borderRadius: token.borderRadius,
         boxShadow: '0 0 16px rgba(0, 0, 0, 0.1)',
         cursor: 'move',
       },
@@ -585,7 +586,7 @@ const genCellStyle = (
     [`.${bodyRowCls}`]: {
       [`& > .${cellCls}`]: {
         backgroundColor: token.colorBgContainer,
-        borderTop: `1px solid ${token.colorBorder}`,
+        borderTop: `1px solid ${token.borderColor}`,
       },
       [`&:first-child:not(.${bodySortDraggingRowCls}, .${bodySortDraggingOverlayRowCls}) > .${cellCls}`]:
         {
@@ -600,45 +601,45 @@ const genCellStyle = (
         opacity: 0.4,
       },
       [`&.${bodySortDraggingOverlayRowCls} > .${cellCls}`]: {
-        borderTop: `1px solid ${token.colorBorder}`,
-        borderBottom: `1px solid ${token.colorBorder}`,
-        borderLeft: `1px solid ${token.colorBorder}`,
+        borderTop: `1px solid ${token.borderColor}`,
+        borderBottom: `1px solid ${token.borderColor}`,
+        borderLeft: `1px solid ${token.borderColor}`,
 
         '&:first-child': {
-          borderTopLeftRadius: token.cellBorderRadius,
-          borderBottomLeftRadius: token.cellBorderRadius,
+          borderTopLeftRadius: token.borderRadius,
+          borderBottomLeftRadius: token.borderRadius,
         },
 
         [`&.${bodyLastCellCls}`]: {
-          borderRight: `1px solid ${token.colorBorder}`,
-          borderTopRightRadius: token.cellBorderRadius,
-          borderBottomRightRadius: token.cellBorderRadius,
+          borderRight: `1px solid ${token.borderColor}`,
+          borderTopRightRadius: token.borderRadius,
+          borderBottomRightRadius: token.borderRadius,
         },
       },
     },
 
     [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyRowCls}.${bodyHoverRowCls} > .${cellCls}`]:
       {
-        backgroundColor: token.cellColorHoverBg,
+        backgroundColor: token.cellHoverBg,
         transition: 'background-color 0.3s',
       },
     [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyRowCls} > .${cellCls}.${bodyHoverCellCls}`]:
       {
-        backgroundColor: token.cellColorHoverBg,
+        backgroundColor: token.cellHoverBg,
         transition: 'background-color 0.3s',
       },
     [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyRowCls}.${bodyHoverRowCls} > .${cellCls}`]:
       {
-        backgroundColor: token.cellColorHoverBg,
+        backgroundColor: token.cellHoverBg,
       },
     [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyRowCls} > .${cellCls}.${bodyHoverCellCls}`]:
       {
-        backgroundColor: token.cellColorHoverBg,
+        backgroundColor: token.cellHoverBg,
       },
 
     [`&.${rowSortingCls} .${bodyRowCls}:first-child:not(.${bodySortFirstRowCls}) > .${cellCls}`]:
       {
-        borderTopColor: token.colorBorder,
+        borderTopColor: token.borderColor,
       },
     [`&.${rowSortingCls} .${bodyRowCls} > .${cellCls}`]: {
       pointerEvents: 'none',
@@ -656,8 +657,8 @@ const genCellStyle = (
     },
 
     [`.${summaryRowCls} > .${cellCls}`]: {
-      backgroundColor: token.colorBgLayout,
-      borderTop: `1px solid ${token.colorBorder}`,
+      backgroundColor: token.cellStrongBg,
+      borderTop: `1px solid ${token.borderColor}`,
     },
 
     [`.${cellCls}`]: {
@@ -706,21 +707,21 @@ const genCellStyle = (
     },
 
     [`.${columnSortableHotCellCls}`]: {
-      backgroundColor: `${token.overableCellColorBg} !important`,
+      backgroundColor: `${token.overableCellBg} !important`,
     },
     [`.${columnSortableActiveCellCls}`]: {
       zIndex: '2 !important',
-      backgroundColor: `${token.sortableCellColorBg} !important`,
+      backgroundColor: `${token.sortableCellBg} !important`,
     },
     [`.${fixedStartCellCls}.${columnSortableActiveCellCls}, .${fixedEndCellCls}.${columnSortableActiveCellCls}`]:
       {
         zIndex: '4 !important',
       },
     [`.${previewHiddenCellCls}`]: {
-      backgroundColor: `${token.previewHiddenCellColorBg} !important`,
+      backgroundColor: `${token.previewHiddenCellBg} !important`,
     },
     [`.${previewRestoredCellCls}`]: {
-      backgroundColor: `${token.previewRestoredCellColorBg} !important`,
+      backgroundColor: `${token.previewRestoredCellBg} !important`,
     },
 
     [`.${rowSortCellCls}`]: {
@@ -788,7 +789,7 @@ const genCellStyle = (
       verticalAlign: -2,
       margin: 0,
       padding: 0,
-      border: `1px solid ${token.colorBorder}`,
+      border: `1px solid ${token.borderColor}`,
       boxSizing: 'border-box',
       borderRadius: token.borderRadiusSM,
       backgroundColor: token.colorBgContainer,
@@ -1096,7 +1097,7 @@ const genStripeClsStyle = (
   [`.${componentCls}.${stripeCls}`]: {
     [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyStripeRowCls} > .${cellCls}, & > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyStripeRowCls} > .${cellCls}`]:
       {
-        backgroundColor: token.colorBgLayout,
+        backgroundColor: token.cellStripeBg,
       },
   },
 });
@@ -1146,8 +1147,8 @@ const getTokenPathKey = (token: Partial<TableComponentToken>) =>
 
 export const useStyles = () => {
   const prefixCls = usePrefixClsContext();
-  const [theme, token, hashId, realToken, isDark, cssVar, components] =
-    useToken();
+  const { gridTable } = useConfig();
+  const { theme, token, hashId } = antdTheme.useToken();
 
   const clsObj = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
   const scrollbarClsObj = useMemo(
@@ -1157,24 +1158,23 @@ export const useStyles = () => {
 
   const componentCssVar = useMemo(() => getCssVar(prefixCls), [prefixCls]);
 
-  const tableToken = components?.Table;
   const componentBaseToken = useMemo(
     () => ({
-      ...realToken,
-      ...tableToken,
+      ...token,
+      ...gridTable?.token,
     }),
-    [realToken, tableToken],
+    [gridTable?.token, token],
   );
   const defaultTableToken = useMemo(
-    () => prepareTableToken(componentBaseToken, isDark),
-    [componentBaseToken, isDark],
+    () => prepareTableToken(componentBaseToken),
+    [componentBaseToken],
   );
   const mergedComponentToken = useMemo(
     () => ({
       ...defaultTableToken,
-      ...tableToken,
+      ...gridTable?.token,
     }),
-    [defaultTableToken, tableToken],
+    [defaultTableToken, gridTable?.token],
   );
 
   const componentTokenKey = useMemo(
@@ -1182,40 +1182,21 @@ export const useStyles = () => {
     [mergedComponentToken],
   );
 
-  const [cssVarToken] = useCSSVarRegister(
-    {
-      path: [prefixCls, componentTokenKey],
-      key: cssVar?.key as string,
-      token: realToken,
-      prefix: prefixCls,
-      unitless: {
-        lineHeight: true,
-      },
-      ignore: {
-        lineHeightBase: true,
-      },
-      scope: clsObj.wrapperCls,
-    },
-    () => mergedComponentToken,
-  );
-
   const mergedToken = useMemo(
     () => ({
       ...token,
-      ...((cssVar?.key
-        ? cssVarToken
-        : mergedComponentToken) as TableComponentToken),
+      ...mergedComponentToken,
     }),
-    [token, cssVar?.key, cssVarToken, mergedComponentToken],
+    [mergedComponentToken, token],
   );
 
   useStyleRegister(
-    { theme, token, hashId, path: [prefixCls, `${isDark}`, componentTokenKey] },
+    { theme, token, hashId, path: [prefixCls, componentTokenKey] },
     () => genNestStyles(clsObj, scrollbarClsObj, componentCssVar, mergedToken),
   );
 
   return {
     hashId,
-    cssVarCls: cssVar?.key,
+    cssVarCls: undefined,
   };
 };

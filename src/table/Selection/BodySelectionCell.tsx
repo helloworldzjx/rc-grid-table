@@ -30,7 +30,7 @@ function BodySelectionCell<T = any>({
     return null;
   }
 
-  const disabled = !!selectionControlProps.disabled;
+  const disabled = selectionControlProps.disabled;
   const originNode =
     selectionType === 'radio' ? (
       <SelectionRadio

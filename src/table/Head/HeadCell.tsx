@@ -325,7 +325,7 @@ function HeadCell({
   const selectionTitleNode = useMemo(() => {
     const type = rowSelection?.type ?? 'checkbox';
     const showSelectAll = type === 'checkbox' && !rowSelection?.hideSelectAll;
-    const disabled = !!titleCheckboxProps.disabled;
+    const disabled = titleCheckboxProps.disabled;
     const originNode = showSelectAll ? (
       <SelectionCheckbox
         {...titleCheckboxProps}

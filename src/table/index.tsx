@@ -2,6 +2,8 @@ import ResizeObserver, {
   OnResize as onResizeFn,
 } from '@rc-component/resize-observer';
 import { useIsomorphicLayoutEffect, useSafeState } from 'ahooks';
+import { ConfigProvider as AntdConfigProvider } from 'antd';
+import classNames from 'classnames';
 import React, {
   ForwardedRef,
   Key,
@@ -77,6 +79,7 @@ type TableComponent = (<T = any>(
 
 function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
   const config = useConfig();
+  const { componentSize } = AntdConfigProvider.useConfig();
   const {
     ready = true,
     rowKey = 'key',
@@ -94,7 +97,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     fixableColumns,
     visibleColumns,
     columnsConfig,
-    size = 'large',
+    size: customizeSize,
     components,
     onScroll,
     onHeaderRow,
@@ -112,7 +115,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     summary,
     sticky,
     virtual = true,
-    loading = false,
+    loading,
     empty,
     style,
     ...nativeProps
@@ -120,6 +123,32 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
   const prefixCls = useMemo(() => {
     return getTablePrefixCls(config.rootPrefixCls, customizePrefixCls);
   }, [config.rootPrefixCls, customizePrefixCls]);
+  const mergedSize = customizeSize ?? componentSize ?? 'large';
+  const mergedLoading = loading ?? config.gridTable?.loading ?? false;
+  const mergedExpandable = useMemo<TableProps<T>['expandable']>(
+    () =>
+      config.gridTable?.expandable || expandable
+        ? {
+            ...config.gridTable?.expandable,
+            ...expandable,
+          }
+        : undefined,
+    [config.gridTable?.expandable, expandable],
+  );
+  const mergedClassName = useMemo(
+    () => classNames(config.gridTable?.className, className),
+    [className, config.gridTable?.className],
+  );
+  const mergedStyle = useMemo(
+    () =>
+      config.gridTable?.style || style
+        ? {
+            ...config.gridTable?.style,
+            ...style,
+          }
+        : undefined,
+    [config.gridTable?.style, style],
+  );
 
   /** bug ref https://github.com/helloworldzjx/rc-grid-table/issues/1 */
   const lockContainerWidth = useRef(false);
@@ -128,23 +157,24 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
   const [containerHeight, setContainerHeight] = useSafeState(0);
   const [innerExpandedRowKeys, setInnerExpandedRowKeys] = useState<Key[]>(
     () => {
-      if (expandable?.expandedRowKeys) return expandable.expandedRowKeys;
-      if (expandable?.defaultExpandedRowKeys)
-        return expandable.defaultExpandedRowKeys;
-      if (expandable?.defaultExpandAllRows)
-        return getDefaultExpandedRowKeys(dataSource, rowKey, expandable);
+      if (mergedExpandable?.expandedRowKeys)
+        return mergedExpandable.expandedRowKeys;
+      if (mergedExpandable?.defaultExpandedRowKeys)
+        return mergedExpandable.defaultExpandedRowKeys;
+      if (mergedExpandable?.defaultExpandAllRows)
+        return getDefaultExpandedRowKeys(dataSource, rowKey, mergedExpandable);
       return [];
     },
   );
   const mergedColumns = useMemo(() => {
     return getColumnsWithInternalColumns(
       columns,
-      expandable,
+      mergedExpandable,
       rowSelection,
       rowSortable,
-      size,
+      mergedSize,
     );
-  }, [columns, expandable, rowSelection, rowSortable, size]);
+  }, [columns, mergedExpandable, rowSelection, rowSortable, mergedSize]);
 
   const {
     initialized,
@@ -172,7 +202,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     columnsConfig,
     columnMinWidth,
     leafColumnMinWidth,
-    size,
+    size: mergedSize,
     resizableColumns,
     sortableColumns,
     fixableColumns,
@@ -204,8 +234,8 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
   );
 
   const mergedExpandedRowKeys = useMemo(
-    () => expandable?.expandedRowKeys ?? innerExpandedRowKeys,
-    [expandable?.expandedRowKeys, innerExpandedRowKeys],
+    () => mergedExpandable?.expandedRowKeys ?? innerExpandedRowKeys,
+    [mergedExpandable?.expandedRowKeys, innerExpandedRowKeys],
   );
 
   const onTriggerExpand = useCallback(
@@ -220,14 +250,14 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
         ? mergedExpandedRowKeys.filter((item) => item !== key)
         : [...mergedExpandedRowKeys, key];
 
-      if (!expandable?.expandedRowKeys) {
+      if (!mergedExpandable?.expandedRowKeys) {
         setInnerExpandedRowKeys(nextExpandedRowKeys);
       }
 
-      expandable?.onExpand?.(!expanded, record);
-      expandable?.onExpandedRowsChange?.(nextExpandedRowKeys);
+      mergedExpandable?.onExpand?.(!expanded, record);
+      mergedExpandable?.onExpandedRowsChange?.(nextExpandedRowKeys);
     },
-    [rowKey, expandable, mergedExpandedRowKeys],
+    [rowKey, mergedExpandable, mergedExpandedRowKeys],
   );
 
   const updateLockContainerWidth = useCallback(
@@ -245,7 +275,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     rowKey,
     dataSource: sortedDataSource,
     rowSelection,
-    childrenColumnName: expandable?.childrenColumnName,
+    childrenColumnName: mergedExpandable?.childrenColumnName,
   });
 
   const getComponent: GetComponent = useCallback(
@@ -294,7 +324,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
       initialized,
       prefixCls,
       virtual,
-      loading: loading ?? config.table?.loading,
+      loading: mergedLoading,
       rowHoverable,
       getScrollContainer,
       containerWidth,
@@ -307,7 +337,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
       flattenColumns: flattenCols,
       columnMinWidth,
       leafColumnMinWidth,
-      size,
+      size: mergedSize,
       fixedOffset,
       hasFixedColumns: fixedOffset.hasFixColumns,
       fixColumnsGapped: fixedOffset.fixColumnsGapped,
@@ -321,8 +351,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     initialized,
     prefixCls,
     virtual,
-    loading,
-    config.table?.loading,
+    mergedLoading,
     rowHoverable,
     getScrollContainer,
     containerWidth,
@@ -335,7 +364,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     flattenCols,
     columnMinWidth,
     leafColumnMinWidth,
-    size,
+    mergedSize,
     fixedOffset,
     fixedOffset.hasFixColumns,
     fixedOffset.fixColumnsGapped,
@@ -438,11 +467,11 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
 
   const expandableContextValue = useMemo(
     () => ({
-      expandable,
+      expandable: mergedExpandable,
       mergedExpandedRowKeys,
       onTriggerExpand,
     }),
-    [expandable, mergedExpandedRowKeys, onTriggerExpand],
+    [mergedExpandable, mergedExpandedRowKeys, onTriggerExpand],
   );
 
   const rowSelectionContextValue = useMemo(
@@ -471,7 +500,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
   const tableContextValue = useMemo(
     () => ({
       ...baseProps,
-      className,
+      className: mergedClassName,
       onHeaderRow,
       onHeaderCell,
       onFilterCell,
@@ -483,12 +512,12 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
       scrollY,
       summary,
       sticky,
-      empty: empty ?? config.table?.empty,
-      style,
+      empty: empty ?? config.gridTable?.empty,
+      style: mergedStyle,
     }),
     [
       baseProps,
-      className,
+      mergedClassName,
       onHeaderRow,
       onHeaderCell,
       onFilterCell,
@@ -501,8 +530,8 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
       summary,
       sticky,
       empty,
-      config.table?.empty,
-      style,
+      config.gridTable?.empty,
+      mergedStyle,
     ],
   );
 
