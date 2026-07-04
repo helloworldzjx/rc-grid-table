@@ -36,14 +36,14 @@ export type ComponentClsType = {
   bodyHoverRowCls: string;
   bodyHoverCellCls: string;
   bodyStripeRowCls: string;
-  bodyGridRowCls: string;
-  bodyFixedHeightRowCls: string;
   bodyVirtualFillerCls: string;
   bodyVirtualInnerCls: string;
-  bodyVirtualRowSpanCls: string;
-  bodyVirtualRowSpanTopCls: string;
-  bodyVirtualPreservedCls: string;
-  bodyLastCellCls: string;
+  bodyGridRowCls: string;
+  bodyFixedHeightRowCls: string;
+  bodyVirtualRowSpanRowCls: string;
+  bodyVirtualRowSpanTopRowCls: string;
+  bodyVirtualPreservedRowCls: string;
+  bodyVirtualRowSpanPlaceholderCellCls: string;
   bodyExpandableRowCls: string;
   bodyExpandedRowCls: string;
   bodyExpandedRowCellCls: string;
@@ -157,14 +157,14 @@ export const getComponentCls = (prefixCls: string): ComponentClsType => {
     bodyHoverRowCls: `${prefixCls}-body-hover-row`,
     bodyHoverCellCls: `${prefixCls}-body-hover-cell`,
     bodyStripeRowCls: `${prefixCls}-body-stripe-row`,
-    bodyGridRowCls: `${prefixCls}-body-grid-row`,
-    bodyFixedHeightRowCls: `${prefixCls}-body-fixed-height-row`,
     bodyVirtualFillerCls: `${prefixCls}-body-virtual-filler`,
     bodyVirtualInnerCls: `${prefixCls}-body-virtual-inner`,
-    bodyVirtualRowSpanCls: `${prefixCls}-body-virtual-row-span`,
-    bodyVirtualRowSpanTopCls: `${prefixCls}-body-virtual-row-span-top`,
-    bodyVirtualPreservedCls: `${prefixCls}-body-virtual-preserved`,
-    bodyLastCellCls: `${prefixCls}-body-last-cell`,
+    bodyGridRowCls: `${prefixCls}-body-grid-row`,
+    bodyFixedHeightRowCls: `${prefixCls}-body-fixed-height-row`,
+    bodyVirtualRowSpanRowCls: `${prefixCls}-body-virtual-row-span-row`,
+    bodyVirtualRowSpanTopRowCls: `${prefixCls}-body-virtual-row-span-top-row`,
+    bodyVirtualPreservedRowCls: `${prefixCls}-body-virtual-preserved-row`,
+    bodyVirtualRowSpanPlaceholderCellCls: `${prefixCls}-body-virtual-row-span-placeholder-cell`,
     bodyExpandableRowCls: `${prefixCls}-body-expandable-row`,
     bodyExpandedRowCls: `${prefixCls}-body-expanded-row`,
     bodyExpandedRowCellCls: `${prefixCls}-body-expanded-row-cell`,

@@ -27,7 +27,6 @@ type BodyCellBaseProps<T = any> = {
   motionKeys?: Key[];
   motionLayoutDependency?: string | number | false;
   mergedStyle: CSSProperties;
-  last?: boolean;
 };
 
 type RowSortBodyCellProps<T = any> = BodyCellBaseProps<T> & {
@@ -42,6 +41,7 @@ type RowSortBodyCellProps<T = any> = BodyCellBaseProps<T> & {
   sortableHot?: boolean;
   previewHidden?: boolean;
   previewRestored?: boolean;
+  placeholder?: boolean;
   rowSortAttributes?: DraggableAttributes;
   rowSortListeners?: DraggableSyntheticListeners;
   setRowSortActivatorNodeRef?: (element: HTMLElement | null) => void;
@@ -60,7 +60,6 @@ function RowSortBodyCell<T = any>({
   motionLayoutDependency,
   indent,
   mergedStyle,
-  last = false,
   rowData,
   rowIndex,
   rowSortDragDisabled,
@@ -71,6 +70,7 @@ function RowSortBodyCell<T = any>({
   sortableHot = false,
   previewHidden = false,
   previewRestored = false,
+  placeholder = false,
   rowSortAttributes,
   rowSortListeners,
   setRowSortActivatorNodeRef,
@@ -80,7 +80,7 @@ function RowSortBodyCell<T = any>({
 
   const {
     cellCls,
-    bodyLastCellCls,
+    bodyVirtualRowSpanPlaceholderCellCls,
     fixedStartCellCls,
     fixedStartLastCellCls,
     fixedStartShadowActiveCellCls,
@@ -172,7 +172,7 @@ function RowSortBodyCell<T = any>({
         {
           [rowSortCellCls]: true,
           [rowSortOverCellCls]: rowSortIsOver,
-          [bodyLastCellCls]: last,
+          [bodyVirtualRowSpanPlaceholderCellCls]: placeholder,
           [fixedStartCellCls]: fixedInfo.fixStart !== null,
           [fixedStartLastCellCls]: fixedInfo.fixedStartShadow,
           [fixedStartShadowActiveCellCls]: fixedShadowActive.start,
@@ -194,19 +194,21 @@ function RowSortBodyCell<T = any>({
       {...restCellProps}
       ref={mergedCellRef}
     >
-      <button
-        {...activatorProps}
-        type="button"
-        className={classNames(rowSortHandleCls, {
-          [rowSortHandleDisabledCls]: disabled,
-          [rowSortHandleDraggingCls]: dragging,
-        })}
-        aria-label="Drag row"
-        disabled={disabled}
-        ref={setRowSortActivatorNodeRef}
-      >
-        {iconNode}
-      </button>
+      {!placeholder && (
+        <button
+          {...activatorProps}
+          type="button"
+          className={classNames(rowSortHandleCls, {
+            [rowSortHandleDisabledCls]: disabled,
+            [rowSortHandleDraggingCls]: dragging,
+          })}
+          aria-label="Drag row"
+          disabled={disabled}
+          ref={setRowSortActivatorNodeRef}
+        >
+          {iconNode}
+        </button>
+      )}
     </CellContainer>
   );
 }

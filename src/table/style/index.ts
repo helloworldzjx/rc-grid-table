@@ -114,9 +114,9 @@ const genVirtualStyle = (
     bodyInnerCls,
     bodyVirtualFillerCls,
     bodyVirtualInnerCls,
-    bodyVirtualRowSpanCls,
-    bodyVirtualRowSpanTopCls,
-    bodyVirtualPreservedCls,
+    bodyVirtualPreservedRowCls,
+    bodyVirtualRowSpanRowCls,
+    bodyVirtualRowSpanTopRowCls,
     bodyFixedHeightRowCls,
     cellCls,
   }: ComponentClsType,
@@ -143,7 +143,16 @@ const genVirtualStyle = (
         gridTemplateColumns: `var(${columnsWidthCssVar})`,
       },
 
-    [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyVirtualRowSpanCls}`]:
+    [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyVirtualPreservedRowCls}`]:
+      {
+        position: 'absolute',
+        insetInline: 0,
+        top: 0,
+        display: 'grid',
+        gridTemplateColumns: `var(${columnsWidthCssVar})`,
+      },
+
+    [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyVirtualRowSpanRowCls}`]:
       {
         position: 'absolute',
         insetInline: 0,
@@ -155,16 +164,7 @@ const genVirtualStyle = (
         },
       },
 
-    [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyVirtualPreservedCls}`]:
-      {
-        position: 'absolute',
-        insetInline: 0,
-        top: 0,
-        display: 'grid',
-        gridTemplateColumns: `var(${columnsWidthCssVar})`,
-      },
-
-    [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyVirtualRowSpanTopCls} > .${cellCls}`]:
+    [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyVirtualRowSpanTopRowCls} > .${cellCls}`]:
       {
         borderTopColor: 'transparent',
       },
@@ -491,7 +491,6 @@ const genCellStyle = (
     bodyVirtualFillerCls,
     bodyVirtualInnerCls,
     bodyRowCls,
-    bodyLastCellCls,
     bodyHoverRowCls,
     bodyHoverCellCls,
     bodySortDraggingRowCls,
@@ -535,7 +534,7 @@ const genCellStyle = (
       [`& > .${cellCls}`]: {
         position: 'relative',
         backgroundColor: token.cellStrongBg,
-        fontWeight: 600,
+        fontWeight: 500,
         borderTop: `1px solid ${token.borderColor}`,
       },
       [`&:first-child > .${cellCls}`]: {
@@ -610,7 +609,7 @@ const genCellStyle = (
           borderBottomLeftRadius: token.borderRadius,
         },
 
-        [`&.${bodyLastCellCls}`]: {
+        [`&:last-child`]: {
           borderRight: `1px solid ${token.borderColor}`,
           borderTopRightRadius: token.borderRadius,
           borderBottomRightRadius: token.borderRadius,
@@ -819,6 +818,7 @@ const genFixedCellStyle = (
     bodyRowCls,
     bodySortDraggingRowCls,
     cellCls,
+    bodyVirtualRowSpanPlaceholderCellCls,
     fixedStartCellCls,
     fixedStartLastCellCls,
     fixedEndCellCls,
@@ -852,35 +852,37 @@ const genFixedCellStyle = (
         backgroundColor: token.colorBgContainer,
       },
 
-    [`.${fixedStartLastCellCls}::after`]: {
-      content: "' '",
-      position: 'absolute',
-      width: 30,
-      // 单元格边框是顶部边框，宽度为1px，所以阴影距离需要加1px，避免出现1px的缝隙
-      top: -1,
-      bottom: 0,
-      right: 0,
-      transform: 'translateX(100%)',
-      boxShadow: getFixedStartShadow(token),
-      opacity: 0,
-      transition: 'opacity 0.3s',
-      pointerEvents: 'none',
-    },
+    [`.${fixedStartLastCellCls}:not(.${bodyVirtualRowSpanPlaceholderCellCls})::after`]:
+      {
+        content: "' '",
+        position: 'absolute',
+        width: 30,
+        // 单元格边框是顶部边框，宽度为1px，所以阴影距离需要加1px，避免出现1px的缝隙
+        top: -1,
+        bottom: 0,
+        right: 0,
+        transform: 'translateX(100%)',
+        boxShadow: getFixedStartShadow(token),
+        opacity: 0,
+        transition: 'opacity 0.3s',
+        pointerEvents: 'none',
+      },
 
-    [`.${fixedEndFirstCellCls}::after`]: {
-      content: "' '",
-      position: 'absolute',
-      width: 30,
-      // 单元格边框是顶部边框，宽度为1px，所以阴影距离需要加1px，避免出现1px的缝隙
-      top: -1,
-      bottom: 0,
-      left: 0,
-      transform: 'translateX(-100%)',
-      boxShadow: getFixedEndShadow(token),
-      opacity: 0,
-      transition: 'opacity 0.3s',
-      pointerEvents: 'none',
-    },
+    [`.${fixedEndFirstCellCls}:not(.${bodyVirtualRowSpanPlaceholderCellCls})::after`]:
+      {
+        content: "' '",
+        position: 'absolute',
+        width: 30,
+        // 单元格边框是顶部边框，宽度为1px，所以阴影距离需要加1px，避免出现1px的缝隙
+        top: -1,
+        bottom: 0,
+        left: 0,
+        transform: 'translateX(-100%)',
+        boxShadow: getFixedEndShadow(token),
+        opacity: 0,
+        transition: 'opacity 0.3s',
+        pointerEvents: 'none',
+      },
 
     // 行拖拽时，固定列透明度恢复为 1，避免显示下方内容
     [`&.${pingStartCls}.${pingEndCls} .${bodyRowCls}.${bodySortDraggingRowCls} .${cellCls}.${fixedStartCellCls}`]:
@@ -915,7 +917,6 @@ const genFixedShadowStyle = (
     fixedEndShadowActiveCls,
     headRowCls,
     bodyRowCls,
-    bodyLastCellCls,
     summaryRowCls,
     cellCls,
     headLastCellCls,
@@ -980,7 +981,7 @@ const genFixedShadowStyle = (
     [`.${headRowCls} .${headLastCellCls}.${fixedStartCellCls}::after`]: {
       display: 'none',
     },
-    [`.${bodyRowCls} .${bodyLastCellCls}.${fixedStartCellCls}::after`]: {
+    [`.${bodyRowCls} .${cellCls}:last-child.${fixedStartCellCls}::after`]: {
       display: 'none',
     },
     [`.${summaryRowCls} .${cellCls}:last-child.${fixedStartCellCls}::after`]: {

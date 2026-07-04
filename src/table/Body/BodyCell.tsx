@@ -42,8 +42,7 @@ interface BodyCellProps<T = any> {
   fixedInfo: FixedInfo;
   flattenColumns: InternalColumnState<T>[];
   renderMode?: BodyRenderMode;
-  colIndex?: number;
-  columnCount: number;
+  colIndex: number;
   getRowSpanHeight?: (rowSpan: number) => number;
   indent?: number;
   expanded?: boolean;
@@ -70,7 +69,6 @@ function BodyCell({
   flattenColumns,
   renderMode = 'normal',
   colIndex,
-  columnCount,
   getRowSpanHeight,
   indent = 0,
   expanded = false,
@@ -92,7 +90,7 @@ function BodyCell({
 
   const {
     cellCls,
-    bodyLastCellCls,
+    bodyVirtualRowSpanPlaceholderCellCls,
     ellipsisCellCls,
     ellipsisCellInnerCls,
     expandTreeCellCls,
@@ -152,20 +150,17 @@ function BodyCell({
       renderMode,
     ],
   );
-
-  const isBodyLastCell =
-    !spanInfo.hidden &&
-    colIndex !== undefined &&
-    colIndex + spanInfo.colSpan >= columnCount;
+  const cellHidden = spanInfo.renderState === 'hidden';
+  const cellPlaceholder = spanInfo.renderState === 'placeholder';
+  const cellContentVisible = spanInfo.renderState === 'content';
 
   const motionKeys = useMemo(() => {
     // colSpan cell 需要按覆盖的叶子列参与 motion 区间判断；
     // 普通 renderMode 也传 colIndex，是为了让列顺序变化时 body cell 的位置签名同步变化。
-    const startIndex =
-      colIndex ?? flattenColumns.findIndex((item) => item.key === column.key);
+    const startIndex = colIndex;
     const colSpan = spanInfo.colSpan || 1;
 
-    if (startIndex < 0 || colSpan <= 1) {
+    if (colSpan <= 1) {
       return [column.key];
     }
 
@@ -174,14 +169,19 @@ function BodyCell({
       .map((item) => item.key);
   }, [colIndex, column.key, flattenColumns, spanInfo.colSpan]);
 
+  const cellMotionKeys = useMemo(
+    () => (cellPlaceholder ? undefined : motionKeys),
+    [cellPlaceholder, motionKeys],
+  );
+
   const inSortableActiveScope = useMemo(
-    () => motionKeys.some((key) => sortableActiveKeys.has(key)),
-    [motionKeys, sortableActiveKeys],
+    () => cellMotionKeys?.some((key) => sortableActiveKeys.has(key)) ?? false,
+    [cellMotionKeys, sortableActiveKeys],
   );
 
   const inSortableHotScope = useMemo(
-    () => motionKeys.some((key) => sortableHotKeys.has(key)),
-    [motionKeys, sortableHotKeys],
+    () => cellMotionKeys?.some((key) => sortableHotKeys.has(key)) ?? false,
+    [cellMotionKeys, sortableHotKeys],
   );
 
   const mergedStyle = useMemo(() => {
@@ -198,12 +198,19 @@ function BodyCell({
       style.textAlign = align;
     }
 
-    return {
+    const merged: CSSProperties = {
       ...style,
       ...column.style,
       ...cellProps.style,
       ...rowSortCellStyle,
     };
+
+    if (cellPlaceholder) {
+      merged.pointerEvents = 'none';
+      merged.visibility = 'hidden';
+    }
+
+    return merged;
   }, [
     cellProps,
     fixedInfo.fixStart,
@@ -211,47 +218,54 @@ function BodyCell({
     column.align,
     column.style,
     rowSortCellStyle,
+    cellPlaceholder,
     spanInfo.style,
   ]);
-  const motionLayoutDependency = useMemo(
-    () =>
-      [
-        // 签名只描述影响列位置的因素，避免内容/hover 等状态导致 motion 额外测量。
-        motionKeys.join(','),
-        renderMode,
-        colIndex ?? '',
-        spanInfo.rowSpan,
-        spanInfo.colSpan,
-        spanInfo.style.gridColumn ?? '',
-        spanInfo.style.gridRow ?? '',
-        spanInfo.style.height ?? '',
-        fixedInfo.fixStart ?? '',
-        fixedInfo.fixEnd ?? '',
-      ].join('|'),
-    [
-      motionKeys,
+
+  const motionLayoutDependency = useMemo(() => {
+    if (cellPlaceholder) {
+      return false;
+    }
+
+    return [
+      // 签名只描述影响列位置的因素，避免内容/hover 等状态导致 motion 额外测量。
+      motionKeys.join(','),
       renderMode,
       colIndex,
       spanInfo.rowSpan,
       spanInfo.colSpan,
-      spanInfo.style.gridColumn,
-      spanInfo.style.gridRow,
-      spanInfo.style.height,
-      fixedInfo.fixStart,
-      fixedInfo.fixEnd,
-    ],
-  );
+      spanInfo.style.gridColumn ?? '',
+      spanInfo.style.gridRow ?? '',
+      spanInfo.style.height ?? '',
+      fixedInfo.fixStart ?? '',
+      fixedInfo.fixEnd ?? '',
+    ].join('|');
+  }, [
+    cellPlaceholder,
+    motionKeys,
+    renderMode,
+    colIndex,
+    spanInfo.rowSpan,
+    spanInfo.colSpan,
+    spanInfo.style.gridColumn,
+    spanInfo.style.gridRow,
+    spanInfo.style.height,
+    fixedInfo.fixStart,
+    fixedInfo.fixEnd,
+  ]);
+
+  const cellInteractive = hoverable && !cellHidden && !cellPlaceholder;
   const hoverCellRef = useBodyHoverCellRef({
     rowIndex,
     colIndex,
     rowSpan: spanInfo.rowSpan,
-    hoverable,
+    hoverable: cellInteractive,
   });
   const hoveredCell = useBodyHoverCellHovered({
     rowIndex,
     colIndex,
     rowSpan: spanInfo.rowSpan,
-    hoverable,
+    hoverable: cellInteractive,
   });
 
   const restCellProps = useMemo(() => {
@@ -273,13 +287,28 @@ function BodyCell({
   const isInternalSelectionColumn = isSelectionColumn(column);
   const isInternalRowSortColumn = isRowSortColumn(column);
 
-  const cellValue = useMemo<ReactNode>(() => {
-    if (
-      spanInfo.hidden ||
-      isInternalExpandColumn ||
-      isInternalSelectionColumn ||
-      isInternalRowSortColumn
-    ) {
+  const cellContentNode = useMemo<ReactNode>(() => {
+    if (!cellContentVisible) {
+      return undefined;
+    }
+
+    if (isInternalExpandColumn) {
+      return (
+        <ExpandControl
+          rowData={rowData}
+          rowIndex={rowIndex}
+          indent={indent}
+          expanded={expanded}
+          expandable={rowSupportExpand}
+        />
+      );
+    }
+
+    if (isInternalSelectionColumn) {
+      return <BodySelectionCell rowData={rowData} rowIndex={rowIndex} />;
+    }
+
+    if (isInternalRowSortColumn) {
       return undefined;
     }
 
@@ -295,37 +324,27 @@ function BodyCell({
 
     return value;
   }, [
-    spanInfo.hidden,
+    cellContentVisible,
+    indent,
+    expanded,
     isInternalExpandColumn,
     isInternalSelectionColumn,
     isInternalRowSortColumn,
+    rowSupportExpand,
     column.dataIndex,
     column.render,
     rowData,
     rowIndex,
   ]);
 
-  if (spanInfo.hidden) {
+  if (cellHidden) {
     return null;
   }
 
-  let childrenNode = cellValue;
-  if (isInternalExpandColumn) {
-    childrenNode = (
-      <ExpandControl
-        rowData={rowData}
-        rowIndex={rowIndex}
-        indent={indent}
-        expanded={expanded}
-        expandable={rowSupportExpand}
-      />
-    );
-  }
-  if (isInternalSelectionColumn) {
-    childrenNode = <BodySelectionCell rowData={rowData} rowIndex={rowIndex} />;
-  }
+  let childrenNode = cellContentNode;
 
   const isTreeCell =
+    cellContentVisible &&
     !isInternalExpandColumn &&
     !isInternalSelectionColumn &&
     !isInternalRowSortColumn &&
@@ -333,7 +352,7 @@ function BodyCell({
     expandable &&
     !expandableConfig?.expandedRowRender;
 
-  const hasEllipsis = !!column.ellipsis;
+  const hasEllipsis = cellContentVisible && !!column.ellipsis;
   const elTitle =
     hasEllipsis && getEllipsisShowTitle(column.ellipsis)
       ? getEllipsisTitle(childrenNode)
@@ -377,11 +396,10 @@ function BodyCell({
     return (
       <RowSortBodyCell
         cellClassName={cellProps.className}
-        last={isBodyLastCell}
         restCellProps={restCellProps}
         column={column}
         fixedInfo={fixedInfo}
-        motionKeys={motionKeys}
+        motionKeys={cellMotionKeys}
         motionLayoutDependency={motionLayoutDependency}
         indent={indent}
         mergedStyle={mergedStyle}
@@ -395,6 +413,7 @@ function BodyCell({
         sortableHot={inSortableHotScope}
         previewHidden={column.previewHidden}
         previewRestored={column.previewRestored}
+        placeholder={cellPlaceholder}
         hovered={hoveredCell}
         hoverClassName={bodyHoverCellCls}
         rowSortAttributes={rowSortAttributes}
@@ -413,8 +432,8 @@ function BodyCell({
         cellCls,
         {
           [ellipsisCellCls]: hasEllipsis,
+          [bodyVirtualRowSpanPlaceholderCellCls]: cellPlaceholder,
           [dataSortActiveCellCls]: hasSortValue,
-          [bodyLastCellCls]: isBodyLastCell,
           [expandCellCls]: isInternalExpandColumn,
           [expandTreeCellCls]: isTreeCell,
           [selectionCellCls]: isInternalSelectionColumn,
@@ -434,7 +453,7 @@ function BodyCell({
         cellProps.className,
       )}
       style={mergedStyle}
-      motionKeys={motionKeys}
+      motionKeys={cellMotionKeys}
       motionLayoutDependency={motionLayoutDependency}
       {...restCellProps}
       ref={hoverCellRef}

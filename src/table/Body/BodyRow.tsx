@@ -247,7 +247,6 @@ function BodyRow({
             flattenColumns={renderedFlattenColumns}
             renderMode={renderMode}
             colIndex={colIndex}
-            columnCount={renderedFlattenColumns.length}
             getRowSpanHeight={getRowSpanHeight}
             indent={indent}
             expanded={expanded}

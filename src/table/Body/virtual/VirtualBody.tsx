@@ -28,9 +28,9 @@ const VirtualBody = <T,>({
   const {
     bodyVirtualFillerCls,
     bodyVirtualInnerCls,
-    bodyVirtualPreservedCls,
-    bodyVirtualRowSpanCls,
-    bodyVirtualRowSpanTopCls,
+    bodyVirtualPreservedRowCls,
+    bodyVirtualRowSpanRowCls,
+    bodyVirtualRowSpanTopRowCls,
   } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
 
   const getRowSpanRenderInfo = useCallback(
@@ -45,8 +45,8 @@ const VirtualBody = <T,>({
         kind: 'rowSpanOverlay' as const,
         renderMode: 'rowSpanOverlay' as const,
         renderKey: `rowspan-${bodyItem.reactKey}`,
-        className: classNames(bodyVirtualRowSpanCls, {
-          [bodyVirtualRowSpanTopCls]: offsetTop === 0,
+        className: classNames(bodyVirtualRowSpanRowCls, {
+          [bodyVirtualRowSpanTopRowCls]: offsetTop === 0,
         }),
         style: { top: offsetTop },
         rowSpan: {
@@ -55,7 +55,12 @@ const VirtualBody = <T,>({
         onRowResize: onItemResize,
       };
     },
-    [bodyVirtualRowSpanCls, bodyVirtualRowSpanTopCls, offsetY, onItemResize],
+    [
+      bodyVirtualRowSpanRowCls,
+      bodyVirtualRowSpanTopRowCls,
+      offsetY,
+      onItemResize,
+    ],
   );
 
   if (!inVirtual) {
@@ -90,7 +95,7 @@ const VirtualBody = <T,>({
             kind: 'preserved',
             renderMode: 'virtual',
             renderKey: `preserved-${preservedItem.key}`,
-            className: bodyVirtualPreservedCls,
+            className: bodyVirtualPreservedRowCls,
             style: { top: preservedItem.top - offsetY },
             rowRef: (element) => setItemRef(preservedItem.key, element),
             onRowResize: onItemResize,
