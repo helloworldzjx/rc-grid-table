@@ -17,7 +17,7 @@ export type SortablePreviewPayload<T = any> = {
 
 interface UseSortablePreviewProps<T = any> {
   getBaseState: () => InternalColumnState<T>[];
-  updateDraftState: Dispatch<SetStateAction<InternalColumnState<T>[] | null>>;
+  updatePreviewState: Dispatch<SetStateAction<InternalColumnState<T>[] | null>>;
   updateMotionKeys: Dispatch<SetStateAction<Set<Key>>>;
 }
 
@@ -156,14 +156,14 @@ const getSortableMotionKeys = <T>(
 
 const useSortablePreview = <T>({
   getBaseState,
-  updateDraftState,
+  updatePreviewState,
   updateMotionKeys,
 }: UseSortablePreviewProps<T>) => {
   const getBaseStateRef = useRef(getBaseState);
-  const updateDraftStateRef = useRef(updateDraftState);
+  const updatePreviewStateRef = useRef(updatePreviewState);
   const updateMotionKeysRef = useRef(updateMotionKeys);
-  const draftStateRef = useRef<InternalColumnState<T>[] | null>(null);
-  const draftChangedRef = useRef(false);
+  const previewStateRef = useRef<InternalColumnState<T>[] | null>(null);
+  const previewChangedRef = useRef(false);
   const previewFrameRef = useRef<number | null>(null);
   const previewPayloadRef = useRef<SortablePreviewPayload<T> | null>(null);
   const previewSignatureRef = useRef<string | null>(null);
@@ -175,7 +175,7 @@ const useSortablePreview = <T>({
   const motionTransitionDeadlineRef = useRef(0);
 
   getBaseStateRef.current = getBaseState;
-  updateDraftStateRef.current = updateDraftState;
+  updatePreviewStateRef.current = updatePreviewState;
   updateMotionKeysRef.current = updateMotionKeys;
 
   const markMotionTransition = () => {
@@ -249,21 +249,21 @@ const useSortablePreview = <T>({
   };
 
   const updateSortableMotionKeys = (payload: SortablePreviewPayload<T>) => {
-    const baseState = draftStateRef.current || getBaseStateRef.current();
+    const baseState = previewStateRef.current || getBaseStateRef.current();
     const nextKeys = getSortableMotionKeys(baseState, payload);
 
     applySortableMotionKeys(nextKeys);
   };
 
   const updatePreview = (payload: SortablePreviewPayload<T>) => {
-    const baseState = draftStateRef.current || getBaseStateRef.current();
+    const baseState = previewStateRef.current || getBaseStateRef.current();
     const { placement, signature } = getPreviewSignature(payload);
 
     if (previewSignatureRef.current === signature) {
       return true;
     }
 
-    // sortableDraftState 仍驱动真实列结构预览，但通过 RAF 合并更新，
+    // sortablePreviewState 只驱动临时列结构预览，并通过 RAF 合并更新，
     // 避免 pointer move 频率直接放大成 React commit 频率。
     const { activeColumn, activeKeys, overKeys } = payload;
     const nextState = reorderColumnsState(
@@ -275,11 +275,11 @@ const useSortablePreview = <T>({
     );
 
     if (nextState) {
-      draftChangedRef.current = true;
-      draftStateRef.current = nextState as InternalColumnState<T>[];
+      previewChangedRef.current = true;
+      previewStateRef.current = nextState as InternalColumnState<T>[];
       previewSignatureRef.current = signature;
       markMotionTransition();
-      updateDraftStateRef.current(nextState as InternalColumnState<T>[]);
+      updatePreviewStateRef.current(nextState as InternalColumnState<T>[]);
     }
 
     return true;
@@ -314,34 +314,34 @@ const useSortablePreview = <T>({
 
   const start = () => {
     cancel();
-    draftStateRef.current = getBaseStateRef.current();
-    draftChangedRef.current = false;
+    previewStateRef.current = getBaseStateRef.current();
+    previewChangedRef.current = false;
     previewSignatureRef.current = null;
     resetSortableMotionKeys();
   };
 
-  const cleanup = (clearDraft = true) => {
+  const cleanup = (clearPreview = true) => {
     cancel();
-    draftStateRef.current = null;
-    draftChangedRef.current = false;
+    previewStateRef.current = null;
+    previewChangedRef.current = false;
     previewSignatureRef.current = null;
     resetSortableMotionKeys();
-    if (clearDraft) {
-      updateDraftStateRef.current(null);
+    if (clearPreview) {
+      updatePreviewStateRef.current(null);
     }
   };
 
   const rollback = () => {
     cancel();
-    if (draftChangedRef.current) {
+    if (previewChangedRef.current) {
       // cancel 时先让 preview layout 回到真实列结构，但暂时保留 motionKeys；
       // HeadRow 会在动画结束后再真正关闭 sortingColumns 和清空 motionKeys。
       markMotionTransition();
-      updateDraftStateRef.current(null);
+      updatePreviewStateRef.current(null);
     }
 
-    draftStateRef.current = null;
-    draftChangedRef.current = false;
+    previewStateRef.current = null;
+    previewChangedRef.current = false;
     previewSignatureRef.current = null;
   };
 
@@ -353,8 +353,8 @@ const useSortablePreview = <T>({
     return motionRunning ? COLUMNS_SORT_MOTION_DURATION : 0;
   };
 
-  const getDraftState = () => draftStateRef.current;
-  const hasDraftChanged = () => draftChangedRef.current;
+  const getPreviewState = () => previewStateRef.current;
+  const hasPreviewChanged = () => previewChangedRef.current;
 
   useEffect(() => {
     return () => {
@@ -367,9 +367,9 @@ const useSortablePreview = <T>({
     cancel,
     cleanup,
     flush,
-    getDraftState,
+    getPreviewState,
     getMotionFinishDelay,
-    hasDraftChanged,
+    hasPreviewChanged,
     rollback,
     schedule,
     start,

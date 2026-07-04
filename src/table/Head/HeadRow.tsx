@@ -149,7 +149,7 @@ function HeadRow({
     getSortableBaseState,
     updateSortableColumnsState,
     updateSortableActiveKeys,
-    updateSortableDraftState,
+    updateSortablePreviewState,
     updateSortableHotKeys,
     updateSortableMotionKeys,
   } = useColumnSortableContext();
@@ -193,7 +193,7 @@ function HeadRow({
 
   const sortablePreview = useSortablePreview({
     getBaseState: getSortableBaseState,
-    updateDraftState: updateSortableDraftState,
+    updatePreviewState: updateSortablePreviewState,
     updateMotionKeys: updateSortableMotionKeys,
   });
 
@@ -339,7 +339,7 @@ function HeadRow({
     };
   };
 
-  const cleanupSortable = (clearDraft = true) => {
+  const cleanupSortable = (clearPreview = true) => {
     if (sortableFinishTimerRef.current) {
       clearTimeout(sortableFinishTimerRef.current);
       sortableFinishTimerRef.current = null;
@@ -350,11 +350,11 @@ function HeadRow({
     setActiveKey(null);
     updateSortableActiveKeys(emptyKeys);
     updateSortableHotKeys(emptyKeys);
-    sortablePreview.cleanup(clearDraft);
+    sortablePreview.cleanup(clearPreview);
   };
 
   const finishSortableAfterMotion = (
-    clearDraft: boolean,
+    clearPreview: boolean,
     afterMotion?: () => void,
   ) => {
     if (sortableFinishTimerRef.current) {
@@ -373,7 +373,7 @@ function HeadRow({
     if (delay <= 0) {
       afterMotion?.();
       onSortableEnd?.();
-      sortablePreview.cleanup(clearDraft);
+      sortablePreview.cleanup(clearPreview);
       return;
     }
 
@@ -384,7 +384,7 @@ function HeadRow({
       sortableFinishTimerRef.current = null;
       afterMotion?.();
       onSortableEnd?.();
-      sortablePreview.cleanup(clearDraft);
+      sortablePreview.cleanup(clearPreview);
     }, delay);
   };
 
@@ -486,7 +486,7 @@ function HeadRow({
     }
 
     // dnd-kit 提供当前 SortableContext 中的 index；
-    // draft 计算会再结合 active/over 覆盖的叶子列 key。
+    // preview 计算会再结合 active/over 覆盖的叶子列 key。
     const activeIndex = activeData.sortable.index;
     const overIndex = overData.sortable.index;
 
@@ -510,11 +510,11 @@ function HeadRow({
       }
 
       sortablePreview.flush();
-      const finalDraftState = sortablePreview.getDraftState();
+      const finalPreviewState = sortablePreview.getPreviewState();
 
-      if (sortablePreview.hasDraftChanged() && finalDraftState) {
+      if (sortablePreview.hasPreviewChanged() && finalPreviewState) {
         finishSortableAfterMotion(false, () => {
-          updateSortableColumnsState(finalDraftState);
+          updateSortableColumnsState(finalPreviewState);
         });
       } else {
         cleanupSortable(true);

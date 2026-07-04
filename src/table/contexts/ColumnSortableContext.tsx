@@ -17,7 +17,8 @@ const emptySortableActiveKeys = new Set<Key>();
 const emptySortableHotKeys = new Set<Key>();
 
 const ColumnSortableContext = createContext<ColumnSortableContextProps>({
-  updateSortableDraftState: noop as Dispatch<
+  sortablePreviewing: false,
+  updateSortablePreviewState: noop as Dispatch<
     SetStateAction<InternalColumnState[] | null>
   >,
   getSortableBaseState: () => [],

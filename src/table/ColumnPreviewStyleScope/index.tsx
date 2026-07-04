@@ -36,7 +36,7 @@ const ColumnPreviewStyleScope = ({
     () => ({
       ...originStyle,
       // 列宽 CSS var 是内部布局协议，必须后置覆盖用户同名 style。
-      // 这里由轻量 scope 订阅 preview layout，避免 Table 主体直接订阅 sortableDraftState。
+      // 这里由轻量 scope 订阅 preview layout，避免 Table 主体直接订阅排序临时预览状态。
       [`${columnsWidthCssVar}`]:
         previewGridTemplateColumns || gridTemplateColumns,
       [`${columnsWidthTotalCssVar}`]: `${

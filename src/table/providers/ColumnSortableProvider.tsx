@@ -51,7 +51,7 @@ const areKeySetsEqual = (a: ReadonlySet<Key>, b: ReadonlySet<Key>) => {
 };
 
 /**
- * 列排序 draft 放在独立 provider 内，TableContext 只保存真实列布局。
+ * 列排序 preview 放在独立 provider 内，TableContext 只保存真实列布局。
  * previewSource 提供真实叶子列和宽度，供预览顺序重新映射使用。
  */
 const ColumnSortableProvider = <T,>({
@@ -61,7 +61,7 @@ const ColumnSortableProvider = <T,>({
   updateSortableColumnsState,
   previewSource,
 }: ColumnSortableProviderProps<T>) => {
-  const [sortableDraftState, setSortableDraftState] = useState<
+  const [sortablePreviewState, setSortablePreviewState] = useState<
     InternalColumnState<T>[] | null
   >(null);
   const [sortingColumns, setSortingColumns] = useState(false);
@@ -94,30 +94,30 @@ const ColumnSortableProvider = <T,>({
   );
 
   const getSortableBaseState = useCallback(() => {
-    return sortableDraftState || baseColumnsState;
-  }, [baseColumnsState, sortableDraftState]);
+    return sortablePreviewState || baseColumnsState;
+  }, [baseColumnsState, sortablePreviewState]);
 
-  // draft 状态只放在列排序 provider 内部，不再进入根 TableContext。
+  // preview 状态只放在列排序 provider 内部，不再进入根 TableContext。
   // 这样预览排序时只让 header/body/summary 的列布局消费者更新，避免 Table 主体重算虚拟滚动等重逻辑。
   useEffect(() => {
     if (
-      sortableDraftState &&
+      sortablePreviewState &&
       baseColumnsState.length &&
-      isColumnsOrderEqual(baseColumnsState, sortableDraftState)
+      isColumnsOrderEqual(baseColumnsState, sortablePreviewState)
     ) {
-      setSortableDraftState(null);
+      setSortablePreviewState(null);
     }
-  }, [baseColumnsState, sortableDraftState]);
+  }, [baseColumnsState, sortablePreviewState]);
 
   const sortablePreviewColumns = useMemo(() => {
-    if (!sortableDraftState || !baseColumnsState.length) {
+    if (!sortablePreviewState || !baseColumnsState.length) {
       return null;
     }
 
     // 使用真实列宽作为预览基准，只重新映射列顺序。
     // 列宽分配、虚拟列表高度测量仍由真实布局负责，drop 时再提交真实结构。
     return getSortablePreviewColumns(
-      columnsSort(sortableDraftState),
+      columnsSort(sortablePreviewState),
       previewSource.flattenColumns,
       previewSource.flattenColumnsWidths,
     );
@@ -125,7 +125,7 @@ const ColumnSortableProvider = <T,>({
     baseColumnsState.length,
     previewSource.flattenColumns,
     previewSource.flattenColumnsWidths,
-    sortableDraftState,
+    sortablePreviewState,
   ]);
 
   const previewFlattenColumns =
@@ -144,12 +144,15 @@ const ColumnSortableProvider = <T,>({
       ),
     [previewFlattenColumnsWidths],
   );
+  const sortablePreviewing =
+    sortingColumns || !!sortablePreviewState || !!sortableMotionKeys.size;
 
   const columnSortableContextValue = useMemo(
     () => ({
       sortableColumns,
-      sortableDraftState,
-      updateSortableDraftState: setSortableDraftState,
+      sortablePreviewState,
+      sortablePreviewing,
+      updateSortablePreviewState: setSortablePreviewState,
       getSortableBaseState,
       updateSortableColumnsState,
       sortingColumns,
@@ -164,7 +167,8 @@ const ColumnSortableProvider = <T,>({
     }),
     [
       sortableColumns,
-      sortableDraftState,
+      sortablePreviewState,
+      sortablePreviewing,
       getSortableBaseState,
       updateSortableColumnsState,
       sortingColumns,
@@ -191,7 +195,7 @@ const ColumnSortableProvider = <T,>({
     }
 
     // 预览布局单独通过 ColumnSortPreviewLayoutContext 下发。
-    // TableLayoutContext 保持真实布局，避免 sortableDraftState 触发整表订阅链路。
+    // TableLayoutContext 保持真实布局，避免排序临时预览状态触发整表订阅链路。
     return {
       columns: sortablePreviewColumns.treeColumns,
       flattenColumns: sortablePreviewColumns.flattenColumns,

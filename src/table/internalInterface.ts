@@ -176,8 +176,9 @@ export interface RowSortableContextProps<T = any> {
 
 export interface ColumnSortableContextProps<T = any> {
   sortableColumns?: boolean;
-  sortableDraftState?: InternalColumnState<T>[] | null;
-  updateSortableDraftState: Dispatch<
+  sortablePreviewState?: InternalColumnState<T>[] | null;
+  sortablePreviewing: boolean;
+  updateSortablePreviewState: Dispatch<
     SetStateAction<InternalColumnState<T>[] | null>
   >;
   getSortableBaseState: () => InternalColumnState<T>[];

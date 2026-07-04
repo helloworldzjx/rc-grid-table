@@ -10,7 +10,7 @@ export interface ColumnSortPreviewLayoutContextProps<T = any> {
   fixedOffset?: StickyOffsets;
 }
 
-// 只承载列排序预览布局。真实布局仍在 TableLayoutContext，避免 draft 状态扩大订阅范围。
+// 只承载列排序预览布局。真实布局仍在 TableLayoutContext，避免临时预览状态扩大订阅范围。
 const ColumnSortPreviewLayoutContext =
   createContext<ColumnSortPreviewLayoutContextProps>({});
 

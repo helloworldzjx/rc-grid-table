@@ -34,7 +34,7 @@ const Placeholder: FC = () => {
     clearFlattenColumnsWidthPreview,
     commitColumnWidthChange,
   } = useTableColumnStateContext();
-  const { sortableDraftState } = useColumnSortableContext();
+  const { sortablePreviewing } = useColumnSortableContext();
   const prefixCls = usePrefixClsContext();
   const disabled =
     !resizableColumns || columnsStatePreviewMode === 'visibleHotOnly';
@@ -52,7 +52,7 @@ const Placeholder: FC = () => {
     columnsWidthTotal,
     flattenColumns,
     flattenColumnsWidths,
-    sortableDraftState,
+    sortablePreviewing,
     updateFlattenColumnsWidths,
     clearFlattenColumnsWidthPreview,
     commitColumnWidthChange,
@@ -64,7 +64,7 @@ const Placeholder: FC = () => {
     columnsWidthTotal,
     flattenColumns,
     flattenColumnsWidths,
-    sortableDraftState,
+    sortablePreviewing,
     updateFlattenColumnsWidths,
     clearFlattenColumnsWidthPreview,
     commitColumnWidthChange,
@@ -89,7 +89,7 @@ const Placeholder: FC = () => {
       columnsWidthTotal,
       flattenColumns,
       flattenColumnsWidths,
-      sortableDraftState,
+      sortablePreviewing,
       updateFlattenColumnsWidths,
       clearFlattenColumnsWidthPreview,
       commitColumnWidthChange,
@@ -98,8 +98,8 @@ const Placeholder: FC = () => {
 
     if (disabled) return false;
 
-    // 排序 draft 还没清理时不补宽，避免把临时排序态提交成真实列宽状态。
-    if (sortableDraftState) return false;
+    // 排序临时预览还没清理时不补宽，避免把临时排序态提交成真实列宽状态。
+    if (sortablePreviewing) return false;
 
     const remainingWidth = containerWidth - columnsWidthTotal;
     if (

@@ -47,6 +47,7 @@ import {
   rebasePreviewColumnsState,
   reconcileColumnsState,
 } from '../utils/mergedColumnsState';
+import usePostCommitInitialized from './usePostCommitInitialized';
 
 interface UseColumnsStateControllerProps<T = any> {
   ready: boolean;
@@ -113,7 +114,7 @@ export default function useColumnsStateController<T = any>({
   fixableColumns,
   visibleColumns,
 }: UseColumnsStateControllerProps<T>) {
-  const [initialized, setInitialized] = useState(false);
+  const [initialized, requestInitialized] = usePostCommitInitialized();
   const [cols, setCols] = useState<InternalColumnState<T>[]>([]);
   const [calculatedFlattenColumnsWidths, setCalculatedFlattenColumnsWidths] =
     useState<number[]>([]);
@@ -202,7 +203,7 @@ export default function useColumnsStateController<T = any>({
       setCols(snapshot.treeColumns);
       setFlattenCols(snapshot.flattenColumns);
       setCalculatedFlattenColumnsWidths(snapshot.flattenColumnsWidths);
-      setInitialized(true);
+      requestInitialized();
 
       if (!columnsStateReadyEmitted.current) {
         columnsStateReadyEmitted.current = true;
@@ -214,7 +215,7 @@ export default function useColumnsStateController<T = any>({
         });
       }
     },
-    [],
+    [requestInitialized],
   );
 
   const getCommittedMergedColumnsState = useCallback(() => {
@@ -816,7 +817,7 @@ export default function useColumnsStateController<T = any>({
       setCalculatedFlattenColumnsWidths(
         flattenColumns.map((column) => column.width as number),
       );
-      setInitialized(true);
+      requestInitialized();
     }
   }, [
     containerWidth,
@@ -827,6 +828,7 @@ export default function useColumnsStateController<T = any>({
     columnMinWidth,
     leafColumnMinWidth,
     size,
+    requestInitialized,
   ]);
 
   /** 未使用列配置的处理 end */
