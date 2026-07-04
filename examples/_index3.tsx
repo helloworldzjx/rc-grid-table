@@ -1,6 +1,6 @@
 import { Table } from 'rc-grid-table';
-import { ColumnState, ColumnsType } from 'rc-grid-table/es/table/interface';
-import React, { useState } from 'react';
+import { ColumnsType } from 'rc-grid-table/es/table/interface';
+import React from 'react';
 import ConfigActions from './_utils/components/ConfigActions';
 import useConfigActions from './_utils/hooks/useConfigActions';
 
@@ -159,35 +159,8 @@ export default () => {
     test3: 'test3',
   }));
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const bigDataSource: DataType[] = Array.from({ length: 1000 }).map(
-    (_, i) => ({
-      key: `${i}`,
-      name: 'Jake White',
-      age: 18,
-      tel: '0575-22098909',
-      phone: 18900010002,
-      address: 'Dublin No. 2 Lake Park',
-      'test0-0-0': 'test0-0',
-      'test0-0-1': 'test0-2',
-      'test0-0-2': 'test0-2',
-      'test0-1': 'test0-1',
-      'test0-2': 'test0-2',
-      test1: 'test1',
-      test2: 'test2',
-      test3: 'test3',
-    }),
-  );
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   // 动态控制 bordered、stripe、resizableColumns、sortableColumns 属性
   const { baseProps, state, onChange } = useConfigActions({ bordered: true });
-  const tableKey = 'testTable';
-  const storageKey = `${tableKey}-columnsState`;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [columnsState, setColumnsState] = useState<ColumnState[]>(
-    JSON.parse(localStorage.getItem(storageKey) || '[]'),
-  );
 
   return (
     <>

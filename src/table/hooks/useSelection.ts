@@ -329,11 +329,7 @@ function useSelection<T = any>({
   }, [enabledKeys, isAllSelected, selectedKeySet, type]);
 
   const onSelectRecord = useCallback(
-    (
-      record: T,
-      rowIndex: number,
-      event: CheckboxChangeEvent | RadioChangeEvent,
-    ) => {
+    (record: T, event: CheckboxChangeEvent | RadioChangeEvent) => {
       const key = getRecordKey(record, rowKey);
       if (!isValidKey(key)) {
         warningInvalidRecordKey(rowKey, 'row selection', key);

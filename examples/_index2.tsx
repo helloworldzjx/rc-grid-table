@@ -81,18 +81,6 @@ export default () => {
     address: 'Dublin No. 2 Lake Park',
   }));
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const bigDataSource: DataType[] = Array.from({ length: 1000 }).map(
-    (_, i) => ({
-      key: `${i}`,
-      name: 'Jake White',
-      age: 18,
-      tel: '0575-22098909',
-      phone: 18900010002,
-      address: 'Dublin No. 2 Lake Park',
-    }),
-  );
-
   return (
     <Table
       columns={columns}

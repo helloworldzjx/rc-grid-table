@@ -37,7 +37,7 @@ function BodySelectionCell<T = any>({
         {...selectionControlProps}
         checked={selectionChecked}
         disabled={disabled}
-        onChange={(event) => selection.onSelectRecord(rowData, rowIndex, event)}
+        onChange={(event) => selection.onSelectRecord(rowData, event)}
       />
     ) : (
       <SelectionCheckbox
@@ -45,7 +45,7 @@ function BodySelectionCell<T = any>({
         checked={selectionChecked}
         indeterminate={selection.isHalfSelected(rowData)}
         disabled={disabled}
-        onChange={(event) => selection.onSelectRecord(rowData, rowIndex, event)}
+        onChange={(event) => selection.onSelectRecord(rowData, event)}
       />
     );
 

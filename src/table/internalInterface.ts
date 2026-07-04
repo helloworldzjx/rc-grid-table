@@ -202,7 +202,6 @@ export interface TableSelectionContextProps<T = any> {
   isPartiallySelected: boolean;
   onSelectRecord: (
     record: T,
-    rowIndex: number,
     event: CheckboxChangeEvent | RadioChangeEvent,
   ) => void;
   onSelectAll: (event: CheckboxChangeEvent) => void;

@@ -4,7 +4,6 @@ export type ComponentClsType = {
   componentCls: string;
   componentSMCls: string;
   componentMDCls: string;
-  contentCls: string;
   borderedCls: string;
   virtualCls: string;
   stripeCls: string;
@@ -16,8 +15,6 @@ export type ComponentClsType = {
   previewColumnsSortingCls: string;
   rowSortingCls: string;
   hasFixColumnsCls: string;
-  hasFixStartColumnsCls: string;
-  hasFixEndColumnsCls: string;
   fixColumnsGappedCls: string;
   pingStartCls: string;
   pingEndCls: string;
@@ -128,7 +125,6 @@ export const getComponentCls = (prefixCls: string): ComponentClsType => {
     componentCls: prefixCls,
     componentSMCls: `${prefixCls}-wrapper-small`,
     componentMDCls: `${prefixCls}-wrapper-middle`,
-    contentCls: `${prefixCls}-content`,
     borderedCls: `${prefixCls}-bordered`,
     virtualCls: `${prefixCls}-virtual`,
     stripeCls: `${prefixCls}-stripe`,
@@ -140,8 +136,6 @@ export const getComponentCls = (prefixCls: string): ComponentClsType => {
     previewColumnsSortingCls: `${prefixCls}-preview-columns-sorting`,
     rowSortingCls: `${prefixCls}-row-sorting`,
     hasFixColumnsCls: `${prefixCls}-has-fix-columns`,
-    hasFixStartColumnsCls: `${prefixCls}-has-fix-start-columns`,
-    hasFixEndColumnsCls: `${prefixCls}-has-fix-end-columns`,
     fixColumnsGappedCls: `${prefixCls}-fix-columns-gapped`,
     pingStartCls: `${prefixCls}-ping-start`,
     pingEndCls: `${prefixCls}-ping-end`,

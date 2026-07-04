@@ -14,6 +14,7 @@ export const SCROLLBAR_THUMB_ABSOLUTE_LEFT_TOP =
 /** 滚动条显隐容差，避免临界宽度下反复闪烁 */
 export const SCROLLBAR_VISIBLE_TOLERANCE = 1;
 
+/** 列拖拽overlay元素内容x偏移量 */
 export const COLUMNS_SORT_OVERLAY_POINTER_OFFSET_X = 16;
 
 /** 列排序预览 motion layout 的动画时长，释放 motionKeys 和 drag end 收尾等待都要与它保持一致 */

@@ -60,41 +60,6 @@ export const hasChildrenInData = <T = any>(
   });
 };
 
-export const flattenDataSource = <T = any>(
-  dataSource: T[] = [],
-  rowKey: RowKey<T>,
-  childrenColumnName = 'children',
-  expandedRowKeys: Key[] = [],
-): FlattenRecord<T>[] => {
-  const result: FlattenRecord<T>[] = [];
-
-  const traverse = (records: T[], indent = 0) => {
-    records.forEach((record) => {
-      const key = getRecordKey(record, rowKey);
-      const rowIndex = result.length;
-      const children = getRecordChildren(record, childrenColumnName);
-
-      result.push({
-        record,
-        rowIndex,
-        indent,
-        key,
-      });
-
-      if (!isValidKey(key)) {
-        warningInvalidRecordKey(rowKey, 'row rendering', key);
-      }
-
-      if (isValidKey(key) && children.length && expandedRowKeys.includes(key)) {
-        traverse(children, indent + 1);
-      }
-    });
-  };
-
-  traverse(dataSource);
-  return result;
-};
-
 export const getDefaultExpandedRowKeys = <T = any>(
   dataSource: T[] = [],
   rowKey: RowKey<T>,
@@ -162,59 +127,6 @@ const removeInternalColumns = <T = any>(
 
     return result;
   }, []);
-};
-
-export const getColumnsWithExpandColumn = <T = any>(
-  columns: ColumnsType<T> = [],
-  expandable: ExpandableConfig<T> = {},
-  size?: SizeType,
-): ColumnsType<T> => {
-  const {
-    columnTitle,
-    columnOverlayTitle,
-    columnWidth,
-    expandedRowRender,
-    fixed,
-    resizeDisabled = true,
-    resizeMinWidth,
-    showExpandColumn = true,
-  } = expandable;
-  const hasExpandedRowRender = typeof expandedRowRender === 'function';
-
-  if (!hasExpandedRowRender || !showExpandColumn) {
-    return removeInternalColumns(columns).filter(
-      (column) => !isSelectionColumn(column),
-    );
-  }
-
-  const expandColumn = {
-    ...EXPAND_COLUMN,
-    key: INTERNAL_EXPAND_COLUMN_KEY,
-    title: columnTitle,
-    columnOverlayTitle,
-    width: columnWidth ?? getDefaultInternalColumnWidth(size),
-    align: expandable.align ?? 'center',
-    fixed,
-    resizeDisabled,
-    resizeMinWidth,
-  } as ColumnType<T>;
-  let inserted = false;
-  const nextColumns = columns.reduce((result: ColumnsType<T>, column) => {
-    if (isExpandColumn(column)) {
-      result.push(expandColumn);
-      inserted = true;
-    } else {
-      result.push(column);
-    }
-
-    return result;
-  }, []);
-
-  if (!inserted) {
-    nextColumns.unshift(expandColumn);
-  }
-
-  return nextColumns;
 };
 
 export const getColumnsWithInternalColumns = <T = any>(
