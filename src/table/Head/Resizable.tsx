@@ -11,12 +11,13 @@ import React, {
   useRef,
 } from 'react';
 
+import { useTableContext } from '../contexts';
 import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import { useTableColumnStateContext } from '../contexts/TableColumnStateContext';
 import { useTableLayoutContext } from '../contexts/TableLayoutContext';
 import type { ColumnStatePatch } from '../interface';
 import { getComponentCls } from '../style/classNames';
-import { DEFAULT_RESIZE_MIN_WIDTH } from '../utils/const';
+import { getDefaultInternalColumnWidth } from '../utils/const';
 import {
   isResizableColumnsData,
   type ResizableColumnsData,
@@ -29,6 +30,7 @@ interface ResizableProps {
 
 const Resizable = forwardRef<HTMLDivElement, ResizableProps>(
   ({ id, keys }, ref) => {
+    const { size } = useTableContext();
     const { flattenColumns = [], flattenColumnsWidths = [] } =
       useTableLayoutContext();
     const {
@@ -90,7 +92,8 @@ const Resizable = forwardRef<HTMLDivElement, ResizableProps>(
 
     const getResizeMinWidth = (idx: number, width: number) => {
       const minWidth =
-        flattenColumns[idx]?.resizeMinWidth ?? DEFAULT_RESIZE_MIN_WIDTH;
+        flattenColumns[idx]?.resizeMinWidth ??
+        getDefaultInternalColumnWidth(size);
       return Math.min(minWidth, width);
     };
 

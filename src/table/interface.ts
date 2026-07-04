@@ -173,7 +173,7 @@ export interface ExpandableConfig<T = any> {
   indentSize?: number;
   /** 禁止展开列重新调整宽度 */
   resizeDisabled?: boolean;
-  /** 拖拽可调整展开列的最小宽度 */
+  /** 拖拽可调整展开列的最小宽度，未设置时按表格 size 使用默认拖拽下限 */
   resizeMinWidth?: number;
   rowExpandable?: (record: T) => boolean;
   showExpandColumn?: boolean;
@@ -209,7 +209,7 @@ export interface RowSortableConfig<T = any> {
   columnOverlayTitle?: ReactNode;
   columnWidth?: PercentColumnWidthType | number;
   fixed?: FixedType;
-  /** 拖拽可调整行拖拽列的最小宽度 */
+  /** 拖拽可调整行拖拽列的最小宽度，未设置时按表格 size 使用默认拖拽下限 */
   resizeMinWidth?: number;
   allowCrossLevelSort?: boolean;
   /** 行拖拽overlay中渲染的列。通过columns中的key或dataIndex匹配 */
@@ -237,7 +237,7 @@ export interface TableRowSelection<T = any> {
   fixed?: FixedType;
   /** 禁止选择列重新调整宽度 */
   resizeDisabled?: boolean;
-  /** 拖拽可调整选择列的最小宽度 */
+  /** 拖拽可调整选择列的最小宽度，未设置时按表格 size 使用默认拖拽下限 */
   resizeMinWidth?: number;
   getRadioProps?: (record: T) => SelectionRadioControlProps;
   getCheckboxProps?: (record: T) => SelectionCheckboxControlProps;
@@ -303,7 +303,7 @@ export interface ColumnProps<T = any> {
   width?: number | PercentColumnWidthType;
   /** 禁止表格重新调整叶子列宽度 */
   resizeDisabled?: boolean;
-  /** 拖拽调整列宽时的最小宽度 */
+  /** 拖拽调整列宽时的最小宽度，未设置时按表格 size 使用默认拖拽下限 */
   resizeMinWidth?: number;
   /** 禁止列拖拽排序 */
   dragSortDisabled?: boolean;

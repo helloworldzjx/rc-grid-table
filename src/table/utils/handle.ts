@@ -10,11 +10,7 @@ import type {
 } from '../interface';
 import type { CellType, InternalColumnState } from '../internalInterface';
 import { isValidColumnKey } from '../utils/validate';
-import {
-  DEFAULT_RESIZE_MIN_WIDTH,
-  getDefaultInternalColumnWidth,
-  isInternalColumn,
-} from './const';
+import { getDefaultInternalColumnWidth, isInternalColumn } from './const';
 import { warningFallbackColumnKey, warningInvalidColumnKey } from './warning';
 
 type InternalColumnStatePatch<T = any> = {
@@ -88,10 +84,11 @@ const parseColumnWidth = (
 const getEffectiveResizeMinWidth = (
   resizeMinWidth: number | undefined,
   width: number,
+  size: SizeType,
 ) => {
   const minWidth = isNum(resizeMinWidth)
     ? resizeMinWidth
-    : DEFAULT_RESIZE_MIN_WIDTH;
+    : getDefaultInternalColumnWidth(size);
 
   return Math.min(minWidth, width);
 };
@@ -341,7 +338,7 @@ export function flattenColumnsWithTotalWidth<T>(
   columns: FnColumnType<T>[],
   topMinWidth: number,
   leafMinWidth: number,
-  size?: SizeType,
+  size: SizeType,
   options: FlattenColumnsOptions = {},
 ): { flattenColumns: InternalColumnState<T>[]; usedWidthTotal: number } {
   const result: InternalColumnState<T>[] = [];
@@ -366,6 +363,7 @@ export function flattenColumnsWithTotalWidth<T>(
           resizeMinWidth: getEffectiveResizeMinWidth(
             column.resizeMinWidth,
             width,
+            size,
           ),
           parentKey,
           ancestorKeys,
@@ -431,7 +429,7 @@ export function flattenColumnsWithTotalWidth<T>(
 
         resizeMinWidth =
           typeof width === 'number'
-            ? getEffectiveResizeMinWidth(column.resizeMinWidth, width)
+            ? getEffectiveResizeMinWidth(column.resizeMinWidth, width, size)
             : column.resizeMinWidth;
 
         widthManuallyChanged = column.resizeDisabled

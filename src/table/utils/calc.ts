@@ -62,7 +62,7 @@ export function columnsWidthDistribute<T>(
   columns: ColumnsType<T>,
   topMinWidth: number,
   leafMinWidth: number,
-  size?: SizeType,
+  size: SizeType,
   options?: FlattenColumnsOptions,
 ): {
   flattenColumns: InternalColumnState<T>[];

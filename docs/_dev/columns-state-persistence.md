@@ -79,13 +79,13 @@
 
 当当前列和持久化列可以通过 key 对应时，`ColumnState` 中的外观字段应从持久化数据恢复，不受四个 UI 开关影响。旧数据缺少某个字段时，合并结果使用当前列定义、稳定默认值或运行时计算值补齐。
 
-`resizeMinWidth` 是例外。即使旧 storage 中仍然带有该字段，当前逻辑也不再恢复它。恢复宽度时只使用当前列声明的 `resizeMinWidth` 校准：
+`resizeMinWidth` 是例外。即使旧 storage 中仍然带有该字段，当前逻辑也不再恢复它。恢复宽度时只使用当前列显式声明的 `resizeMinWidth` 校准：
 
 ```ts
 width = Math.max(storedWidth, currentResizeMinWidth);
 ```
 
-如果当前列没有声明 `resizeMinWidth`，则按默认最小宽度参与运行时计算。
+如果当前列没有声明 `resizeMinWidth`，则按当前表格 `size` 对应的默认内部列宽作为拖拽下限，并且该下限会被当前列宽封顶。这个默认下限只参与运行时拖拽计算，不会写入 `ColumnState`，也不会在恢复旧 `width` 时把宽度抬高。
 
 ### 新列必须进入结果
 
@@ -194,7 +194,7 @@ runtime width hydration 可以借助本轮根据当前 columns 和 active state 
 
 ## 宽度规则
 
-`width` 是可恢复列宽，可以持久化；其中手动拖拽和 placeholder auto fill 属于用户触发的布局偏好，runtime width hydration 属于运行时补齐快照。`resizeMinWidth` 是当前 columns 的运行时约束，不持久化，也不支持百分比。
+`width` 是可恢复列宽，可以持久化；其中手动拖拽和 placeholder auto fill 属于用户触发的布局偏好，runtime width hydration 属于运行时补齐快照。`resizeMinWidth` 是当前 columns 的运行时约束，不持久化，也不支持百分比；未声明时使用随表格 `size` 变化的默认拖拽下限。
 
 宽度状态分为三类：
 
