@@ -4,7 +4,7 @@ import { Key, useCallback, useEffect, useMemo, useState } from 'react';
 import { isValidKey } from '../../_utils/validate';
 import type { RowKey, TableProps } from '../interface';
 import type { TableSelectionContextProps } from '../internalInterface';
-import { getRecordChildren, getRecordKey } from '../utils/expand';
+import { getRecordChildren, getRecordKey } from '../utils/record';
 import { warningInvalidRecordKey } from '../utils/warning';
 
 interface UseSelectionProps<T = any> {

@@ -1,11 +1,7 @@
-import type { Key } from 'react';
-
-import { isValidKey } from '../../_utils/validate';
 import type {
   ColumnType,
   ColumnsType,
   ExpandableConfig,
-  RowKey,
   RowSortableConfig,
   SizeType,
   TableRowSelection,
@@ -22,88 +18,8 @@ import {
   isRowSortColumn,
   isSelectionColumn,
 } from './const';
-import { warningInvalidRecordKey } from './warning';
 
-export interface FlattenRecord<T = any> {
-  record: T;
-  rowIndex: number;
-  indent: number;
-  key?: Key;
-}
-
-export const getRecordKey = <T = any>(
-  record: T,
-  rowKey: RowKey<T>,
-): Key | undefined => {
-  const key =
-    typeof rowKey === 'function' ? rowKey(record) : record?.[rowKey as keyof T];
-  return isValidKey(key) ? key : undefined;
-};
-
-export const getRecordChildren = <T = any>(
-  record: T,
-  childrenColumnName = 'children',
-): T[] => {
-  const children = record?.[childrenColumnName as keyof T];
-  return Array.isArray(children) ? (children as T[]) : [];
-};
-
-export const hasChildrenInData = <T = any>(
-  dataSource: T[] = [],
-  childrenColumnName = 'children',
-): boolean => {
-  return dataSource.some((record) => {
-    const children = getRecordChildren(record, childrenColumnName);
-    return (
-      children.length > 0 || hasChildrenInData(children, childrenColumnName)
-    );
-  });
-};
-
-export const getDefaultExpandedRowKeys = <T = any>(
-  dataSource: T[] = [],
-  rowKey: RowKey<T>,
-  expandable: ExpandableConfig<T> = {},
-): Key[] => {
-  const {
-    childrenColumnName = 'children',
-    expandedRowRender,
-    rowExpandable,
-  } = expandable;
-  const keys: Key[] = [];
-  const hasExpandedRowRender = typeof expandedRowRender === 'function';
-
-  const traverse = (records: T[]) => {
-    records.forEach((record) => {
-      const key = getRecordKey(record, rowKey);
-      const children = getRecordChildren(record, childrenColumnName);
-      const validKey = isValidKey(key);
-
-      if (hasExpandedRowRender) {
-        if (!validKey && rowExpandable?.(record) !== false) {
-          warningInvalidRecordKey(rowKey, 'default expanded rows', key);
-        }
-        if (validKey && rowExpandable?.(record) !== false) {
-          keys.push(key);
-        }
-        return;
-      }
-
-      if (!validKey && children.length) {
-        warningInvalidRecordKey(rowKey, 'default expanded rows', key);
-      }
-      if (validKey && children.length) {
-        keys.push(key);
-        traverse(children);
-      }
-    });
-  };
-
-  traverse(dataSource);
-  return keys;
-};
-
-const removeInternalColumns = <T = any>(
+const stripInternalColumns = <T = any>(
   columns: ColumnsType<T>,
 ): ColumnsType<T> => {
   return columns.reduce((result: ColumnsType<T>, column) => {
@@ -119,7 +35,7 @@ const removeInternalColumns = <T = any>(
     if (realColumn.children?.length) {
       result.push({
         ...realColumn,
-        children: removeInternalColumns(realColumn.children),
+        children: stripInternalColumns(realColumn.children),
       } as ColumnType<T>);
     } else {
       result.push(realColumn as ColumnType<T>);
@@ -129,12 +45,12 @@ const removeInternalColumns = <T = any>(
   }, []);
 };
 
-export const getColumnsWithInternalColumns = <T = any>(
+export const mergeInternalColumns = <T = any>(
+  size: SizeType,
   columns: ColumnsType<T> = [],
   expandable: ExpandableConfig<T> = {},
   rowSelection?: TableRowSelection<T>,
   rowSortable?: RowSortableConfig<T>,
-  size?: SizeType,
 ): ColumnsType<T> => {
   const {
     columnTitle,
@@ -156,7 +72,7 @@ export const getColumnsWithInternalColumns = <T = any>(
     !shouldShowSelectionColumn &&
     !shouldShowRowSortColumn
   ) {
-    return removeInternalColumns(columns);
+    return stripInternalColumns(columns);
   }
 
   const expandColumn = shouldShowExpandColumn

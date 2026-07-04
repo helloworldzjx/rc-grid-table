@@ -3,7 +3,7 @@ import type { Key } from 'react';
 import { isValidKey } from '../../_utils/validate';
 import type { BodyItem } from '../Body/interface';
 import type { ExpandableConfig, RowKey } from '../interface';
-import { getRecordChildren, getRecordKey } from './expand';
+import { getRecordChildren, getRecordKey } from './record';
 
 interface GetBodyItemsOptions<T = any> {
   dataSource?: T[];

@@ -77,7 +77,7 @@ export const prepareTableToken = (token: GlobalToken): TableComponentToken => {
     fixedColumnShadowColor: getSolidAlphaColor(
       token.colorTextBase,
       colorBgContainer,
-      0.1,
+      0.16,
     ),
     sortableCellBg: toSolidColor(token.controlItemBgActiveHover),
     overableCellBg: toSolidColor(token.controlItemBgActive),

@@ -58,12 +58,10 @@ import {
   normalizeDataSortOrder,
   sortDataSource,
 } from './utils/dataSort';
-import {
-  getColumnsWithInternalColumns,
-  getDefaultExpandedRowKeys,
-  getRecordKey,
-} from './utils/expand';
+import { getDefaultExpandedRowKeys } from './utils/expandable';
+import { mergeInternalColumns } from './utils/internalColumns';
 import { getTablePrefixCls } from './utils/prefixCls';
+import { getRecordKey } from './utils/record';
 import { warningInvalidRecordKey } from './utils/warning';
 
 export type { TableProps, TableRef } from './interface';
@@ -167,14 +165,14 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     },
   );
   const mergedColumns = useMemo(() => {
-    return getColumnsWithInternalColumns(
+    return mergeInternalColumns(
+      mergedSize,
       columns,
       mergedExpandable,
       rowSelection,
       rowSortable,
-      mergedSize,
     );
-  }, [columns, mergedExpandable, rowSelection, rowSortable, mergedSize]);
+  }, [mergedSize, columns, mergedExpandable, rowSelection, rowSortable]);
 
   const {
     initialized,
