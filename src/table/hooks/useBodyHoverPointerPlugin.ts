@@ -1,8 +1,8 @@
 import type { HTMLAttributes, MouseEventHandler } from 'react';
 import { useCallback, useEffect, useMemo } from 'react';
 
+import { setViewportMousePosition } from '../utils/viewportMouseTracker';
 import type { BodyHoverController } from './useBodyHoverController';
-import { setViewportMousePosition } from './viewportMouseTracker';
 
 interface UseBodyHoverPointerPluginProps {
   enabled?: boolean;

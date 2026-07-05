@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo } from 'react';
 
 import type { GetScrollContainer } from '../interface';
+import useViewportMouseTracker from '../utils/viewportMouseTracker';
 import type { BodyHoverController } from './useBodyHoverController';
-import useViewportMouseTracker from './viewportMouseTracker';
 
 interface UseBodyHoverScrollFollowPluginProps {
   enabled?: boolean;

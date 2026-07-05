@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { cancelRaf, raf } from '../../_utils/raf';
 import type { BodyHoverCellMeta, BodyHoverInterval } from '../Body/hover';
 import type { BodyHoverContextValue } from '../contexts/BodyHoverContext';
-import { getViewportMousePosition } from './viewportMouseTracker';
+import { getViewportMousePosition } from '../utils/viewportMouseTracker';
 
 interface UseBodyHoverControllerProps {
   enabled?: boolean;
