@@ -12,16 +12,23 @@ import {
 
 /**
  * 将总数分配到n个位置，返回数组
- * @param total 总数（必须 ≥ 0）
+ * @param total 总数（必须 ≠ 0）
  * @param n 分配数量（必须 ≥ 1）
+ * @param reverse 反转数组元素顺序，默认不反转
  */
-export const distribute = (total: number, n: number) => {
-  if (total < 0 || n < 1) {
-    throw 'param `total` should `total >= 0` or param `n` should `n >= 1`';
+export const distribute = (total: number, n: number, reverse = false) => {
+  if (total === 0 || n < 1) {
+    throw 'param `total` should `total ≠ 0` or param `n` should `n ≥ 1`';
   }
 
-  const avg = Math.floor(total / n);
-  const remainder = parseFloat((total - avg * n).toFixed(2));
+  if (n === 1) {
+    return [total];
+  }
+
+  const _total = Math.abs(total);
+
+  const avg = Math.floor(_total / n);
+  const remainder = parseFloat((_total - avg * n).toFixed(2));
   const integerRemainder = Math.floor(remainder);
   const decimalRemainder = parseFloat(
     (remainder - integerRemainder).toFixed(2),
@@ -36,6 +43,14 @@ export const distribute = (total: number, n: number) => {
 
   if (decimalRemainder > 0) {
     result[integerRemainder] += decimalRemainder;
+  }
+
+  if (reverse) {
+    result.reverse();
+  }
+
+  if (total < 0) {
+    return result.map((value) => value * -1);
   }
 
   return result;

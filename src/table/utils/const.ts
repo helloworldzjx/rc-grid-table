@@ -70,3 +70,5 @@ export const isInternalColumn = (column: unknown) =>
   isRowSortColumn(column);
 
 /** 特殊列默认配置 end */
+
+export const READY_SKELETON_BODY_HEIGHT = 286;

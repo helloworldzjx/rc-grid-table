@@ -33,7 +33,7 @@ const ExpandedRow: FC<ExpandedRowProps> = ({
 }) => {
   const {
     columnsWidthTotal,
-    containerWidth = 0,
+    containerWidth,
     flattenColumns = [],
   } = useTableLayoutContext();
   const prefixCls = usePrefixClsContext();
@@ -74,17 +74,12 @@ const ExpandedRow: FC<ExpandedRowProps> = ({
     } as CSSProperties;
   }, [bodyFixedHeightRowCssVar, expanded, hasFixedRowHeight, rowHeight, style]);
 
-  const expandedRowCellWidth = Math.min(
-    columnsWidthTotal,
-    containerWidth || columnsWidthTotal,
-  );
-
   const cellStyle = useMemo<CSSProperties>(
     () => ({
       gridColumn: `span ${flattenColumns.length || 1}`,
-      width: expandedRowCellWidth,
+      width: Math.min(columnsWidthTotal, containerWidth),
     }),
-    [expandedRowCellWidth, flattenColumns.length],
+    [flattenColumns.length, columnsWidthTotal, containerWidth],
   );
 
   const RowComponent = useMemo(

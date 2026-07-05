@@ -115,6 +115,7 @@ export interface VirtualBodyRenderProps<T = any> {
 export interface TableVirtualBodyController<T = any> {
   inVirtual: boolean;
   scrollHeight: number;
+  bodyHeight?: number;
   bodyStyle?: CSSProperties;
   virtualBodyProps: VirtualBodyRenderProps<T>;
   updateDeps: unknown[];

@@ -22,7 +22,7 @@ const AUTO_FILL_CHECK_FRAMES = 4;
 
 const Placeholder: FC = () => {
   const {
-    containerWidth = 0,
+    containerWidth,
     columnsWidthTotal,
     flattenColumns = [],
     flattenColumnsWidths = [],

@@ -360,15 +360,23 @@ export default function useTableVirtualBody<T = any>({
     scrollBodyToTop();
   }, [inVirtual, scrollBodyToTop, scrollVirtualTo]);
 
-  const bodyStyle = useMemo<React.CSSProperties | undefined>(() => {
+  const bodyHeight = useMemo(() => {
     if (isNum(scrollY) && scrollY > 0) {
-      return inVirtual
-        ? { height: scrollY, maxHeight: scrollY }
-        : { maxHeight: scrollY };
+      return scrollY;
     }
 
     return undefined;
-  }, [inVirtual, scrollY]);
+  }, [scrollY]);
+
+  const bodyStyle = useMemo<React.CSSProperties | undefined>(() => {
+    if (bodyHeight) {
+      return inVirtual
+        ? { height: bodyHeight, maxHeight: bodyHeight }
+        : { maxHeight: bodyHeight };
+    }
+
+    return undefined;
+  }, [inVirtual, bodyHeight]);
 
   const updateDeps = useMemo(
     () => [
@@ -417,6 +425,7 @@ export default function useTableVirtualBody<T = any>({
   return {
     inVirtual,
     scrollHeight,
+    bodyHeight,
     bodyStyle,
     virtualBodyProps,
     updateDeps,

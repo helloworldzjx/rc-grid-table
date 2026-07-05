@@ -20,6 +20,7 @@ import type {
   ExpandableConfig,
   RowKey,
   RowSortableConfig,
+  SizeType,
   TableComponents,
   TableLoading,
   TableProps,
@@ -93,12 +94,13 @@ export interface TableContextProps<T = any>
   extends Omit<TableProps<T>, TableFeatureContextKey> {
   // base props
   rowKey: RowKey<T>;
-  virtual: boolean | TableVirtualConfig;
   loading: boolean | TableLoading;
   rowHoverable: boolean;
+  size: SizeType;
+  virtual: boolean | TableVirtualConfig;
 
-  containerWidth?: number;
-  containerHeight?: number;
+  containerWidth: number;
+  containerHeight: number;
   initialized?: boolean;
   columns?: InternalColumnState<T>[];
   flattenColumns?: InternalColumnState<T>[];
@@ -115,8 +117,8 @@ export interface TableDataContextProps<T = any> {
 }
 
 export interface TableLayoutContextProps<T = any> {
-  containerWidth?: number;
-  containerHeight?: number;
+  containerWidth: number;
+  containerHeight: number;
   columns?: InternalColumnState<T>[];
   flattenColumns?: InternalColumnState<T>[];
   flattenColumnsWidths?: number[];
@@ -130,8 +132,8 @@ export interface TableColumnStateContextProps<T = any> {
   resizableColumns?: boolean;
   fixableColumns?: boolean;
   visibleColumns?: boolean;
-  columnMinWidth?: number;
-  leafColumnMinWidth?: number;
+  columnMinWidth: number;
+  leafColumnMinWidth: number;
   columnsState: ColumnState<T>[];
   columnsStatePreviewing: boolean;
   columnsStatePreviewMode?: ColumnsStatePreviewOptions['mode'];
