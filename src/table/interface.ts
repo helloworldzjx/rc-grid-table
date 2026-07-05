@@ -411,6 +411,12 @@ export type TableEmptyProps = Pick<
 
 export type TableEmpty = TableEmptyProps;
 
+export interface TableReadySkeletonConfig {
+  filterRow?: boolean;
+}
+
+export type TableReadySkeleton = boolean | TableReadySkeletonConfig;
+
 export type GetScrollContainer = () => Window | HTMLElement | null;
 
 export type ColumnState<T = any> = {
@@ -497,6 +503,11 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
    * @default true
    */
   ready?: boolean;
+  /**
+   * @description 在ready阶段显示table骨架屏
+   * @default false
+   */
+  readySkeleton?: TableReadySkeleton;
   /**
    * @description 加载状态
    * @default false

@@ -30,6 +30,7 @@ import ColumnPreviewStyleScope, {
 import Head from './Head/Head';
 import HorizontalScrollbar from './HorizontalScrollbar';
 import Placeholder from './Placeholder';
+import ReadySkeletonTable from './ReadySkeletonTable';
 import ScrollBarContainer from './ScrollContainer';
 import Summary from './Summary/Summary';
 import { useColumnSortableContext } from './contexts';
@@ -50,7 +51,12 @@ import useTableScroll from './hooks/useTableScroll';
 import type { TableProps, TableRef } from './interface';
 import { useStyles } from './style';
 import { getComponentCls, getCssVar } from './style/classNames';
+import { READY_SKELETON_BODY_HEIGHT } from './utils/const';
 import { parseHeaderRows } from './utils/handle';
+import {
+  getReadySkeletonHeadHeight,
+  normalizeReadySkeletonConfig,
+} from './utils/readySkeleton';
 import { getVirtualFixedHeightConfig } from './utils/virtual';
 
 const getStickyOffset = (
@@ -88,7 +94,9 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
   ) => {
     const {
       initialized,
-      containerWidth = 0,
+      ready,
+      readySkeleton,
+      containerWidth,
       rowKey,
       className,
       dataSource,
@@ -125,7 +133,9 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
 
     const {
       wrapperCls,
+      wrapperReadySkeletonCls,
       wrapperInitializedCls,
+      spinReadySkeletonWrapperCls,
       componentSMCls,
       componentMDCls,
       borderedCls,
@@ -175,6 +185,11 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       [virtual],
     );
     const childrenColumnName = expandable?.childrenColumnName ?? 'children';
+    const readySkeletonConfig = useMemo(
+      () => normalizeReadySkeletonConfig(readySkeleton),
+      [readySkeleton],
+    );
+    const showReadySkeleton = !initialized && !ready && !!readySkeletonConfig;
 
     const isTreeMode = !hasExpandedRowRender;
     const headRows = useMemo(() => {
@@ -337,6 +352,27 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       [getComponent],
     );
 
+    const bodyHeight = useMemo(() => {
+      return showReadySkeleton
+        ? virtualBody.bodyHeight || READY_SKELETON_BODY_HEIGHT
+        : 0;
+    }, [showReadySkeleton, virtualBody.bodyHeight]);
+
+    const readySkeletonWrapperStyle = useMemo<CSSProperties | undefined>(() => {
+      if (bodyHeight > 0) {
+        const head = getReadySkeletonHeadHeight(
+          bodyHeight,
+          size,
+          readySkeletonConfig,
+        );
+        return {
+          height: head + bodyHeight,
+        };
+      }
+
+      return undefined;
+    }, [bodyHeight, readySkeletonConfig, size]);
+
     const stickyHeaderStyle = useMemo<CSSProperties | undefined>(() => {
       if (!sticky) return undefined;
 
@@ -458,11 +494,17 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       <div
         {...nativeProps}
         className={classNames(wrapperCls, hashId, cssVarCls, {
+          [wrapperReadySkeletonCls]: showReadySkeleton,
           [wrapperInitializedCls]: initialized,
         })}
         ref={composeRef(ref, wrapperRef)}
+        style={readySkeletonWrapperStyle}
       >
-        <Spin {...spinProps} prefixCls={`${prefixCls}-spin`}>
+        <Spin
+          {...spinProps}
+          prefixCls={`${prefixCls}-spin`}
+          wrapperClassName={spinReadySkeletonWrapperCls}
+        >
           <ColumnPreviewStyleScope
             component={TableComponent}
             className={classNames(
@@ -604,6 +646,13 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
             <Placeholder />
           </ColumnPreviewStyleScope>
         </Spin>
+        {showReadySkeleton && (
+          <ReadySkeletonTable
+            hashId={hashId}
+            bodyHeight={bodyHeight}
+            readySkeletonConfig={readySkeletonConfig}
+          />
+        )}
       </div>
     );
   },

@@ -1,9 +1,12 @@
 export type ComponentClsType = {
   wrapperCls: string;
+  wrapperReadySkeletonCls: string;
   wrapperInitializedCls: string;
+  spinReadySkeletonWrapperCls: string;
   componentCls: string;
   componentSMCls: string;
   componentMDCls: string;
+  readySkeletonCls: string;
   borderedCls: string;
   virtualCls: string;
   stripeCls: string;
@@ -27,10 +30,12 @@ export type ComponentClsType = {
   headCls: string;
   headStickyCls: string;
   headInnerCls: string;
+  headReadySkeletonInnerCls: string;
   headRowCls: string;
   filterRowCls: string;
   bodyCls: string;
   bodyInnerCls: string;
+  bodyReadySkeletonInnerCls: string;
   bodyRowCls: string;
   bodyNoDataRowCls: string;
   bodyHoverRowCls: string;
@@ -113,18 +118,23 @@ export type ScrollbarClsType = {
 };
 
 export type CssVarType = {
-  bodyFixedHeightRowCssVar: string;
   columnsWidthCssVar: string;
   columnsWidthTotalCssVar: string;
+  readySkeletonHeadRowHeightCssVar: string;
+  readySkeletonBodyRowsHeightCssVar: string;
+  bodyFixedHeightRowCssVar: string;
 };
 
 export const getComponentCls = (prefixCls: string): ComponentClsType => {
   return {
     wrapperCls: `${prefixCls}-wrapper`,
+    wrapperReadySkeletonCls: `${prefixCls}-wrapper-ready-skeleton`,
     wrapperInitializedCls: `${prefixCls}-wrapper-initialized`,
+    spinReadySkeletonWrapperCls: `${prefixCls}-spin-ready-skeleton-nested-loading`,
     componentCls: prefixCls,
     componentSMCls: `${prefixCls}-wrapper-small`,
     componentMDCls: `${prefixCls}-wrapper-middle`,
+    readySkeletonCls: `${prefixCls}-ready-skeleton`,
     borderedCls: `${prefixCls}-bordered`,
     virtualCls: `${prefixCls}-virtual`,
     stripeCls: `${prefixCls}-stripe`,
@@ -148,10 +158,12 @@ export const getComponentCls = (prefixCls: string): ComponentClsType => {
     headCls: `${prefixCls}-head`,
     headStickyCls: `${prefixCls}-head-sticky`,
     headInnerCls: `${prefixCls}-head-inner`,
+    headReadySkeletonInnerCls: `${prefixCls}-head-ready-skeleton-inner`,
     headRowCls: `${prefixCls}-head-row`,
     filterRowCls: `${prefixCls}-filter-row`,
     bodyCls: `${prefixCls}-body`,
     bodyInnerCls: `${prefixCls}-body-inner`,
+    bodyReadySkeletonInnerCls: `${prefixCls}-body-ready-skeleton-inner`,
     bodyRowCls: `${prefixCls}-body-row`,
     bodyNoDataRowCls: `${prefixCls}-body-no-data-row`,
     bodyHoverRowCls: `${prefixCls}-body-hover-row`,
@@ -235,7 +247,9 @@ export const getScrollbarCls = (prefixCls: string): ScrollbarClsType => ({
 });
 
 export const getCssVar = (prefixCls: string): CssVarType => ({
-  bodyFixedHeightRowCssVar: `--${prefixCls}-body-fixed-height-row`,
   columnsWidthCssVar: `--${prefixCls}-columns-width`,
   columnsWidthTotalCssVar: `--${prefixCls}-columns-width-total`,
+  readySkeletonHeadRowHeightCssVar: `--${prefixCls}-ready-skeleton-head-row-height`,
+  readySkeletonBodyRowsHeightCssVar: `--${prefixCls}-ready-skeleton-body-rows-height`,
+  bodyFixedHeightRowCssVar: `--${prefixCls}-body-fixed-height-row`,
 });

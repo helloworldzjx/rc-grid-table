@@ -22,11 +22,24 @@ import { genScrollBarStyle, genScrollbarToggleStyle } from './scrollbarStyle';
 
 const genInitialStyle = ({
   wrapperCls,
+  wrapperReadySkeletonCls,
   wrapperInitializedCls,
+  spinReadySkeletonWrapperCls,
 }: ComponentClsType): CSSInterpolation => ({
   [`.${wrapperCls}`]: {
     visibility: 'hidden',
     pointerEvents: 'none',
+
+    [`&.${wrapperReadySkeletonCls}`]: {
+      position: 'relative',
+      visibility: 'visible',
+      pointerEvents: 'auto',
+
+      [`& > .${spinReadySkeletonWrapperCls}`]: {
+        visibility: 'hidden',
+        pointerEvents: 'none',
+      },
+    },
 
     [`&.${wrapperInitializedCls}`]: {
       visibility: 'visible',
@@ -71,6 +84,18 @@ const genComponentStyle = ({
 }: ComponentClsType): CSSInterpolation => ({
   [`.${componentCls}`]: {
     position: 'relative',
+  },
+});
+
+const genSkeletonStyle = ({
+  componentCls,
+  readySkeletonCls,
+}: ComponentClsType): CSSInterpolation => ({
+  [`.${componentCls}.${readySkeletonCls}`]: {
+    position: 'absolute',
+    inset: 0,
+    width: '100%',
+    height: '100%',
   },
 });
 
@@ -318,10 +343,11 @@ const genHeadStyle = (
     headCls,
     headStickyCls,
     headInnerCls,
+    headReadySkeletonInnerCls,
     headRowCls,
   }: ComponentClsType,
   token: TableComponentToken,
-  { columnsWidthCssVar }: CssVarType,
+  { columnsWidthCssVar, readySkeletonHeadRowHeightCssVar }: CssVarType,
 ): CSSInterpolation => ({
   [`.${componentCls}`]: {
     [`& > .${headCls}`]: {
@@ -351,6 +377,10 @@ const genHeadStyle = (
         overflow: 'auto hidden',
         scrollbarWidth: 'none',
 
+        [`&.${headReadySkeletonInnerCls}`]: {
+          gridTemplateRows: `var(${readySkeletonHeadRowHeightCssVar})`,
+        },
+
         [`& > .${headRowCls}`]: {
           display: 'contents',
         },
@@ -365,6 +395,7 @@ const genBodyStyle = (
     hasSummaryCls,
     bodyCls,
     bodyInnerCls,
+    bodyReadySkeletonInnerCls,
     bodyRowCls,
     bodyGridRowCls,
     bodyVirtualFillerCls,
@@ -372,7 +403,7 @@ const genBodyStyle = (
     bodySortDraggingOverlayRowCls,
   }: ComponentClsType,
   token: TableComponentToken,
-  { columnsWidthCssVar }: CssVarType,
+  { columnsWidthCssVar, readySkeletonBodyRowsHeightCssVar }: CssVarType,
 ): CSSInterpolation => ({
   [`.${componentCls}`]: {
     [`& > .${bodyCls}`]: {
@@ -404,6 +435,10 @@ const genBodyStyle = (
       boxSizing: 'border-box',
       overflow: 'auto',
       scrollbarWidth: 'none',
+
+      [`&.${bodyReadySkeletonInnerCls}`]: {
+        gridTemplateRows: `var(${readySkeletonBodyRowsHeightCssVar})`,
+      },
 
       [`& > .${bodyRowCls}`]: {
         display: 'contents',
@@ -1123,6 +1158,7 @@ const genNestStyles = (
   genInitialStyle(clsObj),
   genPlaceholderStyle(clsObj, mergedToken),
   genComponentStyle(clsObj),
+  genSkeletonStyle(clsObj),
   genVirtualStyle(clsObj, cssVar),
   genFixedShadowStyle(clsObj, mergedToken),
   genSizeClsStyle(clsObj, mergedToken),

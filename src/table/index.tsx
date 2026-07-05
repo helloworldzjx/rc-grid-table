@@ -78,6 +78,7 @@ type TableComponent = (<T = any>(
 function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
   const config = useConfig();
   const { componentSize } = AntdConfigProvider.useConfig();
+
   const {
     ready = true,
     rowKey = 'key',
@@ -103,6 +104,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     onFilterCell,
     onCell,
     onRow,
+    readySkeleton = false,
     className,
     rowClassName,
     bordered,
@@ -118,9 +120,11 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     style,
     ...nativeProps
   } = props;
+
   const prefixCls = useMemo(() => {
     return getTablePrefixCls(config.rootPrefixCls, customizePrefixCls);
   }, [config.rootPrefixCls, customizePrefixCls]);
+
   const mergedSize = customizeSize ?? componentSize ?? 'large';
   const mergedLoading = loading ?? config.gridTable?.loading ?? false;
   const mergedExpandable = useMemo<TableProps<T>['expandable']>(
@@ -320,6 +324,8 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
   const baseProps: TableContextProps<T> = useMemo(() => {
     return {
       initialized,
+      ready,
+      readySkeleton,
       prefixCls,
       virtual,
       loading: mergedLoading,
@@ -347,6 +353,8 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     };
   }, [
     initialized,
+    ready,
+    readySkeleton,
     prefixCls,
     virtual,
     mergedLoading,
