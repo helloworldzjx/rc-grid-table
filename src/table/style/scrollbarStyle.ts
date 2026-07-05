@@ -1,12 +1,12 @@
 import { type CSSInterpolation } from '@ant-design/cssinjs';
 import { ComponentClsType, ScrollbarClsType } from './classNames';
 
+import type { TableComponentToken } from '../design';
 import {
   SCROLLBAR_SIZE,
   SCROLLBAR_THUMB_ABSOLUTE_LEFT_TOP,
   SCROLLBAR_THUMB_SIZE,
-} from '../../_utils/const';
-import type { TableComponentToken } from '../design';
+} from '../utils/const';
 
 export const genScrollbarToggleStyle = (
   { componentCls }: ComponentClsType,

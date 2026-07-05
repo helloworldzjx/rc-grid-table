@@ -6,10 +6,10 @@ import {
 import { theme as antdTheme } from 'antd';
 import { useMemo } from 'react';
 
-import { COLUMNS_SORT_OVERLAY_POINTER_OFFSET_X } from '../../_utils/const';
 import { useConfig } from '../../configProvider/context';
 import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import { prepareTableToken, type TableComponentToken } from '../design';
+import { COLUMNS_SORT_OVERLAY_POINTER_OFFSET_X } from '../utils/const';
 import {
   ComponentClsType,
   CssVarType,

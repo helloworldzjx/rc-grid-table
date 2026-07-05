@@ -1,8 +1,8 @@
 import { Dispatch, Key, SetStateAction, useEffect, useRef } from 'react';
 
-import { COLUMNS_SORT_MOTION_DURATION } from '../../_utils/const';
 import { cancelRaf, raf } from '../../_utils/raf';
 import type { InternalColumnState } from '../internalInterface';
+import { COLUMNS_SORT_MOTION_DURATION } from '../utils/const';
 import type { SortableColumnType } from '../utils/dnd';
 import { reorderColumnsState, SortablePlacement } from '../utils/sortable';
 

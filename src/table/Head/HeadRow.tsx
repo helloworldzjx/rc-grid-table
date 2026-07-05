@@ -23,7 +23,6 @@ import React, {
   useState,
 } from 'react';
 
-import { COLUMNS_SORT_OVERLAY_POINTER_OFFSET_X } from '../../_utils/const';
 import { useColumnSortableContext } from '../contexts/ColumnSortableContext';
 import { useComponentsContext } from '../contexts/ComponentsContext';
 import { usePrefixClsContext } from '../contexts/PrefixClsContext';
@@ -31,6 +30,7 @@ import { useTableContext } from '../contexts/TableContext';
 import useRenderedColumnLayout from '../hooks/useRenderedColumnLayout';
 import type { CellType, InternalColumnState } from '../internalInterface';
 import { getComponentCls } from '../style/classNames';
+import { COLUMNS_SORT_OVERLAY_POINTER_OFFSET_X } from '../utils/const';
 import {
   dispatchDndPopupCloseEvent,
   isResizableColumnsData,

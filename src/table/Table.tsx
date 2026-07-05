@@ -18,7 +18,6 @@ import React, {
   useRef,
 } from 'react';
 
-import { SCROLLBAR_SIZE, SCROLLBAR_VISIBLE_TOLERANCE } from '../_utils/const';
 import { isNum, isObject } from '../_utils/validate';
 import BodyItem from './Body/BodyItem';
 import type { BodyNodeRenderer } from './Body/interface';
@@ -51,7 +50,11 @@ import useTableScroll from './hooks/useTableScroll';
 import type { TableProps, TableRef } from './interface';
 import { useStyles } from './style';
 import { getComponentCls, getCssVar } from './style/classNames';
-import { READY_SKELETON_BODY_HEIGHT } from './utils/const';
+import {
+  READY_SKELETON_BODY_HEIGHT,
+  SCROLLBAR_SIZE,
+  SCROLLBAR_VISIBLE_TOLERANCE,
+} from './utils/const';
 import { parseHeaderRows } from './utils/handle';
 import {
   getReadySkeletonHeadHeight,

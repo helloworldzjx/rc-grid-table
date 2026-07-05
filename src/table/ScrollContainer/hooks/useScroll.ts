@@ -8,9 +8,9 @@ import {
   useState,
 } from 'react';
 
-import { MIN_THUMB_SIZE } from '../../../_utils/const';
 import { useElementRef } from '../../../_utils/hooks/useElementRef';
 import { cancelRaf, raf } from '../../../_utils/raf';
+import { MIN_THUMB_SIZE } from '../../utils/const';
 import { ScrollBarContainerProps } from '../interface';
 
 type UseScrollProps = Omit<ScrollBarContainerProps, 'classNames' | 'prefixCls'>;

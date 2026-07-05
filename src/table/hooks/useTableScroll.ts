@@ -2,14 +2,11 @@ import { useIsomorphicLayoutEffect } from 'ahooks';
 import type { PointerEventHandler, UIEventHandler } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import {
-  MIN_THUMB_SIZE,
-  SCROLLBAR_VISIBLE_TOLERANCE,
-} from '../../_utils/const';
 import { useElementRef } from '../../_utils/hooks/useElementRef';
 import { cancelRaf, raf } from '../../_utils/raf';
 import type { HeadRef } from '../Head/Head';
 import type { ScrollBarContainerRef } from '../ScrollContainer/interface';
+import { MIN_THUMB_SIZE, SCROLLBAR_VISIBLE_TOLERANCE } from '../utils/const';
 
 interface UseTableScrollProps {
   containerWidth: number;
