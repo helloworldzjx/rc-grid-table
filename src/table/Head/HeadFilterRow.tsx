@@ -15,7 +15,7 @@ interface HeadFilterRowProps {
 
 const HeadFilterRow: FC<HeadFilterRowProps> = ({ headRowIndex }) => {
   const { flattenColumns = [], fixedOffset } = useRenderedColumnLayout();
-  const { onHeaderRow } = useTableContext();
+  const { onHeaderFilterRow } = useTableContext();
   const prefixCls = usePrefixClsContext();
   const { headRowCls, filterRowCls } = useMemo(
     () => getComponentCls(prefixCls),
@@ -42,8 +42,8 @@ const HeadFilterRow: FC<HeadFilterRowProps> = ({ headRowIndex }) => {
   }, [flattenColumns]);
 
   const rowProps = useMemo(() => {
-    return onHeaderRow?.(flattenColumns, headRowIndex);
-  }, [onHeaderRow, flattenColumns, headRowIndex]);
+    return onHeaderFilterRow?.(flattenColumns, headRowIndex);
+  }, [onHeaderFilterRow, flattenColumns, headRowIndex]);
 
   if (!hasFilter) {
     return null;

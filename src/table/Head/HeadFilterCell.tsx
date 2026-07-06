@@ -34,7 +34,7 @@ const HeadFilterCell: FC<HeadFilterCellProps> = ({
 }) => {
   const prefixCls = usePrefixClsContext();
   const { getComponent } = useComponentsContext();
-  const { onFilterCell } = useTableContext();
+  const { onHeadFilterRowCell } = useTableContext();
 
   const {
     cellCls,
@@ -74,10 +74,10 @@ const HeadFilterCell: FC<HeadFilterCellProps> = ({
   const cellProps = useMemo(
     () =>
       mergeCellProps(
-        onFilterCell?.(column, columnIndex),
-        column.onFilterCell?.(column, columnIndex),
+        onHeadFilterRowCell?.(column, columnIndex),
+        column.onHeadFilterRowCell?.(column, columnIndex),
       ),
-    [column, columnIndex, onFilterCell],
+    [column, columnIndex, onHeadFilterRowCell],
   );
 
   const mergedStyle = useMemo(() => {

@@ -133,7 +133,7 @@ export type GetTableHeaderCellProps<T> = (
   columnIndex?: number,
 ) => CellAttributes;
 
-export type GetFilterCellProps<T> = (
+export type GetHeadFilterRowCellProps<T> = (
   column: ColumnInfo<T>,
   columnIndex?: number,
 ) => CellAttributes;
@@ -318,7 +318,7 @@ export interface ColumnProps<T = any> {
   colSpan?: number;
   onCell?: GetBodyCellProps<T>;
   onHeaderCell?: GetHeaderCellProps<T>;
-  onFilterCell?: GetFilterCellProps<T>;
+  onHeadFilterRowCell?: GetHeadFilterRowCellProps<T>;
 }
 
 export type ExpandColumnType = ColumnProps<any> & {
@@ -640,9 +640,16 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
    */
   onHeaderCell?: GetTableHeaderCellProps<T>;
   /**
-   * @description 设置筛选单元格属性
+   * @description 设置筛选行属性
    */
-  onFilterCell?: GetFilterCellProps<T>;
+  onHeaderFilterRow?: (
+    columns: ColumnInfo<T>[],
+    index?: number,
+  ) => HTMLAttributes<any>;
+  /**
+   * @description 设置筛选行单元格属性
+   */
+  onHeadFilterRowCell?: GetHeadFilterRowCellProps<T>;
   /**
    * @description 设置body单元格属性
    */
