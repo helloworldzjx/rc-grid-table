@@ -412,7 +412,8 @@ export type TableEmptyProps = Pick<
 export type TableEmpty = TableEmptyProps;
 
 export interface TableReadySkeletonConfig {
-  filterRow?: boolean;
+  showFilterRow?: boolean;
+  bodyHeight?: number;
 }
 
 export type TableReadySkeleton = boolean | TableReadySkeletonConfig;

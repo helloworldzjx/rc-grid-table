@@ -356,10 +356,18 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
     );
 
     const bodyHeight = useMemo(() => {
-      return showReadySkeleton
-        ? virtualBody.bodyHeight || READY_SKELETON_BODY_HEIGHT
-        : 0;
-    }, [showReadySkeleton, virtualBody.bodyHeight]);
+      if (!showReadySkeleton) return 0;
+
+      if (virtualBody.bodyHeight) return virtualBody.bodyHeight;
+      if (
+        readySkeletonConfig?.bodyHeight &&
+        readySkeletonConfig.bodyHeight > 0
+      ) {
+        return readySkeletonConfig.bodyHeight;
+      }
+
+      return READY_SKELETON_BODY_HEIGHT;
+    }, [readySkeletonConfig, showReadySkeleton, virtualBody.bodyHeight]);
 
     const readySkeletonWrapperStyle = useMemo<CSSProperties | undefined>(() => {
       if (bodyHeight > 0) {

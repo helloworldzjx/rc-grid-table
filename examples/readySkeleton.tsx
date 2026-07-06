@@ -109,8 +109,8 @@ const App: React.FC = () => {
 
         <Switch
           checked={showFilterRow}
-          checkedChildren="show filterRow"
-          unCheckedChildren="hide filterRow"
+          checkedChildren="show filter row"
+          unCheckedChildren="hide filter row"
           onChange={setShowFilterRow}
         />
       </Space>
@@ -118,7 +118,7 @@ const App: React.FC = () => {
         {...baseProps}
         key={key}
         ready={ready}
-        readySkeleton={showFilterRow ? { filterRow: true } : true}
+        readySkeleton={showFilterRow ? { showFilterRow: true } : true}
         size={size}
         columns={columns}
         dataSource={dataSource}

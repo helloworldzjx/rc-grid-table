@@ -145,7 +145,7 @@ const ReadySkeletonTable = ({
               </div>
             ))}
           </div>
-          {readySkeletonConfig?.filterRow && (
+          {readySkeletonConfig?.showFilterRow && (
             <div className={classNames(headRowCls, filterRowCls)}>
               {columns.map((columnIndex) => (
                 <div
@@ -177,7 +177,7 @@ const ReadySkeletonTable = ({
                     prefixCls={prefixCls}
                     width={getBodySkeletonLineWidth(
                       rowIndex,
-                      readySkeletonConfig?.filterRow,
+                      readySkeletonConfig?.showFilterRow,
                     )}
                   />
                 </div>

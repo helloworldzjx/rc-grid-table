@@ -48,7 +48,9 @@ export const getReadySkeletonHeadRowsHeight = (
   const values = getReadySkeletonBodyRowsHeight(bodyHeight, size);
   const headRowHeight = Math.max(values[0], getBodyRowMinHeight(size));
 
-  return config?.filterRow ? [headRowHeight, headRowHeight] : [headRowHeight];
+  return config?.showFilterRow
+    ? [headRowHeight, headRowHeight]
+    : [headRowHeight];
 };
 
 export const getReadySkeletonHeadHeight = (
@@ -91,11 +93,11 @@ export const getHeadSkeletonLineWidth = (columnIndex: number) => {
 
 export const getBodySkeletonLineWidth = (
   rowIndex: number,
-  filterRow?: boolean,
+  showFilterRow?: boolean,
 ) => {
   const oddVisualRow = rowIndex % 2 === 0;
 
-  if (filterRow) {
+  if (showFilterRow) {
     return oddVisualRow ? 75 : 100;
   }
 
