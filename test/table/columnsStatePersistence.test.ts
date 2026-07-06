@@ -7,6 +7,7 @@ import {
   collectChangedColumnsStatePatches,
   compactUserColumnStatePatches,
   isColumnsStateEqual,
+  patchColumnsStateFixed,
 } from '../../src/table/utils/columnsState';
 import { finalizeColumnsStateSnapshot } from '../../src/table/utils/columnsStateSnapshot';
 import {
@@ -48,6 +49,11 @@ const byKey = (columnsState: ColumnState[]) =>
     ]),
   );
 
+const orderedKeys = (columnsState: ColumnState[]) =>
+  [...parseColumnsState(columnsState)]
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    .map((column) => column.key);
+
 describe('columns state persistence', () => {
   it('restores all persisted appearance fields regardless of feature switches', () => {
     const merged = mergeStorageColumnsState(
@@ -87,6 +93,108 @@ describe('columns state persistence', () => {
       fixed: 'start',
       width: 180,
       widthManuallyChanged: true,
+    });
+  });
+
+  it('moves a fixed column to the last existing target fixed stack without compacting fixed gaps', () => {
+    const previousState = [
+      createColumn('a', { order: 0, fixed: 'start' }),
+      createColumn('b', { order: 1 }),
+      createColumn('c', { order: 2, fixed: 'start' }),
+      createColumn('d', { order: 3 }),
+      createColumn('e', { order: 4 }),
+    ];
+    const { nextState, found } = patchColumnsStateFixed(
+      parseColumnsState(previousState),
+      ['e'],
+      'start',
+      'last',
+    );
+    const state = byKey(nextState);
+
+    expect(found).toBe(true);
+    expect(orderedKeys(nextState)).toEqual(['a', 'b', 'c', 'e', 'd']);
+    expect(state.get('e')).toMatchObject({ fixed: 'start', order: 3 });
+    expect(state.get('d')).toMatchObject({ order: 4 });
+  });
+
+  it('allows setColumnFixed ordering inside the same fixed bucket', () => {
+    const previousState = [
+      createColumn('a', { order: 0, fixed: 'start' }),
+      createColumn('b', { order: 1 }),
+      createColumn('c', { order: 2, fixed: 'start' }),
+      createColumn('d', { order: 3 }),
+    ];
+    const { nextState } = patchColumnsStateFixed(
+      parseColumnsState(previousState),
+      ['c'],
+      'start',
+      'first',
+    );
+    const patches = collectChangedColumnsStatePatches(
+      parseColumnsState(previousState),
+      nextState,
+      ['fixed', 'order'],
+    );
+
+    expect(orderedKeys(nextState)).toEqual(['c', 'a', 'b', 'd']);
+    expect(patches.some((patch) => patch.key === 'c')).toBe(true);
+    expect(patches.every((patch) => !('fixed' in patch.partial))).toBe(true);
+  });
+
+  it('places columns by fixed bucket order when the target fixed bucket is empty', () => {
+    const startState = [
+      createColumn('a', { order: 0 }),
+      createColumn('b', { order: 1, fixed: 'end' }),
+      createColumn('c', { order: 2 }),
+    ];
+    const normalState = [
+      createColumn('a', { order: 0, fixed: 'start' }),
+      createColumn('c', { order: 1, fixed: 'end' }),
+      createColumn('b', { order: 2, fixed: 'end' }),
+    ];
+    const endState = [
+      createColumn('a', { order: 0 }),
+      createColumn('b', { order: 1, fixed: 'start' }),
+      createColumn('c', { order: 2 }),
+    ];
+
+    const firstStartResult = patchColumnsStateFixed(
+      parseColumnsState(startState),
+      ['c'],
+      'start',
+      'first',
+    );
+    const lastStartResult = patchColumnsStateFixed(
+      parseColumnsState(startState),
+      ['c'],
+      'start',
+      'last',
+    );
+    const normalResult = patchColumnsStateFixed(
+      parseColumnsState(normalState),
+      ['b'],
+      false,
+      'last',
+    );
+    const endResult = patchColumnsStateFixed(
+      parseColumnsState(endState),
+      ['a'],
+      'end',
+      'first',
+    );
+
+    expect(orderedKeys(firstStartResult.nextState)).toEqual(['c', 'a', 'b']);
+    expect(orderedKeys(lastStartResult.nextState)).toEqual(['c', 'a', 'b']);
+    expect(orderedKeys(normalResult.nextState)).toEqual(['a', 'b', 'c']);
+    expect(orderedKeys(endResult.nextState)).toEqual(['b', 'c', 'a']);
+    expect(byKey(normalResult.nextState).get('b')).toMatchObject({
+      fixed: false,
+      order: 1,
+    });
+    expect(byKey(endResult.nextState).get('a')).toMatchObject({
+      fixed: 'end',
+      order: 2,
     });
   });
 

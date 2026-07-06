@@ -189,13 +189,17 @@ function HeadCell({
   }, [cellProps]);
 
   const mergedSpanKeys = useMemo(() => {
+    const siblingLeafColumns = flattenColumns.filter(
+      (column) => column.parentKey === col.column?.parentKey,
+    );
+
     return getMergedSpanKeys(
       {
         key: col.key as Key,
         hasChildren: col.column?.hasChildren,
         colSpan: col.column?.colSpan,
       },
-      flattenColumns,
+      siblingLeafColumns,
     );
   }, [col, flattenColumns]);
 

@@ -22,7 +22,6 @@ export default () => {
     {
       title: 'Name',
       key: 'name',
-      fixed: 'start',
       children: [
         {
           fixed: 'start',

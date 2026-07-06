@@ -10,6 +10,7 @@ import {
 } from 'antd';
 import { Table } from 'rc-grid-table';
 import type {
+  ColumnFixedInsertPosition,
   ColumnInfo,
   ColumnState,
   ColumnType,
@@ -356,10 +357,15 @@ export default () => {
     clearContextColumn();
   };
 
-  const setColumnFixed = (fixed: FixedType | false) => {
+  const setColumnFixed = (
+    fixed: FixedType | false,
+    insertPosition: ColumnFixedInsertPosition = 'last',
+  ) => {
     if (contextColumnFixedTargetKey === undefined) return;
 
-    tableRef.current?.setColumnFixed(contextColumnFixedTargetKey, fixed);
+    tableRef.current?.setColumnFixed(contextColumnFixedTargetKey, fixed, {
+      insertPosition,
+    });
     clearContextColumn();
   };
 
@@ -382,17 +388,47 @@ export default () => {
       {
         key: 'fix-start',
         label: `固定到左侧`,
-        disabled: previewing || contextColumnFixed === 'start',
+        disabled: previewing,
+        children: [
+          {
+            key: 'fix-start-first',
+            label: '左固定列第一个',
+          },
+          {
+            key: 'fix-start-last',
+            label: '左固定列最后一个',
+          },
+        ],
       },
       {
         key: 'fix-end',
         label: `固定到右侧`,
-        disabled: previewing || contextColumnFixed === 'end',
+        disabled: previewing,
+        children: [
+          {
+            key: 'fix-end-first',
+            label: '右固定列第一个',
+          },
+          {
+            key: 'fix-end-last',
+            label: '右固定列最后一个',
+          },
+        ],
       },
       {
         key: 'unfix',
         label: '取消固定',
         disabled: previewing || !contextColumnFixed,
+        children: [
+          {
+            key: 'unfix-first',
+            label: '非固定列第一个',
+          },
+          {
+            key: 'unfix-last',
+            label: '非固定列最后一个',
+          },
+        ],
       },
       { type: 'divider' },
       {
@@ -442,16 +478,28 @@ export default () => {
   const onContextMenuClick: MenuProps['onClick'] = ({ key }) => {
     if (!contextColumn) return;
 
-    if (key === 'fix-start') {
-      setColumnFixed('start');
+    if (key === 'fix-start-first') {
+      setColumnFixed('start', 'first');
       return;
     }
-    if (key === 'fix-end') {
-      setColumnFixed('end');
+    if (key === 'fix-start-last') {
+      setColumnFixed('start', 'last');
       return;
     }
-    if (key === 'unfix') {
-      setColumnFixed(false);
+    if (key === 'fix-end-first') {
+      setColumnFixed('end', 'first');
+      return;
+    }
+    if (key === 'fix-end-last') {
+      setColumnFixed('end', 'last');
+      return;
+    }
+    if (key === 'unfix-first') {
+      setColumnFixed(false, 'first');
+      return;
+    }
+    if (key === 'unfix-last') {
+      setColumnFixed(false, 'last');
       return;
     }
     if (key === 'hide-current') {

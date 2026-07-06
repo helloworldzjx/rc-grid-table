@@ -17,11 +17,13 @@ import type {
   ColumnsStatePreviewMode,
   ColumnsStatePreviewOptions,
   ColumnsType,
+  SetColumnFixedOptions,
   SizeType,
 } from '../interface';
 import type { InternalColumnState } from '../internalInterface';
 import { columnsWidthDistribute, getMergedSpanKeys } from '../utils/calc';
 import {
+  collectChangedColumnsStatePatches,
   collectChangedPatches,
   collectInvisibleColumnKeys,
   compactUserColumnStatePatches,
@@ -585,13 +587,17 @@ export default function useColumnsStateController<T = any>({
 
       if (targetColumn.children?.length) return [key];
 
+      const siblingLeafColumns = collectLeafColumns(realColumns).filter(
+        (column) => column.parentKey === targetColumn.parentKey,
+      );
+
       return getMergedSpanKeys(
         {
           key,
           hasChildren: false,
           colSpan: targetColumn.colSpan,
         },
-        collectLeafColumns(realColumns),
+        siblingLeafColumns,
       );
     },
     [columnsStatePreviewing, innerColumnsState, mergedColumns, size],
@@ -631,22 +637,40 @@ export default function useColumnsStateController<T = any>({
   );
 
   const setColumnFixed = useCallback(
-    (key: Key, fixed: ColumnState<T>['fixed']) => {
+    (
+      key: Key,
+      fixed: ColumnState<T>['fixed'],
+      options?: SetColumnFixedOptions,
+    ) => {
       if (!fixableColumns) return false;
+      if (
+        !options ||
+        (options.insertPosition !== 'first' &&
+          options.insertPosition !== 'last')
+      ) {
+        return false;
+      }
+      if (fixed !== 'start' && fixed !== 'end' && fixed !== false) {
+        return false;
+      }
 
       const actionKeys = getColumnActionKeys(key);
       if (!actionKeys.length) return false;
 
       const previousState = getActiveColumnsState();
-      let found = false;
-      const nextState = actionKeys.reduce((state, actionKey) => {
-        const patchResult = patchColumnsStateFixed(state, actionKey, fixed);
-        found = found || patchResult.found;
-        return patchResult.nextState;
-      }, previousState);
+      const { nextState, found } = patchColumnsStateFixed(
+        previousState,
+        actionKeys,
+        fixed,
+        options.insertPosition,
+      );
       if (!found) return false;
 
-      const patches = collectChangedPatches(previousState, nextState, 'fixed');
+      const patches = collectChangedColumnsStatePatches(
+        previousState,
+        nextState,
+        ['fixed', 'order'],
+      );
       if (!patches.length) return false;
 
       return commitColumnsStateChange(nextState, 'fixed', patches);

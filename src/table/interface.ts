@@ -31,13 +31,23 @@ export interface TableRef {
   saveColumnsStatePreview: () => boolean;
   cancelColumnsStatePreview: () => void;
   setColumnVisible: (key: Key, visible: boolean) => boolean;
-  setColumnFixed: (key: Key, fixed: FixedType | false) => boolean;
+  setColumnFixed: (
+    key: Key,
+    fixed: FixedType | false,
+    options: SetColumnFixedOptions,
+  ) => boolean;
 }
 
 export type ColumnsStatePreviewMode = 'full' | 'visibleHotOnly';
 
 export interface ColumnsStatePreviewOptions {
   mode?: ColumnsStatePreviewMode;
+}
+
+export type ColumnFixedInsertPosition = 'first' | 'last';
+
+export interface SetColumnFixedOptions {
+  insertPosition: ColumnFixedInsertPosition;
 }
 
 export type TableScrollAlign = 'top' | 'bottom' | 'auto';

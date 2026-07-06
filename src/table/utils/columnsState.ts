@@ -1,6 +1,10 @@
 import type { Key } from 'react';
 
-import type { ColumnState, ColumnStatePatch } from '../interface';
+import type {
+  ColumnFixedInsertPosition,
+  ColumnState,
+  ColumnStatePatch,
+} from '../interface';
 import { flattenColumnsState, parseColumnsState } from './handle';
 
 export type ColumnStatePatchField =
@@ -87,16 +91,153 @@ const patchFixedDeep = <T>(
   return next;
 };
 
+const getFixedBucket = (fixed: ColumnState['fixed']) => {
+  return fixed === 'start' || fixed === 'end' ? fixed : false;
+};
+
+const sortColumnsByOrder = <T>(columns: ColumnState<T>[]) => {
+  return columns
+    .map((column, index) => ({ column, index }))
+    .sort((a, b) => {
+      const prevOrder =
+        typeof a.column.order === 'number' ? a.column.order : a.index;
+      const nextOrder =
+        typeof b.column.order === 'number' ? b.column.order : b.index;
+      return prevOrder - nextOrder || a.index - b.index;
+    })
+    .map(({ column }) => column);
+};
+
+const getEmptyFixedBucketInsertIndex = <T>(
+  columns: ColumnState<T>[],
+  fixed: Exclude<ColumnState<T>['fixed'], undefined>,
+) => {
+  if (fixed === 'start') return 0;
+  if (fixed === 'end') return columns.length;
+
+  const lastStartIndex = columns.reduce((result, column, index) => {
+    return getFixedBucket(column.fixed) === 'start' ? index : result;
+  }, -1);
+
+  if (lastStartIndex >= 0) return lastStartIndex + 1;
+
+  const firstEndIndex = columns.findIndex(
+    (column) => getFixedBucket(column.fixed) === 'end',
+  );
+
+  return firstEndIndex >= 0 ? firstEndIndex : 0;
+};
+
+const isAlreadyAtFixedBoundary = <T>(
+  sortedColumns: ColumnState<T>[],
+  activeKeySet: Set<Key>,
+  fixed: Exclude<ColumnState<T>['fixed'], undefined>,
+  insertPosition: ColumnFixedInsertPosition,
+  activeCount: number,
+) => {
+  const targetColumns = sortedColumns.filter(
+    (column) => getFixedBucket(column.fixed) === fixed,
+  );
+  if (targetColumns.length <= activeCount) return false;
+
+  const activeColumns = sortedColumns.filter((column) =>
+    activeKeySet.has(column.key),
+  );
+  if (
+    activeColumns.length !== activeCount ||
+    activeColumns.some((column) => getFixedBucket(column.fixed) !== fixed)
+  ) {
+    return false;
+  }
+
+  if (insertPosition === 'first') {
+    return activeColumns.every(
+      (column, index) => targetColumns[index]?.key === column.key,
+    );
+  }
+
+  const targetTailColumns = targetColumns.slice(-activeColumns.length);
+  return activeColumns.every(
+    (column, index) => targetTailColumns[index]?.key === column.key,
+  );
+};
+
 export const patchColumnsStateFixed = <T>(
   columnsState: ColumnState<T>[],
-  targetKey: Key,
-  fixed: ColumnState<T>['fixed'],
+  targetKeys: Key[],
+  fixed: Exclude<ColumnState<T>['fixed'], undefined>,
+  insertPosition: ColumnFixedInsertPosition,
 ): { nextState: ColumnState<T>[]; found: boolean } => {
   let found = false;
+  const targetKeySet = new Set(targetKeys);
+  const fixedBucket = getFixedBucket(fixed);
 
-  const traverse = (columns: ColumnState<T>[]): ColumnState<T>[] =>
-    columns.map((column) => {
-      if (column.key === targetKey) {
+  const reorderSiblings = (
+    columns: ColumnState<T>[],
+    patchedColumns: ColumnState<T>[],
+  ) => {
+    const sortedColumns = sortColumnsByOrder(columns);
+    const sortedPatchedColumns = sortColumnsByOrder(patchedColumns);
+    const activeColumns = sortedPatchedColumns.filter((column) =>
+      targetKeySet.has(column.key),
+    );
+    if (!activeColumns.length) return patchedColumns;
+
+    const remainingColumns = sortedPatchedColumns.filter(
+      (column) => !targetKeySet.has(column.key),
+    );
+
+    let nextSortedColumns = sortedPatchedColumns;
+    const remainingTargetIndexes = remainingColumns.reduce<number[]>(
+      (result, column, index) => {
+        if (getFixedBucket(column.fixed) === fixedBucket) {
+          result.push(index);
+        }
+        return result;
+      },
+      [],
+    );
+
+    if (
+      remainingTargetIndexes.length &&
+      !isAlreadyAtFixedBoundary(
+        sortedColumns,
+        targetKeySet,
+        fixedBucket,
+        insertPosition,
+        activeColumns.length,
+      )
+    ) {
+      const insertIndex =
+        insertPosition === 'first'
+          ? Math.min(...remainingTargetIndexes)
+          : Math.max(...remainingTargetIndexes) + 1;
+      nextSortedColumns = [...remainingColumns];
+      nextSortedColumns.splice(insertIndex, 0, ...activeColumns);
+    } else if (!remainingTargetIndexes.length) {
+      const insertIndex = getEmptyFixedBucketInsertIndex(
+        remainingColumns,
+        fixedBucket,
+      );
+      nextSortedColumns = [...remainingColumns];
+      nextSortedColumns.splice(insertIndex, 0, ...activeColumns);
+    }
+
+    const orderMap = new Map<Key, number>();
+    nextSortedColumns.forEach((column, order) => {
+      orderMap.set(column.key, order);
+    });
+
+    return patchedColumns.map((column) => {
+      const order = orderMap.get(column.key);
+      if (order === undefined || column.order === order) return column;
+      return { ...column, order };
+    });
+  };
+
+  const traverse = (columns: ColumnState<T>[]): ColumnState<T>[] => {
+    const patchedColumns = columns.map((column) => {
+      if (targetKeySet.has(column.key)) {
         found = true;
         return patchFixedDeep(column, fixed);
       }
@@ -108,6 +249,9 @@ export const patchColumnsStateFixed = <T>(
         children: traverse(column.children),
       };
     });
+
+    return reorderSiblings(columns, patchedColumns);
+  };
 
   return { nextState: parseColumnsState(traverse(columnsState)), found };
 };
