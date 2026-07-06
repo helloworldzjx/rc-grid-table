@@ -876,7 +876,7 @@ const genFixedCellStyle = (
         position: 'sticky',
         zIndex: 3,
       },
-    [`&.${previewColumnsSortingCls} .${fixedStartCellCls}, .${fixedEndCellCls}`]:
+    [`&.${previewColumnsSortingCls} .${fixedStartCellCls}, &.${previewColumnsSortingCls} .${fixedEndCellCls}`]:
       {
         position: 'sticky',
         zIndex: 3,
@@ -957,8 +957,9 @@ const genFixedShadowStyle = (
     headLastCellCls,
     fixedStartCellCls,
     fixedStartLastCellCls,
-    fixedStartShadowActiveCellCls,
+    fixedEndCellCls,
     fixedEndFirstCellCls,
+    fixedStartShadowActiveCellCls,
     fixedEndShadowActiveCellCls,
   }: ComponentClsType,
   token: TableComponentToken,
@@ -997,10 +998,10 @@ const genFixedShadowStyle = (
       {
         opacity: 1,
       },
-    [`.${fixedStartShadowActiveCellCls}::after`]: {
+    [`.${fixedStartCellCls}.${fixedStartShadowActiveCellCls}::after`]: {
       opacity: 1,
     },
-    [`.${fixedEndShadowActiveCellCls}::after`]: {
+    [`.${fixedEndCellCls}.${fixedEndShadowActiveCellCls}::after`]: {
       opacity: 1,
     },
 

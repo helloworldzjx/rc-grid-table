@@ -95,9 +95,9 @@ export type ComponentClsType = {
   previewRestoredCellCls: string;
   fixedStartCellCls: string;
   fixedStartLastCellCls: string;
-  fixedStartShadowActiveCellCls: string;
   fixedEndCellCls: string;
   fixedEndFirstCellCls: string;
+  fixedStartShadowActiveCellCls: string;
   fixedEndShadowActiveCellCls: string;
   noDataCellCls: string;
   noDataCellContentCls: string;
@@ -223,9 +223,9 @@ export const getComponentCls = (prefixCls: string): ComponentClsType => {
     previewRestoredCellCls: `${prefixCls}-preview-restored-cell`,
     fixedStartCellCls: `${prefixCls}-fixed-start-cell`,
     fixedStartLastCellCls: `${prefixCls}-fixed-start-last-cell`,
-    fixedStartShadowActiveCellCls: `${prefixCls}-fixed-start-shadow-active-cell`,
     fixedEndCellCls: `${prefixCls}-fixed-end-cell`,
     fixedEndFirstCellCls: `${prefixCls}-fixed-end-first-cell`,
+    fixedStartShadowActiveCellCls: `${prefixCls}-fixed-start-shadow-active-cell`,
     fixedEndShadowActiveCellCls: `${prefixCls}-fixed-end-shadow-active-cell`,
     noDataCellCls: `${prefixCls}-no-data-cell`,
     noDataCellContentCls: `${prefixCls}-no-data-cell-content`,

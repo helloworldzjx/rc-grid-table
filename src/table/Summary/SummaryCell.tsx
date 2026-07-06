@@ -118,9 +118,9 @@ const SummaryCell: FC<SummaryCellProps> = ({ column, colEnd }) => {
         [ellipsisCellCls]: ellipsis,
         [fixedStartCellCls]: fixedInfo.fixStart !== null,
         [fixedStartLastCellCls]: fixedInfo.fixedStartShadow,
-        [fixedStartShadowActiveCellCls]: fixedShadowActive.start,
         [fixedEndCellCls]: fixedInfo.fixEnd !== null,
         [fixedEndFirstCellCls]: fixedInfo.fixedEndShadow,
+        [fixedStartShadowActiveCellCls]: fixedShadowActive.start,
         [fixedEndShadowActiveCellCls]: fixedShadowActive.end,
       })}
       style={mergedStyle}

@@ -416,9 +416,9 @@ function HeadCell({
           [headLastCellCls]: hasHeadLastCellCls,
           [fixedStartCellCls]: fixedInfo.fixStart !== null,
           [fixedStartLastCellCls]: fixedInfo.fixedStartShadow,
-          [fixedStartShadowActiveCellCls]: fixedShadowActive.start,
           [fixedEndCellCls]: fixedInfo.fixEnd !== null,
           [fixedEndFirstCellCls]: fixedInfo.fixedEndShadow,
+          [fixedStartShadowActiveCellCls]: fixedShadowActive.start,
           [fixedEndShadowActiveCellCls]: fixedShadowActive.end,
           [headResizableCellDisabledCls]:
             !!resizableColumns && !!col.column?.resizeDisabled,
