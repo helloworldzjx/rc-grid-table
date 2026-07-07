@@ -18,6 +18,7 @@ import type {
   ColumnsStatePreviewOptions,
   ColumnsType,
   SetColumnFixedOptions,
+  SetColumnVisibleOptions,
   SizeType,
 } from '../interface';
 import type { InternalColumnState } from '../internalInterface';
@@ -33,22 +34,20 @@ import {
   patchColumnsStateVisible,
 } from '../utils/columnsState';
 import {
-  finalizeColumnsStateSnapshot,
-  type FinalizedColumnsStateSnapshot,
-} from '../utils/columnsStateSnapshot';
+  finalizeColumnSnapshot,
+  mergeStorageColumnsState,
+  normalizeColumnsState,
+  rebasePreviewColumnsState,
+  type FinalizedColumnSnapshot,
+} from '../utils/columnStatePipeline';
+import { buildRenderableColumnTree } from '../utils/columnTree';
 import {
   batchPatchColumns,
   columnsSort,
-  filterHiddenColumns,
   getColumnsViewState,
   hydrateColumnsStateRuntimeWidths,
   parseColumnsState,
 } from '../utils/handle';
-import {
-  mergeStorageColumnsState,
-  rebasePreviewColumnsState,
-  reconcileColumnsState,
-} from '../utils/mergedColumnsState';
 import usePostCommitInitialized from './usePostCommitInitialized';
 
 interface UseColumnsStateControllerProps<T = any> {
@@ -200,7 +199,7 @@ export default function useColumnsStateController<T = any>({
   );
 
   const publishColumnsStateSnapshot = useCallback(
-    (snapshot: FinalizedColumnsStateSnapshot<T>) => {
+    (snapshot: FinalizedColumnSnapshot<T>) => {
       setInnerColumnsState(snapshot.sortedColumnsState);
       setCols(snapshot.treeColumns);
       setFlattenCols(snapshot.flattenColumns);
@@ -223,8 +222,8 @@ export default function useColumnsStateController<T = any>({
   const getCommittedMergedColumnsState = useCallback(() => {
     if (!columnsState.length) return [];
 
-    const realColumns = filterHiddenColumns(size, mergedColumns);
-    return reconcileColumnsState(realColumns, columnsState);
+    const realColumns = buildRenderableColumnTree(size, mergedColumns);
+    return normalizeColumnsState(realColumns, columnsState);
   }, [columnsState, mergedColumns, size]);
 
   const resetRuntimeWidths = useCallback(() => {
@@ -320,10 +319,10 @@ export default function useColumnsStateController<T = any>({
 
   const finalizeCommittedColumnsState = useCallback(
     (state: ColumnState<T>[]) => {
-      const realColumns = filterHiddenColumns(size, mergedColumns);
-      return finalizeColumnsStateSnapshot({
+      const realColumns = buildRenderableColumnTree(size, mergedColumns);
+      return finalizeColumnSnapshot({
         containerWidth,
-        columnsState: reconcileColumnsState(realColumns, state),
+        columnsState: normalizeColumnsState(realColumns, state),
         columnMinWidth,
         leafColumnMinWidth,
         size,
@@ -338,12 +337,12 @@ export default function useColumnsStateController<T = any>({
       const committedColumnsState = getCommittedMergedColumnsState();
       const renderColumnsState = committedColumnsState.length
         ? rebasePreviewColumnsState(committedColumnsState, state)
-        : reconcileColumnsState(
-            filterHiddenColumns(size, mergedColumns),
+        : normalizeColumnsState(
+            buildRenderableColumnTree(size, mergedColumns),
             state,
           );
 
-      return finalizeColumnsStateSnapshot({
+      return finalizeColumnSnapshot({
         containerWidth,
         columnsState: renderColumnsState,
         columnMinWidth,
@@ -578,14 +577,15 @@ export default function useColumnsStateController<T = any>({
   );
 
   const getColumnActionKeys = useCallback(
-    (key: Key) => {
+    (key: Key, options?: { coveredColSpan?: boolean }) => {
       const realColumns = columnsStatePreviewing
         ? innerColumnsState
-        : filterHiddenColumns(size, mergedColumns);
+        : buildRenderableColumnTree(size, mergedColumns);
       const targetColumn = findColumnByKey(realColumns, key);
       if (!targetColumn) return [];
 
       if (targetColumn.children?.length) return [key];
+      if (options?.coveredColSpan === false) return [key];
 
       const siblingLeafColumns = collectLeafColumns(realColumns).filter(
         (column) => column.parentKey === targetColumn.parentKey,
@@ -604,10 +604,10 @@ export default function useColumnsStateController<T = any>({
   );
 
   const setColumnVisible = useCallback(
-    (key: Key, visible: boolean) => {
+    (key: Key, visible: boolean, options?: SetColumnVisibleOptions) => {
       if (!visibleColumns) return false;
 
-      const actionKeys = getColumnActionKeys(key);
+      const actionKeys = getColumnActionKeys(key, options);
       if (!actionKeys.length) return false;
 
       const previousState = getActiveColumnsState();
@@ -644,9 +644,9 @@ export default function useColumnsStateController<T = any>({
     ) => {
       if (!fixableColumns) return false;
       if (
-        !options ||
-        (options.insertPosition !== 'first' &&
-          options.insertPosition !== 'last')
+        options?.insertPosition !== undefined &&
+        options.insertPosition !== 'first' &&
+        options.insertPosition !== 'last'
       ) {
         return false;
       }
@@ -654,7 +654,7 @@ export default function useColumnsStateController<T = any>({
         return false;
       }
 
-      const actionKeys = getColumnActionKeys(key);
+      const actionKeys = getColumnActionKeys(key, options);
       if (!actionKeys.length) return false;
 
       const previousState = getActiveColumnsState();
@@ -662,14 +662,14 @@ export default function useColumnsStateController<T = any>({
         previousState,
         actionKeys,
         fixed,
-        options.insertPosition,
+        options?.insertPosition,
       );
       if (!found) return false;
 
       const patches = collectChangedColumnsStatePatches(
         previousState,
         nextState,
-        ['fixed', 'order'],
+        options?.insertPosition ? ['fixed', 'order'] : ['fixed'],
       );
       if (!patches.length) return false;
 
@@ -728,11 +728,11 @@ export default function useColumnsStateController<T = any>({
       ready &&
       shouldInitializeColumnsState
     ) {
-      const noHiddenColumns = filterHiddenColumns(size, mergedColumns);
+      const noHiddenColumns = buildRenderableColumnTree(size, mergedColumns);
       const initialColumnsState = hasExplicitStorageColumnsState
         ? mergeStorageColumnsState(noHiddenColumns, storageColumnsState || [])
-        : reconcileColumnsState(noHiddenColumns, []);
-      const snapshot = finalizeColumnsStateSnapshot({
+        : normalizeColumnsState(noHiddenColumns, []);
+      const snapshot = finalizeColumnSnapshot({
         containerWidth,
         columnsState: initialColumnsState,
         columnMinWidth,
@@ -774,7 +774,7 @@ export default function useColumnsStateController<T = any>({
             )
           : committedColumnsState;
 
-      const snapshot = finalizeColumnsStateSnapshot({
+      const snapshot = finalizeColumnSnapshot({
         containerWidth,
         columnsState: activeSnapshotColumnsState,
         columnMinWidth,

@@ -6,6 +6,7 @@ import type {
   ColumnsType,
   ColumnType,
   ColumnViewState,
+  FixedType,
   SizeType,
 } from '../interface';
 import type { CellType, InternalColumnState } from '../internalInterface';
@@ -163,87 +164,38 @@ export function parseHeaderRows<T>(
   return rows;
 }
 
-export function filterHiddenColumns<T = any>(
-  size: SizeType,
-  columns: ColumnsType<T>,
-  parentKey: Key = '',
-  ancestorKeys: Key[] = [],
-  depth = 0,
-) {
-  if (!Array.isArray(columns)) return [];
+type ColumnFixedLike<T = any> = {
+  fixed?: ColumnState<T>['fixed'];
+  ownFixed?: ColumnState<T>['fixed'];
+};
 
-  return columns.reduce(
-    (
-      result: InternalColumnState<T>[],
-      column: ColumnType<T>,
-      index: number,
-    ) => {
-      if (isInternalColumn(column)) {
-        const width = column.width ?? getDefaultInternalColumnWidth(size);
-        result.push({
-          ...column,
-          title: column.title ?? '',
-          width,
-          parentKey,
-          ancestorKeys,
-          depth,
-          order: index,
-          visible: true,
-          distribute: false,
-          widthManuallyChanged: false,
-          autoWidthLocked: false,
-          hasChildren: false,
-          children: [],
-        } as InternalColumnState<T>);
-        return result;
-      }
+const isFixedType = (fixed: ColumnState['fixed']): fixed is FixedType =>
+  fixed === 'start' || fixed === 'end';
 
-      const currentKey = getColumnKey(column, index);
-      if (
-        column.hidden === true ||
-        (column.children?.length &&
-          column.children?.every((subColumn) => subColumn.hidden))
-      )
-        return result;
-      let children: ColumnsType<T> = [];
-      if (column.children?.length) {
-        children = filterHiddenColumns(
-          size,
-          column.children,
-          currentKey,
-          [...ancestorKeys, currentKey],
-          depth + 1,
-        );
-      }
+export const getColumnOwnFixed = <T>(
+  column: ColumnFixedLike<T>,
+): ColumnState<T>['fixed'] => {
+  if ('ownFixed' in column) {
+    return column.ownFixed;
+  }
 
-      const newNode = {
-        ...column,
-        key: currentKey,
-        parentKey,
-        ancestorKeys,
-        depth,
-      };
-      if (children.length) newNode.children = children;
-      result.push(newNode as InternalColumnState<T>);
-      return result;
-    },
-    [],
-  );
-}
-
-const getColumnStateFixed = <T>(
-  column: ColumnState<T> | InternalColumnState<T>,
-) => {
-  if (
-    'columnStateFixed' in column &&
-    (column.columnStateFixed === 'start' ||
-      column.columnStateFixed === 'end' ||
-      column.columnStateFixed === false)
-  ) {
-    return column.columnStateFixed;
+  if (isFixedType(column.ownFixed) || column.ownFixed === false) {
+    return column.ownFixed;
   }
 
   return column.fixed;
+};
+
+const getEffectiveColumnFixed = <T>(
+  column: ColumnFixedLike<T>,
+  inheritedFixed?: FixedType,
+): FixedType | undefined => {
+  const fixed = getColumnOwnFixed(column);
+
+  if (isFixedType(fixed)) return fixed;
+  if (fixed === false) return undefined;
+
+  return inheritedFixed;
 };
 
 export function parseColumnsState<T = any>(
@@ -260,7 +212,7 @@ export function parseColumnsState<T = any>(
     if (column.dataIndex !== undefined) state.dataIndex = column.dataIndex;
     if (isNum(column.order)) state.order = column.order;
     if (typeof column.visible === 'boolean') state.visible = column.visible;
-    const fixed = getColumnStateFixed(column);
+    const fixed = getColumnOwnFixed(column);
     if (fixed === 'start' || fixed === 'end') {
       state.fixed = fixed;
     } else if (fixed === false) {
@@ -349,8 +301,13 @@ export function flattenColumnsWithTotalWidth<T>(
     parentKey: Key = '',
     ancestorKeys: Key[] = [],
     depth: number = 0,
+    inheritedFixed?: FixedType,
   ) {
     cols.forEach((column, index) => {
+      const ownFixed = getColumnOwnFixed(column);
+      const effectiveFixed = getEffectiveColumnFixed(column, inheritedFixed);
+      const stateFixed = effectiveFixed ?? false;
+
       if (isInternalColumn(column)) {
         const defaultWidth = getDefaultInternalColumnWidth(size);
         const width =
@@ -359,6 +316,11 @@ export function flattenColumnsWithTotalWidth<T>(
 
         result.push({
           ...column,
+          ownFixed,
+          fixed: effectiveFixed,
+          effectiveFixed: stateFixed,
+          renderFixed: stateFixed,
+          groupFixedState: stateFixed,
           width,
           resizeMinWidth: getEffectiveResizeMinWidth(
             column.resizeMinWidth,
@@ -381,19 +343,8 @@ export function flattenColumnsWithTotalWidth<T>(
 
       const columnVisible = column.visible ?? true;
       const previewVisible = !!options.previewHiddenColumns && !columnVisible;
-      const childrenAllHidden = column.children?.length
-        ? column.children.every(
-            (subColumn) =>
-              subColumn.hidden ||
-              (!options.previewHiddenColumns && !(subColumn.visible ?? true)),
-          )
-        : false;
 
       if (column.hidden) {
-        return;
-      }
-
-      if (childrenAllHidden) {
         return;
       }
 
@@ -403,14 +354,26 @@ export function flattenColumnsWithTotalWidth<T>(
       if (!hasChildren && !previewVisible && !columnVisible) {
         return;
       }
+      if (hasChildren && !previewVisible && !columnVisible) {
+        return;
+      }
 
+      const childResultStartIndex = result.length;
       if (hasChildren) {
         traverse(
           column.children as FnColumnType<T>[],
           currentKey,
           [...ancestorKeys, currentKey],
           depth + 1,
+          effectiveFixed,
         );
+      }
+      if (
+        hasChildren &&
+        !previewVisible &&
+        result.length === childResultStartIndex
+      ) {
+        return;
       }
 
       let width: number | undefined = undefined;
@@ -449,6 +412,11 @@ export function flattenColumnsWithTotalWidth<T>(
 
       result.push({
         ...column,
+        ownFixed,
+        fixed: effectiveFixed,
+        effectiveFixed: stateFixed,
+        renderFixed: stateFixed,
+        groupFixedState: stateFixed,
         width,
         resizeMinWidth,
         key: currentKey,
@@ -631,7 +599,7 @@ export function getColumnsViewState<T = any>(
       depth: column.depth,
       order: column.order,
       visible: column.visible,
-      fixed: getColumnStateFixed(column),
+      fixed: getColumnOwnFixed(column),
       width: column.width,
       resizeMinWidth: column.resizeMinWidth,
       widthManuallyChanged: column.widthManuallyChanged,

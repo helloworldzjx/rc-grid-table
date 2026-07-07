@@ -1,9 +1,34 @@
-import { Key } from 'react';
+import type { Key } from 'react';
 
 import { isNum, isValidKey } from '../../_utils/validate';
-import type { ColumnState } from '../interface';
+import type { ColumnState, SizeType } from '../interface';
 import type { InternalColumnState } from '../internalInterface';
-import { getColumnKey } from './handle';
+import { columnsWidthDistribute } from './calc';
+import {
+  columnsSort,
+  getColumnKey,
+  getColumnOwnFixed,
+  hydrateColumnsStateRuntimeWidths,
+  parseColumnsState,
+} from './handle';
+
+interface FinalizeColumnSnapshotOptions<T = any> {
+  containerWidth: number;
+  columnsState: InternalColumnState<T>[];
+  columnMinWidth: number;
+  leafColumnMinWidth: number;
+  size: SizeType;
+  previewHiddenColumns?: boolean;
+  previewRestoredKeys?: ReadonlySet<Key>;
+}
+
+export interface FinalizedColumnSnapshot<T = any> {
+  finalColumnsState: ColumnState<T>[];
+  sortedColumnsState: InternalColumnState<T>[];
+  treeColumns: InternalColumnState<T>[];
+  flattenColumns: InternalColumnState<T>[];
+  flattenColumnsWidths: number[];
+}
 
 const internalColumnFlagKeys = [
   '__RC_GRID_TABLE_EXPAND_COLUMN',
@@ -30,11 +55,16 @@ function completeColumnState<T = any>(
     !hasChildren && !column.resizeDisabled && !autoWidthLocked
       ? column.distribute ?? false
       : false;
+  const ownFixed = getColumnOwnFixed(column);
 
   return {
     ...column,
     width,
     visible: column.visible ?? true,
+    ownFixed,
+    effectiveFixed: ownFixed ?? false,
+    renderFixed: ownFixed ?? false,
+    groupFixedState: ownFixed ?? false,
     distribute,
     widthManuallyChanged,
     autoWidthLocked,
@@ -77,11 +107,11 @@ function applyColumnState<T = any>(
     merged.visible = state.visible;
   }
   if (state.fixed === 'start' || state.fixed === 'end') {
+    merged.ownFixed = state.fixed;
     merged.fixed = state.fixed;
-    delete merged.columnStateFixed;
   } else if (state.fixed === false) {
     delete merged.fixed;
-    merged.columnStateFixed = false;
+    merged.ownFixed = false;
   }
   if (isNum(state.width)) {
     merged.width = isNum(column.resizeMinWidth)
@@ -157,16 +187,16 @@ function normalizeColumnsOrder<T = any>(
   });
 }
 
-function mergeColumnsStateInternal<T = any>(
+function normalizeColumnsStateInternal<T = any>(
   columns: InternalColumnState<T>[],
-  storageColumns: ColumnState<T>[],
+  appearanceState: ColumnState<T>[],
 ): InternalColumnState<T>[] {
-  const storageColumnsKeyMap = createSiblingKeyMap(storageColumns);
-  const mergeColumn = (
+  const stateKeyMap = createSiblingKeyMap(appearanceState);
+  const normalizeColumn = (
     column: InternalColumnState<T>,
   ): InternalColumnState<T> => {
-    const storeColumn = storageColumnsKeyMap.get(column.key);
-    const merged = applyColumnState(column, storeColumn);
+    const stateColumn = stateKeyMap.get(column.key);
+    const merged = applyColumnState(column, stateColumn);
 
     if (column.resizeDisabled && !column.hasChildren) {
       merged.width = column.width;
@@ -175,33 +205,86 @@ function mergeColumnsStateInternal<T = any>(
     }
 
     const children = column.children?.length
-      ? mergeColumnsStateInternal(column.children, storeColumn?.children || [])
+      ? normalizeColumnsStateInternal(
+          column.children,
+          stateColumn?.children || [],
+        )
       : [];
 
     return completeColumnState(merged, children);
   };
 
-  const mergedColumns = columns.map((column) => mergeColumn(column));
-  return normalizeColumnsOrder(mergedColumns, storageColumns);
+  const normalizedColumns = columns.map((column) => normalizeColumn(column));
+  return normalizeColumnsOrder(normalizedColumns, appearanceState);
 }
 
-export function reconcileColumnsState<T = any>(
+export function normalizeColumnsState<T = any>(
   currentColumns: InternalColumnState<T>[],
-  state: ColumnState<T>[],
+  appearanceState: ColumnState<T>[],
 ): InternalColumnState<T>[] {
-  return mergeColumnsStateInternal(currentColumns, state);
+  return normalizeColumnsStateInternal(currentColumns, appearanceState);
 }
 
 export function mergeStorageColumnsState<T = any>(
   currentColumns: InternalColumnState<T>[],
   storageState: ColumnState<T>[],
 ): InternalColumnState<T>[] {
-  return reconcileColumnsState(currentColumns, storageState);
+  return normalizeColumnsState(currentColumns, storageState);
 }
 
 export function rebasePreviewColumnsState<T = any>(
   currentColumns: InternalColumnState<T>[],
   draftState: ColumnState<T>[],
 ): InternalColumnState<T>[] {
-  return reconcileColumnsState(currentColumns, draftState);
+  return normalizeColumnsState(currentColumns, draftState);
+}
+
+export function finalizeColumnSnapshot<T = any>({
+  containerWidth,
+  columnsState,
+  columnMinWidth,
+  leafColumnMinWidth,
+  size,
+  previewHiddenColumns,
+  previewRestoredKeys,
+}: FinalizeColumnSnapshotOptions<T>): FinalizedColumnSnapshot<T> {
+  const sortedColumnsState = columnsSort(columnsState);
+
+  if (!containerWidth) {
+    return {
+      finalColumnsState: parseColumnsState(sortedColumnsState),
+      sortedColumnsState,
+      treeColumns: sortedColumnsState,
+      flattenColumns: [] as InternalColumnState<T>[],
+      flattenColumnsWidths: [] as number[],
+    };
+  }
+
+  const { flattenColumns, treeColumns } = columnsWidthDistribute(
+    containerWidth,
+    sortedColumnsState,
+    columnMinWidth,
+    leafColumnMinWidth,
+    size,
+    {
+      previewHiddenColumns,
+      previewRestoredKeys,
+    },
+  );
+  const flattenColumnsWidths = flattenColumns.map(
+    (column) => column.width as number,
+  );
+  const finalColumnsState = hydrateColumnsStateRuntimeWidths(
+    parseColumnsState(sortedColumnsState),
+    flattenColumns,
+    flattenColumnsWidths,
+  );
+
+  return {
+    finalColumnsState,
+    sortedColumnsState,
+    treeColumns,
+    flattenColumns,
+    flattenColumnsWidths,
+  };
 }

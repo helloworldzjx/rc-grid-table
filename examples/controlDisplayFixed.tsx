@@ -235,7 +235,7 @@ const getColumnTitle = (column: ColumnInfo<DataType>) => {
 };
 
 const getColumnFixedTargetKey = (column: ColumnInfo<DataType>) => {
-  return column.ancestorKeys[0] ?? column.key;
+  return column.key;
 };
 
 const collectColumnLeafKeys = (column: ColumnInfo<DataType>): Key[] => {
@@ -287,6 +287,8 @@ export default () => {
   const contextColumnTitle = contextColumn
     ? getColumnTitle(contextColumn)
     : undefined;
+  const contextColumnCanInsertPosition =
+    contextColumn?.ancestorKeys.length === 0;
   const contextColumnLeafKeys = useMemo(
     () => (contextColumn ? collectColumnLeafKeys(contextColumn) : []),
     [contextColumn],
@@ -359,13 +361,15 @@ export default () => {
 
   const setColumnFixed = (
     fixed: FixedType | false,
-    insertPosition: ColumnFixedInsertPosition = 'last',
+    insertPosition?: ColumnFixedInsertPosition,
   ) => {
     if (contextColumnFixedTargetKey === undefined) return;
 
-    tableRef.current?.setColumnFixed(contextColumnFixedTargetKey, fixed, {
-      insertPosition,
-    });
+    tableRef.current?.setColumnFixed(
+      contextColumnFixedTargetKey,
+      fixed,
+      insertPosition ? { insertPosition } : undefined,
+    );
     clearContextColumn();
   };
 
@@ -383,53 +387,77 @@ export default () => {
       },
     ];
 
+    items.push({ type: 'divider' });
+
+    if (contextColumnCanInsertPosition) {
+      items.push(
+        {
+          key: 'fix-start',
+          label: `固定到左侧`,
+          disabled: previewing,
+          children: [
+            {
+              key: 'fix-start-first',
+              label: '左固定列第一个',
+            },
+            {
+              key: 'fix-start-last',
+              label: '左固定列最后一个',
+            },
+          ],
+        },
+        {
+          key: 'fix-end',
+          label: `固定到右侧`,
+          disabled: previewing,
+          children: [
+            {
+              key: 'fix-end-first',
+              label: '右固定列第一个',
+            },
+            {
+              key: 'fix-end-last',
+              label: '右固定列最后一个',
+            },
+          ],
+        },
+        {
+          key: 'unfix',
+          label: '取消固定',
+          disabled: previewing || !contextColumnFixed,
+          children: [
+            {
+              key: 'unfix-first',
+              label: '非固定列第一个',
+            },
+            {
+              key: 'unfix-last',
+              label: '非固定列最后一个',
+            },
+          ],
+        },
+      );
+    } else {
+      items.push(
+        {
+          key: 'fix-start',
+          label: `固定到左侧`,
+          disabled: previewing,
+        },
+        {
+          key: 'fix-end',
+          label: `固定到右侧`,
+          disabled: previewing,
+        },
+        {
+          key: 'unfix',
+          label: '取消固定',
+          disabled: previewing || !contextColumnFixed,
+        },
+      );
+    }
+
     items.push(
-      { type: 'divider' },
-      {
-        key: 'fix-start',
-        label: `固定到左侧`,
-        disabled: previewing,
-        children: [
-          {
-            key: 'fix-start-first',
-            label: '左固定列第一个',
-          },
-          {
-            key: 'fix-start-last',
-            label: '左固定列最后一个',
-          },
-        ],
-      },
-      {
-        key: 'fix-end',
-        label: `固定到右侧`,
-        disabled: previewing,
-        children: [
-          {
-            key: 'fix-end-first',
-            label: '右固定列第一个',
-          },
-          {
-            key: 'fix-end-last',
-            label: '右固定列最后一个',
-          },
-        ],
-      },
-      {
-        key: 'unfix',
-        label: '取消固定',
-        disabled: previewing || !contextColumnFixed,
-        children: [
-          {
-            key: 'unfix-first',
-            label: '非固定列第一个',
-          },
-          {
-            key: 'unfix-last',
-            label: '非固定列最后一个',
-          },
-        ],
-      },
       { type: 'divider' },
       {
         key: contextColumnVisible ? 'hide-current' : 'show-current',
@@ -466,6 +494,7 @@ export default () => {
     return items;
   }, [
     checkedLeafKeys.length,
+    contextColumnCanInsertPosition,
     contextColumnHideDisabled,
     contextColumn,
     contextColumnFixed,
@@ -500,6 +529,18 @@ export default () => {
     }
     if (key === 'unfix-last') {
       setColumnFixed(false, 'last');
+      return;
+    }
+    if (key === 'fix-start') {
+      setColumnFixed('start');
+      return;
+    }
+    if (key === 'fix-end') {
+      setColumnFixed('end');
+      return;
+    }
+    if (key === 'unfix') {
+      setColumnFixed(false);
       return;
     }
     if (key === 'hide-current') {

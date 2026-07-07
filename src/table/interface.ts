@@ -30,11 +30,15 @@ export interface TableRef {
   startColumnsStatePreview: (options?: ColumnsStatePreviewOptions) => boolean;
   saveColumnsStatePreview: () => boolean;
   cancelColumnsStatePreview: () => void;
-  setColumnVisible: (key: Key, visible: boolean) => boolean;
+  setColumnVisible: (
+    key: Key,
+    visible: boolean,
+    options?: SetColumnVisibleOptions,
+  ) => boolean;
   setColumnFixed: (
     key: Key,
     fixed: FixedType | false,
-    options: SetColumnFixedOptions,
+    options?: SetColumnFixedOptions,
   ) => boolean;
 }
 
@@ -46,8 +50,13 @@ export interface ColumnsStatePreviewOptions {
 
 export type ColumnFixedInsertPosition = 'first' | 'last';
 
+export interface SetColumnVisibleOptions {
+  coveredColSpan?: boolean;
+}
+
 export interface SetColumnFixedOptions {
-  insertPosition: ColumnFixedInsertPosition;
+  insertPosition?: ColumnFixedInsertPosition;
+  coveredColSpan?: boolean;
 }
 
 export type TableScrollAlign = 'top' | 'bottom' | 'auto';
@@ -377,6 +386,10 @@ type ColumnInfoState = {
   order: number;
   distribute: boolean;
   visible: boolean;
+  ownFixed?: FixedType | false;
+  effectiveFixed?: FixedType | false;
+  renderFixed?: FixedType | false;
+  groupFixedState?: FixedType | false | 'mixed';
   hasChildren: boolean;
   widthManuallyChanged: boolean;
   autoWidthLocked: boolean;

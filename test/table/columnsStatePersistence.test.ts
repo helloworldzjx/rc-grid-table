@@ -9,17 +9,17 @@ import {
   isColumnsStateEqual,
   patchColumnsStateFixed,
 } from '../../src/table/utils/columnsState';
-import { finalizeColumnsStateSnapshot } from '../../src/table/utils/columnsStateSnapshot';
+import {
+  finalizeColumnSnapshot,
+  mergeStorageColumnsState,
+  normalizeColumnsState,
+} from '../../src/table/utils/columnStatePipeline';
 import {
   batchPatchColumns,
   flattenColumnsState,
   hydrateColumnsStateRuntimeWidths,
   parseColumnsState,
 } from '../../src/table/utils/handle';
-import {
-  mergeStorageColumnsState,
-  reconcileColumnsState,
-} from '../../src/table/utils/mergedColumnsState';
 
 const createColumn = (
   key: string,
@@ -241,7 +241,7 @@ describe('columns state persistence', () => {
       depth: 1,
       width: 120,
     });
-    const merged = reconcileColumnsState(
+    const merged = normalizeColumnsState(
       [
         createColumn('source', {
           hasChildren: true,
@@ -368,7 +368,7 @@ describe('columns state persistence', () => {
 
   it('finalizes visible changes before exposing the full columns state snapshot', () => {
     const { finalColumnsState, sortedColumnsState, treeColumns } =
-      finalizeColumnsStateSnapshot({
+      finalizeColumnSnapshot({
         containerWidth: 300,
         columnsState: [
           createColumn('a', { order: 0, width: 150 }),
@@ -421,14 +421,14 @@ describe('columns state persistence', () => {
         widthManuallyChanged: true,
       },
     ];
-    const previousSnapshot = finalizeColumnsStateSnapshot({
+    const previousSnapshot = finalizeColumnSnapshot({
       containerWidth: 300,
       columnsState: mergeStorageColumnsState(currentColumns, previousStorage),
       columnMinWidth: 50,
       leafColumnMinWidth: 50,
       size: 'large',
     });
-    const clearedSnapshot = finalizeColumnsStateSnapshot({
+    const clearedSnapshot = finalizeColumnSnapshot({
       containerWidth: 300,
       columnsState: mergeStorageColumnsState(currentColumns, []),
       columnMinWidth: 50,
@@ -461,7 +461,7 @@ describe('columns state persistence', () => {
   });
 
   it('keeps preview hidden columns in the preview width snapshot', () => {
-    const { finalColumnsState, flattenColumns } = finalizeColumnsStateSnapshot({
+    const { finalColumnsState, flattenColumns } = finalizeColumnSnapshot({
       containerWidth: 300,
       columnsState: [
         createColumn('a', { order: 0, width: 100 }),
@@ -495,6 +495,7 @@ describe('columns state persistence', () => {
       ],
       50,
       50,
+      'large',
     );
     const state = byKey(parseColumnsState(treeColumns));
 
@@ -520,6 +521,7 @@ describe('columns state persistence', () => {
       ],
       50,
       50,
+      'large',
     );
     const state = byKey(parseColumnsState(treeColumns));
 
@@ -534,6 +536,7 @@ describe('columns state persistence', () => {
       [{ key: 'a', dataIndex: 'a', width: 100, resizeDisabled: true }],
       50,
       50,
+      'large',
     );
     const [state] = parseColumnsState(treeColumns);
 

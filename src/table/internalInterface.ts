@@ -73,7 +73,6 @@ export type ColumnStateConfigType = Pick<
 >;
 
 export type InternalColumnState<T = any> = Omit<ColumnInfo<T>, 'children'> & {
-  columnStateFixed?: ColumnState<T>['fixed'];
   children?: InternalColumnState<T>[];
 };
 

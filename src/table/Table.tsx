@@ -307,8 +307,8 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       cancelColumnsStatePreview: () => {
         cancelColumnsStatePreview?.();
       },
-      setColumnVisible: (key, visible) => {
-        return setColumnVisible?.(key, visible) ?? false;
+      setColumnVisible: (key, visible, options) => {
+        return setColumnVisible?.(key, visible, options) ?? false;
       },
       setColumnFixed: (key, fixed, options) => {
         return setColumnFixed?.(key, fixed, options) ?? false;

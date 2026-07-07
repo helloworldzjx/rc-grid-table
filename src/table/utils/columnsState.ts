@@ -166,7 +166,7 @@ export const patchColumnsStateFixed = <T>(
   columnsState: ColumnState<T>[],
   targetKeys: Key[],
   fixed: Exclude<ColumnState<T>['fixed'], undefined>,
-  insertPosition: ColumnFixedInsertPosition,
+  insertPosition?: ColumnFixedInsertPosition,
 ): { nextState: ColumnState<T>[]; found: boolean } => {
   let found = false;
   const targetKeySet = new Set(targetKeys);
@@ -176,6 +176,8 @@ export const patchColumnsStateFixed = <T>(
     columns: ColumnState<T>[],
     patchedColumns: ColumnState<T>[],
   ) => {
+    if (!insertPosition) return patchedColumns;
+
     const sortedColumns = sortColumnsByOrder(columns);
     const sortedPatchedColumns = sortColumnsByOrder(patchedColumns);
     const activeColumns = sortedPatchedColumns.filter((column) =>

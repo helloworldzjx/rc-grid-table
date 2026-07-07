@@ -64,6 +64,70 @@ export const filterResizeEnabledColumns = <
   return columns.filter((column) => !column.resizeDisabled);
 };
 
+type FixedRenderState = InternalColumnState['renderFixed'];
+
+const normalizeFixedRenderTree = <T>(
+  columns: InternalColumnState<T>[],
+): InternalColumnState<T>[] => {
+  const collectLeafFixed = (
+    column: InternalColumnState<T>,
+  ): FixedRenderState[] => {
+    if (!column.children?.length) {
+      return [column.effectiveFixed ?? column.fixed ?? false];
+    }
+
+    return column.children.reduce<FixedRenderState[]>((result, child) => {
+      result.push(...collectLeafFixed(child));
+      return result;
+    }, []);
+  };
+
+  const aggregate = (fixedList: FixedRenderState[]) => {
+    if (!fixedList.length) return false;
+
+    const first = fixedList[0] ?? false;
+    return fixedList.every((fixed) => (fixed ?? false) === first)
+      ? first
+      : 'mixed';
+  };
+
+  const traverse = (column: InternalColumnState<T>): InternalColumnState<T> => {
+    if (!column.children?.length) {
+      const effectiveFixed = column.effectiveFixed ?? column.fixed ?? false;
+      return {
+        ...column,
+        fixed:
+          effectiveFixed === 'start' || effectiveFixed === 'end'
+            ? effectiveFixed
+            : undefined,
+        effectiveFixed,
+        renderFixed: effectiveFixed,
+        groupFixedState: effectiveFixed,
+      };
+    }
+
+    const children = column.children.map(traverse);
+    const groupFixedState = aggregate(children.flatMap(collectLeafFixed));
+    const renderFixed = groupFixedState === 'mixed' ? false : groupFixedState;
+
+    return {
+      ...column,
+      children,
+      fixed:
+        renderFixed === 'start' || renderFixed === 'end'
+          ? renderFixed
+          : undefined,
+      renderFixed,
+      groupFixedState,
+    };
+  };
+
+  return columns.map(traverse);
+};
+
+const buildTreeColumns = <T>(flattenColumns: InternalColumnState<T>[]) =>
+  normalizeFixedRenderTree(rebuildColumns(flattenColumns));
+
 /**
  * 调整表格列宽度
  * @param containerWidth 容器总宽度
@@ -105,7 +169,7 @@ export function columnsWidthDistribute<T>(
   if (hasAutoWidthLocked || remainingWidth <= 0) {
     return {
       flattenColumns: leafColumns,
-      treeColumns: rebuildColumns(flattenColumns),
+      treeColumns: buildTreeColumns(flattenColumns),
     };
   }
 
@@ -131,7 +195,7 @@ export function columnsWidthDistribute<T>(
   if (!cols.length) {
     return {
       flattenColumns: leafColumns,
-      treeColumns: rebuildColumns(flattenColumns),
+      treeColumns: buildTreeColumns(flattenColumns),
     };
   }
 
@@ -159,7 +223,7 @@ export function columnsWidthDistribute<T>(
     flattenColumns: mergedFlattenColumns.filter(
       (column) => !column.hasChildren,
     ),
-    treeColumns: rebuildColumns(mergedFlattenColumns),
+    treeColumns: buildTreeColumns(mergedFlattenColumns),
   };
 }
 
