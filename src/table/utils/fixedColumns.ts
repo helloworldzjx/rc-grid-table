@@ -3,8 +3,8 @@ import type { FixedType } from '../interface';
 import type { StickyOffsets } from '../internalInterface';
 
 export interface FixedInfo {
-  fixStart: number | false;
-  fixEnd: number | false;
+  fixStart: number | null;
+  fixEnd: number | null;
 
   isSticky: boolean;
 
@@ -95,8 +95,8 @@ export function getCellFixedInfo(
   }
 
   return {
-    fixStart: fixStart!,
-    fixEnd: fixEnd!,
+    fixStart,
+    fixEnd,
     fixedStartShadow,
     fixedEndShadow,
     offsetFixedStartShadow,

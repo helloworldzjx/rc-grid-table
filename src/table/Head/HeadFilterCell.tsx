@@ -83,10 +83,10 @@ const HeadFilterCell: FC<HeadFilterCellProps> = ({
   const mergedStyle = useMemo(() => {
     const style: CSSProperties = {};
     if (fixedInfo.fixStart !== null) {
-      style.left = fixedInfo.fixStart as number;
+      style.left = fixedInfo.fixStart;
     }
     if (fixedInfo.fixEnd !== null) {
-      style.right = fixedInfo.fixEnd as number;
+      style.right = fixedInfo.fixEnd;
     }
     const align = cellProps.align ?? column.align;
     if (align) {

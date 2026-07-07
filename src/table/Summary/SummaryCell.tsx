@@ -57,10 +57,10 @@ const SummaryCell: FC<SummaryCellProps> = ({ column, colEnd }) => {
       fixedOffset,
     );
     if (fixedInfo.fixStart !== null) {
-      style.left = fixedInfo.fixStart as number;
+      style.left = fixedInfo.fixStart;
     }
     if (fixedInfo.fixEnd !== null) {
-      style.right = fixedInfo.fixEnd as number;
+      style.right = fixedInfo.fixEnd;
     }
 
     return {

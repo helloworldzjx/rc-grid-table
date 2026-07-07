@@ -157,10 +157,10 @@ function HeadCell({
       style.display = 'none';
     }
     if (fixedInfo.fixStart !== null) {
-      style.left = fixedInfo.fixStart as number;
+      style.left = fixedInfo.fixStart;
     }
     if (fixedInfo.fixEnd !== null) {
-      style.right = fixedInfo.fixEnd as number;
+      style.right = fixedInfo.fixEnd;
     }
     const align = cellProps?.align ?? col.column?.align;
     if (align) {

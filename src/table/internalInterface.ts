@@ -92,13 +92,14 @@ type TableFeatureContextKey =
 
 export interface TableContextProps<T = any>
   extends Omit<TableProps<T>, TableFeatureContextKey> {
-  // base props
+  // table props
   rowKey: RowKey<T>;
   loading: boolean | TableLoading;
   rowHoverable: boolean;
   size: SizeType;
   virtual: boolean | TableVirtualConfig;
 
+  // internal props
   containerWidth: number;
   containerHeight: number;
   initialized?: boolean;
