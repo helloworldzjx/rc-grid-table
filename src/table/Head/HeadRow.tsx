@@ -70,7 +70,7 @@ const canOverByFixed = <T,>(
 ) => {
   if (!activeColumn.fixed) return true;
 
-  return activeColumn.fixed === overColumn.fixed;
+  return !!overColumn.fixed;
 };
 
 const emptyKeys = new Set<Key>();
@@ -219,11 +219,17 @@ function HeadRow({
 
   const updateFixedSortableHotKeys = useCallback(
     (column?: SortableColumnType) => {
-      if (!column?.fixed) {
+      if (!column) {
         updateSortableHotKeys(emptyKeys);
         return;
       }
 
+      const activeCell = columns.find(
+        (current) => `${current.key}` === `${column.key}`,
+      );
+      const activeVisualKeys = new Set(
+        getColumnVisualKeys(activeCell, headRows, flattenColumns),
+      );
       const keys = columns.reduce<Key[]>((result, current) => {
         if (current.column?.parentKey !== column.parentKey) {
           return result;
@@ -242,9 +248,11 @@ function HeadRow({
             ? 'end'
             : undefined;
 
-        if (fixedType === column.fixed) {
+        if (fixedType) {
           result.push(
-            ...getColumnVisualKeys(current, headRows, flattenColumns),
+            ...getColumnVisualKeys(current, headRows, flattenColumns).filter(
+              (key) => !activeVisualKeys.has(key),
+            ),
           );
         }
 
@@ -473,7 +481,7 @@ function HeadRow({
       return;
     }
 
-    // 固定列只能在相同 fixed 区域内排序，避免 start/normal/end 区域互相穿越。
+    // 固定列之间可以互相交换，但不能与非固定列交换。
     if (!canOverByFixed(activeColumn, overColumn)) {
       updateFixedSortableHotKeys(activeColumn);
       return;

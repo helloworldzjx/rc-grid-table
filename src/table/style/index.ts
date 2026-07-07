@@ -616,6 +616,7 @@ const genCellStyle = (
         borderRadius: token.borderRadius,
         boxShadow: '0 0 16px rgba(0, 0, 0, 0.1)',
         cursor: 'move',
+        pointerEvents: 'none',
       },
     },
 
