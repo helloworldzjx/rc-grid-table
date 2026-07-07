@@ -114,9 +114,7 @@ function applyColumnState<T = any>(
     merged.ownFixed = false;
   }
   if (isNum(state.width)) {
-    merged.width = isNum(column.resizeMinWidth)
-      ? Math.max(state.width, column.resizeMinWidth)
-      : state.width;
+    merged.width = state.width;
   }
   if (typeof state.widthManuallyChanged === 'boolean') {
     merged.widthManuallyChanged = state.widthManuallyChanged;

@@ -234,6 +234,20 @@ describe('columns state persistence', () => {
     });
   });
 
+  it('restores persisted width without clamping it to resizeMinWidth', () => {
+    const merged = mergeStorageColumnsState(
+      [createColumn('a', { resizeMinWidth: 160, width: 120 })],
+      [{ key: 'a', width: 80, widthManuallyChanged: true }],
+    );
+    const [state] = parseColumnsState(merged);
+
+    expect(state).toMatchObject({
+      key: 'a',
+      width: 80,
+      widthManuallyChanged: true,
+    });
+  });
+
   it('does not restore appearance fields when a leaf moves across parents', () => {
     const movedColumn = createColumn('moved', {
       parentKey: 'target',
