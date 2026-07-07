@@ -42,6 +42,7 @@ type RowSortBodyCellProps<T = any> = BodyCellBaseProps<T> & {
   previewHidden?: boolean;
   previewRestored?: boolean;
   placeholder?: boolean;
+  last?: boolean;
   rowSortAttributes?: DraggableAttributes;
   rowSortListeners?: DraggableSyntheticListeners;
   setRowSortActivatorNodeRef?: (element: HTMLElement | null) => void;
@@ -71,6 +72,7 @@ function RowSortBodyCell<T = any>({
   previewHidden = false,
   previewRestored = false,
   placeholder = false,
+  last = false,
   rowSortAttributes,
   rowSortListeners,
   setRowSortActivatorNodeRef,
@@ -81,6 +83,7 @@ function RowSortBodyCell<T = any>({
   const {
     cellCls,
     bodyVirtualRowSpanPlaceholderCellCls,
+    bodyLastCellCls,
     fixedStartCellCls,
     fixedStartLastCellCls,
     fixedStartShadowActiveCellCls,
@@ -173,6 +176,7 @@ function RowSortBodyCell<T = any>({
           [rowSortCellCls]: true,
           [rowSortOverCellCls]: rowSortIsOver,
           [bodyVirtualRowSpanPlaceholderCellCls]: placeholder,
+          [bodyLastCellCls]: last,
           [fixedStartCellCls]: fixedInfo.fixStart !== null,
           [fixedStartLastCellCls]: fixedInfo.fixedStartShadow,
           [fixedEndCellCls]: fixedInfo.fixEnd !== null,

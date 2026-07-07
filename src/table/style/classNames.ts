@@ -17,7 +17,9 @@ export type ComponentClsType = {
   hasStickyCls: string;
   previewColumnsSortingCls: string;
   rowSortingCls: string;
-  hasFixColumnsCls: string;
+  fixColumnsCls: string;
+  hasFixStartCls: string;
+  hasFixEndCls: string;
   fixColumnsGappedCls: string;
   pingStartCls: string;
   pingEndCls: string;
@@ -83,6 +85,8 @@ export type ComponentClsType = {
   expandTreeControlCls: string;
   expandTreeContentCls: string;
   headLastCellCls: string;
+  bodyLastCellCls: string;
+  summaryLastCellCls: string;
   headCellResizeHandleCls: string;
   headCellResizeHandleDisabledCls: string;
   headResizableCellDisabledCls: string;
@@ -145,7 +149,9 @@ export const getComponentCls = (prefixCls: string): ComponentClsType => {
     hasStickyCls: `${prefixCls}-has-sticky`,
     previewColumnsSortingCls: `${prefixCls}-preview-columns-sorting`,
     rowSortingCls: `${prefixCls}-row-sorting`,
-    hasFixColumnsCls: `${prefixCls}-has-fix-columns`,
+    fixColumnsCls: `${prefixCls}-fix-columns`,
+    hasFixStartCls: `${prefixCls}-has-fix-start`,
+    hasFixEndCls: `${prefixCls}-has-fix-end`,
     fixColumnsGappedCls: `${prefixCls}-fix-columns-gapped`,
     pingStartCls: `${prefixCls}-ping-start`,
     pingEndCls: `${prefixCls}-ping-end`,
@@ -211,6 +217,8 @@ export const getComponentCls = (prefixCls: string): ComponentClsType => {
     expandTreeControlCls: `${prefixCls}-expand-tree-control`,
     expandTreeContentCls: `${prefixCls}-expand-tree-content`,
     headLastCellCls: `${prefixCls}-head-last-cell`,
+    bodyLastCellCls: `${prefixCls}-body-last-cell`,
+    summaryLastCellCls: `${prefixCls}-summary-last-cell`,
     headCellResizeHandleCls: `${prefixCls}-head-cell-resize-handle`,
     headCellResizeHandleDisabledCls: `${prefixCls}-head-cell-resize-handle-disabled`,
     headResizableCellDisabledCls: `${prefixCls}-head-resizable-cell-disabled`,

@@ -10,6 +10,7 @@ import { getComponentCls } from '../style/classNames';
 import { getEllipsisShowTitle, getEllipsisTitle } from '../utils/ellipsis';
 import { getCellFixedInfo } from '../utils/fixedColumns';
 import { getNormalSpanStyle } from '../utils/gridPlacement';
+import { hasLastColumnKey } from '../utils/lastCell';
 
 interface SummaryCellProps {
   column: TableSummaryRowCell;
@@ -24,6 +25,7 @@ const SummaryCell: FC<SummaryCellProps> = ({ column, colEnd }) => {
     cellCls,
     ellipsisCellCls,
     ellipsisCellInnerCls,
+    summaryLastCellCls,
     fixedStartCellCls,
     fixedStartLastCellCls,
     fixedStartShadowActiveCellCls,
@@ -76,6 +78,10 @@ const SummaryCell: FC<SummaryCellProps> = ({ column, colEnd }) => {
         .map((item) => item.key),
     [colStart, colEnd, flattenColumns],
   );
+  const hasSummaryLastCellCls = useMemo(
+    () => hasLastColumnKey(flattenColumns, motionKeys),
+    [flattenColumns, motionKeys],
+  );
   const motionLayoutDependency = useMemo(
     () =>
       [
@@ -116,6 +122,7 @@ const SummaryCell: FC<SummaryCellProps> = ({ column, colEnd }) => {
     <CellContainer
       className={classNames(cellCls, {
         [ellipsisCellCls]: ellipsis,
+        [summaryLastCellCls]: hasSummaryLastCellCls,
         [fixedStartCellCls]: fixedInfo.fixStart !== null,
         [fixedStartLastCellCls]: fixedInfo.fixedStartShadow,
         [fixedEndCellCls]: fixedInfo.fixEnd !== null,

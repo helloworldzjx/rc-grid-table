@@ -352,6 +352,7 @@ const genHeadStyle = (
   [`.${componentCls}`]: {
     [`& > .${headCls}`]: {
       position: 'relative',
+      boxSizing: 'border-box',
 
       '&::before': {
         content: "' '",
@@ -374,6 +375,7 @@ const genHeadStyle = (
       [`& > .${headInnerCls}`]: {
         display: 'grid',
         gridTemplateColumns: `var(${columnsWidthCssVar})`,
+        boxSizing: 'border-box',
         overflow: 'auto hidden',
         scrollbarWidth: 'none',
 
@@ -953,8 +955,9 @@ const genFixedShadowStyle = (
     headRowCls,
     bodyRowCls,
     summaryRowCls,
-    cellCls,
     headLastCellCls,
+    bodyLastCellCls,
+    summaryLastCellCls,
     fixedStartCellCls,
     fixedStartLastCellCls,
     fixedEndCellCls,
@@ -1017,10 +1020,10 @@ const genFixedShadowStyle = (
     [`.${headRowCls} .${headLastCellCls}.${fixedStartCellCls}::after`]: {
       display: 'none',
     },
-    [`.${bodyRowCls} .${cellCls}:last-child.${fixedStartCellCls}::after`]: {
+    [`.${bodyRowCls} .${bodyLastCellCls}.${fixedStartCellCls}::after`]: {
       display: 'none',
     },
-    [`.${summaryRowCls} .${cellCls}:last-child.${fixedStartCellCls}::after`]: {
+    [`.${summaryRowCls} .${summaryLastCellCls}.${fixedStartCellCls}::after`]: {
       display: 'none',
     },
   },

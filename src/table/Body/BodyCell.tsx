@@ -32,6 +32,7 @@ import {
 import { getDataSortColumnKey } from '../utils/dataSort';
 import { getEllipsisShowTitle, getEllipsisTitle } from '../utils/ellipsis';
 import { FixedInfo } from '../utils/fixedColumns';
+import { hasLastColumnKey } from '../utils/lastCell';
 import { getBodyCellSpanInfo } from './cellSpan';
 import type { BodyRenderMode } from './interface';
 
@@ -97,6 +98,7 @@ function BodyCell({
     expandTreeCellInnerCls,
     expandTreeCellInnerSpacedCls,
     dataSortActiveCellCls,
+    bodyLastCellCls,
     fixedStartCellCls,
     fixedStartLastCellCls,
     fixedStartShadowActiveCellCls,
@@ -172,6 +174,10 @@ function BodyCell({
   const cellMotionKeys = useMemo(
     () => (cellPlaceholder ? undefined : motionKeys),
     [cellPlaceholder, motionKeys],
+  );
+  const hasBodyLastCellCls = useMemo(
+    () => hasLastColumnKey(flattenColumns, motionKeys),
+    [flattenColumns, motionKeys],
   );
 
   const inSortableActiveScope = useMemo(
@@ -416,6 +422,7 @@ function BodyCell({
         placeholder={cellPlaceholder}
         hovered={hoveredCell}
         hoverClassName={bodyHoverCellCls}
+        last={hasBodyLastCellCls}
         rowSortAttributes={rowSortAttributes}
         rowSortListeners={rowSortListeners}
         setRowSortActivatorNodeRef={setRowSortActivatorNodeRef}
@@ -437,6 +444,7 @@ function BodyCell({
           [expandCellCls]: isInternalExpandColumn,
           [expandTreeCellCls]: isTreeCell,
           [selectionCellCls]: isInternalSelectionColumn,
+          [bodyLastCellCls]: hasBodyLastCellCls,
           [fixedStartCellCls]: fixedInfo.fixStart !== null,
           [fixedStartLastCellCls]: fixedInfo.fixedStartShadow,
           [fixedEndCellCls]: fixedInfo.fixEnd !== null,
