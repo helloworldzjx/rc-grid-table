@@ -41,6 +41,7 @@ import FixedShadowContext from './contexts/FixedShadowContext';
 import { usePrefixClsContext } from './contexts/PrefixClsContext';
 import { useRowSortableContext } from './contexts/RowSortableContext';
 import { useTableContext } from './contexts/TableContext';
+import { useTableLayoutContext } from './contexts/TableLayoutContext';
 import useBodyHoverController from './hooks/useBodyHoverController';
 import useBodyHoverPointerPlugin from './hooks/useBodyHoverPointerPlugin';
 import useBodyHoverScrollFollowPlugin from './hooks/useBodyHoverScrollFollowPlugin';
@@ -100,16 +101,9 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       initialized,
       ready,
       readySkeleton,
-      containerWidth,
       rowKey,
       className,
       dataSource,
-      columns,
-      flattenColumns = [],
-      flattenColumnsWidths = [],
-      fixedOffset,
-      hasFixedColumns,
-      fixColumnsGapped,
       size,
       bordered,
       stripe,
@@ -122,9 +116,18 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       loading,
       empty,
       style,
-      columnsWidthTotal,
       onScroll,
     } = useTableContext();
+    const {
+      containerWidth,
+      columns,
+      flattenColumns = [],
+      flattenColumnsWidths = [],
+      fixedOffset,
+      hasFixedColumns,
+      fixColumnsGapped,
+      columnsWidthTotal,
+    } = useTableLayoutContext();
 
     const prefixCls = usePrefixClsContext();
     const { renderEmpty } = useContext(AntdConfigContext);
@@ -275,6 +278,11 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       extraUpdateDeps: [mergedExpandedRowKeys, columnsWidthTotal],
     });
 
+    const rowSortRuntime = useMemo(
+      () => rowSort.getRuntime(virtualBody.inVirtual),
+      [rowSort, virtualBody.inVirtual],
+    );
+
     const resolveBodyHoverScrollContainer = useCallback(() => {
       if (getScrollContainer) {
         return getScrollContainer();
@@ -319,11 +327,6 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
         return setColumnFixed?.(key, fixed, options) ?? false;
       },
     }));
-
-    const rowSortRuntime = useMemo(
-      () => rowSort.getRuntime(virtualBody.inVirtual),
-      [rowSort, virtualBody.inVirtual],
-    );
 
     const fixedShadowContextValue = useFixedShadow({
       scrollLeft: bodyScrollLeft,
@@ -485,6 +488,20 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       [rowHeight, expandedRowHeight, hasTreeData, rowSort],
     );
 
+    const rowSortOverlayContent = useMemo(() => {
+      if (rowSort.activeBodyItem && rowSortRuntime.overlayRenderInfo) {
+        return renderBodyNode(
+          rowSort.activeBodyItem,
+          rowSortRuntime.overlayRenderInfo,
+        );
+      }
+      return undefined;
+    }, [
+      rowSort.activeBodyItem,
+      rowSortRuntime.overlayRenderInfo,
+      renderBodyNode,
+    ]);
+
     const handleTableBodyScroll = useCallback<
       React.UIEventHandler<HTMLDivElement>
     >(
@@ -618,12 +635,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
                       dropAnimation={null}
                       modifiers={rowSortRuntime.overlayModifiers}
                     >
-                      {rowSort.activeBodyItem &&
-                        rowSortRuntime.overlayRenderInfo &&
-                        renderBodyNode(
-                          rowSort.activeBodyItem,
-                          rowSortRuntime.overlayRenderInfo,
-                        )}
+                      {rowSortOverlayContent}
                     </DragOverlay>
                   </DndContext>
                 </ScrollBarContainer>

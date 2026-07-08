@@ -2,7 +2,7 @@ import { Skeleton } from 'antd';
 import classNames from 'classnames';
 import React, { CSSProperties, useMemo } from 'react';
 
-import { useTableContext } from '../contexts';
+import { useTableContext, useTableLayoutContext } from '../contexts';
 import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import type { TableReadySkeletonConfig } from '../interface';
 import { getComponentCls, getCssVar } from '../style/classNames';
@@ -40,7 +40,8 @@ const ReadySkeletonTable = ({
 }: ReadySkeletonTableProps) => {
   const prefixCls = usePrefixClsContext();
 
-  const { containerWidth, size, bordered, stripe } = useTableContext();
+  const { size, bordered, stripe } = useTableContext();
+  const { containerWidth } = useTableLayoutContext();
 
   const {
     readySkeletonCls,

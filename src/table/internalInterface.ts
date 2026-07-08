@@ -81,7 +81,21 @@ export interface DataSortContextProps {
   dataSortOrders?: DataSortOrder[];
 }
 
+export interface TableLayoutContextProps<T = any> {
+  containerWidth: number;
+  containerHeight: number;
+  columns?: InternalColumnState<T>[];
+  flattenColumns?: InternalColumnState<T>[];
+  flattenColumnsWidths?: number[];
+  columnMotionPositions?: number[];
+  columnsWidthTotal: number;
+  fixedOffset: StickyOffsets;
+  hasFixedColumns: boolean;
+  fixColumnsGapped: boolean;
+}
+
 type TableFeatureContextKey =
+  | 'columns'
   | 'components'
   | 'dataSort'
   | 'expandable'
@@ -99,35 +113,12 @@ export interface TableContextProps<T = any>
   virtual: boolean | TableVirtualConfig;
 
   // internal props
-  containerWidth: number;
-  containerHeight: number;
   initialized?: boolean;
-  columns?: InternalColumnState<T>[];
-  flattenColumns?: InternalColumnState<T>[];
-  flattenColumnsWidths?: number[];
-  columnMotionPositions?: number[];
-  columnsWidthTotal: number;
-  fixedOffset: StickyOffsets;
-  hasFixedColumns: boolean;
-  fixColumnsGapped: boolean;
 }
 
 export interface TableDataContextProps<T = any> {
   rowKey: RowKey<T>;
   dataSource?: T[];
-}
-
-export interface TableLayoutContextProps<T = any> {
-  containerWidth: number;
-  containerHeight: number;
-  columns?: InternalColumnState<T>[];
-  flattenColumns?: InternalColumnState<T>[];
-  flattenColumnsWidths?: number[];
-  columnMotionPositions?: number[];
-  columnsWidthTotal: number;
-  fixedOffset: StickyOffsets;
-  hasFixedColumns: boolean;
-  fixColumnsGapped: boolean;
 }
 
 export interface TableColumnStateContextProps<T = any> {

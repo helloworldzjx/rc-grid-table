@@ -4,6 +4,7 @@ import React, { Key, useMemo } from 'react';
 
 import { useExpandableContext } from '../contexts/ExpandableContext';
 import { useTableContext } from '../contexts/TableContext';
+import { useTableLayoutContext } from '../contexts/TableLayoutContext';
 import { warningInvalidRecordKey } from '../utils/warning';
 import BodyRow from './BodyRow';
 import ExpandedRow from './ExpandedRow';
@@ -32,15 +33,12 @@ function BodyItem<T = any>({
   hasTreeData,
   rowSort,
 }: BodyItemProps<T>) {
+  const { rowKey, rowClassName, onRow, rowHoverable } = useTableContext();
   const {
-    rowKey,
-    rowClassName,
-    onRow,
-    rowHoverable,
     flattenColumns = [],
     columnMotionPositions = [],
     fixedOffset,
-  } = useTableContext();
+  } = useTableLayoutContext();
   const { expandable } = useExpandableContext<T>();
 
   const expandedNode = useMemo(
