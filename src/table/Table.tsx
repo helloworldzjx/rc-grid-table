@@ -130,7 +130,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
     const { getComponent } = useComponentsContext();
     const { expandable, mergedExpandedRowKeys = [] } = useExpandableContext();
     const { rowSortable } = useRowSortableContext();
-    const { sortingColumns } = useColumnSortableContext();
+    const { activeStatus, sortingColumns } = useColumnSortableContext();
 
     const { hashId, cssVarCls } = useStyles();
 
@@ -156,6 +156,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       hasYScrollbarCls,
       hasStickyCls,
       previewColumnsSortingCls,
+      columnSortableFixedActiveCls,
       rowSortingCls,
       headStickyCls,
       bodyCls,
@@ -541,6 +542,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
                 [pingEndCls]: !isEnd,
                 [hasStickyCls]: sticky,
                 [previewColumnsSortingCls]: sortingColumns,
+                [columnSortableFixedActiveCls]: activeStatus.fixed,
                 [rowSortingCls]: rowSort.activeKey !== null,
               },
               className,

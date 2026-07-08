@@ -58,8 +58,7 @@ function HeadCell({
   const { flattenColumns = [], fixedOffset } = useRenderedColumnLayout();
   const { resizableColumns, columnsStatePreviewMode } =
     useTableColumnStateContext();
-  const { sortableActiveKeys, sortableColumns, sortableHotKeys } =
-    useColumnSortableContext();
+  const { activeStatus, sortableColumns, hotKeys } = useColumnSortableContext();
   const prefixCls = usePrefixClsContext();
   const { getComponent } = useComponentsContext();
   const { dataSort, dataSortOrders = [] } = useDataSortContext();
@@ -234,13 +233,13 @@ function HeadCell({
   }, [col.hasSubColumns, col.key, flattenColumns, mergedSpanKeys]);
 
   const inSortableActiveScope = useMemo(
-    () => mergedSpanKeys.some((key) => sortableActiveKeys.has(key)),
-    [mergedSpanKeys, sortableActiveKeys],
+    () => mergedSpanKeys.some((key) => activeStatus.keys.has(key)),
+    [activeStatus.keys, mergedSpanKeys],
   );
 
   const inSortableHotScope = useMemo(
-    () => mergedSpanKeys.some((key) => sortableHotKeys.has(key)),
-    [mergedSpanKeys, sortableHotKeys],
+    () => mergedSpanKeys.some((key) => hotKeys.has(key)),
+    [hotKeys, mergedSpanKeys],
   );
 
   const motionLayoutDependency = useMemo(

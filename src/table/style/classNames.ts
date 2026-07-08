@@ -16,6 +16,7 @@ export type ComponentClsType = {
   hasYScrollbarCls: string;
   hasStickyCls: string;
   previewColumnsSortingCls: string;
+  columnSortableFixedActiveCls: string;
   rowSortingCls: string;
   fixColumnsCls: string;
   hasFixStartCls: string;
@@ -148,6 +149,7 @@ export const getComponentCls = (prefixCls: string): ComponentClsType => {
     hasYScrollbarCls: `${prefixCls}-has-vertical-scrollbar`,
     hasStickyCls: `${prefixCls}-has-sticky`,
     previewColumnsSortingCls: `${prefixCls}-preview-columns-sorting`,
+    columnSortableFixedActiveCls: `${prefixCls}-column-sortable-fixed-active`,
     rowSortingCls: `${prefixCls}-row-sorting`,
     fixColumnsCls: `${prefixCls}-fix-columns`,
     hasFixStartCls: `${prefixCls}-has-fix-start`,

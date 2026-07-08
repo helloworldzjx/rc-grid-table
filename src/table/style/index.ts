@@ -521,6 +521,8 @@ const genSummaryCls = (
 const genCellStyle = (
   {
     componentCls,
+    previewColumnsSortingCls,
+    columnSortableFixedActiveCls,
     rowSortingCls,
     headRowCls,
     bodyCls,
@@ -742,6 +744,11 @@ const genCellStyle = (
     [`.${filterCellCls}`]: {
       minWidth: 0,
     },
+
+    [`&.${previewColumnsSortingCls}.${columnSortableFixedActiveCls} .${headRowCls} > .${cellCls}:not(.${fixedStartCellCls}, .${fixedEndCellCls}), &.${previewColumnsSortingCls}.${columnSortableFixedActiveCls} .${bodyRowCls} > .${cellCls}:not(.${fixedStartCellCls}, .${fixedEndCellCls})`]:
+      {
+        opacity: `0.4 !important`,
+      },
 
     [`.${columnSortableHotCellCls}`]: {
       backgroundColor: `${token.overableCellBg} !important`,

@@ -57,10 +57,10 @@ const HeadFilterCell: FC<HeadFilterCellProps> = ({
   } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
 
   const { dataSortOrders = [] } = useDataSortContext();
-  const { sortableActiveKeys, sortableHotKeys } = useColumnSortableContext();
+  const { activeStatus, hotKeys } = useColumnSortableContext();
   const fixedShadowActive = useFixedShadowActive(fixedInfo);
-  const inSortableActiveScope = sortableActiveKeys.has(column.key);
-  const inSortableHotScope = sortableHotKeys.has(column.key);
+  const inSortableActiveScope = activeStatus.keys.has(column.key);
+  const inSortableHotScope = hotKeys.has(column.key);
 
   const CellComponent = useMemo(
     () =>

@@ -74,6 +74,10 @@ const canOverByFixed = <T,>(
 };
 
 const emptyKeys = new Set<Key>();
+const emptyActiveStatus = {
+  keys: emptyKeys,
+  fixed: false,
+};
 
 const uniqKeys = (keys: Key[]) => Array.from(new Set(keys));
 
@@ -148,9 +152,9 @@ function HeadRow({
   const {
     getSortableBaseState,
     updateSortableColumnsState,
-    updateSortableActiveKeys,
+    updateActiveStatus,
     updateSortablePreviewState,
-    updateSortableHotKeys,
+    updateHotKeys,
     updateSortableMotionKeys,
   } = useColumnSortableContext();
   const { onHeaderRow } = useTableContext();
@@ -220,7 +224,7 @@ function HeadRow({
   const updateFixedSortableHotKeys = useCallback(
     (column?: SortableColumnType) => {
       if (!column) {
-        updateSortableHotKeys(emptyKeys);
+        updateHotKeys(emptyKeys);
         return;
       }
 
@@ -259,9 +263,9 @@ function HeadRow({
         return result;
       }, []);
 
-      updateSortableHotKeys(keys.length ? new Set(keys) : emptyKeys);
+      updateHotKeys(keys.length ? new Set(keys) : emptyKeys);
     },
-    [columns, fixedOffset, flattenColumns, headRows, updateSortableHotKeys],
+    [columns, fixedOffset, flattenColumns, headRows, updateHotKeys],
   );
 
   const dragOverlayStyle = useMemo<React.CSSProperties>(
@@ -356,8 +360,8 @@ function HeadRow({
     activeRectRef.current = null;
     document.documentElement.style.cursor = '';
     setActiveKey(null);
-    updateSortableActiveKeys(emptyKeys);
-    updateSortableHotKeys(emptyKeys);
+    updateActiveStatus(emptyActiveStatus);
+    updateHotKeys(emptyKeys);
     sortablePreview.cleanup(clearPreview);
   };
 
@@ -374,8 +378,8 @@ function HeadRow({
     activeRectRef.current = null;
     document.documentElement.style.cursor = '';
     setActiveKey(null);
-    updateSortableActiveKeys(emptyKeys);
-    updateSortableHotKeys(emptyKeys);
+    updateActiveStatus(emptyActiveStatus);
+    updateHotKeys(emptyKeys);
 
     const delay = sortablePreview.getMotionFinishDelay();
     if (delay <= 0) {
@@ -404,8 +408,8 @@ function HeadRow({
 
       if (isSortableStartLocked?.()) {
         ignoreSortableDragRef.current = true;
-        updateSortableActiveKeys(emptyKeys);
-        updateSortableHotKeys(emptyKeys);
+        updateActiveStatus(emptyActiveStatus);
+        updateHotKeys(emptyKeys);
         return;
       }
 
@@ -424,11 +428,12 @@ function HeadRow({
         headRows,
         flattenColumns,
       );
-      updateSortableActiveKeys(
-        new Set(
+      updateActiveStatus({
+        keys: new Set(
           activeColumnKeys.length ? activeColumnKeys : activeData.sortKeys,
         ),
-      );
+        fixed: !!activeColumn.fixed,
+      });
       updateFixedSortableHotKeys(activeColumn);
       setActiveKey(event.active.id);
     }
@@ -514,6 +519,7 @@ function HeadRow({
     if (isSortableColumnsData(activeData)) {
       if (ignoreSortableDragRef.current) {
         ignoreSortableDragRef.current = false;
+        updateActiveStatus(emptyActiveStatus);
         return;
       }
 
@@ -541,6 +547,7 @@ function HeadRow({
     if (isSortableColumnsData(activeData)) {
       if (ignoreSortableDragRef.current) {
         ignoreSortableDragRef.current = false;
+        updateActiveStatus(emptyActiveStatus);
         return;
       }
 
@@ -561,14 +568,10 @@ function HeadRow({
       }
       cleanupSortableScrollListener();
       document.documentElement.style.cursor = '';
-      updateSortableActiveKeys(emptyKeys);
-      updateSortableHotKeys(emptyKeys);
+      updateActiveStatus(emptyActiveStatus);
+      updateHotKeys(emptyKeys);
     };
-  }, [
-    cleanupSortableScrollListener,
-    updateSortableActiveKeys,
-    updateSortableHotKeys,
-  ]);
+  }, [cleanupSortableScrollListener, updateActiveStatus, updateHotKeys]);
 
   return (
     <RowComponent

@@ -176,6 +176,11 @@ export interface RowSortableContextProps<T = any> {
   rowSortable?: RowSortableConfig<T>;
 }
 
+export interface ColumnSortActiveStatus {
+  keys: ReadonlySet<Key>;
+  fixed: boolean;
+}
+
 export interface ColumnSortableContextProps<T = any> {
   sortableColumns?: boolean;
   sortablePreviewState?: InternalColumnState<T>[] | null;
@@ -187,13 +192,13 @@ export interface ColumnSortableContextProps<T = any> {
   updateSortableColumnsState: (columnsState: InternalColumnState<T>[]) => void;
   sortingColumns: boolean;
   updateSortingColumns: Dispatch<SetStateAction<boolean>>;
+  activeStatus: ColumnSortActiveStatus;
+  updateActiveStatus: Dispatch<SetStateAction<ColumnSortActiveStatus>>;
   sortableMotionKeys: ReadonlySet<Key>;
   updateSortableMotionKeys: Dispatch<SetStateAction<Set<Key>>>;
   sortableMotionVersion: number;
-  sortableActiveKeys: ReadonlySet<Key>;
-  updateSortableActiveKeys: Dispatch<SetStateAction<Set<Key>>>;
-  sortableHotKeys: ReadonlySet<Key>;
-  updateSortableHotKeys: Dispatch<SetStateAction<Set<Key>>>;
+  hotKeys: ReadonlySet<Key>;
+  updateHotKeys: Dispatch<SetStateAction<Set<Key>>>;
 }
 
 export interface TableSelectionContextProps<T = any> {

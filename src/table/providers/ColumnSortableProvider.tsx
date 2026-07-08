@@ -15,7 +15,10 @@ import ColumnSortPreviewLayoutContext, {
   type ColumnSortPreviewLayoutContextProps,
 } from '../contexts/ColumnSortPreviewLayoutContext';
 import useStickyOffsets from '../hooks/useStickyOffsets';
-import type { InternalColumnState } from '../internalInterface';
+import type {
+  ColumnSortActiveStatus,
+  InternalColumnState,
+} from '../internalInterface';
 import {
   columnsSort,
   getSortablePreviewColumns,
@@ -36,6 +39,10 @@ interface ColumnSortableProviderProps<T = any> {
 const emptyColumns: InternalColumnState[] = [];
 const emptyWidths: number[] = [];
 const emptyPreviewLayout: ColumnSortPreviewLayoutContextProps = {};
+const emptyActiveStatus: ColumnSortActiveStatus = {
+  keys: new Set<Key>(),
+  fixed: false,
+};
 
 const areKeySetsEqual = (a: ReadonlySet<Key>, b: ReadonlySet<Key>) => {
   if (a.size !== b.size) return false;
@@ -69,12 +76,9 @@ const ColumnSortableProvider = <T,>({
     () => new Set(),
   );
   const [sortableMotionVersion, setSortableMotionVersion] = useState(0);
-  const [sortableActiveKeys, setSortableActiveKeys] = useState<Set<Key>>(
-    () => new Set(),
-  );
-  const [sortableHotKeys, setSortableHotKeys] = useState<Set<Key>>(
-    () => new Set(),
-  );
+  const [activeStatus, setActiveStatus] =
+    useState<ColumnSortActiveStatus>(emptyActiveStatus);
+  const [hotKeys, setHotKeys] = useState<Set<Key>>(() => new Set());
 
   const updateSortableMotionKeys = useCallback(
     (dispatch: SetStateAction<Set<Key>>) => {
@@ -92,6 +96,17 @@ const ColumnSortableProvider = <T,>({
     },
     [],
   );
+
+  const updateHotKeys = useCallback((dispatch: SetStateAction<Set<Key>>) => {
+    setHotKeys((prevKeys) => {
+      const nextKeys =
+        typeof dispatch === 'function' ? dispatch(prevKeys) : dispatch;
+
+      return nextKeys === prevKeys || areKeySetsEqual(prevKeys, nextKeys)
+        ? prevKeys
+        : nextKeys;
+    });
+  }, []);
 
   const getSortableBaseState = useCallback(() => {
     return sortablePreviewState || baseColumnsState;
@@ -157,13 +172,13 @@ const ColumnSortableProvider = <T,>({
       updateSortableColumnsState,
       sortingColumns,
       updateSortingColumns: setSortingColumns,
+      activeStatus,
+      updateActiveStatus: setActiveStatus,
       sortableMotionKeys,
       updateSortableMotionKeys,
       sortableMotionVersion,
-      sortableActiveKeys,
-      updateSortableActiveKeys: setSortableActiveKeys,
-      sortableHotKeys,
-      updateSortableHotKeys: setSortableHotKeys,
+      hotKeys,
+      updateHotKeys,
     }),
     [
       sortableColumns,
@@ -172,11 +187,12 @@ const ColumnSortableProvider = <T,>({
       getSortableBaseState,
       updateSortableColumnsState,
       sortingColumns,
+      activeStatus,
       sortableMotionKeys,
       updateSortableMotionKeys,
       sortableMotionVersion,
-      sortableActiveKeys,
-      sortableHotKeys,
+      hotKeys,
+      updateHotKeys,
     ],
   );
 

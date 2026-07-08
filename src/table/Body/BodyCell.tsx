@@ -117,7 +117,7 @@ function BodyCell({
   const { expandable: expandableConfig } = useExpandableContext();
   const { getComponent } = useComponentsContext();
   const { dataSortOrders = [] } = useDataSortContext();
-  const { sortableActiveKeys, sortableHotKeys } = useColumnSortableContext();
+  const { activeStatus, hotKeys } = useColumnSortableContext();
   const { onCell } = useTableContext();
 
   const CellComponent = useMemo(
@@ -181,13 +181,13 @@ function BodyCell({
   );
 
   const inSortableActiveScope = useMemo(
-    () => cellMotionKeys?.some((key) => sortableActiveKeys.has(key)) ?? false,
-    [cellMotionKeys, sortableActiveKeys],
+    () => cellMotionKeys?.some((key) => activeStatus.keys.has(key)) ?? false,
+    [activeStatus.keys, cellMotionKeys],
   );
 
   const inSortableHotScope = useMemo(
-    () => cellMotionKeys?.some((key) => sortableHotKeys.has(key)) ?? false,
-    [cellMotionKeys, sortableHotKeys],
+    () => cellMotionKeys?.some((key) => hotKeys.has(key)) ?? false,
+    [cellMotionKeys, hotKeys],
   );
 
   const mergedStyle = useMemo(() => {
