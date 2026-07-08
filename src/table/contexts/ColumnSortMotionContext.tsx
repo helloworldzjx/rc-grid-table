@@ -18,9 +18,16 @@ export const defaultColumnSortMotionContext: ColumnSortMotionContextProps = {
 const ColumnSortMotionContext = createContext<ColumnSortMotionContextProps>(
   defaultColumnSortMotionContext,
 );
+const ColumnSortingContext = createContext(false);
 
 const useColumnSortMotionContext = () => useContext(ColumnSortMotionContext);
+const useColumnSortingContext = () => useContext(ColumnSortingContext);
 
-export { ColumnSortMotionContext, useColumnSortMotionContext };
+export {
+  ColumnSortingContext,
+  ColumnSortMotionContext,
+  useColumnSortingContext,
+  useColumnSortMotionContext,
+};
 
 export default ColumnSortMotionContext;

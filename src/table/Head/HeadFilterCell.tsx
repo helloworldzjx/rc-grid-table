@@ -3,14 +3,16 @@ import React, { CSSProperties, FC, memo, useMemo } from 'react';
 
 import CellContainer from '../CellContainer';
 import { useDataSortContext } from '../contexts';
-import { useColumnSortableContext } from '../contexts/ColumnSortableContext';
+import { useColumnSortableActiveContext } from '../contexts/ColumnSortableContext';
 import { useComponentsContext } from '../contexts/ComponentsContext';
 import { useFixedShadowActive } from '../contexts/FixedShadowContext';
 import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import { useTableContext } from '../contexts/TableContext';
+import useRenderedColumnLayout from '../hooks/useRenderedColumnLayout';
 import type { InternalColumnState } from '../internalInterface';
 import { getComponentCls } from '../style/classNames';
 import { mergeCellProps } from '../utils/cellProps';
+import { getColumnMotionPositionFromStartPositions } from '../utils/columnMotion';
 import {
   isExpandColumn,
   isRowSortColumn,
@@ -35,6 +37,7 @@ const HeadFilterCell: FC<HeadFilterCellProps> = ({
   const prefixCls = usePrefixClsContext();
   const { getComponent } = useComponentsContext();
   const { onHeadFilterRowCell } = useTableContext();
+  const { columnMotionPositions = [] } = useRenderedColumnLayout();
 
   const {
     cellCls,
@@ -57,7 +60,7 @@ const HeadFilterCell: FC<HeadFilterCellProps> = ({
   } = useMemo(() => getComponentCls(prefixCls), [prefixCls]);
 
   const { dataSortOrders = [] } = useDataSortContext();
-  const { activeStatus, hotKeys } = useColumnSortableContext();
+  const { activeStatus, hotKeys } = useColumnSortableActiveContext();
   const fixedShadowActive = useFixedShadowActive(fixedInfo);
   const inSortableActiveScope = activeStatus.keys.has(column.key);
   const inSortableHotScope = hotKeys.has(column.key);
@@ -122,6 +125,15 @@ const HeadFilterCell: FC<HeadFilterCellProps> = ({
       ].join('|'),
     [column.key, columnIndex, fixedInfo.fixStart, fixedInfo.fixEnd],
   );
+  const motionLayoutPosition = useMemo(
+    () =>
+      getColumnMotionPositionFromStartPositions(
+        columnMotionPositions,
+        columnIndex,
+        fixedInfo,
+      ),
+    [columnIndex, columnMotionPositions, fixedInfo],
+  );
 
   const hasSortValue = useMemo(() => {
     const dataSortColumnKey = getDataSortColumnKey(column);
@@ -162,6 +174,7 @@ const HeadFilterCell: FC<HeadFilterCellProps> = ({
       style={mergedStyle}
       motionKeys={motionKeys}
       motionLayoutDependency={motionLayoutDependency}
+      motionLayoutPosition={motionLayoutPosition}
       {...restCellProps}
     >
       {filterNode}

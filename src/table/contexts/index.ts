@@ -1,10 +1,14 @@
 export {
   default as ColumnSortableContext,
+  useColumnSortableActiveContext,
+  useColumnSortableConfigContext,
   useColumnSortableContext,
+  useColumnSortablePreviewingContext,
 } from './ColumnSortableContext';
 export {
   default as ColumnSortMotionContext,
   useColumnSortMotionContext,
+  useColumnSortingContext,
 } from './ColumnSortMotionContext';
 export {
   default as ColumnSortPreviewLayoutContext,

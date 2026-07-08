@@ -11,7 +11,7 @@ import {
   useBodyHoverCellHovered,
   useBodyHoverCellRef,
 } from '../contexts/BodyHoverContext';
-import { useColumnSortableContext } from '../contexts/ColumnSortableContext';
+import { useColumnSortableActiveContext } from '../contexts/ColumnSortableContext';
 import { useComponentsContext } from '../contexts/ComponentsContext';
 import { useDataSortContext } from '../contexts/DataSortContext';
 import { useExpandableContext } from '../contexts/ExpandableContext';
@@ -24,6 +24,7 @@ import { RowSortBodyCell } from '../RowSort';
 import { BodySelectionCell } from '../Selection';
 import { getComponentCls } from '../style/classNames';
 import { mergeCellProps } from '../utils/cellProps';
+import { getColumnMotionPositionFromStartPositions } from '../utils/columnMotion';
 import {
   isExpandColumn,
   isRowSortColumn,
@@ -42,6 +43,7 @@ interface BodyCellProps<T = any> {
   rowIndex: number;
   fixedInfo: FixedInfo;
   flattenColumns: InternalColumnState<T>[];
+  columnMotionPositions: readonly number[];
   renderMode?: BodyRenderMode;
   colIndex: number;
   getRowSpanHeight?: (rowSpan: number) => number;
@@ -68,6 +70,7 @@ function BodyCell({
   rowIndex,
   fixedInfo,
   flattenColumns,
+  columnMotionPositions,
   renderMode = 'normal',
   colIndex,
   getRowSpanHeight,
@@ -117,7 +120,7 @@ function BodyCell({
   const { expandable: expandableConfig } = useExpandableContext();
   const { getComponent } = useComponentsContext();
   const { dataSortOrders = [] } = useDataSortContext();
-  const { activeStatus, hotKeys } = useColumnSortableContext();
+  const { activeStatus, hotKeys } = useColumnSortableActiveContext();
   const { onCell } = useTableContext();
 
   const CellComponent = useMemo(
@@ -259,6 +262,17 @@ function BodyCell({
     fixedInfo.fixStart,
     fixedInfo.fixEnd,
   ]);
+  const motionLayoutPosition = useMemo(
+    () =>
+      cellPlaceholder
+        ? undefined
+        : getColumnMotionPositionFromStartPositions(
+            columnMotionPositions,
+            colIndex,
+            fixedInfo,
+          ),
+    [cellPlaceholder, colIndex, columnMotionPositions, fixedInfo],
+  );
 
   const cellInteractive = hoverable && !cellHidden && !cellPlaceholder;
   const hoverCellRef = useBodyHoverCellRef({
@@ -407,6 +421,7 @@ function BodyCell({
         fixedInfo={fixedInfo}
         motionKeys={cellMotionKeys}
         motionLayoutDependency={motionLayoutDependency}
+        motionLayoutPosition={motionLayoutPosition}
         indent={indent}
         mergedStyle={mergedStyle}
         rowData={rowData}
@@ -463,6 +478,7 @@ function BodyCell({
       style={mergedStyle}
       motionKeys={cellMotionKeys}
       motionLayoutDependency={motionLayoutDependency}
+      motionLayoutPosition={motionLayoutPosition}
       {...restCellProps}
       ref={hoverCellRef}
     >

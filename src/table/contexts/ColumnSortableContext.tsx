@@ -1,7 +1,8 @@
-import {
+import React, {
   createContext,
   Dispatch,
   Key,
+  ReactNode,
   SetStateAction,
   useContext,
 } from 'react';
@@ -19,6 +20,21 @@ const emptyActiveStatus: ColumnSortActiveStatus = {
   fixed: false,
 };
 const emptyHotKeys = new Set<Key>();
+
+interface ColumnSortableConfigContextProps {
+  sortableColumns?: boolean;
+}
+
+interface ColumnSortablePreviewingContextProps {
+  sortablePreviewing: boolean;
+}
+
+interface ColumnSortableActiveContextProps {
+  activeStatus: ColumnSortActiveStatus;
+  updateActiveStatus: Dispatch<SetStateAction<ColumnSortActiveStatus>>;
+  hotKeys: ReadonlySet<Key>;
+  updateHotKeys: Dispatch<SetStateAction<Set<Key>>>;
+}
 
 const ColumnSortableContext = createContext<ColumnSortableContextProps>({
   sortablePreviewing: false,
@@ -38,9 +54,62 @@ const ColumnSortableContext = createContext<ColumnSortableContextProps>({
   updateHotKeys: noop as Dispatch<SetStateAction<Set<Key>>>,
 });
 
+const ColumnSortableConfigContext =
+  createContext<ColumnSortableConfigContextProps>({});
+
+const ColumnSortablePreviewingContext =
+  createContext<ColumnSortablePreviewingContextProps>({
+    sortablePreviewing: false,
+  });
+
+const ColumnSortableActiveContext =
+  createContext<ColumnSortableActiveContextProps>({
+    activeStatus: emptyActiveStatus,
+    updateActiveStatus: noop as Dispatch<
+      SetStateAction<ColumnSortActiveStatus>
+    >,
+    hotKeys: emptyHotKeys,
+    updateHotKeys: noop as Dispatch<SetStateAction<Set<Key>>>,
+  });
+
 const useColumnSortableContext = <T = any,>() =>
   useContext(ColumnSortableContext) as ColumnSortableContextProps<T>;
 
-export { useColumnSortableContext };
+const useColumnSortableConfigContext = () =>
+  useContext(ColumnSortableConfigContext);
+
+const useColumnSortablePreviewingContext = () =>
+  useContext(ColumnSortablePreviewingContext);
+
+const useColumnSortableActiveContext = () =>
+  useContext(ColumnSortableActiveContext);
+
+const ColumnSortableSplitProvider = ({
+  activeValue,
+  children,
+  configValue,
+  previewingValue,
+}: {
+  activeValue: ColumnSortableActiveContextProps;
+  children?: ReactNode;
+  configValue: ColumnSortableConfigContextProps;
+  previewingValue: ColumnSortablePreviewingContextProps;
+}) => (
+  <ColumnSortableConfigContext.Provider value={configValue}>
+    <ColumnSortablePreviewingContext.Provider value={previewingValue}>
+      <ColumnSortableActiveContext.Provider value={activeValue}>
+        {children}
+      </ColumnSortableActiveContext.Provider>
+    </ColumnSortablePreviewingContext.Provider>
+  </ColumnSortableConfigContext.Provider>
+);
+
+export {
+  ColumnSortableSplitProvider,
+  useColumnSortableActiveContext,
+  useColumnSortableConfigContext,
+  useColumnSortableContext,
+  useColumnSortablePreviewingContext,
+};
 
 export default ColumnSortableContext;

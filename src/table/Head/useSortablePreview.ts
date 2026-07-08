@@ -64,75 +64,76 @@ const areKeySetsEqual = (a: ReadonlySet<Key>, b: ReadonlySet<Key>) => {
   return equal;
 };
 
-const collectLeafKeys = <T>(columns: InternalColumnState<T>[]) => {
-  const keys: Key[] = [];
-
-  const traverse = (cols: InternalColumnState<T>[]) => {
-    [...cols]
-      .sort((a, b) => a.order - b.order)
-      .forEach((column) => {
-        if (column.children?.length) {
-          traverse(column.children);
-          return;
-        }
-
-        keys.push(column.key);
-      });
-  };
-
-  traverse(columns);
-  return keys;
+type SortableMotionCache = {
+  coveredLeafKeys: Map<Key, Key[]>;
+  leafKeys: Key[];
 };
 
-const collectCoveredLeafKeys = <T>(
-  columns: InternalColumnState<T>[],
-  targetKeys: Key[],
-) => {
-  const targetKeySet = new Set(targetKeys);
-  const keys: Key[] = [];
+const sortColumns = <T>(columns: InternalColumnState<T>[]) =>
+  [...columns].sort((a, b) => a.order - b.order);
 
-  const pushLeafKeys = (column: InternalColumnState<T>) => {
+const createSortableMotionCache = <T>(
+  columns: InternalColumnState<T>[],
+): SortableMotionCache => {
+  const coveredLeafKeys = new Map<Key, Key[]>();
+  const leafKeys: Key[] = [];
+
+  const collectColumnLeafKeys = (column: InternalColumnState<T>): Key[] => {
     if (column.children?.length) {
-      [...column.children]
-        .sort((a, b) => a.order - b.order)
-        .forEach((child) => pushLeafKeys(child));
-      return;
+      const keys = sortColumns(column.children).flatMap((child) =>
+        collectColumnLeafKeys(child),
+      );
+      coveredLeafKeys.set(column.key, keys);
+      return keys;
     }
 
-    keys.push(column.key);
+    leafKeys.push(column.key);
+    const keys = [column.key];
+    coveredLeafKeys.set(column.key, keys);
+    return keys;
   };
 
-  const traverse = (cols: InternalColumnState<T>[]) => {
-    [...cols]
-      .sort((a, b) => a.order - b.order)
-      .forEach((column) => {
-        if (targetKeySet.has(column.key)) {
-          pushLeafKeys(column);
-          return;
-        }
+  sortColumns(columns).forEach((column) => collectColumnLeafKeys(column));
 
-        if (column.children?.length) {
-          traverse(column.children);
-        }
-      });
+  return {
+    coveredLeafKeys,
+    leafKeys,
   };
+};
 
-  traverse(columns);
+const collectCoveredLeafKeys = (
+  motionCache: SortableMotionCache,
+  targetKeys: Key[],
+) => {
+  const keys: Key[] = [];
+  const pushedKeys = new Set<Key>();
+
+  targetKeys.forEach((key) => {
+    const coveredKeys = motionCache.coveredLeafKeys.get(key) ?? [key];
+
+    coveredKeys.forEach((coveredKey) => {
+      if (pushedKeys.has(coveredKey)) return;
+
+      pushedKeys.add(coveredKey);
+      keys.push(coveredKey);
+    });
+  });
+
   return keys;
 };
 
 const getSortableMotionKeys = <T>(
-  columnsState: InternalColumnState<T>[],
+  motionCache: SortableMotionCache,
   payload: SortablePreviewPayload<T>,
 ) => {
-  const leafKeys = collectLeafKeys(columnsState);
+  const { leafKeys } = motionCache;
   if (!leafKeys.length) return new Set<Key>();
 
   const activeLeafKeys = collectCoveredLeafKeys(
-    columnsState,
+    motionCache,
     payload.activeKeys,
   );
-  const overLeafKeys = collectCoveredLeafKeys(columnsState, payload.overKeys);
+  const overLeafKeys = collectCoveredLeafKeys(motionCache, payload.overKeys);
   const coveredKeys = new Set([
     ...(activeLeafKeys.length ? activeLeafKeys : payload.activeKeys),
     ...(overLeafKeys.length ? overLeafKeys : payload.overKeys),
@@ -169,6 +170,7 @@ const useSortablePreview = <T>({
   const previewSignatureRef = useRef<string | null>(null);
   const currentMotionKeysRef = useRef<Set<Key>>(new Set());
   const retainedMotionKeysRef = useRef<Set<Key>>(new Set());
+  const motionCacheRef = useRef<SortableMotionCache | null>(null);
   const motionReleaseTimersRef = useRef(
     new Map<Key, ReturnType<typeof setTimeout>>(),
   );
@@ -249,8 +251,13 @@ const useSortablePreview = <T>({
   };
 
   const updateSortableMotionKeys = (payload: SortablePreviewPayload<T>) => {
-    const baseState = previewStateRef.current || getBaseStateRef.current();
-    const nextKeys = getSortableMotionKeys(baseState, payload);
+    const motionCache =
+      motionCacheRef.current ||
+      createSortableMotionCache(
+        previewStateRef.current || getBaseStateRef.current(),
+      );
+    motionCacheRef.current = motionCache;
+    const nextKeys = getSortableMotionKeys(motionCache, payload);
 
     applySortableMotionKeys(nextKeys);
   };
@@ -277,6 +284,9 @@ const useSortablePreview = <T>({
     if (nextState) {
       previewChangedRef.current = true;
       previewStateRef.current = nextState as InternalColumnState<T>[];
+      motionCacheRef.current = createSortableMotionCache(
+        nextState as InternalColumnState<T>[],
+      );
       previewSignatureRef.current = signature;
       markMotionTransition();
       updatePreviewStateRef.current(nextState as InternalColumnState<T>[]);
@@ -315,6 +325,7 @@ const useSortablePreview = <T>({
   const start = () => {
     cancel();
     previewStateRef.current = getBaseStateRef.current();
+    motionCacheRef.current = createSortableMotionCache(previewStateRef.current);
     previewChangedRef.current = false;
     previewSignatureRef.current = null;
     resetSortableMotionKeys();
@@ -323,6 +334,7 @@ const useSortablePreview = <T>({
   const cleanup = (clearPreview = true) => {
     cancel();
     previewStateRef.current = null;
+    motionCacheRef.current = null;
     previewChangedRef.current = false;
     previewSignatureRef.current = null;
     resetSortableMotionKeys();
@@ -341,6 +353,7 @@ const useSortablePreview = <T>({
     }
 
     previewStateRef.current = null;
+    motionCacheRef.current = null;
     previewChangedRef.current = false;
     previewSignatureRef.current = null;
   };

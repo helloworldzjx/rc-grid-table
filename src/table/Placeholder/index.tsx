@@ -9,7 +9,7 @@ import React, {
 } from 'react';
 
 import { isNum } from '../../_utils/validate';
-import { useColumnSortableContext } from '../contexts/ColumnSortableContext';
+import { useColumnSortablePreviewingContext } from '../contexts/ColumnSortableContext';
 import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import { useTableColumnStateContext } from '../contexts/TableColumnStateContext';
 import { useTableLayoutContext } from '../contexts/TableLayoutContext';
@@ -34,7 +34,7 @@ const Placeholder: FC = () => {
     clearFlattenColumnsWidthPreview,
     commitColumnWidthChange,
   } = useTableColumnStateContext();
-  const { sortablePreviewing } = useColumnSortableContext();
+  const { sortablePreviewing } = useColumnSortablePreviewingContext();
   const prefixCls = usePrefixClsContext();
   const disabled =
     !resizableColumns || columnsStatePreviewMode === 'visibleHotOnly';

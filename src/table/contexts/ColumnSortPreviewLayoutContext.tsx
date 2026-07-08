@@ -6,6 +6,7 @@ export interface ColumnSortPreviewLayoutContextProps<T = any> {
   columns?: InternalColumnState<T>[];
   flattenColumns?: InternalColumnState<T>[];
   flattenColumnsWidths?: number[];
+  columnMotionPositions?: number[];
   columnsWidthTotal?: number;
   fixedOffset?: StickyOffsets;
 }

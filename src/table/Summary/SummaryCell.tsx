@@ -7,6 +7,7 @@ import { usePrefixClsContext } from '../contexts/PrefixClsContext';
 import useRenderedColumnLayout from '../hooks/useRenderedColumnLayout';
 import { TableSummaryRowCell } from '../interface';
 import { getComponentCls } from '../style/classNames';
+import { getColumnMotionPositionFromStartPositions } from '../utils/columnMotion';
 import { getEllipsisShowTitle, getEllipsisTitle } from '../utils/ellipsis';
 import { getCellFixedInfo } from '../utils/fixedColumns';
 import { getNormalSpanStyle } from '../utils/gridPlacement';
@@ -18,7 +19,11 @@ interface SummaryCellProps {
 }
 
 const SummaryCell: FC<SummaryCellProps> = ({ column, colEnd }) => {
-  const { flattenColumns = [], fixedOffset } = useRenderedColumnLayout();
+  const {
+    columnMotionPositions = [],
+    flattenColumns = [],
+    fixedOffset,
+  } = useRenderedColumnLayout();
   const prefixCls = usePrefixClsContext();
 
   const {
@@ -103,6 +108,15 @@ const SummaryCell: FC<SummaryCellProps> = ({ column, colEnd }) => {
       fixedInfo.fixEnd,
     ],
   );
+  const motionLayoutPosition = useMemo(
+    () =>
+      getColumnMotionPositionFromStartPositions(
+        columnMotionPositions,
+        colStart,
+        fixedInfo,
+      ),
+    [colStart, columnMotionPositions, fixedInfo],
+  );
 
   const fixedShadowActive = useFixedShadowActive(fixedInfo);
 
@@ -133,6 +147,7 @@ const SummaryCell: FC<SummaryCellProps> = ({ column, colEnd }) => {
       style={mergedStyle}
       motionKeys={motionKeys}
       motionLayoutDependency={motionLayoutDependency}
+      motionLayoutPosition={motionLayoutPosition}
     >
       {childrenNode}
     </CellContainer>

@@ -1,10 +1,13 @@
-import { motion } from 'motion/react';
+import { composeRef } from '@rc-component/util/lib/ref';
+import { useIsomorphicLayoutEffect } from 'ahooks';
+import { animateMini } from 'motion';
 import React, {
   ElementType,
   forwardRef,
   HTMLAttributes,
   Key,
   useMemo,
+  useRef,
 } from 'react';
 
 import { useColumnSortMotionContext } from '../contexts/ColumnSortMotionContext';
@@ -14,15 +17,16 @@ type CellContainerProps = HTMLAttributes<HTMLDivElement> & {
   component?: ElementType;
   motionKeys?: Key[];
   motionLayoutDependency?: string | number | false;
+  motionLayoutPosition?: number;
 };
 
-const hasMotionKey = (
+const getMatchedMotionKeys = (
   motionKeys: Key[] | undefined,
   sortableMotionKeys: ReadonlySet<Key>,
 ) => {
-  if (!motionKeys?.length || !sortableMotionKeys.size) return false;
+  if (!motionKeys?.length || !sortableMotionKeys.size) return [];
 
-  return motionKeys.some((key) => sortableMotionKeys.has(key));
+  return motionKeys.filter((key) => sortableMotionKeys.has(key));
 };
 
 const CellContainer = forwardRef<HTMLDivElement, CellContainerProps>(
@@ -31,63 +35,97 @@ const CellContainer = forwardRef<HTMLDivElement, CellContainerProps>(
       component: Component = 'div',
       motionKeys,
       motionLayoutDependency,
+      motionLayoutPosition,
       ...rest
     },
     ref,
   ) => {
     const { sortingColumns, sortableMotionKeys, sortableMotionVersion } =
       useColumnSortMotionContext();
+    const innerRef = useRef<HTMLDivElement | null>(null);
+    const previousPositionRef = useRef<number | undefined>(undefined);
+    const animationRef = useRef<ReturnType<typeof animateMini> | null>(null);
 
-    // 列排序预览仍使用 motion layout，但只给 active-over 区间内的 cell 开启。
-    // 非相关 cell 保持普通组件，避免整张表所有 cell 都参与 getBoundingClientRect 测量。
-    const motionEnabled = useMemo(() => {
-      return hasMotionKey(motionKeys, sortableMotionKeys);
-    }, [motionKeys, sortableMotionKeys]);
-    const useMotionLayout = sortingColumns && motionEnabled;
-
-    const MotionComponent = useMemo(
+    const activeMotionKeys = useMemo(
       () =>
-        useMotionLayout
-          ? Component === 'div'
-            ? motion.div
-            : motion.create(Component)
-          : null,
-      [Component, useMotionLayout],
+        sortingColumns
+          ? getMatchedMotionKeys(motionKeys, sortableMotionKeys)
+          : [],
+      [motionKeys, sortableMotionKeys, sortingColumns],
     );
+    const motionEnabled = activeMotionKeys.length > 0;
 
-    const props = useMemo(() => {
-      if (useMotionLayout) {
-        const motionProps: Record<string, unknown> = {
-          ...rest,
-          initial: false,
-          layout: 'position',
-          transition: {
-            duration: COLUMNS_SORT_MOTION_DURATION / 1000,
-            ease: 'easeOut',
-          },
-        };
-
-        if (motionLayoutDependency !== false) {
-          // dependency 描述 cell 的真实位置签名；只在 key/span/fixed offset 等位置因素变化时触发布局测量。
-          motionProps.layoutDependency =
-            motionLayoutDependency ?? sortableMotionVersion;
-        }
-
-        return motionProps;
+    useIsomorphicLayoutEffect(() => {
+      if (
+        typeof motionLayoutPosition !== 'number' ||
+        motionLayoutDependency === false
+      ) {
+        previousPositionRef.current = undefined;
+        animationRef.current?.stop();
+        animationRef.current = null;
+        return;
       }
 
-      return rest;
-    }, [motionLayoutDependency, rest, sortableMotionVersion, useMotionLayout]);
+      const previousPosition = previousPositionRef.current;
+      previousPositionRef.current = motionLayoutPosition;
 
-    const Container = useMemo(() => {
-      if (useMotionLayout) {
-        return MotionComponent!;
+      if (!motionEnabled || previousPosition === undefined) {
+        return;
       }
 
-      return Component;
-    }, [useMotionLayout, MotionComponent, Component]);
+      const element = innerRef.current;
+      if (!element) return;
 
-    return <Container {...props} ref={ref} />;
+      const offset = previousPosition - motionLayoutPosition;
+      if (Math.abs(offset) < 0.5) {
+        return;
+      }
+
+      animationRef.current?.stop();
+      const baseTransform =
+        typeof rest.style?.transform === 'string' ? rest.style.transform : '';
+      const fromTransform = baseTransform
+        ? `translateX(${offset}px) ${baseTransform}`
+        : `translateX(${offset}px)`;
+      const toTransform = baseTransform || 'none';
+      element.style.transform = baseTransform;
+
+      let animation: ReturnType<typeof animateMini>;
+      animation = animateMini(
+        element,
+        {
+          transform: [fromTransform, toTransform],
+        },
+        {
+          duration: COLUMNS_SORT_MOTION_DURATION / 1000,
+          ease: 'easeOut',
+        },
+      );
+      animationRef.current = animation;
+      animation.then(() => {
+        if (animationRef.current !== animation) return;
+
+        element.style.transform = baseTransform;
+        animationRef.current = null;
+      });
+    }, [
+      motionEnabled,
+      motionLayoutDependency,
+      motionLayoutPosition,
+      rest.style?.transform,
+      sortableMotionVersion,
+    ]);
+
+    useIsomorphicLayoutEffect(() => {
+      return () => {
+        animationRef.current?.stop();
+        animationRef.current = null;
+      };
+    }, []);
+
+    const refCallback = useMemo(() => composeRef(ref, innerRef), [ref]);
+
+    return <Component {...rest} ref={refCallback} />;
   },
 );
 

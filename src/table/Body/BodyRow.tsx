@@ -30,6 +30,7 @@ interface BodyRowProps<T = any> {
   rowIndex: number;
   rowKeyValue?: React.Key;
   flattenColumns: InternalColumnState<T>[];
+  columnMotionPositions: number[];
   fixedOffset: StickyOffsets;
   className?: string;
   rowProps?: HTMLAttributes<any>;
@@ -56,6 +57,7 @@ function BodyRow({
   rowIndex,
   rowKeyValue,
   flattenColumns,
+  columnMotionPositions,
   fixedOffset,
   className,
   rowProps,
@@ -105,6 +107,8 @@ function BodyRow({
   const previewLayout = useColumnSortPreviewLayoutContext();
   // body 渲染读取预览列顺序，但虚拟滚动高度、滚动容器等仍由 Table 的真实布局维护。
   const renderedFlattenColumns = previewLayout.flattenColumns ?? flattenColumns;
+  const renderedColumnMotionPositions =
+    previewLayout.columnMotionPositions ?? columnMotionPositions;
   const renderedFixedOffset = previewLayout.fixedOffset ?? fixedOffset;
   const fixedInfoList = useFixedInfo(
     renderedFlattenColumns,
@@ -245,6 +249,7 @@ function BodyRow({
             column={column}
             fixedInfo={fixedInfoList[colIndex]}
             flattenColumns={renderedFlattenColumns}
+            columnMotionPositions={renderedColumnMotionPositions}
             renderMode={renderMode}
             colIndex={colIndex}
             getRowSpanHeight={getRowSpanHeight}

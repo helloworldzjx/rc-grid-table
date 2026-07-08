@@ -38,6 +38,7 @@ function BodyItem<T = any>({
     onRow,
     rowHoverable,
     flattenColumns = [],
+    columnMotionPositions = [],
     fixedOffset,
   } = useTableContext();
   const { expandable } = useExpandableContext<T>();
@@ -104,6 +105,9 @@ function BodyItem<T = any>({
   return (
     <BodyRow
       flattenColumns={renderInfo.columns?.flattenColumns ?? flattenColumns}
+      columnMotionPositions={
+        renderInfo.columns?.columnMotionPositions ?? columnMotionPositions
+      }
       fixedOffset={renderInfo.columns?.fixedOffset ?? fixedOffset}
       rowData={rowData}
       rowIndex={rowIndex}

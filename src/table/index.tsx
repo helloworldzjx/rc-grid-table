@@ -48,6 +48,7 @@ import type {
 } from './internalInterface';
 import ColumnSortableProvider from './providers/ColumnSortableProvider';
 import InternalTable from './Table';
+import { getColumnMotionStartPositions } from './utils/columnMotion';
 import {
   EXPAND_COLUMN,
   ROW_SORT_COLUMN,
@@ -220,6 +221,10 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
       0,
     );
   }, [flattenColumnsWidths]);
+  const columnMotionPositions = useMemo(
+    () => getColumnMotionStartPositions(flattenColumnsWidths),
+    [flattenColumnsWidths],
+  );
 
   const normalizedDataSortOrders = useMemo(
     () => normalizeDataSortOrder(dataSort?.sortOrder),
@@ -338,6 +343,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
       dataSource: sortedDataSource,
       columns: cols,
       flattenColumnsWidths: flattenColumnsWidths,
+      columnMotionPositions,
       columnsWidthTotal,
       flattenColumns: flattenCols,
       columnMinWidth,
@@ -367,6 +373,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     sortedDataSource,
     cols,
     flattenColumnsWidths,
+    columnMotionPositions,
     columnsWidthTotal,
     flattenCols,
     columnMinWidth,
@@ -405,6 +412,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
       columns: cols,
       flattenColumns: flattenCols,
       flattenColumnsWidths: flattenColumnsWidths,
+      columnMotionPositions,
       columnsWidthTotal,
       fixedOffset,
       hasFixedColumns: fixedOffset.hasFixColumns,
@@ -416,6 +424,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
       cols,
       flattenCols,
       flattenColumnsWidths,
+      columnMotionPositions,
       columnsWidthTotal,
       fixedOffset,
       fixedOffset.hasFixColumns,

@@ -9,8 +9,12 @@ import React, {
 } from 'react';
 
 import { isNum } from '../../_utils/validate';
-import ColumnSortableContext from '../contexts/ColumnSortableContext';
-import ColumnSortMotionContext from '../contexts/ColumnSortMotionContext';
+import ColumnSortableContext, {
+  ColumnSortableSplitProvider,
+} from '../contexts/ColumnSortableContext';
+import ColumnSortMotionContext, {
+  ColumnSortingContext,
+} from '../contexts/ColumnSortMotionContext';
 import ColumnSortPreviewLayoutContext, {
   type ColumnSortPreviewLayoutContextProps,
 } from '../contexts/ColumnSortPreviewLayoutContext';
@@ -19,6 +23,7 @@ import type {
   ColumnSortActiveStatus,
   InternalColumnState,
 } from '../internalInterface';
+import { getColumnMotionStartPositions } from '../utils/columnMotion';
 import {
   columnsSort,
   getSortablePreviewColumns,
@@ -159,6 +164,10 @@ const ColumnSortableProvider = <T,>({
       ),
     [previewFlattenColumnsWidths],
   );
+  const previewColumnMotionPositions = useMemo(
+    () => getColumnMotionStartPositions(previewFlattenColumnsWidths),
+    [previewFlattenColumnsWidths],
+  );
   const sortablePreviewing =
     sortingColumns || !!sortablePreviewState || !!sortableMotionKeys.size;
 
@@ -196,6 +205,30 @@ const ColumnSortableProvider = <T,>({
     ],
   );
 
+  const columnSortableConfigContextValue = useMemo(
+    () => ({
+      sortableColumns,
+    }),
+    [sortableColumns],
+  );
+
+  const columnSortablePreviewingContextValue = useMemo(
+    () => ({
+      sortablePreviewing,
+    }),
+    [sortablePreviewing],
+  );
+
+  const columnSortableActiveContextValue = useMemo(
+    () => ({
+      activeStatus,
+      updateActiveStatus: setActiveStatus,
+      hotKeys,
+      updateHotKeys,
+    }),
+    [activeStatus, hotKeys, updateHotKeys],
+  );
+
   const columnSortMotionContextValue = useMemo(
     () => ({
       sortingColumns,
@@ -216,20 +249,36 @@ const ColumnSortableProvider = <T,>({
       columns: sortablePreviewColumns.treeColumns,
       flattenColumns: sortablePreviewColumns.flattenColumns,
       flattenColumnsWidths: sortablePreviewColumns.flattenColumnsWidths,
+      columnMotionPositions: previewColumnMotionPositions,
       columnsWidthTotal: previewColumnsWidthTotal,
       fixedOffset: previewFixedOffset,
     };
-  }, [previewColumnsWidthTotal, previewFixedOffset, sortablePreviewColumns]);
+  }, [
+    previewColumnMotionPositions,
+    previewColumnsWidthTotal,
+    previewFixedOffset,
+    sortablePreviewColumns,
+  ]);
 
   return (
     <ColumnSortableContext.Provider value={columnSortableContextValue}>
-      <ColumnSortMotionContext.Provider value={columnSortMotionContextValue}>
-        <ColumnSortPreviewLayoutContext.Provider
-          value={previewLayoutContextValue}
-        >
-          {children}
-        </ColumnSortPreviewLayoutContext.Provider>
-      </ColumnSortMotionContext.Provider>
+      <ColumnSortableSplitProvider
+        activeValue={columnSortableActiveContextValue}
+        configValue={columnSortableConfigContextValue}
+        previewingValue={columnSortablePreviewingContextValue}
+      >
+        <ColumnSortingContext.Provider value={sortingColumns}>
+          <ColumnSortMotionContext.Provider
+            value={columnSortMotionContextValue}
+          >
+            <ColumnSortPreviewLayoutContext.Provider
+              value={previewLayoutContextValue}
+            >
+              {children}
+            </ColumnSortPreviewLayoutContext.Provider>
+          </ColumnSortMotionContext.Provider>
+        </ColumnSortingContext.Provider>
+      </ColumnSortableSplitProvider>
     </ColumnSortableContext.Provider>
   );
 };

@@ -105,6 +105,7 @@ export interface TableContextProps<T = any>
   columns?: InternalColumnState<T>[];
   flattenColumns?: InternalColumnState<T>[];
   flattenColumnsWidths?: number[];
+  columnMotionPositions?: number[];
   columnsWidthTotal: number;
   fixedOffset: StickyOffsets;
   hasFixedColumns: boolean;
@@ -122,6 +123,7 @@ export interface TableLayoutContextProps<T = any> {
   columns?: InternalColumnState<T>[];
   flattenColumns?: InternalColumnState<T>[];
   flattenColumnsWidths?: number[];
+  columnMotionPositions?: number[];
   columnsWidthTotal: number;
   fixedOffset: StickyOffsets;
   hasFixedColumns: boolean;

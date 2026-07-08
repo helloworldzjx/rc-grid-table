@@ -4,7 +4,10 @@ import classNames from 'classnames';
 import React, { CSSProperties, Key, memo, useMemo, useRef } from 'react';
 
 import CellContainer from '../CellContainer';
-import { useColumnSortableContext } from '../contexts/ColumnSortableContext';
+import {
+  useColumnSortableActiveContext,
+  useColumnSortableConfigContext,
+} from '../contexts/ColumnSortableContext';
 import { useComponentsContext } from '../contexts/ComponentsContext';
 import { useDataSortContext } from '../contexts/DataSortContext';
 import { useFixedShadowActive } from '../contexts/FixedShadowContext';
@@ -19,6 +22,7 @@ import { SelectionCheckbox } from '../Selection';
 import { getComponentCls } from '../style/classNames';
 import { getMergedSpanKeys } from '../utils/calc';
 import { mergeCellProps } from '../utils/cellProps';
+import { getColumnMotionPositionFromStartPositions } from '../utils/columnMotion';
 import {
   isExpandColumn,
   isRowSortColumn,
@@ -55,10 +59,15 @@ function HeadCell({
   currentRowLastIndex,
   firstRowLastCellKey,
 }: HeadCellProps) {
-  const { flattenColumns = [], fixedOffset } = useRenderedColumnLayout();
+  const {
+    columnMotionPositions = [],
+    flattenColumns = [],
+    fixedOffset,
+  } = useRenderedColumnLayout();
   const { resizableColumns, columnsStatePreviewMode } =
     useTableColumnStateContext();
-  const { activeStatus, sortableColumns, hotKeys } = useColumnSortableContext();
+  const { activeStatus, hotKeys } = useColumnSortableActiveContext();
+  const { sortableColumns } = useColumnSortableConfigContext();
   const prefixCls = usePrefixClsContext();
   const { getComponent } = useComponentsContext();
   const { dataSort, dataSortOrders = [] } = useDataSortContext();
@@ -266,6 +275,15 @@ function HeadCell({
       fixedInfo.fixEnd,
     ],
   );
+  const motionLayoutPosition = useMemo(
+    () =>
+      getColumnMotionPositionFromStartPositions(
+        columnMotionPositions,
+        col.colStart as number,
+        fixedInfo,
+      ),
+    [col.colStart, columnMotionPositions, fixedInfo],
+  );
 
   const resizeKeys = useMemo(() => {
     if (!resizableColumns || col.column?.resizeDisabled) return [];
@@ -434,6 +452,7 @@ function HeadCell({
       style={mergedStyle}
       motionKeys={motionKeys}
       motionLayoutDependency={motionLayoutDependency}
+      motionLayoutPosition={motionLayoutPosition}
       {...restCellProps}
       {...listeners}
       ref={setNodeRef}

@@ -14,6 +14,7 @@ import { isNum, isValidKey } from '../../_utils/validate';
 import type { BodyItem, BodyNodeRenderInfo } from '../Body/interface';
 import type { RowKey, RowSortableConfig } from '../interface';
 import type { InternalColumnState, StickyOffsets } from '../internalInterface';
+import { getColumnMotionStartPositions } from '../utils/columnMotion';
 import { isInternalColumn, isRowSortColumn } from '../utils/const';
 import { dispatchDndPopupCloseEvent, isRowSortableData } from '../utils/dnd';
 import {
@@ -293,6 +294,10 @@ export default function useTableRowSort<T = any>({
     () => overlayColumnsWidths.reduce((total, width) => total + width, 0),
     [overlayColumnsWidths],
   );
+  const overlayColumnMotionPositions = useMemo(
+    () => getColumnMotionStartPositions(overlayColumnsWidths),
+    [overlayColumnsWidths],
+  );
 
   const overlayFixedOffset = useMemo(
     () => getStaticOffset(overlayColumnsWidths),
@@ -344,6 +349,7 @@ export default function useTableRowSort<T = any>({
         renderMode: inVirtual ? 'virtual' : 'normal',
         columns: {
           flattenColumns: overlayColumns,
+          columnMotionPositions: overlayColumnMotionPositions,
           fixedOffset: overlayFixedOffset,
         },
         renderKey: `row-sort-overlay-${activeBodyItem.reactKey}`,
@@ -362,6 +368,7 @@ export default function useTableRowSort<T = any>({
     [
       activeBodyItem,
       overlayColumns,
+      overlayColumnMotionPositions,
       overlayColumnsWidthTotal,
       overlayColumnsWidths,
       overlayFixedOffset,

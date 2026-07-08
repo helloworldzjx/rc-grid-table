@@ -26,6 +26,7 @@ type BodyCellBaseProps<T = any> = {
   fixedInfo: FixedInfo;
   motionKeys?: Key[];
   motionLayoutDependency?: string | number | false;
+  motionLayoutPosition?: number;
   mergedStyle: CSSProperties;
 };
 
@@ -59,6 +60,7 @@ function RowSortBodyCell<T = any>({
   fixedInfo,
   motionKeys,
   motionLayoutDependency,
+  motionLayoutPosition,
   indent,
   mergedStyle,
   rowData,
@@ -195,6 +197,7 @@ function RowSortBodyCell<T = any>({
       style={mergedStyle}
       motionKeys={motionKeys}
       motionLayoutDependency={motionLayoutDependency}
+      motionLayoutPosition={motionLayoutPosition}
       {...restCellProps}
       ref={mergedCellRef}
     >

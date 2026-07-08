@@ -175,12 +175,15 @@ function HeadRow({
   const previousRow = headRows[headRowIndex - 1] || [];
   const [activeKey, setActiveKey] = useState<Key | null>(null);
   const [dragOverlaySize] = useState({ width: 90, height: 36 });
+  const [dragOverlayContent, setDragOverlayContent] =
+    useState<React.ReactNode | null>(null);
   const activeRectRef = useRef<ClientRect | null>(null);
   const scrollListenerCleanupRef = useRef<(() => void) | null>(null);
   const scrollEndTimerRef = useRef<NodeJS.Timeout | null>(null);
   const scrollLeftRef = useRef(0);
   const scrollingRef = useRef(false);
   const ignoreSortableDragRef = useRef(false);
+  const fixedSortableHotKeysCacheRef = useRef(new Map<Key, Set<Key>>());
   const sortableFinishTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
@@ -193,7 +196,7 @@ function HeadRow({
     return activeColumn?.column?.fixed
       ? fixedColumnDroppableMeasuring
       : undefined;
-  }, [activeColumn]);
+  }, [activeColumn?.column?.fixed]);
 
   const sortablePreview = useSortablePreview({
     getBaseState: getSortableBaseState,
@@ -225,6 +228,13 @@ function HeadRow({
     (column?: SortableColumnType) => {
       if (!column) {
         updateHotKeys(emptyKeys);
+        return;
+      }
+
+      const cacheKey = column.key as Key;
+      const cachedKeys = fixedSortableHotKeysCacheRef.current.get(cacheKey);
+      if (cachedKeys) {
+        updateHotKeys(cachedKeys);
         return;
       }
 
@@ -263,7 +273,9 @@ function HeadRow({
         return result;
       }, []);
 
-      updateHotKeys(keys.length ? new Set(keys) : emptyKeys);
+      const nextKeys = keys.length ? new Set(keys) : emptyKeys;
+      fixedSortableHotKeysCacheRef.current.set(cacheKey, nextKeys);
+      updateHotKeys(nextKeys);
     },
     [columns, fixedOffset, flattenColumns, headRows, updateHotKeys],
   );
@@ -276,14 +288,8 @@ function HeadRow({
     [dragOverlaySize],
   );
 
-  const dragOverlayChildren = useMemo(() => {
-    return activeColumn?.column?.columnOverlayTitle !== undefined
-      ? activeColumn.column.columnOverlayTitle
-      : activeColumn?.children;
-  }, [activeColumn]);
-
   const dragOverlayModifiers = useMemo<Modifier[] | undefined>(() => {
-    if (!activeColumn) return undefined;
+    if (!activeKey) return undefined;
 
     return [
       ({ activatorEvent, activeNodeRect, overlayNodeRect, transform }) => {
@@ -316,7 +322,7 @@ function HeadRow({
         };
       },
     ];
-  }, [activeColumn, dragOverlaySize.height, dragOverlaySize.width]);
+  }, [activeKey, dragOverlaySize.height]);
 
   const cleanupSortableScrollListener = useCallback(() => {
     clearTimeout(scrollEndTimerRef.current!);
@@ -357,7 +363,9 @@ function HeadRow({
       sortableFinishTimerRef.current = null;
     }
     cleanupSortableScrollListener();
+    fixedSortableHotKeysCacheRef.current.clear();
     activeRectRef.current = null;
+    setDragOverlayContent(null);
     document.documentElement.style.cursor = '';
     setActiveKey(null);
     updateActiveStatus(emptyActiveStatus);
@@ -376,6 +384,7 @@ function HeadRow({
 
     cleanupSortableScrollListener();
     activeRectRef.current = null;
+    setDragOverlayContent(null);
     document.documentElement.style.cursor = '';
     setActiveKey(null);
     updateActiveStatus(emptyActiveStatus);
@@ -416,12 +425,18 @@ function HeadRow({
       ignoreSortableDragRef.current = false;
       onSortableStart?.();
 
+      fixedSortableHotKeysCacheRef.current.clear();
       document.documentElement.style.cursor = 'move';
       sortablePreview.start();
       startSortableScrollListener();
       const activeColumn = activeData.column;
       const activeCell = columns.find(
         (column) => `${column.key}` === `${event.active.id}`,
+      );
+      setDragOverlayContent(
+        activeCell?.column?.columnOverlayTitle !== undefined
+          ? activeCell.column.columnOverlayTitle
+          : activeCell?.children,
       );
       const activeColumnKeys = getColumnVisualKeys(
         activeCell,
@@ -567,6 +582,8 @@ function HeadRow({
         sortableFinishTimerRef.current = null;
       }
       cleanupSortableScrollListener();
+      fixedSortableHotKeysCacheRef.current.clear();
+      activeRectRef.current = null;
       document.documentElement.style.cursor = '';
       updateActiveStatus(emptyActiveStatus);
       updateHotKeys(emptyKeys);
@@ -602,12 +619,12 @@ function HeadRow({
           ))}
         </SortableContext>
         <DragOverlay dropAnimation={null} modifiers={dragOverlayModifiers}>
-          {activeColumn && (
+          {dragOverlayContent && (
             <div
               className={headDraggingOverlayCellCls}
               style={dragOverlayStyle}
             >
-              {dragOverlayChildren}
+              {dragOverlayContent}
             </div>
           )}
         </DragOverlay>

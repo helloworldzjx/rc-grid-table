@@ -32,8 +32,9 @@ import Placeholder from './Placeholder';
 import ReadySkeletonTable from './ReadySkeletonTable';
 import ScrollBarContainer from './ScrollContainer';
 import Summary from './Summary/Summary';
-import { useColumnSortableContext } from './contexts';
 import BodyHoverContext from './contexts/BodyHoverContext';
+import { useColumnSortingContext } from './contexts/ColumnSortMotionContext';
+import { useColumnSortableActiveContext } from './contexts/ColumnSortableContext';
 import { useComponentsContext } from './contexts/ComponentsContext';
 import { useExpandableContext } from './contexts/ExpandableContext';
 import FixedShadowContext from './contexts/FixedShadowContext';
@@ -130,7 +131,8 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
     const { getComponent } = useComponentsContext();
     const { expandable, mergedExpandedRowKeys = [] } = useExpandableContext();
     const { rowSortable } = useRowSortableContext();
-    const { activeStatus, sortingColumns } = useColumnSortableContext();
+    const { activeStatus } = useColumnSortableActiveContext();
+    const sortingColumns = useColumnSortingContext();
 
     const { hashId, cssVarCls } = useStyles();
 

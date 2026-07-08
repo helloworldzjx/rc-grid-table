@@ -40,6 +40,7 @@ export type BodyItem<T = any> = BodyRowItem<T> | BodyExpandedItem<T>;
 
 export interface BodyNodeColumnsInfo<T = any> {
   flattenColumns: InternalColumnState<T>[];
+  columnMotionPositions: number[];
   fixedOffset: StickyOffsets;
 }
 

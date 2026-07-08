@@ -17,6 +17,9 @@ const useRenderedColumnLayout = <T = any>() => {
         previewLayout.flattenColumns ?? tableLayout.flattenColumns,
       flattenColumnsWidths:
         previewLayout.flattenColumnsWidths ?? tableLayout.flattenColumnsWidths,
+      columnMotionPositions:
+        previewLayout.columnMotionPositions ??
+        tableLayout.columnMotionPositions,
       columnsWidthTotal:
         previewLayout.columnsWidthTotal ?? tableLayout.columnsWidthTotal,
       fixedOffset: previewLayout.fixedOffset ?? tableLayout.fixedOffset,
