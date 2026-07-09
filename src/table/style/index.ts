@@ -524,6 +524,8 @@ const genCellStyle = (
     previewColumnsSortingCls,
     columnSortableFixedActiveCls,
     rowSortingCls,
+    headCls,
+    headInnerCls,
     headRowCls,
     bodyCls,
     bodyInnerCls,
@@ -538,6 +540,8 @@ const genCellStyle = (
     bodyExpandableRowCls,
     bodyExpandedRowCls,
     bodyExpandedRowCellCls,
+    summaryCls,
+    summaryInnerCls,
     summaryRowCls,
     cellCls,
     filterCellCls,
@@ -744,6 +748,11 @@ const genCellStyle = (
     [`.${filterCellCls}`]: {
       minWidth: 0,
     },
+
+    [`&.${previewColumnsSortingCls} > .${headCls} > .${headInnerCls}, &.${previewColumnsSortingCls} .${summaryCls} > .${summaryInnerCls}`]:
+      {
+        backgroundColor: token.cellStrongBg,
+      },
 
     [`&.${previewColumnsSortingCls}.${columnSortableFixedActiveCls} .${headRowCls} > .${cellCls}:not(.${fixedStartCellCls}, .${fixedEndCellCls}), &.${previewColumnsSortingCls}.${columnSortableFixedActiveCls} .${bodyRowCls} > .${cellCls}:not(.${fixedStartCellCls}, .${fixedEndCellCls})`]:
       {

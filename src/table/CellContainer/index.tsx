@@ -29,6 +29,33 @@ const getMatchedMotionKeys = (
   return motionKeys.filter((key) => sortableMotionKeys.has(key));
 };
 
+type MotionAnimation = ReturnType<typeof animateMini>;
+
+const isInvalidAnimationStateError = (error: unknown) =>
+  (typeof DOMException !== 'undefined' &&
+    error instanceof DOMException &&
+    error.name === 'InvalidStateError') ||
+  (typeof error === 'object' &&
+    error !== null &&
+    'name' in error &&
+    error.name === 'InvalidStateError');
+
+const stopMotionAnimation = (animation: MotionAnimation | null) => {
+  if (!animation) return;
+
+  try {
+    animation.stop();
+  } catch (error) {
+    if (!isInvalidAnimationStateError(error)) {
+      throw error;
+    }
+
+    // 列排序预览时，合并/占位单元格可能在动画清理前变为不可渲染。
+    // 此时 WAAPI commitStyles 会抛 InvalidStateError，退回 cancel 即可。
+    animation.cancel();
+  }
+};
+
 const CellContainer = forwardRef<HTMLDivElement, CellContainerProps>(
   (
     {
@@ -44,7 +71,7 @@ const CellContainer = forwardRef<HTMLDivElement, CellContainerProps>(
       useColumnSortMotionContext();
     const innerRef = useRef<HTMLDivElement | null>(null);
     const previousPositionRef = useRef<number | undefined>(undefined);
-    const animationRef = useRef<ReturnType<typeof animateMini> | null>(null);
+    const animationRef = useRef<MotionAnimation | null>(null);
 
     const activeMotionKeys = useMemo(
       () =>
@@ -61,7 +88,7 @@ const CellContainer = forwardRef<HTMLDivElement, CellContainerProps>(
         motionLayoutDependency === false
       ) {
         previousPositionRef.current = undefined;
-        animationRef.current?.stop();
+        stopMotionAnimation(animationRef.current);
         animationRef.current = null;
         return;
       }
@@ -81,7 +108,7 @@ const CellContainer = forwardRef<HTMLDivElement, CellContainerProps>(
         return;
       }
 
-      animationRef.current?.stop();
+      stopMotionAnimation(animationRef.current);
       const baseTransform =
         typeof rest.style?.transform === 'string' ? rest.style.transform : '';
       const fromTransform = baseTransform
@@ -118,7 +145,7 @@ const CellContainer = forwardRef<HTMLDivElement, CellContainerProps>(
 
     useIsomorphicLayoutEffect(() => {
       return () => {
-        animationRef.current?.stop();
+        stopMotionAnimation(animationRef.current);
         animationRef.current = null;
       };
     }, []);
