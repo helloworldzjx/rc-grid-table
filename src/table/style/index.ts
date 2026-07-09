@@ -521,6 +521,7 @@ const genSummaryCls = (
 const genCellStyle = (
   {
     componentCls,
+    fixColumnsGappedCls,
     previewColumnsSortingCls,
     columnSortableFixedActiveCls,
     rowSortingCls,
@@ -754,7 +755,7 @@ const genCellStyle = (
         backgroundColor: token.cellStrongBg,
       },
 
-    [`&.${previewColumnsSortingCls}.${columnSortableFixedActiveCls} .${headRowCls} > .${cellCls}:not(.${fixedStartCellCls}, .${fixedEndCellCls}), &.${previewColumnsSortingCls}.${columnSortableFixedActiveCls} .${bodyRowCls} > .${cellCls}:not(.${fixedStartCellCls}, .${fixedEndCellCls})`]:
+    [`&.${fixColumnsGappedCls}.${previewColumnsSortingCls}.${columnSortableFixedActiveCls} .${headRowCls} > .${cellCls}:not(.${fixedStartCellCls}, .${fixedEndCellCls}), &.${fixColumnsGappedCls}.${previewColumnsSortingCls}.${columnSortableFixedActiveCls} .${bodyRowCls} > .${cellCls}:not(.${fixedStartCellCls}, .${fixedEndCellCls})`]:
       {
         opacity: `0.4 !important`,
       },
