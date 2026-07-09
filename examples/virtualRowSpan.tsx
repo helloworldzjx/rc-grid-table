@@ -161,17 +161,6 @@ const App: React.FC = () => {
               }
             : undefined
         }
-        summary={(pageData) => [
-          [
-            { children: null },
-            { children: 'Total rows' },
-            { children: pageData.length },
-            {
-              colSpan: columns.length - 2,
-              children: 'Virtual rowSpan is rendered with an overlay layer.',
-            },
-          ],
-        ]}
       />
     </>
   );

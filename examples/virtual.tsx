@@ -239,16 +239,6 @@ const App: React.FC = () => {
           expandedRowRender: (record) => record.note,
           rowExpandable: (record) => Number(record.key) % 11 === 0,
         }}
-        summary={(pageData, flattenColumns) => [
-          [
-            { children: 'Total rows', colSpan: 2 },
-            { children: pageData.length },
-            {
-              colSpan: Math.max((flattenColumns?.length || 1) - 3, 1),
-              children: 'Rows are virtualized when scrollY is configured.',
-            },
-          ],
-        ]}
       />
     </>
   );

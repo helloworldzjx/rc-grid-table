@@ -1,11 +1,9 @@
-import { Space, Tag, Typography } from 'antd';
+import { Space, Tag } from 'antd';
 import { Table } from 'rc-grid-table';
 import { ColumnsType } from 'rc-grid-table/es/table/interface';
 import React, { useState } from 'react';
 import ConfigActions from './_utils/components/ConfigActions';
 import useConfigActions from './_utils/hooks/useConfigActions';
-
-const { Text } = Typography;
 
 interface DataType {
   key: React.Key;
@@ -161,45 +159,6 @@ const App: React.FC = () => {
                 record.status === 'Disabled' ? 'Disabled record' : undefined,
             }),
             onChange: (keys) => setRadioSelectedRowKeys(keys),
-          }}
-          summary={(pageData) => {
-            const disabledCount = pageData.filter(
-              (record) => record.status === 'Disabled',
-            ).length;
-            const selectedRecord = pageData.find((record) =>
-              radioSelectedRowKeys.includes(record.key),
-            );
-
-            return [
-              [
-                // 设置了 rowSelection 会多出选择列，可以用来显示 '总计'
-                { children: '总计' },
-                {
-                  children: <Text type="danger">Total: {pageData.length}</Text>,
-                },
-                {
-                  children: (
-                    <Text type="danger">
-                      Available: {pageData.length - disabledCount}
-                    </Text>
-                  ),
-                },
-                {
-                  children: (
-                    <Text type="danger">Disabled: {disabledCount}</Text>
-                  ),
-                },
-                {
-                  children: (
-                    <Text type="danger">
-                      {selectedRecord
-                        ? `Selected: ${selectedRecord.name}`
-                        : 'Selected: -'}
-                    </Text>
-                  ),
-                },
-              ],
-            ];
           }}
         />
       </Space>

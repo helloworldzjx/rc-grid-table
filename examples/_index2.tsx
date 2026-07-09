@@ -91,35 +91,6 @@ export default () => {
       sortableColumns
       sticky
       scrollY={400}
-      summary={() => [
-        [
-          { rowSpan: 2, children: 'aaaa' },
-          { colSpan: columns.length - 3, children: 'a?."{&aaa' },
-          { children: '123213' },
-          { children: '123213' },
-        ],
-        [
-          { children: 'a?."{&aaa' },
-          { colSpan: columns.length - 3, children: '123213' },
-          { children: '123213', rowSpan: 2 },
-        ],
-        [
-          { children: 'aaaa' },
-          { children: 'a?."{&aaa' },
-          { colSpan: columns.length - 3, children: '123213' },
-        ],
-        [
-          { children: 'aaaa' },
-          { children: 'aaaa' },
-          { colSpan: columns.length - 3, children: '123213' },
-          { children: 'aaaa' },
-        ],
-        [
-          { colSpan: columns.length - 2, children: '123213' },
-          { children: 'aaaa' },
-          { children: '123213' },
-        ],
-      ]}
     />
   );
 };
