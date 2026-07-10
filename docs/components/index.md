@@ -3,6 +3,7 @@ nav:
   title: 示例
   order: 2
 title: 基本用法
+description: rc-grid-table 基本用法示例，展示 React Grid Table 的 columns、dataSource、rowKey 以及列 key 配置方式。
 order: 0
 ---
 
