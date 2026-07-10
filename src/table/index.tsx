@@ -65,6 +65,9 @@ import { getTablePrefixCls } from './utils/prefixCls';
 import { getRecordKey } from './utils/record';
 import { warningInvalidRecordKey } from './utils/warning';
 
+export { usePrefixClsContext as useTablePrefixClsContext } from './contexts/PrefixClsContext';
+export { useTableDataContext } from './contexts/TableDataContext';
+export { useTableLayoutContext } from './contexts/TableLayoutContext';
 export type { TableProps, TableRef } from './interface';
 export { defaultTablePrefixCls } from './utils/prefixCls';
 
