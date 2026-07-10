@@ -107,6 +107,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     onCell,
     onRow,
     readySkeleton = false,
+    rootClassName,
     className,
     rowClassName,
     bordered,
@@ -141,6 +142,10 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
           }
         : undefined,
     [config.gridTable?.expandable, expandable],
+  );
+  const mergedRootClassName = useMemo(
+    () => classNames(config.gridTable?.rootClassName, rootClassName),
+    [rootClassName, config.gridTable?.rootClassName],
   );
   const mergedClassName = useMemo(
     () => classNames(config.gridTable?.className, className),
@@ -499,6 +504,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
   const tableContextValue = useMemo(
     () => ({
       ...baseProps,
+      rootClassName: mergedRootClassName,
       className: mergedClassName,
       onHeaderRow,
       onHeaderFilterRow,
@@ -520,6 +526,7 @@ function GridTable<T = any>(props: TableProps<T>, ref: ForwardedRef<TableRef>) {
     }),
     [
       baseProps,
+      mergedRootClassName,
       mergedClassName,
       onHeaderRow,
       onHeaderFilterRow,

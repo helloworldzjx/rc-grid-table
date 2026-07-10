@@ -13,6 +13,7 @@ import type {
   Key,
   MouseEvent,
   ReactNode,
+  UIEventHandler,
 } from 'react';
 
 export type {
@@ -443,6 +444,16 @@ export type TableReadySkeleton = boolean | TableReadySkeletonConfig;
 
 export type GetScrollContainer = () => Window | HTMLElement | null;
 
+export type TableNativeProps = Omit<
+  HTMLAttributes<HTMLDivElement>,
+  | 'children'
+  | 'className'
+  | 'dangerouslySetInnerHTML'
+  | 'onScroll'
+  | 'style'
+  | 'title'
+>;
+
 export type ColumnState<T = any> = {
   key: Key;
   dataIndex?: Key;
@@ -516,13 +527,24 @@ export type ColumnsConfig<T> = {
   ) => void;
 };
 
-export interface TableProps<T = any>
-  extends Omit<HTMLAttributes<HTMLDivElement>, 'title'> {
+export interface TableProps<T = any> extends TableNativeProps {
   /**
    * @description className 前缀
    * @default "rc-grid-table"
    */
   prefixCls?: string;
+  /**
+   * @description 根元素 className
+   */
+  rootClassName?: string;
+  /**
+   * @description table 语义元素 className
+   */
+  className?: string;
+  /**
+   * @description table 语义元素 style
+   */
+  style?: CSSProperties;
   /**
    * @description 如果希望table在一些操作之后再显示可以使用ready参数
    * @default true
@@ -698,4 +720,8 @@ export interface TableProps<T = any>
    * @description 设置body行的类名
    */
   rowClassName?: (record?: T, rowIndex?: number) => string;
+  /**
+   * @description 滚动事件回调
+   */
+  onScroll?: UIEventHandler<HTMLDivElement>;
 }

@@ -11,6 +11,7 @@ import type {
 export { defaultRootPrefixCls };
 
 export interface GridTableConfig {
+  rootClassName?: string;
   className?: string;
   style?: CSSProperties;
   loading?: TableLoading;

@@ -50,7 +50,7 @@ import useFixedShadow from './hooks/useFixedShadow';
 import useLayoutExtra from './hooks/useLayoutExtra';
 import useTableRowSort from './hooks/useTableRowSort';
 import useTableScroll from './hooks/useTableScroll';
-import type { TableProps, TableRef } from './interface';
+import type { TableNativeProps, TableProps, TableRef } from './interface';
 import { useStyles } from './style';
 import { getComponentCls, getCssVar } from './style/classNames';
 import {
@@ -76,7 +76,7 @@ const getStickyOffset = (
 };
 
 interface GridTableProps {
-  nativeProps?: React.HTMLAttributes<HTMLDivElement>;
+  nativeProps?: TableNativeProps;
   imperativeRef?: React.Ref<TableRef>;
   startColumnsStatePreview?: TableRef['startColumnsStatePreview'];
   saveColumnsStatePreview?: TableRef['saveColumnsStatePreview'];
@@ -103,6 +103,7 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
       ready,
       readySkeleton,
       rowKey,
+      rootClassName,
       className,
       dataSource,
       size,
@@ -538,10 +539,16 @@ const Table = forwardRef<HTMLDivElement, GridTableProps>(
     return (
       <div
         {...nativeProps}
-        className={classNames(wrapperCls, hashId, cssVarCls, {
-          [wrapperReadySkeletonCls]: showReadySkeleton,
-          [wrapperInitializedCls]: initialized,
-        })}
+        className={classNames(
+          wrapperCls,
+          hashId,
+          cssVarCls,
+          {
+            [wrapperReadySkeletonCls]: showReadySkeleton,
+            [wrapperInitializedCls]: initialized,
+          },
+          rootClassName,
+        )}
         ref={composeRef(ref, wrapperRef)}
         style={readySkeletonWrapperStyle}
       >
