@@ -108,6 +108,7 @@ export interface TableContextProps<T = any>
   // table props
   rowKey: RowKey<T>;
   loading: boolean | TableLoading;
+  dataSource: T[];
   rowHoverable: boolean;
   size: SizeType;
   virtual: boolean | TableVirtualConfig;

@@ -49,11 +49,16 @@ const genInitialStyle = ({
 });
 
 const genPlaceholderStyle = (
-  { componentCls, placeholderCls, placeholderDisabledCls }: ComponentClsType,
+  {
+    componentCls,
+    containerCls,
+    placeholderCls,
+    placeholderDisabledCls,
+  }: ComponentClsType,
   token: TableComponentToken,
 ): CSSInterpolation => ({
   [`.${componentCls}`]: {
-    [`.${placeholderCls}`]: {
+    [`& > .${placeholderCls}, & > .${containerCls} > .${placeholderCls}`]: {
       position: 'absolute',
       height: '100%',
       top: 0,
@@ -81,9 +86,14 @@ const genPlaceholderStyle = (
 
 const genComponentStyle = ({
   componentCls,
+  containerCls,
 }: ComponentClsType): CSSInterpolation => ({
   [`.${componentCls}`]: {
     position: 'relative',
+
+    [`& > .${containerCls}`]: {
+      position: 'relative',
+    },
   },
 });
 
@@ -99,41 +109,10 @@ const genSkeletonStyle = ({
   },
 });
 
-const getCurrentHeadRowSelector = ({
-  headCls,
-  headInnerCls,
-  headRowCls,
-}: ComponentClsType) => `& > .${headCls} > .${headInnerCls} > .${headRowCls}`;
-
-const getCurrentBodyRowSelectors = ({
-  bodyCls,
-  bodyInnerCls,
-  bodyRowCls,
-  bodyVirtualFillerCls,
-  bodyVirtualInnerCls,
-}: ComponentClsType) => [
-  `& > .${bodyCls} > .${bodyInnerCls} > .${bodyRowCls}`,
-  `& > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyRowCls}`,
-];
-
-const appendCurrentBodyRowSelector = (
-  classNames: ComponentClsType,
-  selector: string,
-) =>
-  getCurrentBodyRowSelectors(classNames)
-    .map((rowSelector) => `${rowSelector}${selector}`)
-    .join(', ');
-
-const getCurrentSummaryRowSelector = ({
-  summaryCls,
-  summaryInnerCls,
-  summaryRowCls,
-}: ComponentClsType) =>
-  `& > .${summaryCls} > .${summaryInnerCls} > .${summaryRowCls}`;
-
 const genVirtualStyle = (
   {
     componentCls,
+    containerCls,
     virtualCls,
     bodyCls,
     bodyInnerCls,
@@ -152,14 +131,15 @@ const genVirtualStyle = (
   }: CssVarType,
 ): CSSInterpolation => ({
   [`.${componentCls}.${virtualCls}`]: {
-    [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls}`]: {
-      position: 'relative',
-      gridColumn: '1 / -1',
-      width: `max(100%, var(${columnsWidthTotalCssVar}))`,
-      minHeight: '100%',
-    },
+    [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls}, & > .${containerCls} > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls}`]:
+      {
+        position: 'relative',
+        gridColumn: '1 / -1',
+        width: `max(100%, var(${columnsWidthTotalCssVar}))`,
+        minHeight: '100%',
+      },
 
-    [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls}`]:
+    [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls}, & > .${containerCls} > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls}`]:
       {
         position: 'absolute',
         insetInline: 0,
@@ -168,7 +148,7 @@ const genVirtualStyle = (
         gridTemplateColumns: `var(${columnsWidthCssVar})`,
       },
 
-    [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyVirtualPreservedRowCls}`]:
+    [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyVirtualPreservedRowCls}, & > .${containerCls} > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyVirtualPreservedRowCls}`]:
       {
         position: 'absolute',
         insetInline: 0,
@@ -177,7 +157,7 @@ const genVirtualStyle = (
         gridTemplateColumns: `var(${columnsWidthCssVar})`,
       },
 
-    [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyVirtualRowSpanRowCls}`]:
+    [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyVirtualRowSpanRowCls}, & > .${containerCls} > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyVirtualRowSpanRowCls}`]:
       {
         position: 'absolute',
         insetInline: 0,
@@ -189,12 +169,12 @@ const genVirtualStyle = (
         },
       },
 
-    [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyVirtualRowSpanTopRowCls} > .${cellCls}`]:
+    [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyVirtualRowSpanTopRowCls} > .${cellCls}, & > .${containerCls} > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyVirtualRowSpanTopRowCls} > .${cellCls}`]:
       {
         borderTopColor: 'transparent',
       },
 
-    [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyFixedHeightRowCls}`]:
+    [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyFixedHeightRowCls}, & > .${containerCls} > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyFixedHeightRowCls}`]:
       {
         gridTemplateRows: `var(${bodyFixedHeightRowCssVar})`,
       },
@@ -204,7 +184,10 @@ const genVirtualStyle = (
 const genBorderedStyle = (
   {
     componentCls,
+    containerCls,
     borderedCls,
+    hasTitleCls,
+    hasFooterCls,
     hasXScrollbarCls,
     hasSummaryCls,
     placeholderCls,
@@ -226,26 +209,11 @@ const genBorderedStyle = (
   }: ComponentClsType,
   token: TableComponentToken,
 ): CSSInterpolation => {
-  const currentHeadRowSelector = getCurrentHeadRowSelector({
-    headCls,
-    headInnerCls,
-    headRowCls,
-  } as ComponentClsType);
-  const currentBodyCellSelector = appendCurrentBodyRowSelector(
-    {
-      bodyCls,
-      bodyInnerCls,
-      bodyRowCls,
-      bodyVirtualFillerCls,
-      bodyVirtualInnerCls,
-    } as ComponentClsType,
-    ` > .${cellCls}`,
-  );
-  const currentSummaryRowSelector = getCurrentSummaryRowSelector({
-    summaryCls,
-    summaryInnerCls,
-    summaryRowCls,
-  } as ComponentClsType);
+  const currentHeadCellSelector = `& > .${headCls} > .${headInnerCls} > .${headRowCls} > .${cellCls}, & > .${containerCls} > .${headCls} > .${headInnerCls} > .${headRowCls} > .${cellCls}`;
+  const currentBodyCellSelector = `& > .${bodyCls} > .${bodyInnerCls} > .${bodyRowCls} > .${cellCls}, & > .${containerCls} > .${bodyCls} > .${bodyInnerCls} > .${bodyRowCls} > .${cellCls}, & > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyRowCls} > .${cellCls}, & > .${containerCls} > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyRowCls} > .${cellCls}`;
+  const currentSummaryCellSelector = `& > .${summaryCls} > .${summaryInnerCls} > .${summaryRowCls} > .${cellCls}, & > .${containerCls} > .${summaryCls} > .${summaryInnerCls} > .${summaryRowCls} > .${cellCls}`;
+  const currentHeadCellBeforeSelector = `& > .${headCls} > .${headInnerCls} > .${headRowCls} > .${cellCls}::before, & > .${containerCls} > .${headCls} > .${headInnerCls} > .${headRowCls} > .${cellCls}::before`;
+  const currentHeadResizeHandleSelector = `& > .${headCls} > .${headInnerCls} > .${headRowCls} .${headCellResizeHandleCls}, & > .${containerCls} > .${headCls} > .${headInnerCls} > .${headRowCls} .${headCellResizeHandleCls}`;
 
   return {
     [`.${componentCls}.${borderedCls}`]: {
@@ -263,24 +231,31 @@ const genBorderedStyle = (
         zIndex: 5,
       },
 
-      [`& > .${placeholderCls}`]: {
+      [`& > .${placeholderCls}, & > .${containerCls} > .${placeholderCls}`]: {
         border: `1px solid ${token.borderColor}`,
         borderTopRightRadius: token.borderRadius,
         borderBottomRightRadius: token.borderRadius,
       },
 
       [`&.${hasXScrollbarCls}`]: {
-        [`.${fixedStartShadowCls}`]: {
-          borderTopLeftRadius: token.borderRadius,
-          borderBottomLeftRadius: token.borderRadius,
-        },
-        [`.${fixedEndShadowCls}`]: {
-          borderTopRightRadius: token.borderRadius,
-          borderBottomRightRadius: token.borderRadius,
-        },
+        [`& > .${fixedStartShadowCls}, & > .${containerCls} > .${fixedStartShadowCls}`]:
+          {
+            borderTopLeftRadius: token.borderRadius,
+            borderBottomLeftRadius: token.borderRadius,
+          },
+        [`& > .${fixedEndShadowCls}, & > .${containerCls} > .${fixedEndShadowCls}`]:
+          {
+            borderTopRightRadius: token.borderRadius,
+            borderBottomRightRadius: token.borderRadius,
+          },
       },
 
-      [`& > .${headCls}`]: {
+      [`&.${hasTitleCls} > .${containerCls} > .${fixedStartShadowCls}, &.${hasTitleCls} > .${containerCls} > .${fixedEndShadowCls}, &.${hasFooterCls} > .${containerCls} > .${fixedStartShadowCls}, &.${hasFooterCls} > .${containerCls} > .${fixedEndShadowCls}`]:
+        {
+          borderRadius: 0,
+        },
+
+      [`& > .${headCls}, & > .${containerCls} > .${headCls}`]: {
         '&::before': {
           // 使用outline替代border，避免sticky情况下border叠加导致的宽度问题
           borderBottomColor: 'transparent',
@@ -296,20 +271,21 @@ const genBorderedStyle = (
         },
       },
 
-      [`${currentHeadRowSelector} .${headCellResizeHandleCls}`]: {
+      [currentHeadResizeHandleSelector]: {
         insetBlock: 0,
       },
 
-      [`& > .${bodyCls}::before`]: {
+      [`& > .${bodyCls}::before, & > .${containerCls} > .${bodyCls}::before`]: {
         borderBottomLeftRadius: token.borderRadius,
         borderBottomRightRadius: token.borderRadius,
       },
-      [`&:not(.${hasSummaryCls}) > .${bodyCls} > .${bodyInnerCls}`]: {
-        borderBottomLeftRadius: token.borderRadius,
-        borderBottomRightRadius: token.borderRadius,
-      },
+      [`&:not(.${hasSummaryCls}) > .${bodyCls} > .${bodyInnerCls}, &:not(.${hasSummaryCls}) > .${containerCls} > .${bodyCls} > .${bodyInnerCls}`]:
+        {
+          borderBottomLeftRadius: token.borderRadius,
+          borderBottomRightRadius: token.borderRadius,
+        },
 
-      [`& > .${summaryCls}`]: {
+      [`& > .${summaryCls}, & > .${containerCls} > .${summaryCls}`]: {
         '&::before': {
           // 使用outline替代border，避免sticky情况下border叠加导致的宽度问题
           borderBottomColor: 'transparent',
@@ -325,11 +301,41 @@ const genBorderedStyle = (
         },
       },
 
-      [`${currentHeadRowSelector} > .${cellCls}::before`]: {
+      [`&.${hasTitleCls} > .${containerCls} > .${headCls}`]: {
+        '&::before': {
+          borderTopLeftRadius: 0,
+          borderTopRightRadius: 0,
+        },
+
+        [`& > .${headInnerCls}`]: {
+          borderTopLeftRadius: 0,
+          borderTopRightRadius: 0,
+        },
+      },
+
+      [`&.${hasFooterCls} > .${containerCls} > .${bodyCls}::before, &.${hasFooterCls}:not(.${hasSummaryCls}) > .${containerCls} > .${bodyCls} > .${bodyInnerCls}`]:
+        {
+          borderBottomLeftRadius: 0,
+          borderBottomRightRadius: 0,
+        },
+
+      [`&.${hasFooterCls} > .${containerCls} > .${summaryCls}`]: {
+        '&::before': {
+          borderBottomLeftRadius: 0,
+          borderBottomRightRadius: 0,
+        },
+
+        [`& > .${summaryInnerCls}`]: {
+          borderBottomLeftRadius: 0,
+          borderBottomRightRadius: 0,
+        },
+      },
+
+      [currentHeadCellBeforeSelector]: {
         display: 'none',
       },
 
-      [`${currentHeadRowSelector} > .${cellCls}, ${currentBodyCellSelector}, ${currentSummaryRowSelector} > .${cellCls}`]:
+      [`${currentHeadCellSelector}, ${currentBodyCellSelector}, ${currentSummaryCellSelector}`]:
         {
           borderLeft: `1px solid ${token.borderColor}`,
         },
@@ -340,6 +346,7 @@ const genBorderedStyle = (
 const genHeadStyle = (
   {
     componentCls,
+    containerCls,
     headCls,
     headStickyCls,
     headInnerCls,
@@ -350,7 +357,7 @@ const genHeadStyle = (
   { columnsWidthCssVar, readySkeletonHeadRowHeightCssVar }: CssVarType,
 ): CSSInterpolation => ({
   [`.${componentCls}`]: {
-    [`& > .${headCls}`]: {
+    [`& > .${headCls}, & > .${containerCls} > .${headCls}`]: {
       position: 'relative',
       boxSizing: 'border-box',
 
@@ -394,6 +401,7 @@ const genHeadStyle = (
 const genBodyStyle = (
   {
     componentCls,
+    containerCls,
     hasSummaryCls,
     bodyCls,
     bodyInnerCls,
@@ -408,7 +416,7 @@ const genBodyStyle = (
   { columnsWidthCssVar, readySkeletonBodyRowsHeightCssVar }: CssVarType,
 ): CSSInterpolation => ({
   [`.${componentCls}`]: {
-    [`& > .${bodyCls}`]: {
+    [`& > .${bodyCls}, & > .${containerCls} > .${bodyCls}`]: {
       position: 'relative',
       boxSizing: 'border-box',
       overflow: 'hidden',
@@ -427,37 +435,39 @@ const genBodyStyle = (
       },
     },
 
-    [`&.${hasSummaryCls} > .${bodyCls}::before`]: {
-      display: 'none',
-    },
-
-    [`& > .${bodyCls} > .${bodyInnerCls}`]: {
-      display: 'grid',
-      gridTemplateColumns: `var(${columnsWidthCssVar})`,
-      boxSizing: 'border-box',
-      overflow: 'auto',
-      scrollbarWidth: 'none',
-
-      [`&.${bodyReadySkeletonInnerCls}`]: {
-        gridTemplateRows: `var(${readySkeletonBodyRowsHeightCssVar})`,
+    [`&.${hasSummaryCls} > .${bodyCls}::before, &.${hasSummaryCls} > .${containerCls} > .${bodyCls}::before`]:
+      {
+        display: 'none',
       },
 
-      [`& > .${bodyRowCls}`]: {
-        display: 'contents',
-      },
+    [`& > .${bodyCls} > .${bodyInnerCls}, & > .${containerCls} > .${bodyCls} > .${bodyInnerCls}`]:
+      {
+        display: 'grid',
+        gridTemplateColumns: `var(${columnsWidthCssVar})`,
+        boxSizing: 'border-box',
+        overflow: 'auto',
+        scrollbarWidth: 'none',
 
-      [`& > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyRowCls}`]:
-        {
+        [`&.${bodyReadySkeletonInnerCls}`]: {
+          gridTemplateRows: `var(${readySkeletonBodyRowsHeightCssVar})`,
+        },
+
+        [`& > .${bodyRowCls}`]: {
           display: 'contents',
         },
 
-      [`& > .${bodyGridRowCls}, & > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyGridRowCls}`]:
-        {
-          display: 'grid',
-          gridTemplateColumns: `var(${columnsWidthCssVar})`,
-          gridColumn: '1 / -1',
-        },
-    },
+        [`& > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyRowCls}`]:
+          {
+            display: 'contents',
+          },
+
+        [`& > .${bodyGridRowCls}, & > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyGridRowCls}`]:
+          {
+            display: 'grid',
+            gridTemplateColumns: `var(${columnsWidthCssVar})`,
+            gridColumn: '1 / -1',
+          },
+      },
 
     [`.${bodyRowCls}.${bodySortDraggingOverlayRowCls}`]: {
       borderRadius: token.borderRadius,
@@ -472,6 +482,7 @@ const genBodyStyle = (
 const genSummaryCls = (
   {
     componentCls,
+    containerCls,
     summaryCls,
     summaryStickyCls,
     summaryInnerCls,
@@ -481,7 +492,7 @@ const genSummaryCls = (
   { columnsWidthCssVar }: CssVarType,
 ): CSSInterpolation => ({
   [`.${componentCls}`]: {
-    [`& > .${summaryCls}`]: {
+    [`& > .${summaryCls}, & > .${containerCls} > .${summaryCls}`]: {
       position: 'relative',
       boxSizing: 'border-box',
 
@@ -521,6 +532,7 @@ const genSummaryCls = (
 const genCellStyle = (
   {
     componentCls,
+    containerCls,
     fixColumnsGappedCls,
     previewColumnsSortingCls,
     columnSortableFixedActiveCls,
@@ -662,21 +674,21 @@ const genCellStyle = (
       },
     },
 
-    [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyRowCls}.${bodyHoverRowCls} > .${cellCls}`]:
+    [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyRowCls}.${bodyHoverRowCls} > .${cellCls}, & > .${containerCls} > .${bodyCls} > .${bodyInnerCls} > .${bodyRowCls}.${bodyHoverRowCls} > .${cellCls}`]:
       {
         backgroundColor: token.cellHoverBg,
         transition: 'background-color 0.3s',
       },
-    [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyRowCls} > .${cellCls}.${bodyHoverCellCls}`]:
+    [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyRowCls} > .${cellCls}.${bodyHoverCellCls}, & > .${containerCls} > .${bodyCls} > .${bodyInnerCls} > .${bodyRowCls} > .${cellCls}.${bodyHoverCellCls}`]:
       {
         backgroundColor: token.cellHoverBg,
         transition: 'background-color 0.3s',
       },
-    [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyRowCls}.${bodyHoverRowCls} > .${cellCls}`]:
+    [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyRowCls}.${bodyHoverRowCls} > .${cellCls}, & > .${containerCls} > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyRowCls}.${bodyHoverRowCls} > .${cellCls}`]:
       {
         backgroundColor: token.cellHoverBg,
       },
-    [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyRowCls} > .${cellCls}.${bodyHoverCellCls}`]:
+    [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyRowCls} > .${cellCls}.${bodyHoverCellCls}, & > .${containerCls} > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyRowCls} > .${cellCls}.${bodyHoverCellCls}`]:
       {
         backgroundColor: token.cellHoverBg,
       },
@@ -750,7 +762,7 @@ const genCellStyle = (
       minWidth: 0,
     },
 
-    [`&.${previewColumnsSortingCls} > .${headCls} > .${headInnerCls}, &.${previewColumnsSortingCls} .${summaryCls} > .${summaryInnerCls}`]:
+    [`&.${previewColumnsSortingCls} > .${headCls} > .${headInnerCls}, &.${previewColumnsSortingCls} > .${containerCls} > .${headCls} > .${headInnerCls}, &.${previewColumnsSortingCls} > .${summaryCls} > .${summaryInnerCls}, &.${previewColumnsSortingCls} > .${containerCls} > .${summaryCls} > .${summaryInnerCls}`]:
       {
         backgroundColor: token.cellStrongBg,
       },
@@ -1047,11 +1059,26 @@ const genFixedShadowStyle = (
   },
 });
 
+const genTitleFooterStyle = (
+  { componentCls, titleCls, footerCls }: ComponentClsType,
+  token: TableComponentToken,
+): CSSInterpolation => ({
+  [`.${componentCls}`]: {
+    [`& > .${titleCls}, & > .${footerCls}`]: {
+      paddingBlock: unit(token.cellPaddingBlock),
+      paddingInline: unit(token.cellPaddingInline),
+    },
+  },
+});
+
 const genSizeClsStyle = (
   {
     componentCls,
     componentSMCls,
     componentMDCls,
+    containerCls,
+    titleCls,
+    footerCls,
     headCls,
     headInnerCls,
     headRowCls,
@@ -1070,40 +1097,30 @@ const genSizeClsStyle = (
   }: ComponentClsType,
   token: TableComponentToken,
 ): CSSInterpolation => {
-  const currentHeadRowSelector = getCurrentHeadRowSelector({
-    headCls,
-    headInnerCls,
-    headRowCls,
-  } as ComponentClsType);
-  const currentBodyCellSelector = appendCurrentBodyRowSelector(
-    {
-      bodyCls,
-      bodyInnerCls,
-      bodyRowCls,
-      bodyVirtualFillerCls,
-      bodyVirtualInnerCls,
-    } as ComponentClsType,
-    ` > .${cellCls}`,
-  );
-  const currentSummaryRowSelector = getCurrentSummaryRowSelector({
-    summaryCls,
-    summaryInnerCls,
-    summaryRowCls,
-  } as ComponentClsType);
-  const currentCellSelector = `${currentHeadRowSelector} > .${cellCls}, ${currentBodyCellSelector}, ${currentSummaryRowSelector} > .${cellCls}`;
+  const currentHeadCellSelector = `& > .${headCls} > .${headInnerCls} > .${headRowCls} > .${cellCls}, & > .${containerCls} > .${headCls} > .${headInnerCls} > .${headRowCls} > .${cellCls}`;
+  const currentBodyCellSelector = `& > .${bodyCls} > .${bodyInnerCls} > .${bodyRowCls} > .${cellCls}, & > .${containerCls} > .${bodyCls} > .${bodyInnerCls} > .${bodyRowCls} > .${cellCls}, & > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyRowCls} > .${cellCls}, & > .${containerCls} > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyRowCls} > .${cellCls}`;
+  const currentSummaryCellSelector = `& > .${summaryCls} > .${summaryInnerCls} > .${summaryRowCls} > .${cellCls}, & > .${containerCls} > .${summaryCls} > .${summaryInnerCls} > .${summaryRowCls} > .${cellCls}`;
+  const currentCellSelector = `${currentHeadCellSelector}, ${currentBodyCellSelector}, ${currentSummaryCellSelector}`;
+  const currentHeadCellBeforeSelector = `& > .${headCls} > .${headInnerCls} > .${headRowCls} > .${cellCls}:not(.${headLastCellCls})::before, & > .${containerCls} > .${headCls} > .${headInnerCls} > .${headRowCls} > .${cellCls}:not(.${headLastCellCls})::before`;
+  const currentHeadResizeHandleSelector = `& > .${headCls} > .${headInnerCls} > .${headRowCls} .${headCellResizeHandleCls}, & > .${containerCls} > .${headCls} > .${headInnerCls} > .${headRowCls} .${headCellResizeHandleCls}`;
+  const titleFooterSelector = `& > .${titleCls}, & > .${footerCls}`;
 
   return {
     [`.${componentCls}.${componentSMCls}`]: {
-      [`${currentHeadRowSelector} > .${cellCls}:not(.${headLastCellCls})::before`]:
-        {
-          insetBlock: unit(token.cellPaddingBlockSM),
-        },
+      [currentHeadCellBeforeSelector]: {
+        insetBlock: unit(token.cellPaddingBlockSM),
+      },
 
-      [`${currentHeadRowSelector} .${headCellResizeHandleCls}`]: {
+      [currentHeadResizeHandleSelector]: {
         insetBlock: unit(token.cellPaddingBlockSM),
       },
 
       [currentCellSelector]: {
+        paddingBlock: unit(token.cellPaddingBlockSM),
+        paddingInline: unit(token.cellPaddingInlineSM),
+      },
+
+      [titleFooterSelector]: {
         paddingBlock: unit(token.cellPaddingBlockSM),
         paddingInline: unit(token.cellPaddingInlineSM),
       },
@@ -1116,16 +1133,20 @@ const genSizeClsStyle = (
     },
 
     [`.${componentCls}.${componentMDCls}`]: {
-      [`${currentHeadRowSelector} > .${cellCls}:not(.${headLastCellCls})::before`]:
-        {
-          insetBlock: unit(token.cellPaddingBlockMD),
-        },
+      [currentHeadCellBeforeSelector]: {
+        insetBlock: unit(token.cellPaddingBlockMD),
+      },
 
-      [`${currentHeadRowSelector} .${headCellResizeHandleCls}`]: {
+      [currentHeadResizeHandleSelector]: {
         insetBlock: unit(token.cellPaddingBlockMD),
       },
 
       [currentCellSelector]: {
+        paddingBlock: unit(token.cellPaddingBlockMD),
+        paddingInline: unit(token.cellPaddingInlineMD),
+      },
+
+      [titleFooterSelector]: {
         paddingBlock: unit(token.cellPaddingBlockMD),
         paddingInline: unit(token.cellPaddingInlineMD),
       },
@@ -1142,6 +1163,7 @@ const genSizeClsStyle = (
 const genStripeClsStyle = (
   {
     componentCls,
+    containerCls,
     stripeCls,
     bodyCls,
     bodyInnerCls,
@@ -1153,7 +1175,11 @@ const genStripeClsStyle = (
   token: TableComponentToken,
 ): CSSInterpolation => ({
   [`.${componentCls}.${stripeCls}`]: {
-    [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyStripeRowCls} > .${cellCls}, & > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyStripeRowCls} > .${cellCls}`]:
+    [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyStripeRowCls} > .${cellCls}, & > .${containerCls} > .${bodyCls} > .${bodyInnerCls} > .${bodyStripeRowCls} > .${cellCls}`]:
+      {
+        backgroundColor: token.cellStripeBg,
+      },
+    [`& > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyStripeRowCls} > .${cellCls}, & > .${containerCls} > .${bodyCls} > .${bodyInnerCls} > .${bodyVirtualFillerCls} > .${bodyVirtualInnerCls} > .${bodyStripeRowCls} > .${cellCls}`]:
       {
         backgroundColor: token.cellStripeBg,
       },
@@ -1178,6 +1204,7 @@ const genNestStyles = (
   mergedToken: TableComponentToken,
 ): CSSInterpolation => [
   genInitialStyle(clsObj),
+  genTitleFooterStyle(clsObj, mergedToken),
   genPlaceholderStyle(clsObj, mergedToken),
   genComponentStyle(clsObj),
   genSkeletonStyle(clsObj),

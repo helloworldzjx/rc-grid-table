@@ -516,7 +516,8 @@ export type ColumnsConfig<T> = {
   ) => void;
 };
 
-export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
+export interface TableProps<T = any>
+  extends Omit<HTMLAttributes<HTMLDivElement>, 'title'> {
   /**
    * @description className 前缀
    * @default "rc-grid-table"
@@ -601,6 +602,18 @@ export interface TableProps<T = any> extends HTMLAttributes<HTMLDivElement> {
    * @description 网格style
    */
   bordered?: boolean;
+  /**
+   * @description 标题栏
+   */
+  title?: (dataSource: T[]) => ReactNode;
+  /**
+   * @description 页脚栏
+   */
+  footer?: (dataSource: T[]) => ReactNode;
+  /**
+   * @description 分页栏
+   */
+  pagination?: ReactNode;
   /**
    * @description 斑马纹style
    */

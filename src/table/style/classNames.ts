@@ -11,6 +11,8 @@ export type ComponentClsType = {
   virtualCls: string;
   stripeCls: string;
   noDataCls: string;
+  hasTitleCls: string;
+  hasFooterCls: string;
   hasSummaryCls: string;
   hasXScrollbarCls: string;
   hasYScrollbarCls: string;
@@ -28,6 +30,9 @@ export type ComponentClsType = {
   fixedStartShadowActiveCls: string;
   fixedEndShadowCls: string;
   fixedEndShadowActiveCls: string;
+  containerCls: string;
+  titleCls: string;
+  footerCls: string;
   placeholderCls: string;
   placeholderDisabledCls: string;
   headCls: string;
@@ -144,6 +149,8 @@ export const getComponentCls = (prefixCls: string): ComponentClsType => {
     virtualCls: `${prefixCls}-virtual`,
     stripeCls: `${prefixCls}-stripe`,
     noDataCls: `${prefixCls}-no-data`,
+    hasTitleCls: `${prefixCls}-has-title`,
+    hasFooterCls: `${prefixCls}-has-footer`,
     hasSummaryCls: `${prefixCls}-has-summary`,
     hasXScrollbarCls: `${prefixCls}-has-horizontal-scrollbar`,
     hasYScrollbarCls: `${prefixCls}-has-vertical-scrollbar`,
@@ -161,6 +168,9 @@ export const getComponentCls = (prefixCls: string): ComponentClsType => {
     fixedStartShadowActiveCls: `${prefixCls}-fixed-start-shadow-active`,
     fixedEndShadowCls: `${prefixCls}-fixed-end-shadow`,
     fixedEndShadowActiveCls: `${prefixCls}-fixed-end-shadow-active`,
+    containerCls: `${prefixCls}-container`,
+    titleCls: `${prefixCls}-title`,
+    footerCls: `${prefixCls}-footer`,
     placeholderCls: `${prefixCls}-placeholder`,
     placeholderDisabledCls: `${prefixCls}-placeholder-disabled`,
     headCls: `${prefixCls}-head`,

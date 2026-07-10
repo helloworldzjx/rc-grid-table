@@ -125,18 +125,24 @@ const App: React.FC = () => {
           columns={columns}
           dataSource={pageData}
           scrollY={400}
+          pagination={
+            <Pagination
+              current={current}
+              pageSize={pageSize}
+              total={total}
+              showSizeChanger
+              showQuickJumper
+              showTotal={(total) => `Total ${total} items`}
+              onChange={handlePaginationChange}
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                justifyContent: 'flex-end',
+                marginTop: 12,
+              }}
+            />
+          }
         />
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <Pagination
-            current={current}
-            pageSize={pageSize}
-            total={total}
-            showSizeChanger
-            showQuickJumper
-            showTotal={(total) => `Total ${total} items`}
-            onChange={handlePaginationChange}
-          />
-        </div>
       </Space>
     </>
   );
