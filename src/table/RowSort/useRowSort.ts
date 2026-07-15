@@ -99,7 +99,7 @@ export default function useRowSort<T = any>({
       type: 'rowSortable',
       key: rowKeyValue,
       record: rowData,
-      index: rowIndex,
+      rowIndex,
     } satisfies RowSortableData<T>,
   });
 

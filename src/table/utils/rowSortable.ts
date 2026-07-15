@@ -8,7 +8,7 @@ import { warningInvalidRecordKey } from './warning';
 export interface RowSortEntity<T = any> {
   key: Key;
   record: T;
-  index: number;
+  siblingIndex: number;
   parentKey?: Key;
   parentPath: number[];
 }
@@ -27,7 +27,7 @@ export const getRowSortEntities = <T = any>(
     parentKey?: Key,
     parentPath: number[] = [],
   ) => {
-    records.forEach((record, index) => {
+    records.forEach((record, siblingIndex) => {
       const key = getRecordKey(record, rowKey);
       if (!isValidKey(key)) {
         warningInvalidRecordKey(rowKey, 'row sorting', key);
@@ -36,7 +36,7 @@ export const getRowSortEntities = <T = any>(
       const entity = {
         key,
         record,
-        index,
+        siblingIndex,
         parentKey,
         parentPath,
       };
@@ -45,7 +45,7 @@ export const getRowSortEntities = <T = any>(
 
       const children = getRecordChildren(record, childrenColumnName);
       if (children.length) {
-        traverse(children, key, [...parentPath, index]);
+        traverse(children, key, [...parentPath, siblingIndex]);
       }
     });
   };
@@ -155,7 +155,7 @@ export const reorderDataSource = <T = any>({
   if (
     allowCrossLevelSort &&
     isDescendantOrSelfPath(
-      [...activeEntity.parentPath, activeEntity.index],
+      [...activeEntity.parentPath, activeEntity.siblingIndex],
       overEntity.parentPath,
     )
   ) {
@@ -168,15 +168,15 @@ export const reorderDataSource = <T = any>({
   const toSiblings = sameParent
     ? fromSiblings
     : draft.getMutableSiblings(overEntity.parentPath);
-  const [activeRecord] = fromSiblings.splice(activeEntity.index, 1);
+  const [activeRecord] = fromSiblings.splice(activeEntity.siblingIndex, 1);
 
   if (!activeRecord) {
     return null;
   }
 
-  let insertIndex = overEntity.index;
+  let insertIndex = overEntity.siblingIndex;
 
-  if (sameParent && activeEntity.index < overEntity.index) {
+  if (sameParent && activeEntity.siblingIndex < overEntity.siblingIndex) {
     insertIndex -= 1;
   }
   if (placement === 'after') {
@@ -194,8 +194,9 @@ export const reorderDataSource = <T = any>({
       overRecord: overEntity.record,
       fromParentKey: activeEntity.parentKey,
       toParentKey: overEntity.parentKey,
-      fromIndex: activeEntity.index,
-      toIndex: insertIndex,
+      fromSiblingIndex: activeEntity.siblingIndex,
+      overSiblingIndex: overEntity.siblingIndex,
+      toSiblingIndex: insertIndex,
       placement,
     },
   };

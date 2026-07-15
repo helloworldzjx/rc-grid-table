@@ -131,7 +131,7 @@ function RowSortBodyCell<T = any>({
       disabled,
       dragging,
       record: rowData,
-      index: rowIndex,
+      rowIndex,
       indent,
     }),
     [disabled, dragging, indent, rowData, rowIndex],

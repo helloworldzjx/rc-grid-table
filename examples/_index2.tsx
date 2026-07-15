@@ -13,8 +13,8 @@ interface DataType {
 
 // In the fifth row, other columns are merged into first column
 // by setting it's colSpan to be 0
-const sharedOnCell = (_: DataType, index?: number) => {
-  if (index === 1) {
+const sharedOnCell = (_: DataType, rowIndex: number) => {
+  if (rowIndex === 1) {
     return { colSpan: 0 };
   }
 
@@ -31,8 +31,8 @@ export default () => {
       title: 'Name',
       dataIndex: 'name',
       render: (text) => <a>{text}</a>,
-      onCell: (_, index) => ({
-        colSpan: index === 1 ? 5 : 1,
+      onCell: (_, rowIndex) => ({
+        colSpan: rowIndex === 1 ? 5 : 1,
       }),
     },
     {
@@ -44,15 +44,15 @@ export default () => {
       title: 'Home phone',
       colSpan: 2,
       dataIndex: 'tel',
-      onCell: (_, index) => {
-        if (index === 3) {
+      onCell: (_, rowIndex) => {
+        if (rowIndex === 3) {
           return { rowSpan: 2 };
         }
         // These two are merged into above cell
-        if (index === 4) {
+        if (rowIndex === 4) {
           return { rowSpan: 0 };
         }
-        if (index === 1) {
+        if (rowIndex === 1) {
           return { colSpan: 0 };
         }
 

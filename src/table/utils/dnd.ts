@@ -2,7 +2,7 @@ import type { Data } from '@dnd-kit/core';
 import type { SortableData } from '@dnd-kit/sortable';
 import type { Key } from 'react';
 
-import { isObject, isValidKey } from '../../_utils/validate';
+import { isNum, isObject, isValidKey } from '../../_utils/validate';
 import type { InternalColumnState } from '../internalInterface';
 
 export type ResizableColumnsData = Data<{
@@ -30,7 +30,7 @@ export type RowSortableData<T = any> = Data<{
   type: 'rowSortable';
   key?: Key;
   record?: T;
-  index?: number;
+  rowIndex: number;
 }>;
 
 export const isResizableColumnsData = (
@@ -51,7 +51,8 @@ export const isSortableColumnsData = <T = any>(
 
 export const isRowSortableData = <T = any>(
   data: unknown,
-): data is RowSortableData<T> => isObject(data) && data.type === 'rowSortable';
+): data is RowSortableData<T> =>
+  isObject(data) && data.type === 'rowSortable' && isNum(data.rowIndex);
 
 export const dispatchDndPopupCloseEvent = (activatorEvent?: Event | null) => {
   if (typeof window === 'undefined') return;

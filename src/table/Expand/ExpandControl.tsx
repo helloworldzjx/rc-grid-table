@@ -41,7 +41,7 @@ function ExpandControl<T = any>({
       expanded,
       expandable,
       record: rowData,
-      index: rowIndex,
+      rowIndex,
       indent,
       onExpand: () => handleExpand(),
     }),

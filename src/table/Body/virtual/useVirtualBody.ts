@@ -6,7 +6,7 @@ import { preventDefaultIfCancelable } from '../../../_utils/event';
 import { isNum } from '../../../_utils/validate';
 import type {
   SizeType,
-  TableScrollToOptions,
+  TableScrollAlign,
   TableVirtualConfig,
 } from '../../interface';
 import { getDefaultInternalColumnWidth } from '../../utils/const';
@@ -19,10 +19,17 @@ type KeyedVirtualBodyItem = {
   key: Key;
 };
 
-type ScrollTargetAlign = Exclude<TableScrollToOptions['align'], undefined>;
+type VirtualScrollToOptions = ScrollToOptions & {
+  itemIndex?: number;
+  key?: Key;
+  align?: TableScrollAlign;
+  offset?: number;
+};
+
+type ScrollTargetAlign = Exclude<VirtualScrollToOptions['align'], undefined>;
 
 interface PendingScrollTarget {
-  index: number;
+  itemIndex: number;
   align: ScrollTargetAlign;
   offset: number;
   syncTimes: number;
@@ -562,9 +569,11 @@ export default function useVirtualBody<ItemType extends KeyedVirtualBodyItem>({
 
     const pendingTarget = pendingScrollTargetRef.current;
     if (pendingTarget && inVirtual) {
-      const heightResolved = isScrollTargetHeightResolved(pendingTarget.index);
+      const heightResolved = isScrollTargetHeightResolved(
+        pendingTarget.itemIndex,
+      );
       const targetTop = getScrollTargetTop(
-        pendingTarget.index,
+        pendingTarget.itemIndex,
         pendingTarget.align,
         pendingTarget.offset,
       );
@@ -871,7 +880,7 @@ export default function useVirtualBody<ItemType extends KeyedVirtualBodyItem>({
   }, [inVirtual, scrollElement, syncScrollBy]);
 
   const scrollTo = useCallback(
-    (options?: TableScrollToOptions | number | null) => {
+    (options?: VirtualScrollToOptions | number | null) => {
       if (options === null || options === undefined) return false;
 
       if (typeof options === 'number') {
@@ -886,9 +895,9 @@ export default function useVirtualBody<ItemType extends KeyedVirtualBodyItem>({
       }
 
       let targetIndex: number | undefined;
-      if (isNum(options.index)) {
+      if (isNum(options.itemIndex)) {
         targetIndex = Math.min(
-          Math.max(Math.floor(options.index), 0),
+          Math.max(Math.floor(options.itemIndex), 0),
           data.length - 1,
         );
       } else if (options.key !== undefined) {
@@ -905,7 +914,7 @@ export default function useVirtualBody<ItemType extends KeyedVirtualBodyItem>({
           targetTop = alignedTop;
           if (shouldSyncScrollTargetAfterMeasure(targetIndex)) {
             pendingTarget = {
-              index: targetIndex,
+              itemIndex: targetIndex,
               align,
               offset,
             };

@@ -272,8 +272,8 @@ const App: React.FC = () => {
           expandable={{
             columnOverlayTitle: '选择列',
             indentSize: 24,
-            expandedRowRender(_, index) {
-              return index;
+            expandedRowRender(_, rowIndex) {
+              return rowIndex;
             },
           }}
         />

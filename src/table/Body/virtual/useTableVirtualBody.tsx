@@ -311,20 +311,23 @@ export default function useTableVirtualBody<T = any>({
         options &&
         typeof options === 'object' &&
         (options.top !== undefined ||
-          options.index !== undefined ||
+          options.rowIndex !== undefined ||
           options.key !== undefined)
       ) {
-        const virtualOptions = { ...options };
+        const { rowIndex, ...restOptions } = options;
+        const virtualOptions: Omit<TableScrollToOptions, 'rowIndex'> & {
+          itemIndex?: number;
+        } = { ...restOptions };
         if (options.key !== undefined) {
           virtualOptions.key = `row-${options.key}`;
         }
-        if (options.index !== undefined) {
-          const targetRowIndex = Math.floor(options.index);
+        if (rowIndex !== undefined) {
+          const targetRowIndex = Math.floor(rowIndex);
           const targetItemIndex = bodyItems.findIndex(
             (item) => isBodyRowItem(item) && item.rowIndex === targetRowIndex,
           );
           if (targetItemIndex >= 0) {
-            virtualOptions.index = targetItemIndex;
+            virtualOptions.itemIndex = targetItemIndex;
           }
         }
 

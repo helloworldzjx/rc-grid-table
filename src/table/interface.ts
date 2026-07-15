@@ -63,7 +63,8 @@ export interface SetColumnFixedOptions {
 export type TableScrollAlign = 'top' | 'bottom' | 'auto';
 
 export type TableScrollToOptions = ScrollToOptions & {
-  index?: number;
+  /** Flatten body data row index. Expanded content rows are not counted. */
+  rowIndex?: number;
   key?: Key;
   align?: TableScrollAlign;
   offset?: number;
@@ -133,29 +134,29 @@ export type SpanCellAttributes = CellAttributes & {
 
 export type GetBodyCellProps<DataType> = (
   data: DataType,
-  rowIndex?: number,
+  rowIndex: number,
 ) => SpanCellAttributes;
 
 export type GetTableBodyCellProps<DataType> = (
   data: DataType,
-  rowIndex: number | undefined,
+  rowIndex: number,
   column: ColumnInfo<DataType>,
-  columnIndex?: number,
+  columnIndex: number,
 ) => CellAttributes;
 
 export type GetHeaderCellProps<T> = (
   column: ColumnInfo<T>,
-  columnIndex?: number,
+  columnIndex: number,
 ) => SpanCellAttributes;
 
 export type GetTableHeaderCellProps<T> = (
   column: ColumnInfo<T>,
-  columnIndex?: number,
+  columnIndex: number,
 ) => CellAttributes;
 
 export type GetHeadFilterRowCellProps<T> = (
   column: ColumnInfo<T>,
-  columnIndex?: number,
+  columnIndex: number,
 ) => CellAttributes;
 
 export type PercentColumnWidthType = `${number}%`;
@@ -164,7 +165,7 @@ export interface ExpandIconProps<T = any> {
   expanded: boolean;
   expandable: boolean;
   record: T;
-  index: number;
+  rowIndex: number;
   indent: number;
   onExpand: (record: T, event: MouseEvent<HTMLElement>) => void;
 }
@@ -178,11 +179,11 @@ export interface ExpandableConfig<T = any> {
   defaultExpandedRowKeys?: Key[];
   expandedRowClassName?:
     | string
-    | ((record: T, index: number, indent: number) => string);
+    | ((record: T, rowIndex: number, indent: number) => string);
   expandedRowKeys?: Key[];
   expandedRowRender?: (
     record: T,
-    index: number,
+    rowIndex: number,
     indent: number,
     expanded: boolean,
   ) => ReactNode;
@@ -193,7 +194,7 @@ export interface ExpandableConfig<T = any> {
   indentSize?: number;
   /** 禁止展开列重新调整宽度 */
   resizeDisabled?: boolean;
-  /** 拖拽可调整展开列的最小宽度，未设置时按表格 size 使用默认拖拽下限 */
+  /** 拖拽可调整展开列的最小宽度，未设置时按表格 size 使用默认拖拽下限宽度 */
   resizeMinWidth?: number;
   rowExpandable?: (record: T) => boolean;
   showExpandColumn?: boolean;
@@ -207,7 +208,7 @@ export interface RowSortIconProps<T = any> {
   disabled: boolean;
   dragging: boolean;
   record: T;
-  index: number;
+  rowIndex: number;
   indent: number;
 }
 
@@ -218,8 +219,12 @@ export interface RowSortChangeInfo<T = any> {
   overRecord: T;
   fromParentKey?: Key;
   toParentKey?: Key;
-  fromIndex: number;
-  toIndex: number;
+  /** Source record index in its original parent children array. */
+  fromSiblingIndex: number;
+  /** Over record index in the target parent children array before moving. */
+  overSiblingIndex: number;
+  /** Final insertion index in the target parent children array. */
+  toSiblingIndex: number;
   placement: RowSortPlacement;
 }
 
@@ -229,7 +234,7 @@ export interface RowSortableConfig<T = any> {
   columnOverlayTitle?: ReactNode;
   columnWidth?: PercentColumnWidthType | number;
   fixed?: FixedType;
-  /** 拖拽可调整行拖拽列的最小宽度，未设置时按表格 size 使用默认拖拽下限 */
+  /** 拖拽可调整行拖拽列的最小宽度，未设置时按表格 size 使用默认拖拽下限宽度 */
   resizeMinWidth?: number;
   allowCrossLevelSort?: boolean;
   /** 行拖拽overlay中渲染的列。通过columns中的key或dataIndex匹配 */
@@ -257,7 +262,7 @@ export interface TableRowSelection<T = any> {
   fixed?: FixedType;
   /** 禁止选择列重新调整宽度 */
   resizeDisabled?: boolean;
-  /** 拖拽可调整选择列的最小宽度，未设置时按表格 size 使用默认拖拽下限 */
+  /** 拖拽可调整选择列的最小宽度，未设置时按表格 size 使用默认拖拽下限宽度 */
   resizeMinWidth?: number;
   getRadioProps?: (record: T) => SelectionRadioControlProps;
   getCheckboxProps?: (record: T) => SelectionCheckboxControlProps;
@@ -266,7 +271,7 @@ export interface TableRowSelection<T = any> {
   renderCell?: (
     checked: boolean,
     record: T,
-    index: number,
+    rowIndex: number,
     originNode: ReactNode,
   ) => ReactNode;
   selectedRowKeys?: Key[];
@@ -323,7 +328,7 @@ export interface ColumnProps<T = any> {
   width?: number | PercentColumnWidthType;
   /** 禁止表格重新调整叶子列宽度 */
   resizeDisabled?: boolean;
-  /** 拖拽调整列宽时的最小宽度，未设置时按表格 size 使用默认拖拽下限 */
+  /** 拖拽调整列宽时的最小宽度，未设置时按表格 size 使用默认拖拽下限宽度 */
   resizeMinWidth?: number;
   /** 禁止列拖拽排序 */
   dragSortDisabled?: boolean;
@@ -691,7 +696,7 @@ export interface TableProps<T = any> extends TableNativeProps {
    */
   onHeaderRow?: (
     columns: ColumnInfo<T>[],
-    index?: number,
+    headerRowIndex: number,
   ) => HTMLAttributes<any>;
   /**
    * @description 设置头部单元格属性
@@ -702,7 +707,7 @@ export interface TableProps<T = any> extends TableNativeProps {
    */
   onHeaderFilterRow?: (
     columns: ColumnInfo<T>[],
-    index?: number,
+    headerRowIndex: number,
   ) => HTMLAttributes<any>;
   /**
    * @description 设置筛选行单元格属性
@@ -715,11 +720,11 @@ export interface TableProps<T = any> extends TableNativeProps {
   /**
    * @description 设置body行属性
    */
-  onRow?: (record: T, index?: number) => HTMLAttributes<any>;
+  onRow?: (record: T, rowIndex: number) => HTMLAttributes<any>;
   /**
    * @description 设置body行的类名
    */
-  rowClassName?: (record?: T, rowIndex?: number) => string;
+  rowClassName?: (record: T, rowIndex: number) => string;
   /**
    * @description 滚动事件回调
    */

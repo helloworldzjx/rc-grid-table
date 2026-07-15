@@ -92,7 +92,7 @@ export default function useTableRowSort<T = any>({
   const [activeKey, setActiveKey] = useState<Key | null>(null);
   const activeDataRef = useRef<{
     key: Key;
-    index?: number;
+    rowIndex: number;
   } | null>(null);
   const scrollLeftRef = useRef(0);
 
@@ -162,7 +162,7 @@ export default function useTableRowSort<T = any>({
 
       if (allowCrossLevelSort) {
         return isDescendantOrSelfPath(
-          [...activeEntity.parentPath, activeEntity.index],
+          [...activeEntity.parentPath, activeEntity.siblingIndex],
           overEntity.parentPath,
         );
       }
@@ -197,7 +197,7 @@ export default function useTableRowSort<T = any>({
 
     activeDataRef.current = {
       key: activeData.key,
-      index: activeData.index,
+      rowIndex: activeData.rowIndex,
     };
     dispatchDndPopupCloseEvent(event.activatorEvent);
     document.documentElement.style.cursor = 'grabbing';
@@ -207,7 +207,7 @@ export default function useTableRowSort<T = any>({
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       const activeEventData = event.active.data.current;
-      const activeEntity = isRowSortableData<T>(activeEventData)
+      const activeDragData = isRowSortableData<T>(activeEventData)
         ? activeEventData
         : activeDataRef.current;
       const isRowSortEvent =
@@ -218,30 +218,26 @@ export default function useTableRowSort<T = any>({
       }
 
       try {
-        if (!activeEntity || !isValidKey(activeEntity.key)) {
+        if (!activeDragData || !isValidKey(activeDragData.key)) {
           return;
         }
 
         const overEventData = event.over?.data.current;
-        const overEntity = isRowSortableData<T>(overEventData)
+        const overDragData = isRowSortableData<T>(overEventData)
           ? overEventData
           : null;
-        const activeRowKey = activeEntity.key;
-        const overKey =
-          overEntity && isValidKey(overEntity.key)
-            ? overEntity.key
-            : event.over?.id;
 
-        if (
-          isValidKey(activeRowKey) &&
-          isValidKey(overKey) &&
-          activeRowKey !== overKey
-        ) {
-          const activeIndex =
-            activeEntity.index ?? entities.get(activeRowKey)?.index ?? 0;
-          const overIndex =
-            overEntity?.index ?? entities.get(overKey)?.index ?? 0;
-          const placement = activeIndex > overIndex ? 'before' : 'after';
+        if (!overDragData || !isValidKey(overDragData.key)) {
+          return;
+        }
+
+        const activeRowKey = activeDragData.key;
+        const overKey = overDragData.key;
+        if (activeRowKey !== overKey) {
+          const placement =
+            activeDragData.rowIndex > overDragData.rowIndex
+              ? 'before'
+              : 'after';
           const result = reorderDataSource({
             dataSource: dataSource || [],
             rowKey,

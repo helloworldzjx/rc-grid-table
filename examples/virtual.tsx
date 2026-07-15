@@ -195,7 +195,7 @@ const App: React.FC = () => {
         </Button>
         <Button
           onClick={() =>
-            tableRef.current?.scrollTo({ index: 1500, align: 'top' })
+            tableRef.current?.scrollTo({ rowIndex: 1500, align: 'top' })
           }
         >
           Scroll to 1500

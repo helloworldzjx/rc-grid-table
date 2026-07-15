@@ -28,12 +28,12 @@ const App: React.FC = () => {
       dataIndex: 'group',
       fixed: 'start',
       width: 140,
-      onCell: (_, index = 0) => {
+      onCell: (_, rowIndex) => {
         if (expandable) {
           return {};
         }
 
-        if (index % groupSize === 0) {
+        if (rowIndex % groupSize === 0) {
           return { rowSpan: groupSize };
         }
         return { rowSpan: 0 };
@@ -121,7 +121,7 @@ const App: React.FC = () => {
         </Button>
         <Button
           onClick={() =>
-            tableRef.current?.scrollTo({ index: 1499, align: 'top' })
+            tableRef.current?.scrollTo({ rowIndex: 1499, align: 'top' })
           }
         >
           Scroll into group
